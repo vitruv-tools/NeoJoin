@@ -1,0 +1,38 @@
+{
+  "patterns": [
+    {
+      "match": "\\b(as|by|case|catch|containment|create|default|derived|do|else|export|extends|extension|false|finally|for|from|group|id|if|import|inner|instanceof|join|left|new|null|on|ordered|readonly|return|root|static|super|switch|synchronized|throw|to|transient|true|try|typeof|unique|unsettable|using|val|var|volatile|where|while|with)\\b",
+      "name": "keyword.control.neojoin"
+    },
+    {
+      "match": "\\\"(\\\\.|[^\\\\\\\"])*\\\"",
+      "name": "string.quoted.neojoin"
+    },
+    {
+      "match": "[0-9]([0-9]|_)*",
+      "name": "constant.numeric.neojoin"
+    },
+    {
+      "match": "\\^?([a-z]|[A-Z]|\\$|_)([a-z]|[A-Z]|\\$|_|[0-9])*",
+      "name": "variable.neojoin"
+    },
+    {
+      "begin": "/\\*",
+      "end": "\\*/",
+      "name": "comment.block.neojoin"
+    },
+    {
+      "match": "//[^\\\n\\\r]*(\\\r?\\\n)?",
+      "name": "comment.line.neojoin"
+    },
+    {
+      "match": "(!|!\u003d|!\u003d\u003d|#|%|%\u003d|\u0026|\u0026\u0026|\\(|\\)|\\*|\\*\\*|\\*\u003d|\\+|\\+\\+|\\+\u003d|,|-|--|-\u003d|-\u003e|\\.|\\.\\.|\\.\\.\\*|\\.\\.\u003c|/|/\u003d|:|::|:\u003d|;|\u003c|\u003c\u003e|\u003d|\u003d\u003d|\u003d\u003d\u003d|\u003d\u003e|\u003e|\u003e\u003d|\\?|\\?\\.|\\?:|\\[|\\]|\\{|\\||\\|\\||\\})",
+      "name": "punctuation.neojoin"
+    },
+    {
+      "match": ".",
+      "name": "invalid.neojoin"
+    }
+  ],
+  "scopeName": "source.neojoin"
+}

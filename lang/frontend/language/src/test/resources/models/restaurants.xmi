@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<restaurant:Store
+    xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:restaurant="http://example.org/restaurant">
+  <restaurants
+      name="Pizzeria Toni"
+      address="Pizza Town"
+      sells="//@foods.0 //@foods.1"
+      numEmployees="3"
+      dailyRevenue="5000.0"/>
+  <restaurants
+      name="Brauhaus"
+      sells="//@foods.2 //@foods.1"
+      numEmployees="2"
+      dailyRevenue="7000.0"/>
+  <foods name="Pizza Margherita"
+      price="7.0"/>
+  <foods name="Fanta"
+      price="5.0"
+      type="DRINK"/>
+  <foods name="Maultaschen"
+      price="8.0"/>
+</restaurant:Store>

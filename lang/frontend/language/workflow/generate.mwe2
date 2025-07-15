@@ -1,0 +1,63 @@
+module tools.vitruv.neojoin
+
+import org.eclipse.xtext.xtext.generator.*
+import org.eclipse.xtext.xtext.generator.model.project.*
+import org.eclipse.xtext.xtext.generator.textmate.*
+
+var workspaceRoot = "."
+var rootPath = "${workspaceRoot}/.."
+
+Workflow {
+	component = XtextGenerator {
+		configuration = {
+			project = StandardProjectConfig {
+				rootPath = rootPath
+				baseName = "language"
+				mavenLayout = true
+
+				runtime = {
+					srcGen = "${rootPath}/language/target/generated-sources/xtext-java"
+					ecoreModel = "${rootPath}/language/target/generated-sources/xtext-ecore"
+				}
+
+				genericIde = {
+					enabled = true
+					name = "ide"
+					srcGen = "${rootPath}/ide/src-gen/xtext-java"
+				}
+			}
+			code = {
+				preferXtendStubs = false
+				encoding = "UTF-8"
+			}
+		}
+		language = StandardLanguage {
+			name = "tools.vitruv.neojoin.NeoJoin"
+			fileExtensions = "nj"
+			grammarUri = "${rootPath}/language/src/main/xtext/tools/vitruv/neojoin/NeoJoin.xtext"
+
+			fragment = TextMateHighlightingFragment {
+				absolutePath = "${rootPath}/ide/target/"
+			}
+
+			parserGenerator = {}
+
+			serializer = {
+				generateStub = false
+			}
+			generator = {
+				generateStub = false
+			}
+			scopeProvider = {
+				generateStub = true
+			}
+			validator = {
+				generateStub = true
+			}
+
+			junitSupport = {
+				junitVersion = "5"
+			}
+		}
+	}
+}

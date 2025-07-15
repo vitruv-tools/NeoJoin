@@ -1,0 +1,2 @@
+# We are using NeoJoinJvmModelInferrer.java but Xtext generates the .xtend file anyways, so just ignore it.
+NeoJoinJvmModelInferrer.xtend
