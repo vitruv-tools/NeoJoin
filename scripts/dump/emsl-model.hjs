@@ -1,0 +1,20 @@
+model {{name}} {
+{{#each objects}}
+    {{name}}: {{type}} {
+    {{#each attributes}}
+        {{>attribute this}}
+    {{/each}}
+    {{#each associations}}
+        -{{name}}->{{target}}{{#if attributes}} {
+                {{#each attributes}}
+        {{>attribute this}}
+        {{/each}}
+        }{{/if}}
+    {{/each}}
+    }
+{{/each}}
+}
+
+{{#*inline "attribute"}}
+{{#if isInternal}}~{{else}}.{{/if}}{{name}}: {{value}}
+{{/inline}}

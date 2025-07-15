@@ -1,0 +1,22 @@
+{
+  "name": "emsl-model-dumper",
+  "version": "1.0.0",
+  "description": "Creates eMSL model files for all models in a Neo4j database",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "emsl",
+    "emoflon",
+    "dump"
+  ],
+  "type": "module",
+  "author": "Dennis Wolters",
+  "license": "ISC",
+  "dependencies": {
+    "config": "^3.3.9",
+    "handlebars": "^4.7.7",
+    "neo4j-driver": "^5.10.0"
+  }
+}
