@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <!-- Build Parent -->
+  <parent>
+    <groupId>tools.vitruv</groupId>
+    <artifactId>parent</artifactId>
+    <version>3.3.1</version>
+  </parent>
+
+  <!-- Project Information -->
+  <artifactId>tools.vitruv.neojoin</artifactId>
+  <version>0.1.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+
+  <name>NeoJoin</name>
+  <description />
+  <url />
+
+  <!-- Organizational Information -->
+  <licenses>
+    <license>
+      <name>Eclipse Public License - v 2.0</name>
+      <url>https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt</url>
+    </license>
+  </licenses>
+
+  <scm>
+    <connection />
+    <developerConnection />
+    <url />
+  </scm>
+
+  <!-- Properties -->
+  <properties>
+    <maven.compiler.release>21</maven.compiler.release>
+    <maven.compiler.source>21</maven.compiler.source>
+    <maven.compiler.target>21</maven.compiler.target>
+  </properties>
+
+  <!-- Modules -->
+  <modules>
+    <module>backend-emf</module>
+    <module>frontend</module>
+    <module>model</module>
+  </modules>
+
+  <!-- Dependency Management -->
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>com.google.code.gson</groupId>
+        <artifactId>gson</artifactId>
+        <version>2.11.0</version>
+      </dependency>
+      <dependency>
+        <groupId>info.picocli</groupId>
+        <artifactId>picocli</artifactId>
+        <version>4.7.6</version>
+      </dependency>
+      <dependency>
+        <groupId>net.sourceforge.plantuml</groupId>
+        <artifactId>plantuml</artifactId>
+        <version>1.2025.0</version>
+      </dependency>
+      <dependency>
+        <groupId>org.assertj</groupId>
+        <artifactId>assertj-core</artifactId>
+        <version>3.27.3</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.xtext</groupId>
+        <artifactId>org.eclipse.xtext</artifactId>
+        <version>2.38.0</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.xtext</groupId>
+        <artifactId>org.eclipse.xtext.ide</artifactId>
+        <version>2.38.0</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.xtext</groupId>
+        <artifactId>org.eclipse.xtext.xbase</artifactId>
+        <version>2.38.0</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.xtext</groupId>
+        <artifactId>org.eclipse.xtext.xbase.ide</artifactId>
+        <version>2.38.0</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jetbrains</groupId>
+        <artifactId>annotations</artifactId>
+        <version>26.0.2</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jspecify</groupId>
+        <artifactId>jspecify</artifactId>
+        <version>1.0.0</version>
+      </dependency>
+      <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter-api</artifactId>
+        <version>5.13.3</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+</project>
