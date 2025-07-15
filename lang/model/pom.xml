@@ -11,9 +11,17 @@
   </parent>
 
   <artifactId>tools.vitruv.neojoin.model</artifactId>
-  <name>Abstract Query Representation</name>
+  <name>Query Model</name>
 
   <dependencies>
+    <dependency>
+      <groupId>org.eclipse.emf</groupId>
+      <artifactId>org.eclipse.emf.common</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.emf</groupId>
+      <artifactId>org.eclipse.emf.ecore</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.eclipse.xtext</groupId>
       <artifactId>org.eclipse.xtext.xbase</artifactId>

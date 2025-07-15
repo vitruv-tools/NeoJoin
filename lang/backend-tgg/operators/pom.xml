@@ -13,14 +13,9 @@
 
   <artifactId>tools.vitruv.neojoin.tgg.operators</artifactId>
 
-  <name>Operators</name>
+  <name>TGG Operators</name>
   <description />
 
   <dependencies>
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-api</artifactId>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
 </project>

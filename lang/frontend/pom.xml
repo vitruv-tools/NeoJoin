@@ -13,7 +13,7 @@
   <artifactId>tools.vitruv.neojoin.frontend</artifactId>
   <packaging>pom</packaging>
 
-  <name>NeoJoin Frontend</name>
+  <name>Frontend</name>
   <description />
 
   <modules>

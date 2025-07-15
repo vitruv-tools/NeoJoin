@@ -16,10 +16,6 @@ class ThetaJoinTest {
         return new FQN("pkg", name);
     }
 
-    private static FQN t(String name) {
-        return new FQN("t", name);
-    }
-
     private ResolvedPattern resolve(Pattern pattern) {
         return new TranspilerQueryResolver().resolvePattern(pattern);
     }

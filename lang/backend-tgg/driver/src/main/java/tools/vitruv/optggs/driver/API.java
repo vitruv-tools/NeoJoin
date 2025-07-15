@@ -1,7 +1,5 @@
 package tools.vitruv.optggs.driver;
 
-import org.eclipse.emf.common.util.URI;
-import tools.vitruv.optggs.operators.Tuple;
 import tools.vitruv.optggs.transpiler.*;
 import tools.vitruv.optggs.operators.View;
 

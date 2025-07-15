@@ -76,7 +76,7 @@
 		"package.json",
 		"dist/extension.js",
 		"src/language/*",
-		"ide.jar"
+		"tools.vitruv.neojoin.frontend.ide.jar"
 	],
 	"scripts": {
 		"compile": "npm run check-types && node esbuild.cjs",

@@ -13,10 +13,15 @@
 
   <artifactId>tools.vitruv.neojoin.tgg.driver</artifactId>
 
-  <name>Driver</name>
+  <name>TGG Driver</name>
   <description />
 
   <dependencies>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>tools.vitruv.neojoin.tgg.operators</artifactId>
+      <version>${project.version}</version>
+    </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>tools.vitruv.neojoin.tgg.transpiler</artifactId>
@@ -28,22 +33,8 @@
       <artifactId>jte</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.eclipse.emf</groupId>
-      <artifactId>org.eclipse.emf.common</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.emf</groupId>
-      <artifactId>org.eclipse.emf.ecore</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.emf</groupId>
-      <artifactId>org.eclipse.emf.ecore.xmi</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-api</artifactId>
-      <scope>test</scope>
+      <groupId>gg.jte</groupId>
+      <artifactId>jte-runtime</artifactId>
     </dependency>
   </dependencies>
 </project>
