@@ -18,7 +18,7 @@
 
   <name>NeoJoin</name>
   <description />
-  <url />
+  <url>https://github.com/vitruv-tools/NeoJoin</url>
 
   <!-- Organizational Information -->
   <licenses>
@@ -29,9 +29,9 @@
   </licenses>
 
   <scm>
-    <connection />
-    <developerConnection />
-    <url />
+    <connection>scm:git:git://github.com/vitruv-tools/NeoJoin.git</connection>
+    <developerConnection>scm:git:https://github.com/vitruv-tools/NeoJoin.git</developerConnection>
+    <url>https://github.com/vitruv-tools/NeoJoin/tree/main</url>
   </scm>
 
   <!-- Properties -->
@@ -121,11 +121,6 @@
         <groupId>org.eclipse.lsp4j</groupId>
         <artifactId>org.eclipse.lsp4j.jsonrpc</artifactId>
         <version>0.24.0</version>
-      </dependency>
-      <dependency>
-        <groupId>org.eclipse.platform</groupId>
-        <artifactId>org.eclipse.core.runtime</artifactId>
-        <version>3.33.100</version>
       </dependency>
       <dependency>
         <groupId>org.eclipse.xtext</groupId>
