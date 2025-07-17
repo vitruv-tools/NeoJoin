@@ -5,6 +5,10 @@
 	"author": "Tobias Stickling",
 	"license": "EPL-2.0",
 	"version": "1.0.0",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/vitruv-tools/NeoJoin"
+	},
 	"publisher": "vitruv-tools",
 	"engines": {
 		"vscode": "^1.75.0"

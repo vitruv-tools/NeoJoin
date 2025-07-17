@@ -75,12 +75,12 @@ create ReviewedRestaurant {
 ```sh
 cd lang
 
-# either: generate and compile the code, run the tests
-./mvnw clean verify
+# either: re-generate and compile the code
+./mvnw clean compile
 # or: skip the generation, compile the code and run the tests
-./mvnw verify -P skip-code-generation
+./mvnw test -P skip-code-generation
 # or: package everything to JAR files
-./mvnw package
+./mvnw verify
 ```
 
 ### VSCode Plugin
