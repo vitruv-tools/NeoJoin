@@ -5,7 +5,7 @@ NeoCore allows to describe metamodels are Neo4j graphs.
 It follows the structure of [ECore](https://eclipse.dev/modeling/emf/).
 NeoCore and eMSL are used by the graph transformation engine [eMoflon::Neo](https://github.com/eMoflon/emoflon-neo).
 
-To dump the "Target" model in the database to the standard output run:
+To dump the "Source" and "Target" model in the database to the standard output run:
 
 ```sh
 node dump

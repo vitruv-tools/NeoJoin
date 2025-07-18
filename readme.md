@@ -110,7 +110,7 @@ cd lang
 
 *to do*
 
-### CLI
+### Command Line Interface
 
 ```
 Usage: NeoJoin [-hV] -m=MODEL PATH [[-g=OUTPUT]] [-t=OUTPUT -i=MODEL PATH] FILE
@@ -133,7 +133,7 @@ Transform the input models:
                              and write the result to the given file or directory
 ```
 
-### Transformation of Operators to TGGs
+### Transformation of Operators to Triple Graph Grammars
 
 1. Build view from operators directly: `var view = new View(); view.addQuery(...);`
 2. Resolve interdependent queries (see documentation in `Query`): `var queries = view.resolveQueries()`
@@ -143,10 +143,15 @@ Transform the input models:
 
 You can use the convenience function `API.generateProjectForView(...)` for steps 2 to 5.
 
+### Running the Generated Model-View Transformations
+
+*to do*
+
 ## Used Technology
 
-* Ecore as model engine
-* Xtext as DSL framework
-* Xbase as embedded expression language
-* eMoflon::Neo as TGG engine
-* Neo4j as graph database
+* [EMF](https://eclipse.dev/emf/) as modeling framework
+* [Xtext](https://eclipse.dev/Xtext/) as DSL framework
+* [Xbase](https://eclipse.dev/Xtext/documentation/305_xbase.html) as embedded expression language
+* [jte](https://jte.gg/) as templating engine
+* [eMoflon::Neo](https://github.com/eMoflon/emoflon-neo) as TGG engine
+* [Neo4j](https://neo4j.com/) as graph database
