@@ -119,7 +119,8 @@ Usage: NeoJoin [-hV] -m=MODEL PATH [[-g=OUTPUT]] [-t=OUTPUT -i=MODEL PATH] FILE
 
   -h, --help               Show this help message and exit.
   -m, --meta-model-path=MODEL PATH
-                           Path specification to find referenced meta-models
+                           Path specification (including URI scheme) to find
+                             referenced meta-models
   -V, --version            Print version information and exit.
 
 Generate the meta-model:
@@ -128,10 +129,13 @@ Generate the meta-model:
 
 Transform the input models:
   -i, --instance-model-path=MODEL PATH
-                           Path specification to find instance models
+                           Path specification (including URI scheme) to find
+                             instance models
   -t, --transform=OUTPUT   Transform the given input models based on the query
                              and write the result to the given file or directory
 ```
+
+*Note: `FILE` and `OUTPUT`s need to be specified with regular paths, e.g., `/x/y/z` or `./x/y`, while the `MODEL PATH`s need to be specified with URIs, including a scheme component, e.g., `file:///x/y/z` or `file:/./x/y`.*
 
 ### Transformation of Operators to Triple Graph Grammars
 

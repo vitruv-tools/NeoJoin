@@ -43,7 +43,7 @@ public class Main implements Callable<Integer> {
 	@Parameters(index = "0", paramLabel = "FILE", description = "Path to the query file")
 	Path queryFile;
 
-	@Option(names = {"-m", "--meta-model-path"}, paramLabel = "MODEL PATH", required = true, description = "Path specification to find referenced meta-models")
+	@Option(names = {"-m", "--meta-model-path"}, paramLabel = "MODEL PATH", required = true, description = "Path specification (including URI scheme) to find referenced meta-models")
 	String metaModelPath;
 
 
@@ -68,7 +68,7 @@ public class Main implements Callable<Integer> {
 		@Option(names = {"-t", "--transform"}, paramLabel = "OUTPUT", required = true, description = "Transform the given input models based on the query and write the result to the given file or directory")
 		Path output;
 
-		@Option(names = {"-i", "--instance-model-path"}, paramLabel = "MODEL PATH", required = true, description = "Path specification to find instance models")
+		@Option(names = {"-i", "--instance-model-path"}, paramLabel = "MODEL PATH", required = true, description = "Path specification (including URI scheme) to find instance models")
 		String instanceModelPath;
 
 	}
