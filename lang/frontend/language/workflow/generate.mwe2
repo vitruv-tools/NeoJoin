@@ -37,7 +37,7 @@ Workflow {
 			grammarUri = "${rootPath}/language/src/main/xtext/tools/vitruv/neojoin/NeoJoin.xtext"
 
 			fragment = TextMateHighlightingFragment {
-				absolutePath = "${rootPath}/ide/target/"
+				absolutePath = "${rootPath}/ide/src-gen/"
 			}
 
 			parserGenerator = {}
