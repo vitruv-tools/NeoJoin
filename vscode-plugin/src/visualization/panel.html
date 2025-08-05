@@ -27,7 +27,6 @@
 
 				display: flex;
 				align-items: center;
-				margin-right: 1em;
 
 				form {
 					display: inline-flex;
@@ -123,6 +122,20 @@
 				</label>
 			</form>
 			<span id="message">Loading ...</span>
+			<span>
+				Zoom:
+				<select id="zoom">
+					<option value="1.5">150%</option>
+					<option value="1.25">125%</option>
+					<option value="1" selected>100%</option>
+					<option value="0.9">90%</option>
+					<option value="0.8">80%</option>
+					<option value="0.7">70%</option>
+					<option value="0.6">60%</option>
+					<option value="0.5">50%</option>
+					<option value="0.4">40%</option>
+				</select>
+			</span>
 		</div>
 		<div id="visualization"></div>
 		<script>
@@ -140,17 +153,17 @@
 			const options = document.getElementById("options");
 			options.addEventListener("change", (event) => {
 				const option = event.target.name;
-				const value =
+				const newValue =
 					event.target.type === "checkbox"
 						? event.target.checked
 						: event.target.value;
-				state.options[option] = value;
+				state.options[option] = newValue;
 				vscode.setState(state);
 
 				vscode.postMessage({
 					command: "option",
 					option: option,
-					value: value,
+					value: newValue,
 				});
 			});
 
@@ -180,15 +193,26 @@
 					apply(input);
 				}
 			}
-
 			restore(
 				`#options input[name="mode"][value="${state.options.mode}"]`,
-				(input) => (input.checked = true)
+				(input) => input.checked = true
 			);
 			restore(
 				`#options input[name="orthogonal"]`,
-				(input) => (input.checked = state.options.orthogonal)
+				(input) => input.checked = state.options.orthogonal
 			);
+
+			// zoom
+			const zoom = document.getElementById("zoom");
+			zoom.addEventListener("change", (event) => {
+				const svg = visualization.querySelector("svg");
+				const factor = event.target.value;
+
+				// use width/height instead of `transform: scale(...)` to avoid issues with scrollbars
+				const svgSize = svg.getBBox();
+				svg.style.width = `${svgSize.width * factor}px`;
+				svg.style.height = `${svgSize.height * factor}px`;
+			});
 		</script>
 	</body>
 </html>

@@ -2,15 +2,20 @@ import * as vscode from "vscode";
 import { ExtensionContext } from "vscode";
 
 import { VisualizationPanelName } from "../constants";
-import PreviewManager from "./manager";
-import VisualizationClient from "./request";
 import { NeoJoinLanguageClient } from "../lsp";
+import VisualizationManager from "./manager";
+import VisualizationClient from "./request";
 
+/**
+ * Activates the visualization feature.
+ */
 export async function activate(
 	context: ExtensionContext,
 	languageClient: NeoJoinLanguageClient
 ) {
-	const manager = new PreviewManager(new VisualizationClient(languageClient));
+	const manager = new VisualizationManager(
+		new VisualizationClient(languageClient)
+	);
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand("neojoin.visualization", () =>
@@ -31,10 +36,14 @@ export async function activate(
 		vscode.window.onDidChangeActiveColorTheme(() =>
 			manager.updateAll(true)
 		),
+		// for restoring panels after restart
 		vscode.window.registerWebviewPanelSerializer(
 			VisualizationPanelName,
 			manager.serializer()
 		),
+		// close all panels when the extension is deactivated
 		new vscode.Disposable(() => manager.closeAll())
 	);
+
+	return manager;
 }

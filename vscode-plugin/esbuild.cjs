@@ -15,7 +15,7 @@ async function main() {
 		outfile: "dist/extension.js",
 		external: ["vscode"],
 		define: {
-			DEBUG: JSON.stringify(!isProduction),
+			DEV: JSON.stringify(!isProduction),
 		},
 		loader: {
 			".html": "text",

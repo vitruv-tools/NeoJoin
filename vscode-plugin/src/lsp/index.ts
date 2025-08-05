@@ -1,6 +1,5 @@
-
-import { homedir } from 'os';
-import { resolve as resolvePath } from 'path';
+import { homedir } from "os";
+import { resolve as resolvePath } from "path";
 import * as vscode from "vscode";
 import { ExtensionContext } from "vscode";
 import {
@@ -13,19 +12,11 @@ import {
 
 import config from "../config";
 
-export async function activate(context: ExtensionContext) {
+export async function createLanguageClient(context: ExtensionContext) {
 	const client = new NeoJoinLanguageClient(context.extensionPath);
 	await client.start();
 	context.subscriptions.push(client);
 	return client;
-}
-
-interface ServerConfig {
-	cwd: string;
-	jar: string;
-	mmPath: string;
-	jvmOpts: string[];
-	programOpts: string[];
 }
 
 function debugLogFilePath(): string {
@@ -37,12 +28,11 @@ function debugLogFilePath(): string {
 	}
 }
 
-function createConfig(extensionDir: string): ServerConfig {
-	if (DEBUG) {
+const EXEC_OPTIONS = (() => {
+	if (DEV) {
 		return {
-			cwd: extensionDir,
-			jar: resolvePath(extensionDir, "../lang/frontend/ide/target/tools.vitruv.neojoin.frontend.ide.jar"),
-			mmPath: config.metaModelSearchPath,
+			jarFile:
+				"../lang/frontend/ide/target/tools.vitruv.neojoin.frontend.ide.jar",
 			jvmOpts: [
 				"-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,quiet=y,address=*:8000", // set suspend=y to wait for debugger on launch
 			],
@@ -50,14 +40,14 @@ function createConfig(extensionDir: string): ServerConfig {
 		};
 	} else {
 		return {
-			cwd: extensionDir,
-			jar: resolvePath(extensionDir, "tools.vitruv.neojoin.frontend.ide.jar"),
-			mmPath: config.metaModelSearchPath,
+			jarFile: "ide.jar",
 			jvmOpts: [],
-			programOpts: config.debug ? ["--trace", "--log", debugLogFilePath()] : [],
+			programOpts: config.debug
+				? ["--trace", "--log", debugLogFilePath()]
+				: [],
 		};
 	}
-}
+})();
 
 const CLIENT_OPTIONS: LanguageClientOptions = {
 	documentSelector: [{ scheme: "file", language: "neojoin" }],
@@ -66,33 +56,48 @@ const CLIENT_OPTIONS: LanguageClientOptions = {
 	},
 };
 
+/**
+ * Wrapper around a {@link LanguageClient} that allows restarting after startup failures.
+ */
 export class NeoJoinLanguageClient {
+	/**
+	 * Directory where the extension is located.
+	 */
 	#extensionDir: string;
+
+	/**
+	 * Wrapped language client instance.
+	 */
 	#client: LanguageClient | null = null;
 
 	constructor(extensionDir: string) {
 		this.#extensionDir = extensionDir;
 	}
 
+	/**
+	 * Builds the server options for the language client.
+	 */
 	#buildServerOptions() {
-		const config = createConfig(this.#extensionDir);
 		return {
 			command: "java",
 			transport: TransportKind.stdio,
 			args: [
-				...config.jvmOpts,
+				...EXEC_OPTIONS.jvmOpts,
 				"-jar",
-				config.jar,
+				resolvePath(this.#extensionDir, EXEC_OPTIONS.jarFile),
 				"--meta-model-path",
-				config.mmPath,
-				...config.programOpts,
+				config.metaModelSearchPath,
+				...EXEC_OPTIONS.programOpts,
 			],
 			options: {
-				cwd: config.cwd,
+				cwd: this.#extensionDir,
 			},
 		};
 	}
 
+	/**
+	 * Returns the current {@link State state} of the language client.
+	 */
 	get state() {
 		return this.#client !== null ? this.#client.state : State.Stopped;
 	}
@@ -128,11 +133,14 @@ export class NeoJoinLanguageClient {
 		}
 	}
 
+	/**
+	 * Reload configuration. Only works when the server is stopped.
+	 */
 	public reload() {
 		if (this.state !== State.Stopped) {
 			throw new Error("Cannot reload while server is running");
 		}
-		this.#client = null;
+		this.#client = null; // client will be recreated on next start
 	}
 
 	public sendRequest<T>(method: string, param?: any): Promise<T> {

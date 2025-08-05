@@ -16,10 +16,15 @@ interface Options {
 }
 
 interface Response {
-	svg?: string
-	message?: string
+	// visualization as SVG string
+	svg?: string;
+	// warning message
+	message?: string;
 }
 
+/**
+ * Wrapper around the NeoJoin language client that provides methods for requesting visualizations.
+ */
 export default class VisualizationClient {
 	#languageClient: NeoJoinLanguageClient;
 
@@ -27,6 +32,9 @@ export default class VisualizationClient {
 		this.#languageClient = languageClient;
 	}
 
+	/**
+	 * Returns whether the visualization client is ready to handle requests.
+	 */
 	get ready() {
 		return this.#languageClient.state === State.Running;
 	}
@@ -38,11 +46,18 @@ export default class VisualizationClient {
 		return this.#languageClient.sendRequest(method, param);
 	}
 
-	async getTargetModelVisualization(
+	/**
+	 * Requests a visualization for the given document.
+	 * @param doc open document
+	 * @param mode visualization mode
+	 * @param options options
+	 * @returns promise that resolves with a visualization response
+	 */
+	getTargetModelVisualization(
 		doc: vscode.TextDocument,
 		mode: Mode,
 		options: Options
-	) {
+	): Promise<Response> {
 		if (!MODES.includes(mode.type)) {
 			throw new Error("Invalid mode: " + mode.type);
 		}

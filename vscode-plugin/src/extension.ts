@@ -5,10 +5,12 @@ import { State } from "vscode-languageclient/node";
 import * as lsp from "./lsp";
 import { delay, getErrorMessage } from "./utils";
 import * as visualization from "./visualization";
+import VisualizationManager from "./visualization/manager";
 
 function registerCommands(
 	context: ExtensionContext,
-	languageClient: lsp.NeoJoinLanguageClient
+	languageClient: lsp.NeoJoinLanguageClient,
+	visualizationManager: VisualizationManager
 ) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand("neojoin.restart", () => {
@@ -28,21 +30,22 @@ function registerCommands(
 				async (progress, _) => {
 					try {
 						progress.report({
-							increment: 0,
+							increment: 0, // 0%
 							message: "Stopping ...",
 						});
 						await languageClient.stop();
-						if (DEBUG) {
+						if (DEV) {
 							// wait for the java agent port to be released
 							await delay(1000);
 						}
 						languageClient.reload();
 						progress.report({
-							increment: 50,
+							increment: 50, // 50%
 							message: "Starting ...",
 						});
 						await languageClient.start();
-						progress.report({ increment: 49, message: "Done" });
+						visualizationManager.updateAll(true);
+						progress.report({ increment: 49, message: "Done" }); // 99%
 						await delay(1000);
 					} catch (e) {
 						vscode.window.showErrorMessage(
@@ -57,19 +60,25 @@ function registerCommands(
 
 export async function activate(context: ExtensionContext) {
 	try {
-		const languageClient = await lsp.activate(context);
-		await visualization.activate(context, languageClient);
-		registerCommands(context, languageClient);
+		const languageClient = await lsp.createLanguageClient(context);
+		const visualizationManager = await visualization.activate(
+			context,
+			languageClient
+		);
+		registerCommands(context, languageClient, visualizationManager);
+
+		if (DEV) {
+			vscode.window.showInformationMessage(
+				"NeoJoin initialized in development mode."
+			);
+		}
 	} catch (e) {
 		vscode.window.showErrorMessage(
 			"Failed to initialize NeoJoin Plugin: " + getErrorMessage(e)
 		);
 	}
-
-	// TODO remove
-	vscode.window.showInformationMessage(
-		`NeoJoin initialized${DEBUG ? " (debug)" : ""}`
-	);
 }
 
-export function deactivate() {}
+export function deactivate() {
+	// everything registered via `context.subscriptions.push(...)` is disposed automatically
+}
