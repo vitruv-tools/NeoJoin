@@ -16,8 +16,8 @@ import tools.vitruv.neojoin.Constants;
 import tools.vitruv.neojoin.ast.ViewTypeDefinition;
 
 /**
- * Xtend expressions within a Xtext language work by defining a jvm model (= a set of classes).
- * This model is used by Xtext for type checking and code completion in Xtend expressions.
+ * Xbase expressions within an Xtext language work by defining a jvm model (= a set of classes).
+ * This model is used by Xtext for type checking and code completion in Xbase expressions.
  * This class infers such a jvm model
  * <ul>
  *     <li>for all source models to tell Xtext which classes and features are available and their types (see {@link SourceModelInferrer}) and</li>

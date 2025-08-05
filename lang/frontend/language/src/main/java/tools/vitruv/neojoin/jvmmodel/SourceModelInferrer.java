@@ -25,12 +25,12 @@ import static tools.vitruv.neojoin.utils.Assertions.check;
 import static tools.vitruv.neojoin.utils.Assertions.fail;
 
 /**
- * Generate a jvm model for all available source meta-models to allow Xtend expressions to reference their attributes.
+ * Generate a jvm model for all available source meta-models to allow Xbase expressions to reference their attributes.
  */
 public class SourceModelInferrer {
 
 	/**
-	 * Used to store the represented {@link EClass} within a generated {@link JvmType}.
+	 * Used to store the represented source {@link EClass} within a generated {@link JvmType}.
 	 */
 	private static class EcoreSourceHolder extends EValueHolder<EClassifier> {
 
@@ -49,10 +49,10 @@ public class SourceModelInferrer {
 	}
 
 	/**
-	 * Retrieve the {@link EClass} that the given {@link JvmType} represents.
+	 * Retrieve the source {@link EClass} that the given {@link JvmType} represents.
 	 *
 	 * @param type jvm type
-	 * @return represented {@link EClass} or null
+	 * @return represented {@link EClass} or {@code null}
 	 */
 	public static @Nullable EClassifier getEClassifierOrNull(JvmType type) {
 		return EcoreSourceHolder.getOrNull(type);
@@ -86,30 +86,20 @@ public class SourceModelInferrer {
 		}
 	}
 
-	private void forEachClassifierIn(EPackage pack, Consumer<EClassifier> consumer) {
+	private void forEachClassIn(EPackage pack, Consumer<EClass> consumer) {
 		for (var classifier : pack.getEClassifiers()) {
-			consumer.accept(classifier);
+			if (classifier instanceof EClass eClazz) {
+				consumer.accept(eClazz);
+			}
 		}
 	}
 
-	private void forEachClassIn(EPackage pack, Consumer<EClass> consumer) {
-		forEachClassifierIn(
-			pack, classifier -> {
-				if (classifier instanceof EClass eClazz) {
-					consumer.accept(eClazz);
-				}
-			}
-		);
-	}
-
 	private void forEachEnumIn(EPackage pack, Consumer<EEnum> consumer) {
-		forEachClassifierIn(
-			pack, classifier -> {
-				if (classifier instanceof EEnum eEnum) {
-					consumer.accept(eEnum);
-				}
+		for (var classifier : pack.getEClassifiers()) {
+			if (classifier instanceof EEnum eEnum) {
+				consumer.accept(eEnum);
 			}
-		);
+		}
 	}
 
 	private void createEnum(EEnum eEnum) {

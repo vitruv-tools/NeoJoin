@@ -45,7 +45,7 @@ class ShortAggregationExtensions {
 	}
 
 	public static double avg(Iterable<Short> iterable) {
-		return avg(iterable, v -> v);
+		return avg(iterable, Function.identity());
 	}
 
 }

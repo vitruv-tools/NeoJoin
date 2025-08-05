@@ -10,7 +10,8 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 /**
- * Collects models based on a search paths. Supports both {@link PackageModelCollector meta-models} and {@link InstanceModelCollector instance-models}.
+ * Collects models based on a search paths. Supports both {@link PackageModelCollector meta-models} and
+ * {@link InstanceModelCollector instance-models}.
  * <p>
  * A search path is a semi-colon separted list of URIs (currently only file URIs). The URI can point directly to a
  * model file or to a path which is then searched recursively for models.
@@ -31,7 +32,7 @@ public abstract class AbstractModelCollector {
 
 	protected abstract Predicate<URI> getFilter();
 
-	protected Stream<Resource> collectResourceStream(ResourceSet resourceSet) {
+	protected Stream<Resource> collectResourcesAsStream(ResourceSet resourceSet) {
 		return paths.stream()
 			.flatMap(p -> URIAccessor.Registry.get(p).getContainedFiles(p, getFilter()).stream())
 			.map(uri -> resourceSet.getResource(uri, true));

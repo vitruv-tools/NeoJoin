@@ -13,6 +13,7 @@ import tools.vitruv.neojoin.utils.EMFUtils;
 import tools.vitruv.neojoin.utils.Pair;
 import tools.vitruv.neojoin.utils.Utils;
 
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -116,34 +117,43 @@ public class VisualizationGenerator {
 			header();
 			packages(); // generate empty package stubs
 
+			// Classifiers are sorted in the following sections to ensure a deterministic output, because otherwise
+			// elements can jump around for example when reformatting the source file or adding spaces.
+
 			if (mode instanceof Mode.Full) {
 				// show all source classes
 				aqr.imports().forEach(imp -> {
-					EMFUtils.getAllEClassifiers(imp.pack()).forEach(classifier -> {
-						if (classifier instanceof EClass clazz) {
-							// class might have already been generated as super class of another class
-							clazzIfNew(clazz);
-						} else if (classifier instanceof EEnum eEnum) {
-							// enum might have already been generated from a class attribute
-							enumerationIfNew(eEnum);
-						}
-					});
+					EMFUtils.getAllEClassifiers(imp.pack())
+						.sorted(Comparator.comparing(EClassifier::getName))
+						.forEach(classifier -> {
+							if (classifier instanceof EClass clazz) {
+								// class might have already been generated as super class of another class
+								clazzIfNew(clazz);
+							} else if (classifier instanceof EEnum eEnum) {
+								// enum might have already been generated from a class attribute
+								enumerationIfNew(eEnum);
+							}
+						});
 				});
 			}
 
 			if (mode instanceof Mode.Selected(var selectedClasses)) {
 				// show selected target classes
-				selectedClasses.forEach(this::targetClazz);
+				selectedClasses.stream()
+					.sorted(Comparator.comparing(EClassifier::getName))
+					.forEach(this::targetClazz);
 			} else {
 				// show all target classes
-				targetMetaModel.pack().getEClassifiers().forEach(classifier -> {
-					if (classifier instanceof EClass clazz) {
-						targetClazz(clazz);
-					} else if (classifier instanceof EEnum eEnum) {
-						// enum might have already been generated from a class attribute
-						enumerationIfNew(eEnum);
-					}
-				});
+				targetMetaModel.pack().getEClassifiers().stream()
+					.sorted(Comparator.comparing(EClassifier::getName))
+					.forEach(classifier -> {
+						if (classifier instanceof EClass clazz) {
+							targetClazz(clazz);
+						} else if (classifier instanceof EEnum eEnum) {
+							// enum might have already been generated from a class attribute
+							enumerationIfNew(eEnum);
+						}
+					});
 			}
 		});
 

@@ -100,12 +100,24 @@ public class Main implements Callable<Integer> {
 		return 1;
 	}
 
+	/**
+	 * Prints an error message with optional formatting arguments.
+	 *
+	 * @param message message format string
+	 * @param args    formatting arguments
+	 * @see java.io.PrintStream#printf(String, Object...)
+	 */
 	private void printError(String message, @Nullable Object... args) {
 		System.err.print("[ERROR] ");
 		System.err.printf(message, args);
 		System.err.println();
 	}
 
+	/**
+	 * Execute the CLI operation.
+	 *
+	 * @return exit code
+	 */
 	private int execute() throws IOException {
 		// collect available meta-models
 		EPackage.Registry registry = new PackageModelCollector(metaModelPath).collect();
@@ -174,6 +186,12 @@ public class Main implements Callable<Integer> {
 
 	private @Nullable ResourceSet resourceSet;
 
+	/**
+	 * Write the given {@link EObject} to a file specified by the given {@link URI}.
+	 *
+	 * @param outputUri URI of the output file
+	 * @param object    the {@link EObject} to write
+	 */
 	private void write(URI outputUri, EObject object) throws IOException {
 		if (resourceSet == null) {
 			resourceSet = new ResourceSetImpl();
@@ -181,12 +199,19 @@ public class Main implements Callable<Integer> {
 
 		var resource = resourceSet.createResource(outputUri);
 		resource.getContents().add(object);
-		var options = Map.of(XMLResource.OPTION_URI_HANDLER, new RelativeURIResolver(resource.getURI()));
+		var options = Map.of(XMLResource.OPTION_URI_HANDLER, new RelativeURIResolver(resource));
 		resource.save(options);
 	}
 
+	/**
+	 * Infer the output file URI based on the given output path and file extension.
+	 *
+	 * @param output    the output path (file or directory)
+	 * @param extension file extension of the output file
+	 * @return the output file URI
+	 */
 	private URI getOutputURI(Path output, String extension) {
-		if (Files.isDirectory(output)) {
+		if (Files.isDirectory(output)) { // if output is given as directory, infer file name from input file
 			String outputFileName = Utils.removeSuffix(queryFile.getFileName().toString(), ".nj") + "." + extension;
 			output = output.resolve(outputFileName);
 		}
@@ -194,6 +219,11 @@ public class Main implements Callable<Integer> {
 		return URI.createFileURI(output.toString());
 	}
 
+	/**
+	 * Validate the given instance model and print any validation issues.
+	 *
+	 * @param instanceModel the instance model to validate
+	 */
 	private void validateInstanceModel(EObject instanceModel) {
 		var rootDiagnostic = Diagnostician.INSTANCE.validate(instanceModel);
 		if (rootDiagnostic.getSeverity() == Diagnostic.OK) {

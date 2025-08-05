@@ -38,8 +38,8 @@ public class FileURIAccessor implements URIAccessor {
 
 		require(Files.isDirectory(path), () -> "Not a file or directory: " + fileOrDirectory);
 
-		try (var stream = Files.walk(path)) {
-			return stream
+		try (var paths = Files.walk(path)) {
+			return paths
 				.filter(Files::isRegularFile)
 				.map(FileURIAccessor::createURI)
 				.filter(filter)

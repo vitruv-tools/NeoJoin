@@ -13,6 +13,9 @@ import java.util.Map;
 
 import static tools.vitruv.neojoin.utils.Assertions.check;
 
+/**
+ * A registry that stores a mapping from Ecore source classes and enums to the generated corresponding JVM types.
+ */
 public class TypeRegistry extends ResourceImpl {
 
 	private final Map<EClass, JvmGenericType> classes = new HashMap<>();

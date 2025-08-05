@@ -3,6 +3,7 @@ package tools.vitruv.neojoin.aqr;
 import org.junit.jupiter.api.Test;
 
 import static tools.vitruv.neojoin.aqr.AQRAssertions.assertThat;
+import static tools.vitruv.neojoin.aqr.AQRTargetClassAssertions.assertThat;
 
 public class FeatureAQRTest extends AbstractAQRTest {
 
@@ -15,7 +16,7 @@ public class FeatureAQRTest extends AbstractAQRTest {
 		assertThat(aqr)
 			.hasTargetClass(
 				"Rest", rest -> {
-					AQRTargetClassAssertions.assertThat(rest)
+					assertThat(rest)
 						.sourceIs(lookup("restaurant", "Restaurant"))
 						.hasNoCondition()
 						.hasCopiedAttribute("name", lookup("restaurant", "Restaurant", "name"))
@@ -34,7 +35,7 @@ public class FeatureAQRTest extends AbstractAQRTest {
 		assertThat(aqr)
 			.hasTargetClass(
 				"Rest", rest -> {
-					AQRTargetClassAssertions.assertThat(rest)
+					assertThat(rest)
 						.sourceIs(lookup("restaurant", "Restaurant"))
 						.hasNoCondition()
 						.hasCopiedAttribute("label", lookup("restaurant", "Restaurant", "name"))
@@ -53,7 +54,7 @@ public class FeatureAQRTest extends AbstractAQRTest {
 		assertThat(aqr)
 			.hasTargetClass(
 				"Rest", rest -> {
-					AQRTargetClassAssertions.assertThat(rest)
+					assertThat(rest)
 						.sourceIs(lookup("restaurant", "Restaurant"))
 						.hasNoCondition()
 						.hasCalculatedAttribute("label", "EString")
@@ -72,7 +73,7 @@ public class FeatureAQRTest extends AbstractAQRTest {
 		assertThat(aqr)
 			.hasTargetClass(
 				"Food", food -> {
-					AQRTargetClassAssertions.assertThat(food)
+					assertThat(food)
 						.sourceIs(lookup("restaurant", "Food"))
 						.hasNoCondition()
 						.hasCopiedAttribute("name", lookup("restaurant", "Food", "name"))
@@ -83,7 +84,7 @@ public class FeatureAQRTest extends AbstractAQRTest {
 			)
 			.hasTargetClass(
 				"Rest", rest -> {
-					AQRTargetClassAssertions.assertThat(rest)
+					assertThat(rest)
 						.sourceIs(lookup("restaurant", "Restaurant"))
 						.hasNoCondition()
 						.hasCopiedReference("sells", "Food", lookup("restaurant", "Restaurant", "sells"))
@@ -105,7 +106,7 @@ public class FeatureAQRTest extends AbstractAQRTest {
 		assertThat(aqr)
 			.hasTargetClass(
 				"Result", res -> {
-					AQRTargetClassAssertions.assertThat(res)
+					assertThat(res)
 						.sourceIs(lookup("restaurant", "Restaurant"))
 						.hasNoCondition()
 						.hasCalculatedReference("test", "Food")
@@ -130,7 +131,7 @@ public class FeatureAQRTest extends AbstractAQRTest {
 		assertThat(aqr)
 			.hasTargetClass(
 				"Result", res -> {
-					AQRTargetClassAssertions.assertThat(res)
+					assertThat(res)
 						.sourceIs(lookup("restaurant", "Restaurant"))
 						.hasNoCondition()
 						.hasCalculatedReference("test", "Food")
@@ -155,18 +156,18 @@ public class FeatureAQRTest extends AbstractAQRTest {
 		assertThat(result)
 			.hasTargetClass(
 				"Restaurant", rest -> {
-					AQRTargetClassAssertions.assertThat(rest)
+					assertThat(rest)
 						.hasCopiedReference("sells", "NotSoTastyFood", lookup("restaurant", "Restaurant", "sells"));
 				}
 			)
 			.hasTargetClass(
 				"TastyFood", food -> {
-					AQRTargetClassAssertions.assertThat(food).sourceIs(lookup("restaurant", "Food"));
+					assertThat(food).sourceIs(lookup("restaurant", "Food"));
 				}
 			)
 			.hasTargetClass(
 				"NotSoTastyFood", food -> {
-					AQRTargetClassAssertions.assertThat(food).sourceIs(lookup("restaurant", "Food"));
+					assertThat(food).sourceIs(lookup("restaurant", "Food"));
 				}
 			)
 			.hasNoMoreTargetClasses();

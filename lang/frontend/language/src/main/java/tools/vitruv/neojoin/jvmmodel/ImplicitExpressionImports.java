@@ -7,7 +7,7 @@ import tools.vitruv.neojoin.jvmmodel.extensions.Extensions;
 import java.util.List;
 
 /**
- * Defines custom extension methods for Xtend expressions.
+ * Defines custom extension methods for Xbase expressions.
  *
  * @see NeoJoinRuntimeModule#bindImplicitlyImportedTypes()
  */

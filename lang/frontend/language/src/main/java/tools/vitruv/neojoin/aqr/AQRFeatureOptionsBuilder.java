@@ -24,6 +24,8 @@ import static tools.vitruv.neojoin.aqr.AQRInvariantViolatedException.invariant;
 import static tools.vitruv.neojoin.utils.Assertions.fail;
 
 /**
+ * Infers the {@link AQRFeature.Options options} of a feature based on its modifiers.
+ *
  * @see AQRBuilder
  */
 public class AQRFeatureOptionsBuilder {
@@ -101,19 +103,20 @@ public class AQRFeatureOptionsBuilder {
 		return new AQRFeature.Options(
 			mult.left(),
 			mult.right(),
-			getBoolean(Mod.Ordered),
-			getBoolean(Mod.Unique),
-			getBoolean(Mod.Changeable),
-			getBoolean(Mod.Transient),
-			getBoolean(Mod.Volatile),
-			getBoolean(Mod.Unsettable),
-			getBoolean(Mod.Derived),
-			getBoolean(Mod.Id),
-			getBoolean(Mod.Containment)
+			getBooleanModifierValue(Mod.Ordered),
+			getBooleanModifierValue(Mod.Unique),
+			getBooleanModifierValue(Mod.Changeable),
+			getBooleanModifierValue(Mod.Transient),
+			getBooleanModifierValue(Mod.Volatile),
+			getBooleanModifierValue(Mod.Unsettable),
+			getBooleanModifierValue(Mod.Derived),
+			getBooleanModifierValue(Mod.Id),
+			getBooleanModifierValue(Mod.Containment)
 		);
 	}
 
-	private boolean getBoolean(Mod modifier) {
+	private boolean getBooleanModifierValue(Mod modifier) {
+		// explicitly specified using modifier
 		var astModifier = booleanModifiers.stream()
 			.filter(m -> m.getName().equals(modifier.keyword))
 			.findFirst();
@@ -121,6 +124,7 @@ public class AQRFeatureOptionsBuilder {
 			return !astModifier.get().isNegated();
 		}
 
+		// copy from source
 		if (copyFrom != null) {
 			var value = modifier.getter.apply(copyFrom);
 			if (value != null) {
@@ -147,12 +151,12 @@ public class AQRFeatureOptionsBuilder {
 
 	public static Pair<Integer, Integer> normalizeMultiplicity(MultiplicityExpr mult) {
 		return switch (mult) {
-			case MultiplicityOptional ignored -> new Pair<>(0, 1);
-			case MultiplicityMany ignored -> new Pair<>(0, Unbounded);
-			case MultiplicityManyRequired ignored -> new Pair<>(1, Unbounded);
-			case MultiplicityExact exact -> new Pair<>(exact.getExact(), exact.getExact());
-			case MultiplicityBounds bounds -> new Pair<>(bounds.getLowerBound(), bounds.getUpperBound());
-			case MultiplicityManyAtLeast manyAtLeast -> new Pair<>(manyAtLeast.getLowerBound(), Unbounded);
+			case MultiplicityOptional ignored -> new Pair<>(0, 1); // [?]
+			case MultiplicityMany ignored -> new Pair<>(0, Unbounded); // [*]
+			case MultiplicityManyRequired ignored -> new Pair<>(1, Unbounded); // [+]
+			case MultiplicityExact exact -> new Pair<>(exact.getExact(), exact.getExact()); // [x]
+			case MultiplicityBounds bounds -> new Pair<>(bounds.getLowerBound(), bounds.getUpperBound()); // [x..y]
+			case MultiplicityManyAtLeast manyAtLeast -> new Pair<>(manyAtLeast.getLowerBound(), Unbounded); // [x..*]
 			default -> fail();
 		};
 	}

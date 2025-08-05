@@ -8,17 +8,17 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.impl.EPackageRegistryImpl;
 import org.eclipse.emf.ecore.resource.Resource;
-import org.eclipse.xtext.resource.IEObjectDescription;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static tools.vitruv.neojoin.utils.Assertions.check;
 
+/**
+ * Various utilities for EMF and especially Ecore models.
+ */
 public final class EMFUtils {
 
 	/**
@@ -62,21 +62,6 @@ public final class EMFUtils {
 	 */
 	public static Stream<EObject> getAllInstances(Resource resource, EClass clazz) {
 		return Utils.streamOf(resource.getAllContents()).filter(clazz::isInstance);
-	}
-
-	/**
-	 * Filters name collisions from the given stream of {@link IEObjectDescription object descriptions}.
-	 *
-	 * @param descriptions stream of object descriptions
-	 * @return subset of the given object descriptions with distinct names
-	 */
-	public static List<IEObjectDescription> filterCollisions(Stream<IEObjectDescription> descriptions) {
-		return descriptions
-			.collect(Collectors.groupingBy(IEObjectDescription::getName, Collectors.toList()))
-			.values().stream()
-			.filter(collisions -> collisions.size() == 1)
-			.map(List::getFirst)
-			.toList();
 	}
 
 	/**

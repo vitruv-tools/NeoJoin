@@ -94,7 +94,7 @@ public class InstanceModelAssertions extends AbstractAssert<InstanceModelAsserti
 		Assertions.assertThat(feature).isInstanceOf(EAttribute.class);
 		var actualValue = actual.eGet(feature);
 		if (actualValue instanceof EEnumLiteral enumLiteral) {
-			// compare enum literals by name because testing code cannot reference enum literals of the generated meta model
+			// compare enum literals by name because testing code cannot reference enum literals of the generated meta-model
 			actualValue = enumLiteral.getName();
 		}
 		Assertions.assertThat(actualValue).isEqualTo(value);
