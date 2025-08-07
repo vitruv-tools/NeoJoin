@@ -11,9 +11,11 @@ on:
 jobs:
   build-maven:
     name: Build Maven projects
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
 
     steps:
     - name: Checkout repository
@@ -37,9 +39,11 @@ jobs:
         --no-transfer-progress
 
     - name: Stage build results
+      if: matrix.os == 'ubuntu-latest'
       run: mkdir staging && find . -path '*/target/*.jar' -exec cp {} staging/ \;
 
     - name: Upload build results
+      if: matrix.os == 'ubuntu-latest'
       uses: actions/upload-artifact@v4
       with:
         name: build-results-maven
@@ -55,7 +59,7 @@ jobs:
       uses: actions/checkout@v4.2.2
 
     - name: Download Maven build results
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v5
       with:
         name: build-results-maven
         path: build-results-maven
