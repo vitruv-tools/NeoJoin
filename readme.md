@@ -108,7 +108,15 @@ cd lang
 
 ### VSCode Plugin
 
-*to do*
+Provides basic IDE support (syntax highlighting, code-completion, etc.) and a side-by-side live visualization of queries. Can be installed from the `.vsix` file via **Extensions** > 3-dot menu > **Install from VSIX...**.
+
+#### Commands
+* **Show Query Visualization** - Show a live visualization of the queries in the currently active text editor.
+* **Restart Server** - Restart the language server after configuration changes.
+
+#### Settings
+* **Meta Model Search Path** - Semicolon separted list of file URLs to search for source meta models.
+* **Debug** - Enable debug logging.
 
 ### Command Line Interface
 
