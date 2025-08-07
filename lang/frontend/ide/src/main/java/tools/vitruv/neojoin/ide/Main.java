@@ -29,7 +29,7 @@ import java.util.concurrent.ExecutionException;
 @Command(name = "NeoJoin IDE", mixinStandardHelpOptions = true)
 public class Main implements Runnable {
 
-	@Option(names = {"-m", "--meta-model-path"}, paramLabel = "MODEL-PATH", required = true, description = "Path specification to find referenced meta-models")
+	@Option(names = {"-m", "--meta-model-path"}, paramLabel = "MODEL-PATH", required = true, description = "Path specification to find referenced meta-models.")
 	String metaModelPath;
 
 	@ArgGroup(exclusive = false)
@@ -37,17 +37,17 @@ public class Main implements Runnable {
 
 	static class Logging {
 
-		@Option(names = {"--log"}, paramLabel = "LOG-FILE", required = true, arity = "0..1", fallbackValue = "neojoin-ide-debug.log", description = "Enable logging")
+		@Option(names = {"--log"}, paramLabel = "LOG-FILE", required = true, arity = "0..1", fallbackValue = "neojoin-ide-debug.log", description = "Enable logging.")
 		Path logFile;
 
-		@Option(names = {"--trace"}, description = "Enable trace logging for the language server (requires logging enabled)")
+		@Option(names = {"--trace"}, description = "Enable trace logging for the language server (requires logging enabled).")
 		boolean trace;
 
 	}
 
 	// vscode automatically appends an --stdio option, so we should not error when this option is encountered
 	@SuppressWarnings("unused")
-	@Option(names = {"--stdio"}, description = "Use stdio for communication (default, has no effect)")
+	@Option(names = {"--stdio"}, description = "Use stdio for communication (default, has no effect).")
 	boolean stdio;
 
 	@Override

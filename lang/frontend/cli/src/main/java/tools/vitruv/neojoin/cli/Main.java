@@ -52,10 +52,10 @@ import java.util.concurrent.Callable;
 	})
 public class Main implements Callable<Integer> {
 
-	@Parameters(index = "0", paramLabel = "QUERY", description = "Path to the query file")
+	@Parameters(index = "0", paramLabel = "QUERY", description = "Path to the query file.")
 	Path queryFile;
 
-	@Option(names = {"-m", "--meta-model-path"}, paramLabel = "MODEL-PATH", required = true, description = "Model path (see below) to find referenced meta-models (.ecore)")
+	@Option(names = {"-m", "--meta-model-path"}, paramLabel = "MODEL-PATH", required = true, description = "Model path (see below) to find referenced meta-models (.ecore).")
 	String metaModelPath;
 
 
@@ -65,7 +65,7 @@ public class Main implements Callable<Integer> {
 
 	static class Generate {
 
-		@Option(names = {"-g", "--generate"}, paramLabel = "OUTPUT", required = true, description = "Generate the meta-model and write it to the given output file or directory")
+		@Option(names = {"-g", "--generate"}, paramLabel = "OUTPUT", required = true, description = "Generate the meta-model and write it to the given output file or directory.")
 		Path output;
 
 	}
@@ -77,10 +77,10 @@ public class Main implements Callable<Integer> {
 
 	static class Transform {
 
-		@Option(names = {"-i", "--instance-model-path"}, paramLabel = "MODEL-PATH", required = true, description = "Model path (see below) to find instance models (.xmi)")
+		@Option(names = {"-i", "--instance-model-path"}, paramLabel = "MODEL-PATH", required = true, description = "Model path (see below) to find instance models (.xmi).")
 		String instanceModelPath;
 
-		@Option(names = {"-t", "--transform"}, paramLabel = "OUTPUT", required = true, description = "Transform the input models based on the query and write the result to the given output file or directory")
+		@Option(names = {"-t", "--transform"}, paramLabel = "OUTPUT", required = true, description = "Transform the input models based on the query and write the result to the given output file or directory.")
 		Path output;
 
 	}

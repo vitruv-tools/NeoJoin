@@ -114,21 +114,25 @@ cd lang
 
 ```
 Usage: neojoin [-hV] -m=MODEL-PATH [-g=OUTPUT] [-i=MODEL-PATH -t=OUTPUT] QUERY
-      QUERY                Path to the query file
+
+      QUERY                Path to the query file.
+
   -h, --help               Show this help message and exit.
   -m, --meta-model-path=MODEL-PATH
                            Model path (see below) to find referenced
-                             meta-models (.ecore)
+                             meta-models (.ecore).
   -V, --version            Print version information and exit.
+
 Generate the meta-model:
   -g, --generate=OUTPUT    Generate the meta-model and write it to the given
-                             output file or directory
+                             output file or directory.
+
 Transform the input models:
   -i, --instance-model-path=MODEL-PATH
-                           Model path (see below) to find instance models (.xmi)
+                           Model path (see below) to find instance models (.xmi).
   -t, --transform=OUTPUT   Transform the input models based on the query and
                              write the result to the given output file or
-                             directory
+                             directory.
 
 Model Path
   A semicolon separated list of file URLs to search for models
