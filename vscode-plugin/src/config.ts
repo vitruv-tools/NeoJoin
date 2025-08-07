@@ -6,10 +6,16 @@ class Config {
 		return vscode.workspace.getConfiguration("neojoin").get<T>(key, defaultValue);
 	}
 
+	/**
+	 * Path to search for available meta models that can be imported in queries.
+	 */
 	get metaModelSearchPath() {
 		return expandVariables(this.#get("metaModelSearchPath", "${workspaceFolderUri}"));
 	}
 
+	/**
+	 * Whether debug mode is enabled.
+	 */
 	get debug() {
 		return this.#get("debug", false);
 	}

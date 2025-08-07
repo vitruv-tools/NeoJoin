@@ -1,19 +1,21 @@
 import * as vscode from "vscode";
 
 import { VisualizationPanelName } from "../constants";
-import Preview, { createPreviewOptions, PreviewOptions } from "./preview";
+import VisualizationPanel, { createPanelOptions, PanelOptions } from "./panel";
 import VisualizationClient from "./request";
 
-// restore preview from previous session
-class PreviewSerializer implements vscode.WebviewPanelSerializer {
-	#manager: PreviewManager;
+/**
+ * Serializer for restoring visualization panels after a restart of VS Code.
+ */
+class VisualizationPanelSerializer implements vscode.WebviewPanelSerializer {
+	#manager: VisualizationManager;
 
-	constructor(manager: PreviewManager) {
+	constructor(manager: VisualizationManager) {
 		this.#manager = manager;
 	}
 
 	async deserializeWebviewPanel(
-		panel: vscode.WebviewPanel,
+		webview: vscode.WebviewPanel,
 		state: any
 	): Promise<void> {
 		const document = vscode.workspace.textDocuments.find(
@@ -21,24 +23,31 @@ class PreviewSerializer implements vscode.WebviewPanelSerializer {
 		);
 		if (document) {
 			this.#manager.restore(
-				panel,
+				webview,
 				document,
-				createPreviewOptions(state?.options)
+				createPanelOptions(state?.options)
 			);
 		} else {
-			panel.dispose();
+			// cannot find a corresponding open document, so close the panel
+			webview.dispose();
 		}
 	}
 }
 
-export default class PreviewManager {
+/**
+ * Manages multiple open visualization panels.
+ */
+export default class VisualizationManager {
 	#client: VisualizationClient;
-	#activePreviews = new Map<vscode.TextDocument, Preview>();
+	#activePanels = new Map<vscode.TextDocument, VisualizationPanel>();
 
 	constructor(client: VisualizationClient) {
 		this.#client = client;
 	}
 
+	/**
+	 * Show a visualization panel for the currently active document.
+	 */
 	show() {
 		if (!this.#client.ready) {
 			vscode.window.showErrorMessage(
@@ -58,11 +67,9 @@ export default class PreviewManager {
 			return;
 		}
 
-		const existingPreview = this.#activePreviews.get(
-			currentEditor.document
-		);
-		if (existingPreview) {
-			existingPreview.reveal();
+		const existingPanel = this.#activePanels.get(currentEditor.document);
+		if (existingPanel) {
+			existingPanel.reveal();
 			return;
 		}
 
@@ -73,54 +80,83 @@ export default class PreviewManager {
 			{ enableScripts: true }
 		);
 
-		this.restore(panel, currentEditor.document, createPreviewOptions());
+		this.restore(panel, currentEditor.document, createPanelOptions());
 	}
 
+	/**
+	 * Restore a visualization panel after a restart of VS Code.
+	 * @param webview webview panel to restore content for
+	 * @param document the document to visualize
+	 * @param options options for the panel
+	 */
 	restore(
-		panel: vscode.WebviewPanel,
+		webview: vscode.WebviewPanel,
 		document: vscode.TextDocument,
-		options: PreviewOptions
+		options: PanelOptions
 	) {
-		const preview = new Preview(
-			panel,
+		const panel = new VisualizationPanel(
+			webview,
 			document,
 			options,
 			this.#client,
-			() => this.#activePreviews.delete(document)
+			() => this.#activePanels.delete(document)
 		);
-		this.#activePreviews.set(document, preview);
+		this.#activePanels.set(document, panel);
 	}
 
+	/**
+	 * Update the visualization corresponding to the given document if it exists.
+	 * @param document document to update the corresponding visualization for
+	 * @param instant whether to update immediately or debounce the update
+	 */
 	update(document: vscode.TextDocument, instant: boolean) {
-		const preview = this.#activePreviews.get(document);
-		if (preview) {
-			preview.update(instant);
+		const panel = this.#activePanels.get(document);
+		if (panel) {
+			panel.update(instant);
 		}
 	}
 
+	/**
+	 * Update all active visualizations.
+	 * @param instant whether to update immediately or debounce the update
+	 */
 	updateAll(instant: boolean) {
-		this.#activePreviews.forEach((preview) => preview.update(instant));
+		this.#activePanels.forEach((panel) => panel.update(instant));
 	}
 
+	/**
+	 * Update the visualization corresponding to the given document if it is in "selected" mode.
+	 * @param document document to update the corresponding visualization for
+	 */
 	updateIfInSelectedMode(document: vscode.TextDocument) {
-		const preview = this.#activePreviews.get(document);
-		if (preview && preview.mode === "selected") {
-			preview.update(false);
+		const panel = this.#activePanels.get(document);
+		if (panel && panel.mode === "selected") {
+			panel.update(false);
 		}
 	}
 
+	/**
+	 * Close the visualization panel for the given document if it exists.
+	 * @param document document to close the corresponding visualization for
+	 */
 	close(document: vscode.TextDocument) {
-		const preview = this.#activePreviews.get(document);
-		if (preview) {
-			preview.close();
+		const panel = this.#activePanels.get(document);
+		if (panel) {
+			panel.close();
 		}
 	}
 
+	/**
+	 * Close all active visualization panels.
+	 */
 	closeAll() {
-		this.#activePreviews.forEach((preview) => preview.close());
+		this.#activePanels.forEach((panel) => panel.close());
 	}
 
+	/**
+	 * Get a {@link WebviewPanelSerializer} to restore panels after a restart of VS Code.
+	 */
 	serializer() {
-		return new PreviewSerializer(this);
+		return new VisualizationPanelSerializer(this);
 	}
 }
