@@ -121,29 +121,36 @@ Provides basic IDE support (syntax highlighting, code-completion, etc.) and a si
 ### Command Line Interface
 
 ```
-Usage: NeoJoin [-hV] -m=MODEL PATH [[-g=OUTPUT]] [-t=OUTPUT -i=MODEL PATH] FILE
+Usage: neojoin [-hV] -m=MODEL-PATH [-g=OUTPUT] [-i=MODEL-PATH -t=OUTPUT] QUERY
 
-      FILE                 Path to the query file
+      QUERY                Path to the query file.
 
   -h, --help               Show this help message and exit.
-  -m, --meta-model-path=MODEL PATH
-                           Path specification (including URI scheme) to find
-                             referenced meta-models
+  -m, --meta-model-path=MODEL-PATH
+                           Model path (see below) to find referenced
+                             meta-models (.ecore).
   -V, --version            Print version information and exit.
 
 Generate the meta-model:
   -g, --generate=OUTPUT    Generate the meta-model and write it to the given
-                             file or directory
+                             output file or directory.
 
 Transform the input models:
-  -i, --instance-model-path=MODEL PATH
-                           Path specification (including URI scheme) to find
-                             instance models
-  -t, --transform=OUTPUT   Transform the given input models based on the query
-                             and write the result to the given file or directory
+  -i, --instance-model-path=MODEL-PATH
+                           Model path (see below) to find instance models (.xmi).
+  -t, --transform=OUTPUT   Transform the input models based on the query and
+                             write the result to the given output file or
+                             directory.
+
+Model Path
+  A semicolon separated list of file URLs to search for models
+  used in the options --meta-model-path and --instance-model-path.
+  Examples:
+  - Linux: file:///path/to/directory;file:///path/to/file.ecore
+  - Windows: file:///C:/path/to/directory;file:///C:/path/to/file.ecore
 ```
 
-*Note: `FILE` and `OUTPUT`s need to be specified with regular paths, e.g., `/x/y/z` or `./x/y`, while the `MODEL PATH`s need to be specified with URIs, including a scheme component, e.g., `file:///x/y/z` or `file:/./x/y`.*
+*Note: `QUERY` and `OUTPUT`s need to be specified with regular paths, e.g., `/x/y/z` or `./x/y`.*
 
 ### Transformation of Operators to Triple Graph Grammars
 

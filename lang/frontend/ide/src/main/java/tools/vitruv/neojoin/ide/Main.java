@@ -29,9 +29,7 @@ import java.util.concurrent.ExecutionException;
 @Command(name = "NeoJoin IDE", mixinStandardHelpOptions = true)
 public class Main implements Runnable {
 
-	private static final String NoValue = "__NO_VALUE__"; // option is specified but without a value
-
-	@Option(names = {"-m", "--meta-model-path"}, paramLabel = "MODEL PATH", required = true, description = "Path specification to find referenced meta-models")
+	@Option(names = {"-m", "--meta-model-path"}, paramLabel = "MODEL-PATH", required = true, description = "Path specification to find referenced meta-models.")
 	String metaModelPath;
 
 	@ArgGroup(exclusive = false)
@@ -39,17 +37,17 @@ public class Main implements Runnable {
 
 	static class Logging {
 
-		@Option(names = {"--log"}, paramLabel = "LOG FILE", required = true, arity = "0..1", fallbackValue = NoValue, description = "Enable logging")
+		@Option(names = {"--log"}, paramLabel = "LOG-FILE", required = true, arity = "0..1", fallbackValue = "neojoin-ide-debug.log", description = "Enable logging.")
 		Path logFile;
 
-		@Option(names = {"--trace"}, description = "Enable trace logging for the language server (requires logging enabled)")
+		@Option(names = {"--trace"}, description = "Enable trace logging for the language server (requires logging enabled).")
 		boolean trace;
 
 	}
 
 	// vscode automatically appends an --stdio option, so we should not error when this option is encountered
 	@SuppressWarnings("unused")
-	@Option(names = {"--stdio"}, description = "Use stdio for communication (default, has no effect)")
+	@Option(names = {"--stdio"}, description = "Use stdio for communication (default, has no effect).")
 	boolean stdio;
 
 	@Override
@@ -129,17 +127,12 @@ public class Main implements Runnable {
 			return null;
 		}
 
-		var path = logging.logFile;
-		if (path.toString().equals(NoValue)) {
-			path = Path.of("neojoin-ide-debug.log");
-		}
-
 		try {
-			return new FileOutputStream(path.toFile());
+			return new FileOutputStream(logging.logFile.toFile());
 		} catch (FileNotFoundException e) {
 			throw new RuntimeException(
 				"Failed to open log file (%s): %s%n".formatted(
-					path.toAbsolutePath().normalize(),
+					logging.logFile.toAbsolutePath().normalize(),
 					e.getMessage()
 				)
 			);

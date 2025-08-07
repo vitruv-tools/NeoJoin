@@ -37,13 +37,25 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 
 @NullUnmarked
-@Command(name = "NeoJoin", mixinStandardHelpOptions = true)
+@Command(
+	name = "neojoin",
+	version = "NeoJoin CLI 1.0.0",
+	mixinStandardHelpOptions = true,
+	footer = {
+		"",
+		"Model Path",
+		"  A semicolon separated list of file URLs to search for models",
+		"  used in the options --meta-model-path and --instance-model-path.",
+		"  Examples:",
+		"  - Linux: file:///path/to/directory;file:///path/to/file.ecore",
+		"  - Windows: file:///C:/path/to/directory;file:///C:/path/to/file.ecore",
+	})
 public class Main implements Callable<Integer> {
 
-	@Parameters(index = "0", paramLabel = "FILE", description = "Path to the query file")
+	@Parameters(index = "0", paramLabel = "QUERY", description = "Path to the query file.")
 	Path queryFile;
 
-	@Option(names = {"-m", "--meta-model-path"}, paramLabel = "MODEL PATH", required = true, description = "Path specification (including URI scheme) to find referenced meta-models")
+	@Option(names = {"-m", "--meta-model-path"}, paramLabel = "MODEL-PATH", required = true, description = "Model path (see below) to find referenced meta-models (.ecore).")
 	String metaModelPath;
 
 
@@ -53,7 +65,7 @@ public class Main implements Callable<Integer> {
 
 	static class Generate {
 
-		@Option(names = {"-g", "--generate"}, paramLabel = "OUTPUT", description = "Generate the meta-model and write it to the given file or directory")
+		@Option(names = {"-g", "--generate"}, paramLabel = "OUTPUT", required = true, description = "Generate the meta-model and write it to the given output file or directory.")
 		Path output;
 
 	}
@@ -65,11 +77,11 @@ public class Main implements Callable<Integer> {
 
 	static class Transform {
 
-		@Option(names = {"-t", "--transform"}, paramLabel = "OUTPUT", required = true, description = "Transform the given input models based on the query and write the result to the given file or directory")
-		Path output;
-
-		@Option(names = {"-i", "--instance-model-path"}, paramLabel = "MODEL PATH", required = true, description = "Path specification (including URI scheme) to find instance models")
+		@Option(names = {"-i", "--instance-model-path"}, paramLabel = "MODEL-PATH", required = true, description = "Model path (see below) to find instance models (.xmi).")
 		String instanceModelPath;
+
+		@Option(names = {"-t", "--transform"}, paramLabel = "OUTPUT", required = true, description = "Transform the input models based on the query and write the result to the given output file or directory.")
+		Path output;
 
 	}
 
