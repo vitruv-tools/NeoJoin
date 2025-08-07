@@ -45,7 +45,7 @@ class LongAggregationExtensions {
 	}
 
 	public static double avg(Iterable<Long> iterable) {
-		return avg(iterable, v -> v);
+		return avg(iterable, Function.identity());
 	}
 
 }

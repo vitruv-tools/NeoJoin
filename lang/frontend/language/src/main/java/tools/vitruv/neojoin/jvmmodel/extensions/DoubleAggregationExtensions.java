@@ -55,7 +55,7 @@ class DoubleAggregationExtensions {
 	}
 
 	public static double avg(Iterable<Double> iterable) {
-		return avg(iterable, v -> v);
+		return avg(iterable, Function.identity());
 	}
 
 }

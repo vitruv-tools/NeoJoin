@@ -13,6 +13,7 @@ import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.xtext.naming.IQualifiedNameConverter;
 import org.eclipse.xtext.naming.QualifiedName;
 import org.eclipse.xtext.resource.EObjectDescription;
+import org.eclipse.xtext.resource.IEObjectDescription;
 import org.eclipse.xtext.scoping.IScope;
 import org.eclipse.xtext.scoping.impl.SimpleScope;
 import tools.vitruv.neojoin.Constants;
@@ -26,8 +27,10 @@ import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
 import tools.vitruv.neojoin.utils.AstUtils;
 import tools.vitruv.neojoin.utils.EMFUtils;
 
+import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static tools.vitruv.neojoin.utils.Assertions.check;
@@ -149,6 +152,9 @@ public class NeoJoinScopeProvider extends AbstractNeoJoinScopeProvider {
 		return new SimpleScope(dataTypeScope, queryCandidates);
 	}
 
+	/**
+	 * Creates a scope for all imported classifiers that match the given filter.
+	 */
 	private IScope createImportedClassifierScope(Map<String, EPackage> imports, Predicate<EClassifier> filter) {
 		var candidates = imports.entrySet().stream()
 			.flatMap(entry -> EMFUtils.getAllEClassifiers(entry.getValue())
@@ -163,9 +169,17 @@ public class NeoJoinScopeProvider extends AbstractNeoJoinScopeProvider {
 				})
 			);
 
-		return new SimpleScope(IScope.NULLSCOPE, EMFUtils.filterCollisions(candidates));
+		return new SimpleScope(IScope.NULLSCOPE, filterCollisions(candidates));
 	}
 
+	/**
+	 * Returns the fully qualified name of the given classifier. The first part of the fully qualified name is
+	 * the given alias of the root package or its name if no alias is specified.
+	 *
+	 * @param classifier classifier to get the fully qualified name for
+	 * @param rootAlias  alias to use as the first part of the fully qualified name (e.g. the root package alias)
+	 * @return fully qualified name of the classifier
+	 */
 	private static QualifiedName getFullyQualifiedName(EClassifier classifier, String rootAlias) {
 		var parts = Stream.concat(
 			EMFUtils.getFullyQualifiedNameAsStream(classifier.getEPackage()),
@@ -174,6 +188,21 @@ public class NeoJoinScopeProvider extends AbstractNeoJoinScopeProvider {
 		check(parts.length > 1); // at least package name + class name
 		parts[0] = rootAlias;
 		return QualifiedName.create(parts);
+	}
+
+	/**
+	 * Filters name collisions from the given stream of {@link IEObjectDescription object descriptions}.
+	 *
+	 * @param descriptions stream of object descriptions
+	 * @return subset of the given object descriptions with distinct names
+	 */
+	private static List<IEObjectDescription> filterCollisions(Stream<IEObjectDescription> descriptions) {
+		return descriptions
+			.collect(Collectors.groupingBy(IEObjectDescription::getName, Collectors.toList()))
+			.values().stream()
+			.filter(collisions -> collisions.size() == 1)
+			.map(List::getFirst)
+			.toList();
 	}
 
 }

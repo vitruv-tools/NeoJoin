@@ -45,7 +45,7 @@ class ByteAggregationExtensions {
 	}
 
 	public static double avg(Iterable<Byte> iterable) {
-		return avg(iterable, v -> v);
+		return avg(iterable, Function.identity());
 	}
 
 }

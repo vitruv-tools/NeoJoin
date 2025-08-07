@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
 import static tools.vitruv.neojoin.utils.Assertions.check;
 
 /**
- * Utilities for handling {@link XExpression Xtend expressions}.
+ * Utilities for handling {@link XExpression Xbase expressions}.
  *
  * @see #inferEType(XExpression)
  * @see #getFeatureOrNull(XExpression)
@@ -220,7 +220,7 @@ public class ExpressionHelper {
 
 		// unwrap list
 		var isMany = false;
-		var listType = tryConvertToList(resolvedType);
+		var listType = tryGetListType(resolvedType);
 		if (listType != null) {
 			type = listType;
 			isMany = true;
@@ -253,7 +253,7 @@ public class ExpressionHelper {
 	@Inject
 	private TypeReferences references;
 
-	private @Nullable JvmType tryConvertToList(LightweightTypeReference type) {
+	private @Nullable JvmType tryGetListType(LightweightTypeReference type) {
 		var listType = references.findDeclaredType(List.class, type.getOwner().getContextResourceSet());
 
 		var typeAsList = type.getSuperType(listType);

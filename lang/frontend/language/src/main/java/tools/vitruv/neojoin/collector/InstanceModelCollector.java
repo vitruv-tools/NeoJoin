@@ -46,7 +46,7 @@ public class InstanceModelCollector extends AbstractModelCollector {
 		resourceSet.setPackageRegistry(registry);
 
 		var map = new HashMap<EPackage, Resource>();
-		collectResourceStream(resourceSet).forEach(res -> {
+		collectResourcesAsStream(resourceSet).forEach(res -> {
 			if (res.getContents().isEmpty()) {
 				return;
 			}

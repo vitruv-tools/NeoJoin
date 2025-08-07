@@ -127,6 +127,12 @@ public class Utils {
 		);
 	}
 
+	/**
+	 * Returns a stream of pairs containing each element from the given input stream and its index in the stream.
+	 *
+	 * @param stream the stream to index
+	 * @return stream of pairs containing each element and its index
+	 */
 	public static <T> Stream<Pair<T, Integer>> indexed(Stream<T> stream) {
 		var index = new Mutable<>(0);
 		//noinspection DataFlowIssue - false positive

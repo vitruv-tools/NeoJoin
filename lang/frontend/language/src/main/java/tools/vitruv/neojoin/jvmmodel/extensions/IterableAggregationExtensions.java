@@ -12,6 +12,9 @@ class IterableAggregationExtensions {
 
 	private IterableAggregationExtensions() {}
 
+	/**
+	 * Returns the single element of the given iterable or throws if none ore more than one element is present.
+	 */
 	public static <T> T single(Iterable<T> iterable) {
 		var iterator = iterable.iterator();
 		require(iterator.hasNext(), "Collection is empty");
@@ -20,6 +23,13 @@ class IterableAggregationExtensions {
 		return single;
 	}
 
+	/**
+	 * Returns the first element of the given iterable and checks that all other elements are equal to it.
+	 *
+	 * @param iterable iterable of elements
+	 * @param map      mapping function to apply to each element before processing
+	 * @return the first element of the iterable
+	 */
 	public static <T, M> @Nullable M same(Iterable<T> iterable, Function<T, M> map) {
 		var iterator = iterable.iterator();
 		if (!iterator.hasNext()) {
@@ -33,10 +43,20 @@ class IterableAggregationExtensions {
 		return first;
 	}
 
+
+	/**
+	 * Returns the first element of the given iterable and checks that all other elements are equal to it.
+	 *
+	 * @param iterable iterable of elements
+	 * @return the first element of the iterable
+	 */
 	public static <T> @Nullable T same(Iterable<T> iterable) {
-		return same(iterable, v -> v);
+		return same(iterable, Function.identity());
 	}
 
+	/**
+	 * Concatenates two lists.
+	 */
 	public static <T> List<T> operator_plus(List<? extends T> first, List<? extends T> second) {
 		return Stream.concat(first.stream(), second.stream()).toList();
 	}

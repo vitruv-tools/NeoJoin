@@ -2,6 +2,9 @@ package tools.vitruv.neojoin.aqr;
 
 import org.junit.jupiter.api.Test;
 
+import static tools.vitruv.neojoin.aqr.AQRAssertions.assertThat;
+import static tools.vitruv.neojoin.aqr.AQRTargetClassAssertions.assertThat;
+
 public class CustomDataTypeAQRTest extends AbstractAQRTest {
 
 	@Test
@@ -13,10 +16,10 @@ public class CustomDataTypeAQRTest extends AbstractAQRTest {
 			}
 			""");
 
-		AQRAssertions.assertThat(aqr)
+		assertThat(aqr)
 			.hasTargetClass(
 				"Restaurant", rest -> {
-					AQRTargetClassAssertions.assertThat(rest)
+					assertThat(rest)
 						.sourceIs(lookup("restaurant", "Restaurant"))
 						.hasNoCondition()
 						.hasCopiedAttribute("dailyRevenue1", lookup("restaurant", "Restaurant", "dailyRevenue"))
@@ -36,10 +39,10 @@ public class CustomDataTypeAQRTest extends AbstractAQRTest {
 			}
 			""");
 
-		AQRAssertions.assertThat(aqr)
+		assertThat(aqr)
 			.hasTargetClass(
 				"Food", rest -> {
-					AQRTargetClassAssertions.assertThat(rest)
+					assertThat(rest)
 						.sourceIs(lookup("restaurant", "Food"))
 						.hasNoCondition()
 						.hasCopiedAttribute("type1", lookup("restaurant", "Food", "type"))
@@ -61,10 +64,10 @@ public class CustomDataTypeAQRTest extends AbstractAQRTest {
 			}
 			""");
 
-		AQRAssertions.assertThat(aqr)
+		assertThat(aqr)
 			.hasTargetClass(
 				"Food", rest -> {
-					AQRTargetClassAssertions.assertThat(rest)
+					assertThat(rest)
 						.sourceIs(lookup("restaurant", "Food"))
 						.hasNoCondition()
 						.hasCopiedAttribute("type1", lookup("restaurant", "Food", "type"))
@@ -86,10 +89,10 @@ public class CustomDataTypeAQRTest extends AbstractAQRTest {
 			}
 			""");
 
-		AQRAssertions.assertThat(aqr)
+		assertThat(aqr)
 			.hasTargetClass(
 				"Restaurant", rest -> {
-					AQRTargetClassAssertions.assertThat(rest)
+					assertThat(rest)
 						.sourceIs(lookup("restaurant", "Restaurant"))
 						.hasNoCondition()
 						.hasCopiedAttribute("dailyRevenue1", lookup("restaurant", "Restaurant", "dailyRevenue"))

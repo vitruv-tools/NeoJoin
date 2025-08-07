@@ -20,9 +20,10 @@ public record ModelInfo(
 	/**
 	 * Contains different mappings between source and target meta-models.
 	 *
-	 * @param aqrToSource AQR.TargetClass -> List of referenced source classes
-	 * @param targetToAqr Target class -> AQR.TargetClass that generated it
-	 * @param aqrToTarget AQR.TargetClass -> target class generated from it
+	 * @param aqrToSource         AQR.TargetClass -> List of referenced source classes
+	 * @param targetToAqr         Target class -> AQR.TargetClass that generated it
+	 * @param aqrToTarget         AQR.TargetClass -> target class generated from it
+	 * @param targetToSourceEnums target enum -> source enum that it was copied from
 	 */
 	public record Trace(
 		Map<AQRTargetClass, List<EClass>> aqrToSource,
