@@ -18,44 +18,44 @@ import java.util.List;
 @SuppressWarnings("ClassCanBeRecord")
 public final class AQRTargetClass {
 
-	private final String name;
-	private final @Nullable AQRSource source;
-	private final List<AQRFeature> features;
+    private final String name;
+    private final @Nullable AQRSource source;
+    private final List<AQRFeature> features;
 
-	/**
-	 * @param name     name of the target class
-	 * @param source   source of the target class
-	 * @param features features of the target class
-	 */
-	public AQRTargetClass(
-		String name,
-		@Nullable AQRSource source,
-		List<AQRFeature> features
-	) {
-		this.name = name;
-		this.source = source;
-		this.features = features;
-	}
+    /**
+     * @param name     name of the target class
+     * @param source   source of the target class
+     * @param features features of the target class
+     */
+    public AQRTargetClass(
+        String name,
+        @Nullable AQRSource source,
+        List<AQRFeature> features
+    ) {
+        this.name = name;
+        this.source = source;
+        this.features = features;
+    }
 
-	public String name() {
-		return name;
-	}
+    public String name() {
+        return name;
+    }
 
-	public @Nullable AQRSource source() {
-		return source;
-	}
+    public @Nullable AQRSource source() {
+        return source;
+    }
 
-	public List<AQRFeature> features() {
-		return features;
-	}
+    public List<AQRFeature> features() {
+        return features;
+    }
 
-	@Override
-	public String toString() {
-		return "TargetClass[name=%s, source=%s, features=%s]".formatted(
-			name,
-			source,
-			features
-		);
-	}
+    @Override
+    public String toString() {
+        return "TargetClass[name=%s, source=%s, features=%s]".formatted(
+            name,
+            source,
+            features
+        );
+    }
 
 }

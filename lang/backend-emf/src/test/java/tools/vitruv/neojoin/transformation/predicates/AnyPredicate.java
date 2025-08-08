@@ -6,14 +6,14 @@ import java.util.function.Predicate;
 
 public class AnyPredicate implements Predicate<EObject> {
 
-	@Override
-	public boolean test(EObject o) {
-		return true;
-	}
+    @Override
+    public boolean test(EObject o) {
+        return true;
+    }
 
-	@Override
-	public String toString() {
-		return "true";
-	}
+    @Override
+    public String toString() {
+        return "true";
+    }
 
 }

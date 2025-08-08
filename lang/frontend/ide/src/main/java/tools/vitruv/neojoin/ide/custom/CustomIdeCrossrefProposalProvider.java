@@ -12,24 +12,24 @@ import org.eclipse.xtext.resource.IEObjectDescription;
  */
 public class CustomIdeCrossrefProposalProvider extends IdeCrossrefProposalProvider {
 
-	@Override
-	protected ContentAssistEntry createProposal(
-		IEObjectDescription candidate, CrossReference crossRef,
-		ContentAssistContext context
-	) {
-		var qualifiedName = getQualifiedNameConverter().toString(candidate.getName());
-		if (crossRef.getTerminal() instanceof RuleCall call) {
-			if (call.getRule().getName().equals("STRING")) {
-				qualifiedName = '"' + qualifiedName + '"';
-			}
-		}
-		return getProposalCreator().createProposal(
-			qualifiedName, context, (e) -> {
-				e.setSource(candidate);
-				e.setDescription(candidate.getEClass() != null ? candidate.getEClass().getName() : null);
-				e.setKind(ContentAssistEntry.KIND_REFERENCE);
-			}
-		);
-	}
+    @Override
+    protected ContentAssistEntry createProposal(
+        IEObjectDescription candidate, CrossReference crossRef,
+        ContentAssistContext context
+    ) {
+        var qualifiedName = getQualifiedNameConverter().toString(candidate.getName());
+        if (crossRef.getTerminal() instanceof RuleCall call) {
+            if (call.getRule().getName().equals("STRING")) {
+                qualifiedName = '"' + qualifiedName + '"';
+            }
+        }
+        return getProposalCreator().createProposal(
+            qualifiedName, context, (e) -> {
+                e.setSource(candidate);
+                e.setDescription(candidate.getEClass() != null ? candidate.getEClass().getName() : null);
+                e.setKind(ContentAssistEntry.KIND_REFERENCE);
+            }
+        );
+    }
 
 }

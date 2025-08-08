@@ -16,25 +16,25 @@ import org.eclipse.xtext.xtype.XImportSection;
  */
 public class CustomClasspathBasedIdeTypesProposalProvider extends ClasspathBasedIdeTypesProposalProvider {
 
-	@Inject
-	private IdeContentProposalCreator proposalCreator;
+    @Inject
+    private IdeContentProposalCreator proposalCreator;
 
-	@Inject
-	private IQualifiedNameConverter qualifiedNameConverter;
+    @Inject
+    private IQualifiedNameConverter qualifiedNameConverter;
 
-	@Override
-	protected ContentAssistEntry createProposal(
-		EReference reference, ITypeDescriptor typeDesc,
-		ContentAssistContext context, XImportSection importSection, ITextRegion importSectionRegion
-	) {
-		String qualifiedName = qualifiedNameConverter.toString(typeDesc.getQualifiedName());
-		return proposalCreator.createProposal(
-			qualifiedName, context, (ContentAssistEntry it) -> {
-				it.setKind(ContentAssistEntry.KIND_REFERENCE);
-				it.setLabel(typeDesc.getSimpleName());
-				it.setDescription(qualifiedName);
-			}
-		);
-	}
+    @Override
+    protected ContentAssistEntry createProposal(
+        EReference reference, ITypeDescriptor typeDesc,
+        ContentAssistContext context, XImportSection importSection, ITextRegion importSectionRegion
+    ) {
+        String qualifiedName = qualifiedNameConverter.toString(typeDesc.getQualifiedName());
+        return proposalCreator.createProposal(
+            qualifiedName, context, (ContentAssistEntry it) -> {
+                it.setKind(ContentAssistEntry.KIND_REFERENCE);
+                it.setLabel(typeDesc.getSimpleName());
+                it.setDescription(qualifiedName);
+            }
+        );
+    }
 
 }

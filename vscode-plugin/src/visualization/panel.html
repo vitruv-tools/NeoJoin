@@ -1,218 +1,218 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta
-			http-equiv="Content-Security-Policy"
-			content="default-src 'unsafe-inline';"
-		/>
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>NeoJoin Preview</title>
-		<style>
-			html,
-			body {
-				width: 100%;
-				height: 100%;
-				padding: 0;
-			}
+    <head>
+        <meta charset="UTF-8" />
+        <meta
+            http-equiv="Content-Security-Policy"
+            content="default-src 'unsafe-inline';"
+        />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>NeoJoin Preview</title>
+        <style>
+            html,
+            body {
+                width: 100%;
+                height: 100%;
+                padding: 0;
+            }
 
-			body {
-				display: flex;
-				flex-direction: column;
-				align-items: stretch;
-			}
+            body {
+                display: flex;
+                flex-direction: column;
+                align-items: stretch;
+            }
 
-			#status {
-				padding: 0.5em;
+            #status {
+                padding: 0.5em;
 
-				display: flex;
-				align-items: center;
+                display: flex;
+                align-items: center;
 
-				form {
-					display: inline-flex;
-					align-items: center;
+                form {
+                    display: inline-flex;
+                    align-items: center;
 
-					label {
-						display: inline-flex;
-						align-items: center;
-						margin-left: 0.5em;
+                    label {
+                        display: inline-flex;
+                        align-items: center;
+                        margin-left: 0.5em;
 
-						cursor: help;
-						text-decoration: dotted underline;
-						text-underline-offset: 2px;
-					}
-				}
+                        cursor: help;
+                        text-decoration: dotted underline;
+                        text-underline-offset: 2px;
+                    }
+                }
 
-				background: color-mix(
-					in srgb,
-					var(--vscode-badge-background),
-					transparent 50%
-				);
+                background: color-mix(
+                    in srgb,
+                    var(--vscode-badge-background),
+                    transparent 50%
+                );
 
-				&.warning {
-					background: rgba(255, 204, 0, 0.4);
-				}
+                &.warning {
+                    background: rgba(255, 204, 0, 0.4);
+                }
 
-				&.error {
-					background: rgba(255, 0, 0, 0.3);
-				}
+                &.error {
+                    background: rgba(255, 0, 0, 0.3);
+                }
 
-				#message {
-					flex: 1;
-					margin: 0 1.5em;
-					text-align: center;
+                #message {
+                    flex: 1;
+                    margin: 0 1.5em;
+                    text-align: center;
 
-					color: var(--vscode-editor-foreground);
-				}
-			}
+                    color: var(--vscode-editor-foreground);
+                }
+            }
 
-			#visualization {
-				flex: 1;
-				overflow: auto;
+            #visualization {
+                flex: 1;
+                overflow: auto;
 
-				display: flex;
-				justify-content: safe center;
-				align-items: safe center;
+                display: flex;
+                justify-content: safe center;
+                align-items: safe center;
 
-				> svg {
-					flex: none;
-				}
+                > svg {
+                    flex: none;
+                }
 
-				> svg,
-				> svg > g > rect {
-					background: transparent !important;
-					fill: none !important;
-				}
-			}
+                > svg,
+                > svg > g > rect {
+                    background: transparent !important;
+                    fill: none !important;
+                }
+            }
 
-			/* Fix font color of <<enumeration>> in dark mode */
-			.vscode-dark #visualization > svg text[font-style="italic"] {
-				fill: white;
-			}
-		</style>
-	</head>
-	<body>
-		<div id="status">
-			<form id="options">
-				Mode:
-				<label
-					title="Show all classes of the target model as well as all classes of the source models"
-				>
-					<input type="radio" name="mode" value="full" />
-					<span>Full</span>
-				</label>
+            /* Fix font color of <<enumeration>> in dark mode */
+            .vscode-dark #visualization > svg text[font-style="italic"] {
+                fill: white;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="status">
+            <form id="options">
+                Mode:
+                <label
+                    title="Show all classes of the target model as well as all classes of the source models"
+                >
+                    <input type="radio" name="mode" value="full" />
+                    <span>Full</span>
+                </label>
 
-				<label
-					title="Show all classes of the target model as well as all referenced classes of the source models"
-				>
-					<input type="radio" name="mode" value="referenced" />
-					<span>Referenced</span>
-				</label>
+                <label
+                    title="Show all classes of the target model as well as all referenced classes of the source models"
+                >
+                    <input type="radio" name="mode" value="referenced" />
+                    <span>Referenced</span>
+                </label>
 
-				<label
-					title="Show the target class produced by the queries overlapping with the cursor text selection as well as all referenced classes of the source models"
-				>
-					<input type="radio" name="mode" value="selected" />
-					<span>Selected</span>
-				</label>
+                <label
+                    title="Show the target class produced by the queries overlapping with the cursor text selection as well as all referenced classes of the source models"
+                >
+                    <input type="radio" name="mode" value="selected" />
+                    <span>Selected</span>
+                </label>
 
-				<label title="Draw orthogonal arrows">
-					<input type="checkbox" name="orthogonal" />
-					<span>Orthogonal</span>
-				</label>
-			</form>
-			<span id="message">Loading ...</span>
-			<span>
-				Zoom:
-				<select id="zoom">
-					<option value="1.5">150%</option>
-					<option value="1.25">125%</option>
-					<option value="1" selected>100%</option>
-					<option value="0.9">90%</option>
-					<option value="0.8">80%</option>
-					<option value="0.7">70%</option>
-					<option value="0.6">60%</option>
-					<option value="0.5">50%</option>
-					<option value="0.4">40%</option>
-				</select>
-			</span>
-		</div>
-		<div id="visualization"></div>
-		<script>
-			const vscode = acquireVsCodeApi();
-			const state = {
-				uri: "%URI%",
-				options: {
-					mode: "%MODE%",
-					orthogonal: %ORTHOGONAL%,
-				},
-			};
-			vscode.setState(state);
+                <label title="Draw orthogonal arrows">
+                    <input type="checkbox" name="orthogonal" />
+                    <span>Orthogonal</span>
+                </label>
+            </form>
+            <span id="message">Loading ...</span>
+            <span>
+                Zoom:
+                <select id="zoom">
+                    <option value="1.5">150%</option>
+                    <option value="1.25">125%</option>
+                    <option value="1" selected>100%</option>
+                    <option value="0.9">90%</option>
+                    <option value="0.8">80%</option>
+                    <option value="0.7">70%</option>
+                    <option value="0.6">60%</option>
+                    <option value="0.5">50%</option>
+                    <option value="0.4">40%</option>
+                </select>
+            </span>
+        </div>
+        <div id="visualization"></div>
+        <script>
+            const vscode = acquireVsCodeApi();
+            const state = {
+                uri: "%URI%",
+                options: {
+                    mode: "%MODE%",
+                    orthogonal: %ORTHOGONAL%,
+                },
+            };
+            vscode.setState(state);
 
-			// persist option changes + notify extension
-			const options = document.getElementById("options");
-			options.addEventListener("change", (event) => {
-				const option = event.target.name;
-				const newValue =
-					event.target.type === "checkbox"
-						? event.target.checked
-						: event.target.value;
-				state.options[option] = newValue;
-				vscode.setState(state);
+            // persist option changes + notify extension
+            const options = document.getElementById("options");
+            options.addEventListener("change", (event) => {
+                const option = event.target.name;
+                const newValue =
+                    event.target.type === "checkbox"
+                        ? event.target.checked
+                        : event.target.value;
+                state.options[option] = newValue;
+                vscode.setState(state);
 
-				vscode.postMessage({
-					command: "option",
-					option: option,
-					value: newValue,
-				});
-			});
+                vscode.postMessage({
+                    command: "option",
+                    option: option,
+                    value: newValue,
+                });
+            });
 
-			// handle updates from extension
-			const status = document.getElementById("status");
-			const message = document.getElementById("message");
-			const visualization = document.getElementById("visualization");
-			const statusClassFor = {
-				ok: "",
-				warning: "warning",
-				error: "error",
-			}
-			function update(data) {
-				status.className = statusClassFor[data.type];
-				message.innerText = data.message;
+            // handle updates from extension
+            const status = document.getElementById("status");
+            const message = document.getElementById("message");
+            const visualization = document.getElementById("visualization");
+            const statusClassFor = {
+                ok: "",
+                warning: "warning",
+                error: "error",
+            }
+            function update(data) {
+                status.className = statusClassFor[data.type];
+                message.innerText = data.message;
 
-				if (data.svg) {
-					visualization.innerHTML = data.svg;
-				}
-			}
-			window.addEventListener("message", (event) => update(event.data));
+                if (data.svg) {
+                    visualization.innerHTML = data.svg;
+                }
+            }
+            window.addEventListener("message", (event) => update(event.data));
 
-			// restore previous settings
-			function restore(selector, apply) {
-				const input = document.querySelector(selector);
-				if (input) {
-					apply(input);
-				}
-			}
-			restore(
-				`#options input[name="mode"][value="${state.options.mode}"]`,
-				(input) => input.checked = true
-			);
-			restore(
-				`#options input[name="orthogonal"]`,
-				(input) => input.checked = state.options.orthogonal
-			);
+            // restore previous settings
+            function restore(selector, apply) {
+                const input = document.querySelector(selector);
+                if (input) {
+                    apply(input);
+                }
+            }
+            restore(
+                `#options input[name="mode"][value="${state.options.mode}"]`,
+                (input) => input.checked = true
+            );
+            restore(
+                `#options input[name="orthogonal"]`,
+                (input) => input.checked = state.options.orthogonal
+            );
 
-			// zoom
-			const zoom = document.getElementById("zoom");
-			zoom.addEventListener("change", (event) => {
-				const svg = visualization.querySelector("svg");
-				const factor = event.target.value;
+            // zoom
+            const zoom = document.getElementById("zoom");
+            zoom.addEventListener("change", (event) => {
+                const svg = visualization.querySelector("svg");
+                const factor = event.target.value;
 
-				// use width/height instead of `transform: scale(...)` to avoid issues with scrollbars
-				const svgSize = svg.getBBox();
-				svg.style.width = `${svgSize.width * factor}px`;
-				svg.style.height = `${svgSize.height * factor}px`;
-			});
-		</script>
-	</body>
+                // use width/height instead of `transform: scale(...)` to avoid issues with scrollbars
+                const svgSize = svg.getBBox();
+                svg.style.width = `${svgSize.width * factor}px`;
+                svg.style.height = `${svgSize.height * factor}px`;
+            });
+        </script>
+    </body>
 </html>

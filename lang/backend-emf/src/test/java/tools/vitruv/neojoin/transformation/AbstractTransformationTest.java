@@ -24,53 +24,53 @@ import static tools.vitruv.neojoin.utils.Assertions.check;
 @SuppressWarnings("NotNullFieldNotInitialized")
 public abstract class AbstractTransformationTest extends AbstractIntegrationTest {
 
-	private Map<EPackage, Resource> instanceModelRegistry;
+    private Map<EPackage, Resource> instanceModelRegistry;
 
-	@BeforeAll
-	protected static void initATT() {
-		if (!Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().containsKey("xmi")) {
-			Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().put(
-				"xmi", new XMIResourceFactoryImpl());
-		}
-	}
+    @BeforeAll
+    protected static void initATT() {
+        if (!Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().containsKey("xmi")) {
+            Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().put(
+                "xmi", new XMIResourceFactoryImpl());
+        }
+    }
 
-	@BeforeEach
-	protected void setUpATT() throws IOException {
-		instanceModelRegistry = createInstanceModelRegistry();
-	}
+    @BeforeEach
+    protected void setUpATT() throws IOException {
+        instanceModelRegistry = createInstanceModelRegistry();
+    }
 
-	protected Map<EPackage, Resource> createInstanceModelRegistry() throws IOException {
-		var knownPackages = EMFUtils.collectAvailablePackages(getPackageRegistry());
+    protected Map<EPackage, Resource> createInstanceModelRegistry() throws IOException {
+        var knownPackages = EMFUtils.collectAvailablePackages(getPackageRegistry());
 
-		var modelResourceSet = new ResourceSetImpl();
-		modelResourceSet.setPackageRegistry(getPackageRegistry());
+        var modelResourceSet = new ResourceSetImpl();
+        modelResourceSet.setPackageRegistry(getPackageRegistry());
 
-		var registry = new HashMap<EPackage, Resource>();
-		for (var path : getInstanceModelPaths()) {
-			var resource = modelResourceSet.createResource(URI.createURI(path));
-			var input = Objects.requireNonNull(getClass().getResourceAsStream(path));
-			resource.load(input, null);
+        var registry = new HashMap<EPackage, Resource>();
+        for (var path : getInstanceModelPaths()) {
+            var resource = modelResourceSet.createResource(URI.createURI(path));
+            var input = Objects.requireNonNull(getClass().getResourceAsStream(path));
+            resource.load(input, null);
 
-			check(!resource.getContents().isEmpty());
-			var instancedPackage = resource.getContents().getFirst().eClass().getEPackage();
-			check(knownPackages.contains(instancedPackage));
-			var previous = registry.put(instancedPackage, resource);
-			check(previous == null);
-		}
-		return registry;
-	}
+            check(!resource.getContents().isEmpty());
+            var instancedPackage = resource.getContents().getFirst().eClass().getEPackage();
+            check(knownPackages.contains(instancedPackage));
+            var previous = registry.put(instancedPackage, resource);
+            check(previous == null);
+        }
+        return registry;
+    }
 
-	protected abstract List<String> getInstanceModelPaths();
+    protected abstract List<String> getInstanceModelPaths();
 
-	protected EObject internalTransform(String query) {
-		var aqr = internalParseAQR(query);
-		var targetMetaModel = new MetaModelGenerator(aqr).generate().pack();
-		return new Transformator(
-			getInjector().getInstance(ExpressionHelper.class),
-			aqr,
-			targetMetaModel,
-			instanceModelRegistry
-		).transform();
-	}
+    protected EObject internalTransform(String query) {
+        var aqr = internalParseAQR(query);
+        var targetMetaModel = new MetaModelGenerator(aqr).generate().pack();
+        return new Transformator(
+            getInjector().getInstance(ExpressionHelper.class),
+            aqr,
+            targetMetaModel,
+            instanceModelRegistry
+        ).transform();
+    }
 
 }

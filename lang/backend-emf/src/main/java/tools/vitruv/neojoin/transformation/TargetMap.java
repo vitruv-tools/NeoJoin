@@ -14,78 +14,78 @@ import java.util.Map;
  */
 public class TargetMap {
 
-	private sealed interface Mapping {
+    private sealed interface Mapping {
 
-		Mapping with(EObject value);
+        Mapping with(EObject value);
 
-	}
+    }
 
-	private record None() implements Mapping {
+    private record None() implements Mapping {
 
-		@Override
-		public Mapping with(EObject value) {
-			return new One(value);
-		}
+        @Override
+        public Mapping with(EObject value) {
+            return new One(value);
+        }
 
-	}
+    }
 
-	private record One(EObject value) implements Mapping {
+    private record One(EObject value) implements Mapping {
 
-		@Override
-		public Mapping with(EObject value) {
-			return new Many();
-		}
+        @Override
+        public Mapping with(EObject value) {
+            return new Many();
+        }
 
-	}
+    }
 
-	private record Many() implements Mapping {
+    private record Many() implements Mapping {
 
-		@Override
-		public Mapping with(EObject value) {
-			return this;
-		}
+        @Override
+        public Mapping with(EObject value) {
+            return this;
+        }
 
-	}
+    }
 
-	private final Map<Pair<EObject, AQRTargetClass>, Mapping> map = new HashMap<>();
+    private final Map<Pair<EObject, AQRTargetClass>, Mapping> map = new HashMap<>();
 
-	private Mapping getMapping(EObject source, AQRTargetClass targetClass) {
-		return map.computeIfAbsent(
-			new Pair<>(source, targetClass),
-			k -> new None()
-		);
-	}
+    private Mapping getMapping(EObject source, AQRTargetClass targetClass) {
+        return map.computeIfAbsent(
+            new Pair<>(source, targetClass),
+            k -> new None()
+        );
+    }
 
-	/**
-	 * Register a new mapping from the source instance to the target instance via the target class.
-	 */
-	public void register(EObject source, AQRTargetClass targetClass, EObject target) {
-		var previous = getMapping(source, targetClass);
-		map.put(
-			new Pair<>(source, targetClass),
-			previous.with(target)
-		);
-	}
+    /**
+     * Register a new mapping from the source instance to the target instance via the target class.
+     */
+    public void register(EObject source, AQRTargetClass targetClass, EObject target) {
+        var previous = getMapping(source, targetClass);
+        map.put(
+            new Pair<>(source, targetClass),
+            previous.with(target)
+        );
+    }
 
-	/**
-	 * Retrieve the target instance that is mapped to the given source instance and target class.
-	 *
-	 * @throws TransformatorException if none or multiple target instances are mapped to the given source instance and target class
-	 */
-	public EObject get(EObject source, AQRTargetClass targetClass) {
-		return switch (getMapping(source, targetClass)) {
-			case One one -> one.value();
-			case None ignored -> throw new TransformatorException(
-				"no target instance of class '%s' found for source instance of class '%s'".formatted(
-					targetClass.name(), source.eClass().getName()
-				)
-			);
-			case Many ignored -> throw new TransformatorException(
-				"multiple target instances of class '%s' found for source instance of class '%s'".formatted(
-					targetClass.name(), source.eClass().getName()
-				)
-			);
-		};
-	}
+    /**
+     * Retrieve the target instance that is mapped to the given source instance and target class.
+     *
+     * @throws TransformatorException if none or multiple target instances are mapped to the given source instance and target class
+     */
+    public EObject get(EObject source, AQRTargetClass targetClass) {
+        return switch (getMapping(source, targetClass)) {
+            case One one -> one.value();
+            case None ignored -> throw new TransformatorException(
+                "no target instance of class '%s' found for source instance of class '%s'".formatted(
+                    targetClass.name(), source.eClass().getName()
+                )
+            );
+            case Many ignored -> throw new TransformatorException(
+                "multiple target instances of class '%s' found for source instance of class '%s'".formatted(
+                    targetClass.name(), source.eClass().getName()
+                )
+            );
+        };
+    }
 
 }

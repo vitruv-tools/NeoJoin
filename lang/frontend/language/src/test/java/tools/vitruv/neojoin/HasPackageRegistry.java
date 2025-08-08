@@ -4,6 +4,6 @@ import org.eclipse.emf.ecore.EPackage;
 
 public interface HasPackageRegistry {
 
-	EPackage.Registry getPackageRegistry();
+    EPackage.Registry getPackageRegistry();
 
 }

@@ -9,43 +9,43 @@ import java.util.function.Supplier;
  */
 public class AQRInvariantViolatedException extends RuntimeException {
 
-	public AQRInvariantViolatedException() {
-		super();
-	}
+    public AQRInvariantViolatedException() {
+        super();
+    }
 
-	public AQRInvariantViolatedException(String message) {
-		super(message);
-	}
+    public AQRInvariantViolatedException(String message) {
+        super(message);
+    }
 
-	@Contract("-> fail")
-	public static <T> T invariantFailed() {
-		throw new AQRInvariantViolatedException();
-	}
+    @Contract("-> fail")
+    public static <T> T invariantFailed() {
+        throw new AQRInvariantViolatedException();
+    }
 
-	@Contract("_ -> fail")
-	public static <T> T invariantFailed(String message) {
-		throw new AQRInvariantViolatedException(message);
-	}
+    @Contract("_ -> fail")
+    public static <T> T invariantFailed(String message) {
+        throw new AQRInvariantViolatedException(message);
+    }
 
-	@Contract("true -> _; false -> fail")
-	public static void invariant(boolean condition) {
-		if (!condition) {
-			throw new AQRInvariantViolatedException();
-		}
-	}
+    @Contract("true -> _; false -> fail")
+    public static void invariant(boolean condition) {
+        if (!condition) {
+            throw new AQRInvariantViolatedException();
+        }
+    }
 
-	@Contract("true, _ -> _; false, _ -> fail")
-	public static void invariant(boolean condition, String message) {
-		if (!condition) {
-			throw new AQRInvariantViolatedException(message);
-		}
-	}
+    @Contract("true, _ -> _; false, _ -> fail")
+    public static void invariant(boolean condition, String message) {
+        if (!condition) {
+            throw new AQRInvariantViolatedException(message);
+        }
+    }
 
-	@Contract("true, _ -> _; false, _ -> fail")
-	public static void invariant(boolean condition, Supplier<String> message) {
-		if (!condition) {
-			throw new AQRInvariantViolatedException(message.get());
-		}
-	}
+    @Contract("true, _ -> _; false, _ -> fail")
+    public static void invariant(boolean condition, Supplier<String> message) {
+        if (!condition) {
+            throw new AQRInvariantViolatedException(message.get());
+        }
+    }
 
 }

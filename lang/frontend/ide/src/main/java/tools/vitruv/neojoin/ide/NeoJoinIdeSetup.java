@@ -16,20 +16,20 @@ import static tools.vitruv.neojoin.utils.Assertions.check;
  */
 public class NeoJoinIdeSetup extends NeoJoinStandaloneSetup {
 
-	public static EPackage.@Nullable Registry Registry = null;
+    public static EPackage.@Nullable Registry Registry = null;
 
-	public NeoJoinIdeSetup() {
-		super(getPackageRegistry());
-	}
+    public NeoJoinIdeSetup() {
+        super(getPackageRegistry());
+    }
 
-	@Override
-	protected Module createModule() {
-		return Modules2.mixin(super.createModule(), new NeoJoinIdeModule());
-	}
+    @Override
+    protected Module createModule() {
+        return Modules2.mixin(super.createModule(), new NeoJoinIdeModule());
+    }
 
-	private static EPackage.Registry getPackageRegistry() {
-		check(Registry != null, "Model registry not initialized");
-		return Registry;
-	}
+    private static EPackage.Registry getPackageRegistry() {
+        check(Registry != null, "Model registry not initialized");
+        return Registry;
+    }
 
 }

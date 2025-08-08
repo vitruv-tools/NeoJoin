@@ -9,6 +9,6 @@ import org.eclipse.emf.common.util.URI;
  * @param uri  uri of the model
  */
 public record AQRExport(
-	String name,
-	URI uri
+    String name,
+    URI uri
 ) {}

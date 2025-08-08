@@ -10,7 +10,7 @@ import org.jspecify.annotations.Nullable;
  * @param isMany     whether the expression is a list type or not
  */
 public record TypeInfo(
-	@Nullable
-	EClassifier classifier,
-	boolean isMany
+    @Nullable
+    EClassifier classifier,
+    boolean isMany
 ) {}

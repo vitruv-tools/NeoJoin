@@ -11,9 +11,9 @@ import org.eclipse.xtext.xbase.typesystem.internal.OptimizingFeatureScopeTracker
  */
 public class OptimizingFeatureScopeTrackerProvider2 extends OptimizingFeatureScopeTrackerProvider {
 
-	@Override
-	public IFeatureScopeTracker track(EObject root) {
-		return new FeatureScopeTracker() {};
-	}
+    @Override
+    public IFeatureScopeTracker track(EObject root) {
+        return new FeatureScopeTracker() {};
+    }
 
 }

@@ -18,22 +18,22 @@ import org.eclipse.emf.ecore.xmi.impl.URIHandlerImpl;
  */
 public class RelativeURIResolver extends URIHandlerImpl {
 
-	private final URI base;
+    private final URI base;
 
-	public RelativeURIResolver(URI base) {
-		this.base = base;
-	}
+    public RelativeURIResolver(URI base) {
+        this.base = base;
+    }
 
-	public RelativeURIResolver(Resource resource) {
-		this(resource.getURI());
-	}
+    public RelativeURIResolver(Resource resource) {
+        this(resource.getURI());
+    }
 
-	@Override
-	public URI deresolve(URI uri) {
-		if (uri.trimFragment().equals(base)) {
-			uri = URI.createURI("#" + uri.fragment());
-		}
-		return super.deresolve(uri);
-	}
+    @Override
+    public URI deresolve(URI uri) {
+        if (uri.trimFragment().equals(base)) {
+            uri = URI.createURI("#" + uri.fragment());
+        }
+        return super.deresolve(uri);
+    }
 
 }

@@ -14,34 +14,34 @@ import java.io.OutputStream;
  */
 public class PlantUMLRenderer {
 
-	private final String source;
-	private final FileFormat format;
-	private final boolean darkMode;
+    private final String source;
+    private final FileFormat format;
+    private final boolean darkMode;
 
-	public PlantUMLRenderer(String source, FileFormat format, boolean darkMode) {
-		this.source = source;
-		this.format = format;
-		this.darkMode = darkMode;
-	}
+    public PlantUMLRenderer(String source, FileFormat format, boolean darkMode) {
+        this.source = source;
+        this.format = format;
+        this.darkMode = darkMode;
+    }
 
-	public void renderTo(OutputStream out) throws IOException {
-		var reader = new SourceStringReader(source);
-		var outputFormat = new FileFormatOption(format);
-		if (darkMode) {
-			outputFormat = outputFormat.withColorMapper(ColorMapper.DARK_MODE);
-		}
-		reader.outputImage(out, outputFormat);
-	}
+    public void renderTo(OutputStream out) throws IOException {
+        var reader = new SourceStringReader(source);
+        var outputFormat = new FileFormatOption(format);
+        if (darkMode) {
+            outputFormat = outputFormat.withColorMapper(ColorMapper.DARK_MODE);
+        }
+        reader.outputImage(out, outputFormat);
+    }
 
-	public String renderToString() {
-		var out = new ByteArrayOutputStream();
-		try {
-			renderTo(out);
-		} catch (IOException e) {
-			// should not occur because we do not use the file system
-			throw new RuntimeException(e);
-		}
-		return out.toString();
-	}
+    public String renderToString() {
+        var out = new ByteArrayOutputStream();
+        try {
+            renderTo(out);
+        } catch (IOException e) {
+            // should not occur because we do not use the file system
+            throw new RuntimeException(e);
+        }
+        return out.toString();
+    }
 
 }

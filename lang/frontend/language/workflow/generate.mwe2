@@ -8,56 +8,56 @@ var workspaceRoot = "."
 var rootPath = "${workspaceRoot}/.."
 
 Workflow {
-	component = XtextGenerator {
-		configuration = {
-			project = StandardProjectConfig {
-				rootPath = rootPath
-				baseName = "language"
-				mavenLayout = true
+    component = XtextGenerator {
+        configuration = {
+            project = StandardProjectConfig {
+                rootPath = rootPath
+                baseName = "language"
+                mavenLayout = true
 
-				runtime = {
-					srcGen = "${rootPath}/language/target/generated-sources/xtext-java"
-					ecoreModel = "${rootPath}/language/target/generated-sources/xtext-ecore"
-				}
+                runtime = {
+                    srcGen = "${rootPath}/language/target/generated-sources/xtext-java"
+                    ecoreModel = "${rootPath}/language/target/generated-sources/xtext-ecore"
+                }
 
-				genericIde = {
-					enabled = true
-					name = "ide"
-					srcGen = "${rootPath}/ide/src-gen/xtext-java"
-				}
-			}
-			code = {
-				preferXtendStubs = false
-				encoding = "UTF-8"
-			}
-		}
-		language = StandardLanguage {
-			name = "tools.vitruv.neojoin.NeoJoin"
-			fileExtensions = "nj"
-			grammarUri = "frontend/language/src/main/xtext/tools/vitruv/neojoin/NeoJoin.xtext"
+                genericIde = {
+                    enabled = true
+                    name = "ide"
+                    srcGen = "${rootPath}/ide/src-gen/xtext-java"
+                }
+            }
+            code = {
+                preferXtendStubs = false
+                encoding = "UTF-8"
+            }
+        }
+        language = StandardLanguage {
+            name = "tools.vitruv.neojoin.NeoJoin"
+            fileExtensions = "nj"
+            grammarUri = "frontend/language/src/main/xtext/tools/vitruv/neojoin/NeoJoin.xtext"
 
-			fragment = TextMateHighlightingFragment {
-				absolutePath = "${rootPath}/ide/src-gen/"
-			}
+            fragment = TextMateHighlightingFragment {
+                absolutePath = "${rootPath}/ide/src-gen/"
+            }
 
-			parserGenerator = {}
+            parserGenerator = {}
 
-			serializer = {
-				generateStub = false
-			}
-			generator = {
-				generateStub = false
-			}
-			scopeProvider = {
-				generateStub = true
-			}
-			validator = {
-				generateStub = true
-			}
+            serializer = {
+                generateStub = false
+            }
+            generator = {
+                generateStub = false
+            }
+            scopeProvider = {
+                generateStub = true
+            }
+            validator = {
+                generateStub = true
+            }
 
-			junitSupport = {
-				junitVersion = "5"
-			}
-		}
-	}
+            junitSupport = {
+                junitVersion = "5"
+            }
+        }
+    }
 }

@@ -6,10 +6,10 @@ import * as vscode from "vscode";
  * @returns escaped text
  */
 export function escapeForHTML(text: string) {
-	return text.replace(
-		/[<>"'&]/g,
-		(c) => `\\u${c.codePointAt(0)!.toString(16).padStart(4, "0")}`
-	);
+    return text.replace(
+        /[<>"'&]/g,
+        (c) => `\\u${c.codePointAt(0)!.toString(16).padStart(4, "0")}`
+    );
 }
 
 /**
@@ -18,13 +18,13 @@ export function escapeForHTML(text: string) {
  * @returns a promise that resolves to a {@link PromiseSettledResult}
  */
 export async function promiseResult<T>(
-	promise: Promise<T>
+    promise: Promise<T>
 ): Promise<PromiseSettledResult<T>> {
-	try {
-		return { status: "fulfilled", value: await promise };
-	} catch (error) {
-		return { status: "rejected", reason: error };
-	}
+    try {
+        return { status: "fulfilled", value: await promise };
+    } catch (error) {
+        return { status: "rejected", reason: error };
+    }
 }
 
 /**
@@ -34,28 +34,28 @@ export async function promiseResult<T>(
  * @returns text with placeholders replaced
  */
 export function replacePlaceholder(
-	text: string,
-	placeholders: Record<string, string>
+    text: string,
+    placeholders: Record<string, string>
 ) {
-	return text.replace(/%(\w+)%/g, (_, key) => {
-		if (key in placeholders) {
-			return placeholders[key];
-		} else {
-			throw new Error(`Unknown placeholder: ${key}`);
-		}
-	});
+    return text.replace(/%(\w+)%/g, (_, key) => {
+        if (key in placeholders) {
+            return placeholders[key];
+        } else {
+            throw new Error(`Unknown placeholder: ${key}`);
+        }
+    });
 }
 
 export function isDarkThemeEnabled() {
-	return vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.Dark;
+    return vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.Dark;
 }
 
 export function getErrorMessage(error: any) {
-	if (error instanceof Error) {
-		return error.message;
-	} else {
-		return String(error);
-	}
+    if (error instanceof Error) {
+        return error.message;
+    } else {
+        return String(error);
+    }
 }
 
 /**
@@ -66,12 +66,12 @@ export function getErrorMessage(error: any) {
  * @throws if no editor is found for the document
  */
 export function getSelectionInDocument(
-	document: vscode.TextDocument
+    document: vscode.TextDocument
 ): vscode.Selection | null {
-	const editor = vscode.window.visibleTextEditors.find(
-		(editor) => editor.document === document
-	);
-	return editor?.selection ?? null;
+    const editor = vscode.window.visibleTextEditors.find(
+        (editor) => editor.document === document
+    );
+    return editor?.selection ?? null;
 }
 
 /**
@@ -80,5 +80,5 @@ export function getSelectionInDocument(
  * @returns a promise that resolves after the specified duration
  */
 export function delay(duration: number): Promise<void> {
-	return new Promise((resolve) => setTimeout(resolve, duration));
+    return new Promise((resolve) => setTimeout(resolve, duration));
 }

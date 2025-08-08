@@ -22,50 +22,50 @@ import static tools.vitruv.neojoin.utils.Assertions.check;
  */
 public class GroupingSource {
 
-	private final List<XExpression> groupingExpressions;
-	private final InstanceSource inner;
-	private final ExpressionEvaluator evaluator;
+    private final List<XExpression> groupingExpressions;
+    private final InstanceSource inner;
+    private final ExpressionEvaluator evaluator;
 
-	public GroupingSource(List<XExpression> groupingExpressions, InstanceSource inner, ExpressionEvaluator evaluator) {
-		this.groupingExpressions = groupingExpressions;
-		this.inner = inner;
-		this.evaluator = evaluator;
-	}
+    public GroupingSource(List<XExpression> groupingExpressions, InstanceSource inner, ExpressionEvaluator evaluator) {
+        this.groupingExpressions = groupingExpressions;
+        this.inner = inner;
+        this.evaluator = evaluator;
+    }
 
-	public Stream<List<List<EObject>>> get() {
-		var grouped = inner.get().collect(Collectors.groupingBy(this::getGroupingKey));
-		return grouped.values().stream().map(GroupingSource::map);
-	}
+    public Stream<List<List<EObject>>> get() {
+        var grouped = inner.get().collect(Collectors.groupingBy(this::getGroupingKey));
+        return grouped.values().stream().map(GroupingSource::map);
+    }
 
-	private List<?> getGroupingKey(InstanceTuple tuple) {
-		var context = evaluator.createContext(tuple, null);
-		return groupingExpressions.stream().map(context::evaluateExpression).toList();
-	}
+    private List<?> getGroupingKey(InstanceTuple tuple) {
+        var context = evaluator.createContext(tuple, null);
+        return groupingExpressions.stream().map(context::evaluateExpression).toList();
+    }
 
-	/**
-	 * Transforms a list of tuples of objects into a tuple of lists of objects where the latter tuple is
-	 * represented by another list. In SQL terms, this function transforms a list of rows into a list of columns.
-	 */
-	private static List<List<@Nullable EObject>> map(List<InstanceTuple> tuples) {
-		check(!tuples.isEmpty());
-		var tupleLength = tuples.getFirst().stream().count();
-		List<List<@Nullable EObject>> result = createResultList(tupleLength, tuples.size());
+    /**
+     * Transforms a list of tuples of objects into a tuple of lists of objects where the latter tuple is
+     * represented by another list. In SQL terms, this function transforms a list of rows into a list of columns.
+     */
+    private static List<List<@Nullable EObject>> map(List<InstanceTuple> tuples) {
+        check(!tuples.isEmpty());
+        var tupleLength = tuples.getFirst().stream().count();
+        List<List<@Nullable EObject>> result = createResultList(tupleLength, tuples.size());
 
-		for (var tuple : tuples) {
-			Utils.forEachIndexed(
-				tuple.stream().iterator(), (obj, index) -> {
-					result.get(index).add(obj);
-				}
-			);
-		}
+        for (var tuple : tuples) {
+            Utils.forEachIndexed(
+                tuple.stream().iterator(), (obj, index) -> {
+                    result.get(index).add(obj);
+                }
+            );
+        }
 
-		return result;
-	}
+        return result;
+    }
 
-	private static List<List<@Nullable EObject>> createResultList(long tupleLength, int numTuples) {
-		return LongStream.range(0, tupleLength)
-			.mapToObj(i -> (List<@Nullable EObject>) new ArrayList<@Nullable EObject>(numTuples))
-			.toList();
-	}
+    private static List<List<@Nullable EObject>> createResultList(long tupleLength, int numTuples) {
+        return LongStream.range(0, tupleLength)
+            .mapToObj(i -> (List<@Nullable EObject>) new ArrayList<@Nullable EObject>(numTuples))
+            .toList();
+    }
 
 }

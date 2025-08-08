@@ -20,48 +20,48 @@ import static tools.vitruv.neojoin.utils.Assertions.require;
  */
 public class InstanceSourceFactory {
 
-	private final Map<EPackage, Resource> sourceInstanceModels;
+    private final Map<EPackage, Resource> sourceInstanceModels;
 
-	public InstanceSourceFactory(Map<EPackage, Resource> sourceInstanceModels) {
-		this.sourceInstanceModels = sourceInstanceModels;
-	}
+    public InstanceSourceFactory(Map<EPackage, Resource> sourceInstanceModels) {
+        this.sourceInstanceModels = sourceInstanceModels;
+    }
 
-	public InstanceSource create(AQRSource source, ExpressionEvaluator evaluator) {
-		InstanceSource result = createFrom(source.from());
-		for (var join : source.joins()) {
-			result = createJoin(join, result, createFrom(join.from()), evaluator);
-		}
-		if (source.condition() != null) {
-			result = createFilter(source.condition(), result, evaluator);
-		}
-		return result;
-	}
+    public InstanceSource create(AQRSource source, ExpressionEvaluator evaluator) {
+        InstanceSource result = createFrom(source.from());
+        for (var join : source.joins()) {
+            result = createJoin(join, result, createFrom(join.from()), evaluator);
+        }
+        if (source.condition() != null) {
+            result = createFilter(source.condition(), result, evaluator);
+        }
+        return result;
+    }
 
-	public FromSource createFrom(AQRFrom from) {
-		var rootPackage = EMFUtils.getRootPackage(from.clazz().getEPackage());
-		var referencedInstanceModel = sourceInstanceModels.get(rootPackage);
-		require(
-			referencedInstanceModel != null,
-			() -> "referenced instance model not found for package '%s'".formatted(from.clazz().getEPackage().getName())
-		);
+    public FromSource createFrom(AQRFrom from) {
+        var rootPackage = EMFUtils.getRootPackage(from.clazz().getEPackage());
+        var referencedInstanceModel = sourceInstanceModels.get(rootPackage);
+        require(
+            referencedInstanceModel != null,
+            () -> "referenced instance model not found for package '%s'".formatted(from.clazz().getEPackage().getName())
+        );
 
-		return new FromSource(from.clazz(), referencedInstanceModel);
-	}
+        return new FromSource(from.clazz(), referencedInstanceModel);
+    }
 
-	public InstanceSource createJoin(
-		AQRJoin join,
-		InstanceSource left,
-		FromSource right,
-		ExpressionEvaluator evaluator
-	) {
-		return switch (join.type()) {
-			case Inner -> new InnerJoinSource(left, right, join, evaluator);
-			case Left -> new LeftJoinSource(left, right, join, evaluator);
-		};
-	}
+    public InstanceSource createJoin(
+        AQRJoin join,
+        InstanceSource left,
+        FromSource right,
+        ExpressionEvaluator evaluator
+    ) {
+        return switch (join.type()) {
+            case Inner -> new InnerJoinSource(left, right, join, evaluator);
+            case Left -> new LeftJoinSource(left, right, join, evaluator);
+        };
+    }
 
-	private InstanceSource createFilter(XExpression condition, InstanceSource source, ExpressionEvaluator evaluator) {
-		return new FilterSource(condition, source, evaluator);
-	}
+    private InstanceSource createFilter(XExpression condition, InstanceSource source, ExpressionEvaluator evaluator) {
+        return new FilterSource(condition, source, evaluator);
+    }
 
 }

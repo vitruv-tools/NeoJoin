@@ -8,12 +8,12 @@ package tools.vitruv.neojoin.utils;
  */
 public sealed interface Result<T> {
 
-	record Success<T>(
-		T value
-	) implements Result<T> {}
+    record Success<T>(
+        T value
+    ) implements Result<T> {}
 
-	record Failure<T>(
-		Throwable throwable
-	) implements Result<T> {}
+    record Failure<T>(
+        Throwable throwable
+    ) implements Result<T> {}
 
 }

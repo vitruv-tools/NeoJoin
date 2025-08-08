@@ -14,53 +14,53 @@ import java.util.concurrent.CompletableFuture;
 @JsonSegment("visualization")
 public interface VisualizationService {
 
-	/**
-	 * Response for a visualization request.
-	 *
-	 * @param svg     the SVG string, or null if the generation failed
-	 * @param message a message in case of an _expected_ failure, or null if the generation was successful
-	 */
-	record TargetModelResponse(
-		@Nullable String svg,
-		@Nullable String message
-	) {}
+    /**
+     * Response for a visualization request.
+     *
+     * @param svg     the SVG string, or null if the generation failed
+     * @param message a message in case of an _expected_ failure, or null if the generation was successful
+     */
+    record TargetModelResponse(
+        @Nullable String svg,
+        @Nullable String message
+    ) {}
 
-	/**
-	 * Optional parameters for the visualization generation.
-	 */
-	record Options(
-		boolean orthogonalArrows,
-		boolean darkMode
-	) {}
+    /**
+     * Optional parameters for the visualization generation.
+     */
+    record Options(
+        boolean orthogonalArrows,
+        boolean darkMode
+    ) {}
 
-	interface Params {
+    interface Params {
 
-		@Nullable
-		TextDocumentIdentifier textDocument();
+        @Nullable
+        TextDocumentIdentifier textDocument();
 
-		@Nullable
-		Options options();
+        @Nullable
+        Options options();
 
-	}
+    }
 
-	record SimpleParams(
-		@Nullable TextDocumentIdentifier textDocument,
-		@Nullable Options options
-	) implements Params {}
+    record SimpleParams(
+        @Nullable TextDocumentIdentifier textDocument,
+        @Nullable Options options
+    ) implements Params {}
 
-	@JsonRequest(value = "full")
-	CompletableFuture<@Nullable TargetModelResponse> getFullVisualization(SimpleParams params);
+    @JsonRequest(value = "full")
+    CompletableFuture<@Nullable TargetModelResponse> getFullVisualization(SimpleParams params);
 
-	@JsonRequest(value = "referenced")
-	CompletableFuture<@Nullable TargetModelResponse> getReferencedVisualization(SimpleParams params);
+    @JsonRequest(value = "referenced")
+    CompletableFuture<@Nullable TargetModelResponse> getReferencedVisualization(SimpleParams params);
 
-	record SelectedParams(
-		@Nullable TextDocumentIdentifier textDocument,
-		@Nullable Options options,
-		@Nullable Range selection
-	) implements Params {}
+    record SelectedParams(
+        @Nullable TextDocumentIdentifier textDocument,
+        @Nullable Options options,
+        @Nullable Range selection
+    ) implements Params {}
 
-	@JsonRequest(value = "selected")
-	CompletableFuture<@Nullable TargetModelResponse> getSelectedVisualization(SelectedParams params);
+    @JsonRequest(value = "selected")
+    CompletableFuture<@Nullable TargetModelResponse> getSelectedVisualization(SelectedParams params);
 
 }

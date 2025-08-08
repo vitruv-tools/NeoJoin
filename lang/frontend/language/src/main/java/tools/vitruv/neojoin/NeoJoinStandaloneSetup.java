@@ -11,34 +11,34 @@ import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
  */
 public class NeoJoinStandaloneSetup extends NeoJoinStandaloneSetupGenerated {
 
-	private final EPackage.Registry packageRegistry;
-	private final Injector injector;
+    private final EPackage.Registry packageRegistry;
+    private final Injector injector;
 
-	public NeoJoinStandaloneSetup(EPackage.Registry packageRegistry) {
-		this.packageRegistry = packageRegistry;
-		this.injector = createInjectorAndDoEMFRegistration();
-	}
+    public NeoJoinStandaloneSetup(EPackage.Registry packageRegistry) {
+        this.packageRegistry = packageRegistry;
+        this.injector = createInjectorAndDoEMFRegistration();
+    }
 
-	protected Module createModule() {
-		return new NeoJoinRuntimeModule.Dynamic(packageRegistry);
-	}
+    protected Module createModule() {
+        return new NeoJoinRuntimeModule.Dynamic(packageRegistry);
+    }
 
-	@Override
-	@Deprecated // dont use this method directly
-	public Injector createInjector() {
-		return Guice.createInjector(createModule());
-	}
+    @Override
+    @Deprecated // dont use this method directly
+    public Injector createInjector() {
+        return Guice.createInjector(createModule());
+    }
 
-	public Injector getInjector() {
-		return injector;
-	}
+    public Injector getInjector() {
+        return injector;
+    }
 
-	public Parser getParser() {
-		return injector.getInstance(Parser.class);
-	}
+    public Parser getParser() {
+        return injector.getInstance(Parser.class);
+    }
 
-	public ExpressionHelper getExpressionHelper() {
-		return injector.getInstance(ExpressionHelper.class);
-	}
+    public ExpressionHelper getExpressionHelper() {
+        return injector.getInstance(ExpressionHelper.class);
+    }
 
 }
