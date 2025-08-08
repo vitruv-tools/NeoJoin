@@ -18,22 +18,22 @@ import tools.vitruv.neojoin.ide.custom.OptimizingFeatureScopeTrackerProvider2;
 @SuppressWarnings("unused")
 public class NeoJoinIdeModule extends AbstractNeoJoinIdeModule {
 
-	public Class<? extends ContentAssistService> bindContentAssistService() {
-		return CustomContentAssistService.class;
-	}
+    public Class<? extends ContentAssistService> bindContentAssistService() {
+        return CustomContentAssistService.class;
+    }
 
-	public Class<? extends IdeCrossrefProposalProvider> bindIdeCrossrefProposalProvider() {
-		return CustomIdeCrossrefProposalProvider.class;
-	}
+    public Class<? extends IdeCrossrefProposalProvider> bindIdeCrossrefProposalProvider() {
+        return CustomIdeCrossrefProposalProvider.class;
+    }
 
-	@Override
-	public Class<? extends IFeatureScopeTracker.Provider> bindIFeatureScopeTrackerProvider() {
-		return OptimizingFeatureScopeTrackerProvider2.class;
-	}
+    @Override
+    public Class<? extends IFeatureScopeTracker.Provider> bindIFeatureScopeTrackerProvider() {
+        return OptimizingFeatureScopeTrackerProvider2.class;
+    }
 
-	@Override
-	public Class<? extends IIdeTypesProposalProvider> bindIIdeTypesProposalProvider() {
-		return CustomClasspathBasedIdeTypesProposalProvider.class;
-	}
+    @Override
+    public Class<? extends IIdeTypesProposalProvider> bindIIdeTypesProposalProvider() {
+        return CustomClasspathBasedIdeTypesProposalProvider.class;
+    }
 
 }

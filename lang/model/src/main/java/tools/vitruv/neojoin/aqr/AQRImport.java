@@ -9,6 +9,6 @@ import org.eclipse.emf.ecore.EPackage;
  * @param alias name under which the package can be referenced in the query
  */
 public record AQRImport(
-	EPackage pack,
-	String alias
+    EPackage pack,
+    String alias
 ) {}

@@ -34,82 +34,82 @@ import static tools.vitruv.neojoin.parse.ParseAssertions.assertThat;
 @SuppressWarnings("NotNullFieldNotInitialized")
 public abstract class AbstractIntegrationTest implements HasPackageRegistry {
 
-	private EPackage.Registry packageRegistry;
-	private Injector injector;
-	private ResourceSet resourceSet;
+    private EPackage.Registry packageRegistry;
+    private Injector injector;
+    private ResourceSet resourceSet;
 
-	@Override
-	public EPackage.Registry getPackageRegistry() {
-		return packageRegistry;
-	}
+    @Override
+    public EPackage.Registry getPackageRegistry() {
+        return packageRegistry;
+    }
 
-	public Injector getInjector() {
-		return injector;
-	}
+    public Injector getInjector() {
+        return injector;
+    }
 
-	@BeforeAll
-	protected static void initAIT() {
-		if (!EPackage.Registry.INSTANCE.containsKey("http://vitruv.tools/dsls/neojoin/Ast")) {
-			EPackage.Registry.INSTANCE.put("http://vitruv.tools/dsls/neojoin/Ast", AstPackage.eINSTANCE);
-		}
+    @BeforeAll
+    protected static void initAIT() {
+        if (!EPackage.Registry.INSTANCE.containsKey("http://vitruv.tools/dsls/neojoin/Ast")) {
+            EPackage.Registry.INSTANCE.put("http://vitruv.tools/dsls/neojoin/Ast", AstPackage.eINSTANCE);
+        }
 
-		if (!Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().containsKey("ecore")) {
-			Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().put(
-				"ecore", new EcoreResourceFactoryImpl());
-		}
-	}
+        if (!Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().containsKey("ecore")) {
+            Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().put(
+                "ecore", new EcoreResourceFactoryImpl());
+        }
+    }
 
-	@BeforeEach
-	protected void setUpAIT() throws IOException {
-		packageRegistry = createPackageRegistry();
-		injector = new NeoJoinStandaloneSetup(packageRegistry).getInjector();
+    @BeforeEach
+    protected void setUpAIT() throws IOException {
+        packageRegistry = createPackageRegistry();
+        injector = new NeoJoinStandaloneSetup(packageRegistry).getInjector();
 
-		resourceSet = new ResourceSetImpl();
-		resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put(
-			"nj",
-			injector.getInstance(IResourceFactory.class)
-		);
-	}
+        resourceSet = new ResourceSetImpl();
+        resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put(
+            "nj",
+            injector.getInstance(IResourceFactory.class)
+        );
+    }
 
-	protected EPackage.Registry createPackageRegistry() throws IOException {
-		var registry = new EPackageRegistryImpl();
-		var packageResourceSet = new ResourceSetImpl();
-		for (var path : getMetaModelPaths()) {
-			var resource = packageResourceSet.createResource(URI.createURI(path));
-			var input = Objects.requireNonNull(getClass().getResourceAsStream(path));
-			resource.load(input, null);
-			var pack = (EPackage) resource.getContents().getFirst();
-			registry.put(pack.getNsURI(), pack);
-		}
-		return registry;
-	}
+    protected EPackage.Registry createPackageRegistry() throws IOException {
+        var registry = new EPackageRegistryImpl();
+        var packageResourceSet = new ResourceSetImpl();
+        for (var path : getMetaModelPaths()) {
+            var resource = packageResourceSet.createResource(URI.createURI(path));
+            var input = Objects.requireNonNull(getClass().getResourceAsStream(path));
+            resource.load(input, null);
+            var pack = (EPackage) resource.getContents().getFirst();
+            registry.put(pack.getNsURI(), pack);
+        }
+        return registry;
+    }
 
-	protected abstract List<String> getMetaModelPaths();
+    protected abstract List<String> getMetaModelPaths();
 
-	protected Pair<ViewTypeDefinition, List<Issue>> internalParse(String query) {
-		var resource = resourceSet.createResource(URI.createURI("test.nj"));
-		assertThatCode(
-			() -> resource.load(new StringInputStream(query), null)
-		).doesNotThrowAnyException();
+    protected Pair<ViewTypeDefinition, List<Issue>> internalParse(String query) {
+        var resource = resourceSet.createResource(URI.createURI("test.nj"));
+        assertThatCode(
+            () -> resource.load(new StringInputStream(query), null)
+        ).doesNotThrowAnyException();
 
-		// validate parser result (references + custom validations)
-		var issues = injector.getInstance(IResourceValidator.class).validate(
-			resource,
-			CheckMode.ALL,
-			CancelIndicator.NullImpl
-		);
+        // validate parser result (references + custom validations)
+        var issues = injector.getInstance(IResourceValidator.class).validate(
+            resource,
+            CheckMode.ALL,
+            CancelIndicator.NullImpl
+        );
 
-		var root = resource.getContents().getFirst();
-		assertThat(root).isInstanceOf(ViewTypeDefinition.class);
+        var root = resource.getContents().getFirst();
+        assertThat(root).isInstanceOf(ViewTypeDefinition.class);
 
-		return new Pair<>((ViewTypeDefinition) root, issues);
-	}
+        return new Pair<>((ViewTypeDefinition) root, issues);
+    }
 
-	protected AQR internalParseAQR(String query) {
-		var result = internalParse(query);
-		assertThat(result).hasNoIssues();
-		//noinspection DataFlowIssue - false positive
-		return new AQRBuilder(result.left(), injector.getInstance(ExpressionHelper.class)).build();
-	}
+    protected AQR internalParseAQR(String query) {
+        var result = internalParse(query);
+        assertThat(result).hasNoIssues();
+        //noinspection DataFlowIssue - false positive
+        return new AQRBuilder(result.left(), injector.getInstance(ExpressionHelper.class)).build();
+    }
 
 }

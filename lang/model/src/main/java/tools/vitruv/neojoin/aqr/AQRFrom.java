@@ -10,6 +10,6 @@ import org.jspecify.annotations.Nullable;
  * @param alias alias for references
  */
 public record AQRFrom(
-	EClass clazz,
-	@Nullable String alias
+    EClass clazz,
+    @Nullable String alias
 ) {}

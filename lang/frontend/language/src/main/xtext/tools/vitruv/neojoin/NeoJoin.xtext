@@ -1,31 +1,31 @@
 grammar tools.vitruv.neojoin.NeoJoin
-	with org.eclipse.xtext.xbase.Xbase
+    with org.eclipse.xtext.xbase.Xbase
 
 generate ast "http://vitruv.tools/dsls/neojoin/Ast"
 
 import "http://www.eclipse.org/emf/2002/Ecore" as ecore
 
 ViewTypeDefinition:
-	export=Export
-	imports+=Import*
-	queries+=MainQuery*;
+    export=Export
+    imports+=Import*
+    queries+=MainQuery*;
 
 Export:
-	'export' package=ID 'to' uri=STRING;
+    'export' package=ID 'to' uri=STRING;
 
 Import:
-	'import' package=[ecore::EPackage|STRING] ('as' alias=ID)?;
+    'import' package=[ecore::EPackage|STRING] ('as' alias=ID)?;
 
 MainQuery:
-	source=Source?
-	'create' root?='root'? name=ID?
-	body=Body?;
+    source=Source?
+    'create' root?='root'? name=ID?
+    body=Body?;
 
 Source:
-	'from' from=From
-	joins+=Join*
-	('where' condition=XOrExpression)?
-	('group' 'by' groupingExpressions+=XOrExpression (',' groupingExpressions+=XOrExpression)*)?;
+    'from' from=From
+    joins+=Join*
+    ('where' condition=XOrExpression)?
+    ('group' 'by' groupingExpressions+=XOrExpression (',' groupingExpressions+=XOrExpression)*)?;
 
 From:
     clazz=[ecore::EClass|QualifiedName] (alias=ID)?;
@@ -46,17 +46,17 @@ Body:
     {Body} '{' features+=Feature* '}'; // {Body} ensures that the object is created to differentiate an empty body {} from a missing body
 
 Feature:
-	(
-	    name=ID
-	    (':' type=[ecore::EObject|QualifiedName])? // type refers either to an EDataType or a Query
-	    (hasModifiers?='[' (modifiers+=Modifier (',' modifiers+=Modifier)*)? ']')? // allow empty modifier list in grammar and forbid it using a validator for improved error messages
-	    op=FeatureOp
+    (
+        name=ID
+        (':' type=[ecore::EObject|QualifiedName])? // type refers either to an EDataType or a Query
+        (hasModifiers?='[' (modifiers+=Modifier (',' modifiers+=Modifier)*)? ']')? // allow empty modifier list in grammar and forbid it using a validator for improved error messages
+        op=FeatureOp
     )?
-	expression=XOrExpression
-	subQuery=SubQuery?;
+    expression=XOrExpression
+    subQuery=SubQuery?;
 
 enum FeatureOp:
-	COPY='=' | CALCULATE=':=';
+    COPY='=' | CALCULATE=':=';
 
 Modifier:
     BooleanModifier | MultiplicityExpr;
@@ -74,6 +74,6 @@ MultiplicityExpr:
     {MultiplicityManyAtLeast} lowerBound=INT '..*';
 
 SubQuery:
-	'create' (name=ID ->body=Body? | body=Body);
+    'create' (name=ID ->body=Body? | body=Body);
 
 Query: MainQuery | SubQuery; // for type hierarchy

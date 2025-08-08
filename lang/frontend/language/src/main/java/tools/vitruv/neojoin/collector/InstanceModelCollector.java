@@ -20,53 +20,53 @@ import java.util.function.Predicate;
  */
 public class InstanceModelCollector extends AbstractModelCollector {
 
-	public static final String FileExtension = "xmi";
+    public static final String FileExtension = "xmi";
 
-	private final EPackage.Registry registry;
+    private final EPackage.Registry registry;
 
-	public InstanceModelCollector(String searchPathString, EPackage.Registry registry) {
-		super(searchPathString);
-		this.registry = registry;
-	}
+    public InstanceModelCollector(String searchPathString, EPackage.Registry registry) {
+        super(searchPathString);
+        this.registry = registry;
+    }
 
-	@Override
-	protected Predicate<URI> getFilter() {
-		return uri -> Objects.equals(uri.fileExtension(), FileExtension);
-	}
+    @Override
+    protected Predicate<URI> getFilter() {
+        return uri -> Objects.equals(uri.fileExtension(), FileExtension);
+    }
 
-	public Map<EPackage, Resource> collect() {
-		if (!Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().containsKey(FileExtension)) {
-			Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().put(
-				FileExtension, new XMIResourceFactoryImpl());
-		}
+    public Map<EPackage, Resource> collect() {
+        if (!Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().containsKey(FileExtension)) {
+            Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().put(
+                FileExtension, new XMIResourceFactoryImpl());
+        }
 
-		var knownPackages = EMFUtils.collectAvailablePackages(registry);
+        var knownPackages = EMFUtils.collectAvailablePackages(registry);
 
-		var resourceSet = new ResourceSetImpl();
-		resourceSet.setPackageRegistry(registry);
+        var resourceSet = new ResourceSetImpl();
+        resourceSet.setPackageRegistry(registry);
 
-		var map = new HashMap<EPackage, Resource>();
-		collectResourcesAsStream(resourceSet).forEach(res -> {
-			if (res.getContents().isEmpty()) {
-				return;
-			}
+        var map = new HashMap<EPackage, Resource>();
+        collectResourcesAsStream(resourceSet).forEach(res -> {
+            if (res.getContents().isEmpty()) {
+                return;
+            }
 
-			var instancedPackage = res.getContents().getFirst().eClass().getEPackage();
-			if (!knownPackages.contains(instancedPackage)) {
-				return;
-			}
+            var instancedPackage = res.getContents().getFirst().eClass().getEPackage();
+            if (!knownPackages.contains(instancedPackage)) {
+                return;
+            }
 
-			var previous = map.put(instancedPackage, res);
-			if (previous != null) {
-				throw new IllegalArgumentException("Found multiple instances for package '%s': %s and %s".formatted(
-					instancedPackage.getName(),
-					previous.getURI(),
-					res.getURI()
-				));
-			}
+            var previous = map.put(instancedPackage, res);
+            if (previous != null) {
+                throw new IllegalArgumentException("Found multiple instances for package '%s': %s and %s".formatted(
+                    instancedPackage.getName(),
+                    previous.getURI(),
+                    res.getURI()
+                ));
+            }
 
-		});
-		return map;
-	}
+        });
+        return map;
+    }
 
 }

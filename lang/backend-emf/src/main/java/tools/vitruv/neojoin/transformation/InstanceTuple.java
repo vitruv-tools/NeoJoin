@@ -15,27 +15,27 @@ import java.util.stream.Stream;
  */
 public class InstanceTuple {
 
-	private final @Nullable InstanceTuple left;
-	private final @Nullable EObject right;
+    private final @Nullable InstanceTuple left;
+    private final @Nullable EObject right;
 
-	public InstanceTuple(@Nullable InstanceTuple left, @Nullable EObject right) {
-		this.left = left;
-		this.right = right;
-	}
+    public InstanceTuple(@Nullable InstanceTuple left, @Nullable EObject right) {
+        this.left = left;
+        this.right = right;
+    }
 
-	public InstanceTuple(EObject right) {
-		this(null, right);
-	}
+    public InstanceTuple(EObject right) {
+        this(null, right);
+    }
 
-	/**
-	 * @return contained instances from left to right
-	 */
-	public Stream<@Nullable EObject> stream() {
-		if (left == null) {
-			return Stream.of(right);
-		} else {
-			return Stream.concat(left.stream(), Stream.<@Nullable EObject>of(right));
-		}
-	}
+    /**
+     * @return contained instances from left to right
+     */
+    public Stream<@Nullable EObject> stream() {
+        if (left == null) {
+            return Stream.of(right);
+        } else {
+            return Stream.concat(left.stream(), Stream.<@Nullable EObject>of(right));
+        }
+    }
 
 }

@@ -15,42 +15,42 @@ import static tools.vitruv.neojoin.utils.Assertions.require;
  */
 public class FileURIAccessor implements URIAccessor {
 
-	@Override
-	public boolean canHandle(URI uri) {
-		return uri.isFile();
-	}
+    @Override
+    public boolean canHandle(URI uri) {
+        return uri.isFile();
+    }
 
-	@Override
-	public List<URI> getContainedFiles(URI fileOrDirectory, Predicate<URI> filter) {
-		require(canHandle(fileOrDirectory), () -> "Cannot handle URI: " + fileOrDirectory);
+    @Override
+    public List<URI> getContainedFiles(URI fileOrDirectory, Predicate<URI> filter) {
+        require(canHandle(fileOrDirectory), () -> "Cannot handle URI: " + fileOrDirectory);
 
-		var path = Path.of(java.net.URI.create(fileOrDirectory.toString()));
-		require(Files.exists(path), () -> "Does not exist: " + fileOrDirectory);
+        var path = Path.of(java.net.URI.create(fileOrDirectory.toString()));
+        require(Files.exists(path), () -> "Does not exist: " + fileOrDirectory);
 
-		if (Files.isRegularFile(path)) {
-			var uri = createURI(path);
-			if (filter.test(uri)) {
-				return List.of(uri);
-			} else {
-				return List.of();
-			}
-		}
+        if (Files.isRegularFile(path)) {
+            var uri = createURI(path);
+            if (filter.test(uri)) {
+                return List.of(uri);
+            } else {
+                return List.of();
+            }
+        }
 
-		require(Files.isDirectory(path), () -> "Not a file or directory: " + fileOrDirectory);
+        require(Files.isDirectory(path), () -> "Not a file or directory: " + fileOrDirectory);
 
-		try (var paths = Files.walk(path)) {
-			return paths
-				.filter(Files::isRegularFile)
-				.map(FileURIAccessor::createURI)
-				.filter(filter)
-				.toList();
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-	}
+        try (var paths = Files.walk(path)) {
+            return paths
+                .filter(Files::isRegularFile)
+                .map(FileURIAccessor::createURI)
+                .filter(filter)
+                .toList();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-	private static URI createURI(Path path) {
-		return URI.createFileURI(path.toAbsolutePath().normalize().toString());
-	}
+    private static URI createURI(Path path) {
+        return URI.createFileURI(path.toAbsolutePath().normalize().toString());
+    }
 
 }

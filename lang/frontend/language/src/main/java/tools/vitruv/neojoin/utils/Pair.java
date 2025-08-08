@@ -11,6 +11,6 @@ import org.jspecify.annotations.Nullable;
  * @param <R>   type of right value
  */
 public record Pair<L extends @Nullable Object, R extends @Nullable Object>(
-	L left,
-	R right
+    L left,
+    R right
 ) {}

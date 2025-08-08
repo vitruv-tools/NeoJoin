@@ -18,35 +18,35 @@ import java.util.function.Predicate;
  */
 public class PackageModelCollector extends AbstractModelCollector {
 
-	public static final String FileExtension = "ecore";
+    public static final String FileExtension = "ecore";
 
-	public PackageModelCollector(String searchPathString) {
-		super(searchPathString);
-	}
+    public PackageModelCollector(String searchPathString) {
+        super(searchPathString);
+    }
 
-	@Override
-	protected Predicate<URI> getFilter() {
-		return uri -> Objects.equals(uri.fileExtension(), FileExtension);
-	}
+    @Override
+    protected Predicate<URI> getFilter() {
+        return uri -> Objects.equals(uri.fileExtension(), FileExtension);
+    }
 
-	public EPackage.Registry collect() {
-		if (!Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().containsKey(FileExtension)) {
-			Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().put(
-				FileExtension, new EcoreResourceFactoryImpl());
-		}
+    public EPackage.Registry collect() {
+        if (!Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().containsKey(FileExtension)) {
+            Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().put(
+                FileExtension, new EcoreResourceFactoryImpl());
+        }
 
-		var registry = new EPackageRegistryImpl();
+        var registry = new EPackageRegistryImpl();
 
-		collectResourcesAsStream(new ResourceSetImpl()).forEach(res -> {
-			EMFUtils.getAllEPackages(res).forEach(pack -> {
-				var previousValue = registry.put(pack.getNsURI(), pack);
-				if (previousValue != null) {
-					throw new IllegalArgumentException("Found multiple packages with URI '%s'.".formatted(pack.getNsURI()));
-				}
-			});
-		});
+        collectResourcesAsStream(new ResourceSetImpl()).forEach(res -> {
+            EMFUtils.getAllEPackages(res).forEach(pack -> {
+                var previousValue = registry.put(pack.getNsURI(), pack);
+                if (previousValue != null) {
+                    throw new IllegalArgumentException("Found multiple packages with URI '%s'.".formatted(pack.getNsURI()));
+                }
+            });
+        });
 
-		return registry;
-	}
+        return registry;
+    }
 
 }

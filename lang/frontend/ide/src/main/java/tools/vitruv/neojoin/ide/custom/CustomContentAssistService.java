@@ -29,54 +29,54 @@ import org.jspecify.annotations.Nullable;
 @Singleton
 public class CustomContentAssistService extends ContentAssistService {
 
-	private @Nullable Position findCurrentNode(Document document, XtextResource resource, CompletionParams params) {
-		Position caretPosition = params.getPosition();
-		int caretOffset = document.getOffSet(caretPosition);
-		var rootNode = resource.getParseResult().getRootNode();
+    private @Nullable Position findCurrentNode(Document document, XtextResource resource, CompletionParams params) {
+        Position caretPosition = params.getPosition();
+        int caretOffset = document.getOffSet(caretPosition);
+        var rootNode = resource.getParseResult().getRootNode();
 
-		ILeafNode currentNode = new LeafNodeFinder(caretOffset, true).searchIn(rootNode);
-		if (currentNode == null || currentNode.isHidden()) {
-			currentNode = new LeafNodeFinder(caretOffset, false).searchIn(rootNode);
-		}
+        ILeafNode currentNode = new LeafNodeFinder(caretOffset, true).searchIn(rootNode);
+        if (currentNode == null || currentNode.isHidden()) {
+            currentNode = new LeafNodeFinder(caretOffset, false).searchIn(rootNode);
+        }
 
-		if (currentNode != null && !currentNode.isHidden()) {
-			return document.getPosition(currentNode.getEndOffset());
-		} else {
-			return null;
-		}
-	}
+        if (currentNode != null && !currentNode.isHidden()) {
+            return document.getPosition(currentNode.getEndOffset());
+        } else {
+            return null;
+        }
+    }
 
-	private @Nullable Position endPosition;
+    private @Nullable Position endPosition;
 
-	@Override
-	public CompletionList createCompletionList(
-		Document document,
-		XtextResource resource,
-		CompletionParams params,
-		CancelIndicator cancelIndicator
-	) {
-		try {
-			endPosition = findCurrentNode(document, resource, params);
-			return super.createCompletionList(document, resource, params, cancelIndicator);
-		} finally {
-			endPosition = null;
-		}
-	}
+    @Override
+    public CompletionList createCompletionList(
+        Document document,
+        XtextResource resource,
+        CompletionParams params,
+        CancelIndicator cancelIndicator
+    ) {
+        try {
+            endPosition = findCurrentNode(document, resource, params);
+            return super.createCompletionList(document, resource, params, cancelIndicator);
+        } finally {
+            endPosition = null;
+        }
+    }
 
-	@Override
-	protected CompletionItem toCompletionItem(
-		ContentAssistEntry entry,
-		int caretOffset,
-		Position caretPosition,
-		Document document
-	) {
-		var item = super.toCompletionItem(entry, caretOffset, caretPosition, document);
+    @Override
+    protected CompletionItem toCompletionItem(
+        ContentAssistEntry entry,
+        int caretOffset,
+        Position caretPosition,
+        Document document
+    ) {
+        var item = super.toCompletionItem(entry, caretOffset, caretPosition, document);
 
-		if (endPosition != null && item.getTextEdit().getLeft() != null) {
-			item.getTextEdit().getLeft().getRange().setEnd(endPosition);
-		}
+        if (endPosition != null && item.getTextEdit().getLeft() != null) {
+            item.getTextEdit().getLeft().getRange().setEnd(endPosition);
+        }
 
-		return item;
-	}
+        return item;
+    }
 
 }

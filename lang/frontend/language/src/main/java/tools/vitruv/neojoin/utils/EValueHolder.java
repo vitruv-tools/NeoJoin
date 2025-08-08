@@ -16,35 +16,35 @@ import static tools.vitruv.neojoin.utils.Assertions.require;
  */
 public abstract class EValueHolder<T> extends AdapterImpl {
 
-	private final T value;
+    private final T value;
 
-	protected EValueHolder(T value) {
-		this.value = value;
-	}
+    protected EValueHolder(T value) {
+        this.value = value;
+    }
 
-	public T getValue() {
-		return value;
-	}
+    public T getValue() {
+        return value;
+    }
 
-	@Override
-	public boolean isAdapterForType(Object type) {
-		return getClass() == type;
-	}
+    @Override
+    public boolean isAdapterForType(Object type) {
+        return getClass() == type;
+    }
 
-	protected static <T> void install(EObject object, EValueHolder<T> holder) {
-		require(EcoreUtil2.getExistingAdapter(object, holder.getClass()) == null, "Value already set");
-		object.eAdapters().add(holder);
-	}
+    protected static <T> void install(EObject object, EValueHolder<T> holder) {
+        require(EcoreUtil2.getExistingAdapter(object, holder.getClass()) == null, "Value already set");
+        object.eAdapters().add(holder);
+    }
 
-	protected static <T> T retrieve(EObject object, Class<? extends EValueHolder<T>> type) {
-		var adapter = EcoreUtil2.getExistingAdapter(object, type);
-		require(adapter != null, "No value set");
-		return type.cast(adapter).getValue();
-	}
+    protected static <T> T retrieve(EObject object, Class<? extends EValueHolder<T>> type) {
+        var adapter = EcoreUtil2.getExistingAdapter(object, type);
+        require(adapter != null, "No value set");
+        return type.cast(adapter).getValue();
+    }
 
-	protected static <T> @Nullable T retrieveOrNull(EObject object, Class<? extends EValueHolder<T>> type) {
-		var adapter = EcoreUtil2.getExistingAdapter(object, type);
-		return adapter == null ? null : type.cast(adapter).getValue();
-	}
+    protected static <T> @Nullable T retrieveOrNull(EObject object, Class<? extends EValueHolder<T>> type) {
+        var adapter = EcoreUtil2.getExistingAdapter(object, type);
+        return adapter == null ? null : type.cast(adapter).getValue();
+    }
 
 }

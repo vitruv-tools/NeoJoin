@@ -15,51 +15,51 @@ import java.util.Objects;
  */
 public abstract class AbstractJoinSource implements InstanceSource {
 
-	protected final InstanceSource leftSource;
-	protected final FromSource rightSource;
-	private final AQRJoin join;
-	private final ExpressionEvaluator evaluator;
+    protected final InstanceSource leftSource;
+    protected final FromSource rightSource;
+    private final AQRJoin join;
+    private final ExpressionEvaluator evaluator;
 
-	public AbstractJoinSource(InstanceSource left, FromSource right, AQRJoin join, ExpressionEvaluator evaluator) {
-		this.leftSource = left;
-		this.rightSource = right;
-		this.join = join;
-		this.evaluator = evaluator;
-	}
+    public AbstractJoinSource(InstanceSource left, FromSource right, AQRJoin join, ExpressionEvaluator evaluator) {
+        this.leftSource = left;
+        this.rightSource = right;
+        this.join = join;
+        this.evaluator = evaluator;
+    }
 
-	protected boolean evaluateConditions(InstanceTuple left, EObject right) {
-		return evaluateFeatureConditions(left, right) && evaluateExpressionConditions(left, right);
-	}
+    protected boolean evaluateConditions(InstanceTuple left, EObject right) {
+        return evaluateFeatureConditions(left, right) && evaluateExpressionConditions(left, right);
+    }
 
-	private boolean evaluateFeatureConditions(InstanceTuple left, EObject right) {
-		return join.featureConditions().stream().allMatch(c -> evaluateFeatureCondition(c, left, right));
-	}
+    private boolean evaluateFeatureConditions(InstanceTuple left, EObject right) {
+        return join.featureConditions().stream().allMatch(c -> evaluateFeatureCondition(c, left, right));
+    }
 
-	private boolean evaluateFeatureCondition(
-		AQRJoin.FeatureCondition condition,
-		InstanceTuple leftTuple,
-		EObject right
-	) {
-		var left = Utils.getAt(leftTuple.stream(), condition.otherIndex());
-		//noinspection ConstantValue - false positive
-		if (left == null) {
-			return false;
-		}
+    private boolean evaluateFeatureCondition(
+        AQRJoin.FeatureCondition condition,
+        InstanceTuple leftTuple,
+        EObject right
+    ) {
+        var left = Utils.getAt(leftTuple.stream(), condition.otherIndex());
+        //noinspection ConstantValue - false positive
+        if (left == null) {
+            return false;
+        }
 
-		for (var feature : condition.features()) {
-			var leftValue = left.eGet(left.eClass().getEStructuralFeature(feature));
-			var rightValue = right.eGet(right.eClass().getEStructuralFeature(feature));
-			if (!Objects.equals(leftValue, rightValue)) {
-				return false;
-			}
-		}
+        for (var feature : condition.features()) {
+            var leftValue = left.eGet(left.eClass().getEStructuralFeature(feature));
+            var rightValue = right.eGet(right.eClass().getEStructuralFeature(feature));
+            if (!Objects.equals(leftValue, rightValue)) {
+                return false;
+            }
+        }
 
-		return true;
-	}
+        return true;
+    }
 
-	private boolean evaluateExpressionConditions(InstanceTuple left, EObject right) {
-		var context = evaluator.createContext(new InstanceTuple(left, right), join.from());
-		return join.expressionConditions().stream().allMatch(context::evaluateCondition);
-	}
+    private boolean evaluateExpressionConditions(InstanceTuple left, EObject right) {
+        var context = evaluator.createContext(new InstanceTuple(left, right), join.from());
+        return join.expressionConditions().stream().allMatch(context::evaluateCondition);
+    }
 
 }

@@ -18,24 +18,24 @@ import java.util.stream.Stream;
  */
 public abstract class AbstractModelCollector {
 
-	private final List<URI> paths;
+    private final List<URI> paths;
 
-	public AbstractModelCollector(String searchPathString) {
-		this.paths = parseSearchPathString(searchPathString);
-	}
+    public AbstractModelCollector(String searchPathString) {
+        this.paths = parseSearchPathString(searchPathString);
+    }
 
-	private static List<URI> parseSearchPathString(String pathString) {
-		return Arrays.stream(pathString.split(";"))
-			.map(URI::createURI)
-			.toList();
-	}
+    private static List<URI> parseSearchPathString(String pathString) {
+        return Arrays.stream(pathString.split(";"))
+            .map(URI::createURI)
+            .toList();
+    }
 
-	protected abstract Predicate<URI> getFilter();
+    protected abstract Predicate<URI> getFilter();
 
-	protected Stream<Resource> collectResourcesAsStream(ResourceSet resourceSet) {
-		return paths.stream()
-			.flatMap(p -> URIAccessor.Registry.get(p).getContainedFiles(p, getFilter()).stream())
-			.map(uri -> resourceSet.getResource(uri, true));
-	}
+    protected Stream<Resource> collectResourcesAsStream(ResourceSet resourceSet) {
+        return paths.stream()
+            .flatMap(p -> URIAccessor.Registry.get(p).getContainedFiles(p, getFilter()).stream())
+            .map(uri -> resourceSet.getResource(uri, true));
+    }
 
 }

@@ -15,22 +15,22 @@ import java.util.stream.Stream;
  * @param groupingExpressions Xtend expressions to group by (e.g. {@code group by a.name, b.id})
  */
 public record AQRSource(
-	AQRFrom from,
-	List<AQRJoin> joins,
-	@Nullable XExpression condition,
-	List<XExpression> groupingExpressions
+    AQRFrom from,
+    List<AQRJoin> joins,
+    @Nullable XExpression condition,
+    List<XExpression> groupingExpressions
 ) {
 
-	/**
-	 * Get a stream of all contained {@link AQRFrom}.
-	 *
-	 * @implNote {@link AQRJoin.FeatureCondition join feature conditions} depend on the order returned by this method
-	 */
-	public Stream<AQRFrom> allFroms() {
-		return Stream.concat(
-			Stream.of(from),
-			joins.stream().map(AQRJoin::from)
-		);
-	}
+    /**
+     * Get a stream of all contained {@link AQRFrom}.
+     *
+     * @implNote {@link AQRJoin.FeatureCondition join feature conditions} depend on the order returned by this method
+     */
+    public Stream<AQRFrom> allFroms() {
+        return Stream.concat(
+            Stream.of(from),
+            joins.stream().map(AQRJoin::from)
+        );
+    }
 
 }

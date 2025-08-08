@@ -11,20 +11,20 @@ import java.util.stream.Stream;
  */
 public class FilterSource implements InstanceSource {
 
-	private final XExpression expression;
-	private final InstanceSource inner;
-	private final ExpressionEvaluator evaluator;
+    private final XExpression expression;
+    private final InstanceSource inner;
+    private final ExpressionEvaluator evaluator;
 
-	public FilterSource(XExpression expression, InstanceSource inner, ExpressionEvaluator evaluator) {
-		this.expression = expression;
-		this.inner = inner;
-		this.evaluator = evaluator;
-	}
+    public FilterSource(XExpression expression, InstanceSource inner, ExpressionEvaluator evaluator) {
+        this.expression = expression;
+        this.inner = inner;
+        this.evaluator = evaluator;
+    }
 
-	@Override
-	public Stream<InstanceTuple> get() {
-		return inner.get()
-			.filter(tuple -> evaluator.createContext(tuple, null).evaluateCondition(expression));
-	}
+    @Override
+    public Stream<InstanceTuple> get() {
+        return inner.get()
+            .filter(tuple -> evaluator.createContext(tuple, null).evaluateCondition(expression));
+    }
 
 }

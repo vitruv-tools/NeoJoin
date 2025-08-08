@@ -13,21 +13,21 @@ import java.util.stream.Stream;
  */
 public class FromSource implements InstanceSource {
 
-	private final EClass clazz;
-	private final Resource resource;
+    private final EClass clazz;
+    private final Resource resource;
 
-	public FromSource(EClass clazz, Resource resource) {
-		this.clazz = clazz;
-		this.resource = resource;
-	}
+    public FromSource(EClass clazz, Resource resource) {
+        this.clazz = clazz;
+        this.resource = resource;
+    }
 
-	@Override
-	public Stream<InstanceTuple> get() {
-		return getEObjects().map(InstanceTuple::new);
-	}
+    @Override
+    public Stream<InstanceTuple> get() {
+        return getEObjects().map(InstanceTuple::new);
+    }
 
-	public Stream<EObject> getEObjects() {
-		return EMFUtils.getAllInstances(resource, clazz);
-	}
+    public Stream<EObject> getEObjects() {
+        return EMFUtils.getAllInstances(resource, clazz);
+    }
 
 }

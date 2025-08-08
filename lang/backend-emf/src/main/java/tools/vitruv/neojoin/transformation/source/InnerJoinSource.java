@@ -11,17 +11,17 @@ import java.util.stream.Stream;
  */
 public class InnerJoinSource extends AbstractJoinSource {
 
-	public InnerJoinSource(InstanceSource left, FromSource right, AQRJoin join, ExpressionEvaluator evaluator) {
-		super(left, right, join, evaluator);
-	}
+    public InnerJoinSource(InstanceSource left, FromSource right, AQRJoin join, ExpressionEvaluator evaluator) {
+        super(left, right, join, evaluator);
+    }
 
-	@Override
-	public Stream<InstanceTuple> get() {
-		return leftSource.get().flatMap(left ->
-			rightSource.getEObjects()
-				.filter(right -> evaluateConditions(left, right))
-				.map(right -> new InstanceTuple(left, right))
-		);
-	}
+    @Override
+    public Stream<InstanceTuple> get() {
+        return leftSource.get().flatMap(left ->
+            rightSource.getEObjects()
+                .filter(right -> evaluateConditions(left, right))
+                .map(right -> new InstanceTuple(left, right))
+        );
+    }
 
 }

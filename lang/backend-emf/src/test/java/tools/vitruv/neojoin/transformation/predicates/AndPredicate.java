@@ -8,22 +8,22 @@ import java.util.stream.Collectors;
 
 public class AndPredicate implements Predicate<EObject> {
 
-	private final List<Predicate<EObject>> predicates;
+    private final List<Predicate<EObject>> predicates;
 
-	public AndPredicate(List<Predicate<EObject>> predicates) {
-		this.predicates = predicates;
-	}
+    public AndPredicate(List<Predicate<EObject>> predicates) {
+        this.predicates = predicates;
+    }
 
-	@Override
-	public boolean test(EObject o) {
-		return predicates.stream().allMatch(p -> p.test(o));
-	}
+    @Override
+    public boolean test(EObject o) {
+        return predicates.stream().allMatch(p -> p.test(o));
+    }
 
-	@Override
-	public String toString() {
-		return predicates.stream()
-			.map(Object::toString)
-			.collect(Collectors.joining(" && ", "( ", " )"));
-	}
+    @Override
+    public String toString() {
+        return predicates.stream()
+            .map(Object::toString)
+            .collect(Collectors.joining(" && ", "( ", " )"));
+    }
 
 }

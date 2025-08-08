@@ -9,10 +9,10 @@ import org.jspecify.annotations.Nullable;
  */
 public final class Mutable<T extends @Nullable Object> {
 
-	public T value;
+    public T value;
 
-	public Mutable(T initialValue) {
-		this.value = initialValue;
-	}
+    public Mutable(T initialValue) {
+        this.value = initialValue;
+    }
 
 }

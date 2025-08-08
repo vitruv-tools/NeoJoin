@@ -13,11 +13,11 @@ import java.util.List;
  */
 public class ImplicitExpressionImports extends ImplicitlyImportedFeatures {
 
-	@Override
-	protected List<Class<?>> getExtensionClasses() {
-		var classes = super.getExtensionClasses();
-		classes.addAll(Extensions.All);
-		return classes;
-	}
+    @Override
+    protected List<Class<?>> getExtensionClasses() {
+        var classes = super.getExtensionClasses();
+        classes.addAll(Extensions.All);
+        return classes;
+    }
 
 }

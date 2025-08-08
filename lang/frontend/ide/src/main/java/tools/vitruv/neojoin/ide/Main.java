@@ -29,118 +29,118 @@ import java.util.concurrent.ExecutionException;
 @Command(name = "NeoJoin IDE", mixinStandardHelpOptions = true)
 public class Main implements Runnable {
 
-	@Option(names = {"-m", "--meta-model-path"}, paramLabel = "MODEL-PATH", required = true, description = "Path specification to find referenced meta-models.")
-	String metaModelPath;
+    @Option(names = {"-m", "--meta-model-path"}, paramLabel = "MODEL-PATH", required = true, description = "Path specification to find referenced meta-models.")
+    String metaModelPath;
 
-	@ArgGroup(exclusive = false)
-	Logging logging;
+    @ArgGroup(exclusive = false)
+    Logging logging;
 
-	static class Logging {
+    static class Logging {
 
-		@Option(names = {"--log"}, paramLabel = "LOG-FILE", required = true, arity = "0..1", fallbackValue = "neojoin-ide-debug.log", description = "Enable logging.")
-		Path logFile;
+        @Option(names = {"--log"}, paramLabel = "LOG-FILE", required = true, arity = "0..1", fallbackValue = "neojoin-ide-debug.log", description = "Enable logging.")
+        Path logFile;
 
-		@Option(names = {"--trace"}, description = "Enable trace logging for the language server (requires logging enabled).")
-		boolean trace;
+        @Option(names = {"--trace"}, description = "Enable trace logging for the language server (requires logging enabled).")
+        boolean trace;
 
-	}
+    }
 
-	// vscode automatically appends an --stdio option, so we should not error when this option is encountered
-	@SuppressWarnings("unused")
-	@Option(names = {"--stdio"}, description = "Use stdio for communication (default, has no effect).")
-	boolean stdio;
+    // vscode automatically appends an --stdio option, so we should not error when this option is encountered
+    @SuppressWarnings("unused")
+    @Option(names = {"--stdio"}, description = "Use stdio for communication (default, has no effect).")
+    boolean stdio;
 
-	@Override
-	public void run() {
-		var ioConfig = redirectIo();
+    @Override
+    public void run() {
+        var ioConfig = redirectIo();
 
-		String errorMessage = null;
-		try {
-			NeoJoinIdeSetup.Registry = new PackageModelCollector(metaModelPath).collect();
-		} catch (Exception ex) {
-			NeoJoinIdeSetup.Registry = new EPackageRegistryImpl();
-			errorMessage = "Invalid meta-model path: " + ex.getMessage();
-			System.err.printf("[ERROR] %s%n  > full meta-model path: %s%n", errorMessage, metaModelPath);
-		}
+        String errorMessage = null;
+        try {
+            NeoJoinIdeSetup.Registry = new PackageModelCollector(metaModelPath).collect();
+        } catch (Exception ex) {
+            NeoJoinIdeSetup.Registry = new EPackageRegistryImpl();
+            errorMessage = "Invalid meta-model path: " + ex.getMessage();
+            System.err.printf("[ERROR] %s%n  > full meta-model path: %s%n", errorMessage, metaModelPath);
+        }
 
-		System.out.println("Starting NeoJoin IDE server...");
+        System.out.println("Starting NeoJoin IDE server...");
 
-		var languageServer = Guice.createInjector(new ServerModule()).getInstance(NeoJoinIdeServer.class);
-		var launcher = Launcher.createLauncher(
-			languageServer, LanguageClient.class,
-			ioConfig.in(), ioConfig.out(),
-			true, ioConfig.trace()
-		);
-		if (errorMessage != null) {
-			launcher.getRemoteProxy().showMessage(new MessageParams(MessageType.Error, errorMessage));
-		}
-		languageServer.connect(launcher.getRemoteProxy());
-		var future = launcher.startListening();
+        var languageServer = Guice.createInjector(new ServerModule()).getInstance(NeoJoinIdeServer.class);
+        var launcher = Launcher.createLauncher(
+            languageServer, LanguageClient.class,
+            ioConfig.in(), ioConfig.out(),
+            true, ioConfig.trace()
+        );
+        if (errorMessage != null) {
+            launcher.getRemoteProxy().showMessage(new MessageParams(MessageType.Error, errorMessage));
+        }
+        languageServer.connect(launcher.getRemoteProxy());
+        var future = launcher.startListening();
 
-		System.out.println("NeoJoin IDE server started.");
+        System.out.println("NeoJoin IDE server started.");
 
-		try {
-			future.get(); // wait until the language server is stopped
-		} catch (InterruptedException | ExecutionException e) {
-			throw new RuntimeException(e);
-		}
-	}
+        try {
+            future.get(); // wait until the language server is stopped
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-	private record LanguageServerIoConfig(
-		InputStream in,
-		OutputStream out,
-		@Nullable PrintWriter trace
-	) {
-	}
+    private record LanguageServerIoConfig(
+        InputStream in,
+        OutputStream out,
+        @Nullable PrintWriter trace
+    ) {
+    }
 
-	/**
-	 * Redirect standard IO because stdin and stdout are used for LSP communication.
-	 */
-	private LanguageServerIoConfig redirectIo() {
-		var logStream = getLogOutputStream();
+    /**
+     * Redirect standard IO because stdin and stdout are used for LSP communication.
+     */
+    private LanguageServerIoConfig redirectIo() {
+        var logStream = getLogOutputStream();
 
-		var config = new LanguageServerIoConfig(
-			System.in,
-			System.out,
-			logStream != null && isTraceLoggingEnabled() ? new PrintWriter(logStream, true) : null
-		);
+        var config = new LanguageServerIoConfig(
+            System.in,
+            System.out,
+            logStream != null && isTraceLoggingEnabled() ? new PrintWriter(logStream, true) : null
+        );
 
-		System.setIn(ServerLauncher.silentIn());
-		System.setOut(new PrintStream(
-			logStream != null ? logStream : ServerLauncher.silentOut(),
-			true
-		));
-		if (logStream != null) {
-			// if there is a log file, also redirect stderr to keep all output in one place
-			System.setErr(System.out);
-		}
+        System.setIn(ServerLauncher.silentIn());
+        System.setOut(new PrintStream(
+            logStream != null ? logStream : ServerLauncher.silentOut(),
+            true
+        ));
+        if (logStream != null) {
+            // if there is a log file, also redirect stderr to keep all output in one place
+            System.setErr(System.out);
+        }
 
-		return config;
-	}
+        return config;
+    }
 
-	private boolean isTraceLoggingEnabled() {
-		return logging != null && logging.trace;
-	}
+    private boolean isTraceLoggingEnabled() {
+        return logging != null && logging.trace;
+    }
 
-	private @Nullable OutputStream getLogOutputStream() {
-		if (logging == null) {
-			return null;
-		}
+    private @Nullable OutputStream getLogOutputStream() {
+        if (logging == null) {
+            return null;
+        }
 
-		try {
-			return new FileOutputStream(logging.logFile.toFile());
-		} catch (FileNotFoundException e) {
-			throw new RuntimeException(
-				"Failed to open log file (%s): %s%n".formatted(
-					logging.logFile.toAbsolutePath().normalize(),
-					e.getMessage()
-				)
-			);
-		}
-	}
+        try {
+            return new FileOutputStream(logging.logFile.toFile());
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(
+                "Failed to open log file (%s): %s%n".formatted(
+                    logging.logFile.toAbsolutePath().normalize(),
+                    e.getMessage()
+                )
+            );
+        }
+    }
 
-	public static void main(String[] args) {
-		System.exit(new CommandLine(new Main()).execute(args));
-	}
+    public static void main(String[] args) {
+        System.exit(new CommandLine(new Main()).execute(args));
+    }
 
 }

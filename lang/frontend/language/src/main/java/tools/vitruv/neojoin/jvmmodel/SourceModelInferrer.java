@@ -29,170 +29,170 @@ import static tools.vitruv.neojoin.utils.Assertions.fail;
  */
 public class SourceModelInferrer {
 
-	/**
-	 * Used to store the represented source {@link EClass} within a generated {@link JvmType}.
-	 */
-	private static class EcoreSourceHolder extends EValueHolder<EClassifier> {
+    /**
+     * Used to store the represented source {@link EClass} within a generated {@link JvmType}.
+     */
+    private static class EcoreSourceHolder extends EValueHolder<EClassifier> {
 
-		public EcoreSourceHolder(EClassifier value) {
-			super(value);
-		}
+        public EcoreSourceHolder(EClassifier value) {
+            super(value);
+        }
 
-		public static void set(EObject object, EClassifier value) {
-			install(object, new SourceModelInferrer.EcoreSourceHolder(value));
-		}
+        public static void set(EObject object, EClassifier value) {
+            install(object, new SourceModelInferrer.EcoreSourceHolder(value));
+        }
 
-		public static @Nullable EClassifier getOrNull(EObject object) {
-			return retrieveOrNull(object, SourceModelInferrer.EcoreSourceHolder.class);
-		}
+        public static @Nullable EClassifier getOrNull(EObject object) {
+            return retrieveOrNull(object, SourceModelInferrer.EcoreSourceHolder.class);
+        }
 
-	}
+    }
 
-	/**
-	 * Retrieve the source {@link EClass} that the given {@link JvmType} represents.
-	 *
-	 * @param type jvm type
-	 * @return represented {@link EClass} or {@code null}
-	 */
-	public static @Nullable EClassifier getEClassifierOrNull(JvmType type) {
-		return EcoreSourceHolder.getOrNull(type);
-	}
+    /**
+     * Retrieve the source {@link EClass} that the given {@link JvmType} represents.
+     *
+     * @param type jvm type
+     * @return represented {@link EClass} or {@code null}
+     */
+    public static @Nullable EClassifier getEClassifierOrNull(JvmType type) {
+        return EcoreSourceHolder.getOrNull(type);
+    }
 
-	private final TypeRegistry typeRegistry;
+    private final TypeRegistry typeRegistry;
 
-	private final Set<EPackage> packages;
-	private final JvmTypeReferenceBuilder references;
+    private final Set<EPackage> packages;
+    private final JvmTypeReferenceBuilder references;
 
-	public SourceModelInferrer(
-		TypeRegistry typeRegistry,
-		EPackage.Registry packageRegistry,
-		JvmTypeReferenceBuilder references
-	) {
-		this.packages = EMFUtils.collectAvailablePackages(packageRegistry);
-		this.typeRegistry = typeRegistry;
-		this.references = references;
-	}
+    public SourceModelInferrer(
+        TypeRegistry typeRegistry,
+        EPackage.Registry packageRegistry,
+        JvmTypeReferenceBuilder references
+    ) {
+        this.packages = EMFUtils.collectAvailablePackages(packageRegistry);
+        this.typeRegistry = typeRegistry;
+        this.references = references;
+    }
 
-	public void infer() {
-		check(typeRegistry.isEmpty(), "type registry is not empty");
+    public void infer() {
+        check(typeRegistry.isEmpty(), "type registry is not empty");
 
-		for (var pack : packages) {
-			forEachEnumIn(pack, this::createEnum);
-			forEachClassIn(pack, this::createClass);
-		}
+        for (var pack : packages) {
+            forEachEnumIn(pack, this::createEnum);
+            forEachClassIn(pack, this::createClass);
+        }
 
-		for (var pack : packages) {
-			forEachClassIn(pack, this::populateClass);
-		}
-	}
+        for (var pack : packages) {
+            forEachClassIn(pack, this::populateClass);
+        }
+    }
 
-	private void forEachClassIn(EPackage pack, Consumer<EClass> consumer) {
-		for (var classifier : pack.getEClassifiers()) {
-			if (classifier instanceof EClass eClazz) {
-				consumer.accept(eClazz);
-			}
-		}
-	}
+    private void forEachClassIn(EPackage pack, Consumer<EClass> consumer) {
+        for (var classifier : pack.getEClassifiers()) {
+            if (classifier instanceof EClass eClazz) {
+                consumer.accept(eClazz);
+            }
+        }
+    }
 
-	private void forEachEnumIn(EPackage pack, Consumer<EEnum> consumer) {
-		for (var classifier : pack.getEClassifiers()) {
-			if (classifier instanceof EEnum eEnum) {
-				consumer.accept(eEnum);
-			}
-		}
-	}
+    private void forEachEnumIn(EPackage pack, Consumer<EEnum> consumer) {
+        for (var classifier : pack.getEClassifiers()) {
+            if (classifier instanceof EEnum eEnum) {
+                consumer.accept(eEnum);
+            }
+        }
+    }
 
-	private void createEnum(EEnum eEnum) {
-		var type = TypesFactory.eINSTANCE.createJvmEnumerationType();
-		type.setSimpleName(eEnum.getName());
-		// package URI serves as a unique identifier to prevent name collisions
-		type.setPackageName(eEnum.getEPackage().getNsURI());
-		type.setVisibility(JvmVisibility.PUBLIC);
+    private void createEnum(EEnum eEnum) {
+        var type = TypesFactory.eINSTANCE.createJvmEnumerationType();
+        type.setSimpleName(eEnum.getName());
+        // package URI serves as a unique identifier to prevent name collisions
+        type.setPackageName(eEnum.getEPackage().getNsURI());
+        type.setVisibility(JvmVisibility.PUBLIC);
 
-		for (var literal : eEnum.getELiterals()) {
-			var enumLiteral = TypesFactory.eINSTANCE.createJvmEnumerationLiteral();
-			enumLiteral.setSimpleName(literal.getName());
-			type.getMembers().add(enumLiteral);
-		}
+        for (var literal : eEnum.getELiterals()) {
+            var enumLiteral = TypesFactory.eINSTANCE.createJvmEnumerationLiteral();
+            enumLiteral.setSimpleName(literal.getName());
+            type.getMembers().add(enumLiteral);
+        }
 
-		EcoreSourceHolder.set(type, eEnum);
-		typeRegistry.addEnum(eEnum, type);
-	}
+        EcoreSourceHolder.set(type, eEnum);
+        typeRegistry.addEnum(eEnum, type);
+    }
 
-	private void createClass(EClass eClazz) {
-		var type = TypesFactory.eINSTANCE.createJvmGenericType();
-		type.setSimpleName(eClazz.getName());
-		// package URI serves as a unique identifier to prevent name collisions
-		type.setPackageName(eClazz.getEPackage().getNsURI());
-		type.setVisibility(JvmVisibility.PUBLIC);
+    private void createClass(EClass eClazz) {
+        var type = TypesFactory.eINSTANCE.createJvmGenericType();
+        type.setSimpleName(eClazz.getName());
+        // package URI serves as a unique identifier to prevent name collisions
+        type.setPackageName(eClazz.getEPackage().getNsURI());
+        type.setVisibility(JvmVisibility.PUBLIC);
 
-		EcoreSourceHolder.set(type, eClazz);
-		typeRegistry.addClass(eClazz, type);
-	}
+        EcoreSourceHolder.set(type, eClazz);
+        typeRegistry.addClass(eClazz, type);
+    }
 
-	private void populateClass(EClass eClazz) {
-		var type = typeRegistry.getClass(eClazz);
-		check(type != null);
+    private void populateClass(EClass eClazz) {
+        var type = typeRegistry.getClass(eClazz);
+        check(type != null);
 
-		/* copy all features into the class even inherited ones because keeping the
-		 * original type hierarchy is irrelevant for code completion and validation */
-		for (var feature : eClazz.getEAllStructuralFeatures()) {
-			var field = TypesFactory.eINSTANCE.createJvmField();
-			field.setSimpleName(feature.getName());
-			field.setType(getFeatureType(feature));
-			field.setVisibility(JvmVisibility.PUBLIC);
-			field.setFinal(true);
+        /* copy all features into the class even inherited ones because keeping the
+         * original type hierarchy is irrelevant for code completion and validation */
+        for (var feature : eClazz.getEAllStructuralFeatures()) {
+            var field = TypesFactory.eINSTANCE.createJvmField();
+            field.setSimpleName(feature.getName());
+            field.setType(getFeatureType(feature));
+            field.setVisibility(JvmVisibility.PUBLIC);
+            field.setFinal(true);
 
-			type.getMembers().add(field);
-		}
-	}
+            type.getMembers().add(field);
+        }
+    }
 
-	private JvmTypeReference getFeatureType(EStructuralFeature feature) {
-		JvmTypeReference type = switch (feature) {
-			case EAttribute attr -> getAttributeType(attr);
-			case EReference ref -> getReferenceType(ref);
-			default -> fail("unexpected feature: " + feature);
-		};
+    private JvmTypeReference getFeatureType(EStructuralFeature feature) {
+        JvmTypeReference type = switch (feature) {
+            case EAttribute attr -> getAttributeType(attr);
+            case EReference ref -> getReferenceType(ref);
+            default -> fail("unexpected feature: " + feature);
+        };
 
-		if (feature.getUpperBound() == 0 || feature.getUpperBound() == 1) {
-			return type;
-		} else {
-			return references.typeRef(List.class, type);
-		}
-	}
+        if (feature.getUpperBound() == 0 || feature.getUpperBound() == 1) {
+            return type;
+        } else {
+            return references.typeRef(List.class, type);
+        }
+    }
 
-	private JvmTypeReference getAttributeType(EAttribute attr) {
-		if (attr.getEAttributeType() instanceof EEnum eEnum) {
-			var enumType = typeRegistry.getEnum(eEnum);
-			check(
-				enumType != null,
-				() -> "unknown attribute type '%s' in %s".formatted(attr.getEAttributeType(), getPackageUri(attr))
-			);
-			return references.typeRef(enumType);
-		} else {
-			var type = attr.getEAttributeType().getInstanceClass();
-			check(
-				type != null,
-				() -> "unexpected attribute type without instance class '%s' in %s".formatted(
-					attr.getEAttributeType(),
-					getPackageUri(attr)
-				)
-			);
-			return references.typeRef(type);
-		}
-	}
+    private JvmTypeReference getAttributeType(EAttribute attr) {
+        if (attr.getEAttributeType() instanceof EEnum eEnum) {
+            var enumType = typeRegistry.getEnum(eEnum);
+            check(
+                enumType != null,
+                () -> "unknown attribute type '%s' in %s".formatted(attr.getEAttributeType(), getPackageUri(attr))
+            );
+            return references.typeRef(enumType);
+        } else {
+            var type = attr.getEAttributeType().getInstanceClass();
+            check(
+                type != null,
+                () -> "unexpected attribute type without instance class '%s' in %s".formatted(
+                    attr.getEAttributeType(),
+                    getPackageUri(attr)
+                )
+            );
+            return references.typeRef(type);
+        }
+    }
 
-	private JvmTypeReference getReferenceType(EReference ref) {
-		var type = typeRegistry.getClass(ref.getEReferenceType());
-		check(
-			type != null,
-			() -> "unknown reference type '%s' in %s".formatted(ref.getEReferenceType(), getPackageUri(ref))
-		);
-		return references.typeRef(type);
-	}
+    private JvmTypeReference getReferenceType(EReference ref) {
+        var type = typeRegistry.getClass(ref.getEReferenceType());
+        check(
+            type != null,
+            () -> "unknown reference type '%s' in %s".formatted(ref.getEReferenceType(), getPackageUri(ref))
+        );
+        return references.typeRef(type);
+    }
 
-	private static String getPackageUri(EStructuralFeature feature) {
-		return EMFUtils.getRootPackage(feature.getEContainingClass().getEPackage()).getNsURI();
-	}
+    private static String getPackageUri(EStructuralFeature feature) {
+        return EMFUtils.getRootPackage(feature.getEContainingClass().getEPackage()).getNsURI();
+    }
 
 }

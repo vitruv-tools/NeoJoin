@@ -13,19 +13,19 @@ import tools.vitruv.neojoin.SourceLocation;
  */
 public class TransformatorException extends RuntimeException {
 
-	private final @Nullable SourceLocation source;
+    private final @Nullable SourceLocation source;
 
-	public TransformatorException(String message, @Nullable SourceLocation source) {
-		super("Failed to transform models: " + message);
-		this.source = source;
-	}
+    public TransformatorException(String message, @Nullable SourceLocation source) {
+        super("Failed to transform models: " + message);
+        this.source = source;
+    }
 
-	public TransformatorException(String message) {
-		this(message, null);
-	}
+    public TransformatorException(String message) {
+        this(message, null);
+    }
 
-	public @Nullable SourceLocation getSourceLocation() {
-		return source;
-	}
+    public @Nullable SourceLocation getSourceLocation() {
+        return source;
+    }
 
 }

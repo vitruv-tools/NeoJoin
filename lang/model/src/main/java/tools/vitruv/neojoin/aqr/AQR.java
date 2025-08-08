@@ -15,9 +15,9 @@ import java.util.List;
  * @implNote The target model will not reference the given data types directly but a copy of them.
  */
 public record AQR(
-	AQRExport export,
-	List<AQRImport> imports,
-	List<EDataType> dataTypes,
-	List<AQRTargetClass> classes,
-	AQRTargetClass root
+    AQRExport export,
+    List<AQRImport> imports,
+    List<EDataType> dataTypes,
+    List<AQRTargetClass> classes,
+    AQRTargetClass root
 ) {}
