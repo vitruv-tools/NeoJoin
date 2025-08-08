@@ -142,3 +142,9 @@ vite.config.ts.timestamp-*
 /.vscode/*
 !/.vscode/launch.json
 !/.vscode/tasks.json
+
+# VSCode Extension packages
+*.vsix
+
+# Java packages
+*.jar
