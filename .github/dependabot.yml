@@ -25,6 +25,9 @@ updates:
     lsp4j:
       patterns:
       - "org.eclipse.lsp4j:*"
+    vitruv:
+      patterns:
+      - "tools.vitruv:tools.vitruv.change.*"
 - package-ecosystem: npm
   directory: "/vscode-plugin/"
   schedule:

@@ -1,0 +1,14 @@
+export customers to "http://example.org/customers"
+
+import "http://example.org/library"
+
+from Customer c
+join Book b
+    on b.borrowedBy.contains(c)
+group by c
+create {
+    name := c.same[ it.firstName ] + " " + c.same[ it.lastName ]
+    borrowed := b create {
+        it.title
+    }
+}

@@ -1,0 +1,22 @@
+export movies to "http://example.org/movies"
+
+import "http://example.org/imdb"
+import "http://example.org/library"
+
+from VideoCassette vc
+join Film f
+    using title
+create Movie {
+    f.title
+    cast: Actor := vc.cast
+    avgRating := f.votes.avg[ it.score ]
+}
+
+from library.Actor libAct
+join imdb.Actor dbAct
+    on dbAct.name == libAct.firstName + " " + libAct.lastName
+create {
+    dbAct.name
+    dbAct.birthDate
+    libAct.address
+}
