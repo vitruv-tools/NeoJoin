@@ -20,8 +20,13 @@ public class Utils {
     
     private Utils() {}
 
-    public static URL getResource(String name) {
-        return Utils.class.getClassLoader().getResource(name);
+    public static final Path INSTANCES = Path.of("instances");
+    public static final Path MODELS = Path.of("models");
+    public static final Path QUERIES = Path.of("queries");
+    public static final Path RESULTS = Path.of("results");
+
+    public static URL getResource(Path path) {
+        return Utils.class.getClassLoader().getResource(path.toString());
     }
 
     public static EPackage.Registry createPackageRegistry(List<Path> metaModelPaths) throws IOException {

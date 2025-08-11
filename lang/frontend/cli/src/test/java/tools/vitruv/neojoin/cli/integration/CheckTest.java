@@ -22,8 +22,8 @@ public class CheckTest {
     @FieldSource("validQueries")
     public void testCheckQuery(String queryName) throws URISyntaxException {
         // GIVEN meta-models and a valid query on them
-        URL metaModelPath = getResource("models");
-        URL query = getResource("queries/" + queryName + ".nj");
+        URL metaModelPath = getResource(Utils.MODELS);
+        URL query = getResource(Utils.QUERIES.resolve(queryName + ".nj"));
 
         String metaModelPathArg = "--meta-model-path=" + metaModelPath.toURI();
         String queryArg = query.getPath();
@@ -39,8 +39,8 @@ public class CheckTest {
     @ValueSource(strings = { "invalid" })
     public void testCheckQueryFail(String queryName) throws URISyntaxException {
         // GIVEN meta-models and an invalid query
-        URL metaModelPath = getResource("models");
-        URL query = getResource("queries/" + queryName + ".nj");
+        URL metaModelPath = getResource(Utils.MODELS);
+        URL query = getResource(Utils.QUERIES.resolve(queryName + ".nj"));
 
         String metaModelPathArg = "--meta-model-path=" + metaModelPath.toURI();
         String queryArg = query.getPath();

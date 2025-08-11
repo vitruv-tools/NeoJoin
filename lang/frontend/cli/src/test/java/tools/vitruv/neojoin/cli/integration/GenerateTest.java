@@ -29,8 +29,8 @@ public class GenerateTest {
     @FieldSource("validQueries")
     public void testGenerateMetaModel(String queryName, @TempDir Path outputDirectory) throws URISyntaxException, IOException {
         // GIVEN meta-models, a valid query and an output path
-        URL metaModelPath = getResource("models");
-        URL query = getResource("queries/" + queryName + ".nj");
+        URL metaModelPath = getResource(Utils.MODELS);
+        URL query = getResource(Utils.QUERIES.resolve(queryName + ".nj"));
 
         Path output = outputDirectory.resolve(queryName + ".ecore");
 
@@ -44,7 +44,7 @@ public class GenerateTest {
         // THEN the correct view type is generated (ignoring the order of view type elements)
         assertEquals(0, exitCode);
 
-        URL result = getResource("results/" + queryName + ".ecore");
+        URL result = getResource(Utils.RESULTS.resolve(queryName + ".ecore"));
 
         Stream<Diff> differences = compareEcoreFiles(Path.of(result.toURI()), output)
             .getDifferences()

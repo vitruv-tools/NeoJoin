@@ -39,9 +39,9 @@ public class TransformTest {
     @FieldSource("validQueries")
     public void testTransformInputModels(String queryName, @TempDir Path outputDirectory) throws URISyntaxException, IOException {
         // GIVEN meta-models, instance models, a valid query and an output path
-        URL metaModelPath = getResource("models");
-        URL instanceModelPath = getResource("instances");
-        URL query = getResource("queries/" + queryName + ".nj");
+        URL metaModelPath = getResource(Utils.MODELS);
+        URL instanceModelPath = getResource(Utils.INSTANCES);
+        URL query = getResource(Utils.QUERIES.resolve(queryName + ".nj"));
 
         Path output = outputDirectory.resolve(queryName + ".xmi");
 
@@ -56,8 +56,8 @@ public class TransformTest {
         // THEN the correct view is generated (ignoring the order of view elements)
         assertEquals(0, exitCode);
         
-        URL resultModel = getResource("models/" + queryName + ".ecore");
-        URL result = getResource("results/" + queryName + ".xmi");
+        URL resultModel = getResource(Utils.MODELS.resolve(queryName + ".ecore"));
+        URL result = getResource(Utils.RESULTS.resolve(queryName + ".xmi"));
 
         Stream<Diff> differences = compareInstanceFiles(Path.of(resultModel.toURI()), Path.of(result.toURI()), output)
             .getDifferences()
