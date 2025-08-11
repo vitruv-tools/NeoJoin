@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="ASCII"?>
+<pizza:Root xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:pizza="http://example.org/pizza">
+  <allFoods name="Pizza Margherita" price="7.0"/>
+  <allFoods name="Fanta" price="5.0"/>
+  <allFoods name="Maultaschen" price="8.0"/>
+  <allRestaurants name="Pizzeria Toni" sells="//@allFoods.0 //@allFoods.1"/>
+</pizza:Root>

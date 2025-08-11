@@ -1,0 +1,14 @@
+export pizza to "http://example.org/pizza"
+
+import "http://example.org/restaurant"
+import "http://example.org/reviewpage"
+
+from Restaurant r
+where r.name.startsWith("Pizzeria")
+create {
+    it.name
+    it.sells create {
+        it.name
+        it.price
+    }
+}

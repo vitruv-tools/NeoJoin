@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<reviewpage:Store
+    xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:reviewpage="http://example.org/reviewpage">
+  <pages name="Pizzeria Toni"
+      reviews="//@reviews.0 //@reviews.1"/>
+  <pages name="Brauhaus"
+      reviews="//@reviews.2"/>
+  <reviews user="Fritz (P)"
+      rating="5"/>
+  <reviews user="Hans (P)"
+      rating="2"/>
+  <reviews user="Peter (D)"
+      rating="3"/>
+</reviewpage:Store>
