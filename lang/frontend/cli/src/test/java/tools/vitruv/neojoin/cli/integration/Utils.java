@@ -1,11 +1,11 @@
 package tools.vitruv.neojoin.cli.integration;
 
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.List;
 
-import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.compare.Comparison;
 import org.eclipse.emf.compare.EMFCompare;
 import org.eclipse.emf.compare.scope.DefaultComparisonScope;
@@ -25,8 +25,12 @@ public class Utils {
     public static final Path QUERIES = Path.of("queries");
     public static final Path RESULTS = Path.of("results");
 
-    public static URL getResource(Path path) {
-        return Utils.class.getClassLoader().getResource(path.toString());
+    public static URI getResource(Path path) {
+        try {
+            return Utils.class.getClassLoader().getResource(path.toString()).toURI();
+        } catch (URISyntaxException e) {
+            return null;
+        }
     }
 
     public static EPackage.Registry createPackageRegistry(List<Path> metaModelPaths) throws IOException {
@@ -34,7 +38,7 @@ public class Utils {
         ResourceSet packageResourceSet = new ResourceSetImpl();
 
         for (Path path : metaModelPaths) {
-            Resource resource = packageResourceSet.getResource(URI.createURI(path.toUri().toString()), true);
+            Resource resource = packageResourceSet.getResource(org.eclipse.emf.common.util.URI.createURI(path.toUri().toString()), true);
             EPackage pack = (EPackage) resource.getContents().getFirst();
 
             registry.put(pack.getNsURI(), pack);
@@ -45,10 +49,10 @@ public class Utils {
 
     public static Comparison compareEcoreFiles(Path modelA, Path modelB) {
         ResourceSet resourceSetA = new ResourceSetImpl();
-        resourceSetA.getResource(URI.createURI(modelA.toUri().toString()), true);
+        resourceSetA.getResource(org.eclipse.emf.common.util.URI.createURI(modelA.toUri().toString()), true);
 
         ResourceSet resourceSetB = new ResourceSetImpl();
-        resourceSetB.getResource(URI.createURI(modelB.toUri().toString()), true);
+        resourceSetB.getResource(org.eclipse.emf.common.util.URI.createURI(modelB.toUri().toString()), true);
 
         IComparisonScope scope = new DefaultComparisonScope(resourceSetA, resourceSetB, null);
         return EMFCompare.builder().build().compare(scope);
@@ -59,11 +63,11 @@ public class Utils {
         
         ResourceSet resourceSetA = new ResourceSetImpl();
         resourceSetA.setPackageRegistry(packageRegistry);
-        resourceSetA.getResource(URI.createURI(instanceA.toUri().toString()), true);
+        resourceSetA.getResource(org.eclipse.emf.common.util.URI.createURI(instanceA.toUri().toString()), true);
 
         ResourceSet resourceSetB = new ResourceSetImpl();
         resourceSetB.setPackageRegistry(packageRegistry);
-        resourceSetB.getResource(URI.createURI(instanceB.toUri().toString()), true);
+        resourceSetB.getResource(org.eclipse.emf.common.util.URI.createURI(instanceB.toUri().toString()), true);
 
         IComparisonScope scope = new DefaultComparisonScope(resourceSetA, resourceSetB, null);
         return EMFCompare.builder().build().compare(scope);

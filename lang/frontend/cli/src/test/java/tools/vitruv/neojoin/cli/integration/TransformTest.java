@@ -6,8 +6,8 @@ import static tools.vitruv.neojoin.cli.integration.Utils.compareInstanceFiles;
 import static tools.vitruv.neojoin.cli.integration.Utils.getResource;
 
 import java.io.IOException;
+import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Stream;
@@ -39,16 +39,16 @@ public class TransformTest {
     @FieldSource("validQueries")
     public void testTransformInputModels(String queryName, @TempDir Path outputDirectory) throws URISyntaxException, IOException {
         // GIVEN meta-models, instance models, a valid query and an output path
-        URL metaModelPath = getResource(Utils.MODELS);
-        URL instanceModelPath = getResource(Utils.INSTANCES);
-        URL query = getResource(Utils.QUERIES.resolve(queryName + ".nj"));
+        URI metaModelPath = getResource(Utils.MODELS);
+        URI instanceModelPath = getResource(Utils.INSTANCES);
+        URI query = getResource(Utils.QUERIES.resolve(queryName + ".nj"));
 
         Path output = outputDirectory.resolve(queryName + ".xmi");
 
-        String metaModelPathArg = "--meta-model-path=" + metaModelPath.toURI();
-        String instanceModelPathArg = "--instance-model-path=" + instanceModelPath.toURI();
+        String metaModelPathArg = "--meta-model-path=" + metaModelPath;
+        String instanceModelPathArg = "--instance-model-path=" + instanceModelPath;
         String transformArg = "--transform=" + output;
-        String queryArg = query.getPath();
+        String queryArg = Path.of(query).toString();
 
         // WHEN transforming the instance models
         int exitCode = new CommandLine(new Main()).execute(new String[] { metaModelPathArg, instanceModelPathArg, transformArg, queryArg });
@@ -56,10 +56,10 @@ public class TransformTest {
         // THEN the correct view is generated (ignoring the order of view elements)
         assertEquals(0, exitCode);
         
-        URL resultModel = getResource(Utils.MODELS.resolve(queryName + ".ecore"));
-        URL result = getResource(Utils.RESULTS.resolve(queryName + ".xmi"));
+        URI resultModel = getResource(Utils.MODELS.resolve(queryName + ".ecore"));
+        URI result = getResource(Utils.RESULTS.resolve(queryName + ".xmi"));
 
-        Stream<Diff> differences = compareInstanceFiles(Path.of(resultModel.toURI()), Path.of(result.toURI()), output)
+        Stream<Diff> differences = compareInstanceFiles(Path.of(resultModel), Path.of(result), output)
             .getDifferences()
             .stream()
             .filter(diff -> diff.getKind() != DifferenceKind.MOVE);

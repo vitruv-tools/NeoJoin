@@ -3,8 +3,8 @@ package tools.vitruv.neojoin.cli.integration;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static tools.vitruv.neojoin.cli.integration.Utils.getResource;
 
-import java.net.URISyntaxException;
-import java.net.URL;
+import java.net.URI;
+import java.nio.file.Path;
 import java.util.List;
 
 import org.junit.jupiter.params.ParameterizedTest;
@@ -20,13 +20,13 @@ public class CheckTest {
 
     @ParameterizedTest
     @FieldSource("validQueries")
-    public void testCheckQuery(String queryName) throws URISyntaxException {
+    public void testCheckQuery(String queryName) {
         // GIVEN meta-models and a valid query on them
-        URL metaModelPath = getResource(Utils.MODELS);
-        URL query = getResource(Utils.QUERIES.resolve(queryName + ".nj"));
+        URI metaModelPath = getResource(Utils.MODELS);
+        URI query = getResource(Utils.QUERIES.resolve(queryName + ".nj"));
 
-        String metaModelPathArg = "--meta-model-path=" + metaModelPath.toURI();
-        String queryArg = query.getPath();
+        String metaModelPathArg = "--meta-model-path=" + metaModelPath;
+        String queryArg = Path.of(query).toString();
 
         // WHEN checking the query
         int exitCode = new CommandLine(new Main()).execute(new String[] { metaModelPathArg, queryArg });
@@ -37,13 +37,13 @@ public class CheckTest {
 
     @ParameterizedTest
     @ValueSource(strings = { "invalid" })
-    public void testCheckQueryFail(String queryName) throws URISyntaxException {
+    public void testCheckQueryFail(String queryName) {
         // GIVEN meta-models and an invalid query
-        URL metaModelPath = getResource(Utils.MODELS);
-        URL query = getResource(Utils.QUERIES.resolve(queryName + ".nj"));
+        URI metaModelPath = getResource(Utils.MODELS);
+        URI query = getResource(Utils.QUERIES.resolve(queryName + ".nj"));
 
-        String metaModelPathArg = "--meta-model-path=" + metaModelPath.toURI();
-        String queryArg = query.getPath();
+        String metaModelPathArg = "--meta-model-path=" + metaModelPath;
+        String queryArg = Path.of(query).toString();
 
         // WHEN checking the query
         int exitCode = new CommandLine(new Main()).execute(new String[] { metaModelPathArg, queryArg });

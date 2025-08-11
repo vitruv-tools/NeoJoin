@@ -6,8 +6,7 @@ import static tools.vitruv.neojoin.cli.integration.Utils.compareEcoreFiles;
 import static tools.vitruv.neojoin.cli.integration.Utils.getResource;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URL;
+import java.net.URI;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Stream;
@@ -27,16 +26,16 @@ public class GenerateTest {
 
     @ParameterizedTest
     @FieldSource("validQueries")
-    public void testGenerateMetaModel(String queryName, @TempDir Path outputDirectory) throws URISyntaxException, IOException {
+    public void testGenerateMetaModel(String queryName, @TempDir Path outputDirectory) throws IOException {
         // GIVEN meta-models, a valid query and an output path
-        URL metaModelPath = getResource(Utils.MODELS);
-        URL query = getResource(Utils.QUERIES.resolve(queryName + ".nj"));
+        URI metaModelPath = getResource(Utils.MODELS);
+        URI query = getResource(Utils.QUERIES.resolve(queryName + ".nj"));
 
         Path output = outputDirectory.resolve(queryName + ".ecore");
 
-        String metaModelPathArg = "--meta-model-path=" + metaModelPath.toURI();
+        String metaModelPathArg = "--meta-model-path=" + metaModelPath;
         String generateArg = "--generate=" + output;
-        String queryArg = query.getPath();
+        String queryArg = Path.of(query).toString();
 
         // WHEN generating the view type
         int exitCode = new CommandLine(new Main()).execute(new String[] { metaModelPathArg, generateArg, queryArg });
@@ -44,9 +43,9 @@ public class GenerateTest {
         // THEN the correct view type is generated (ignoring the order of view type elements)
         assertEquals(0, exitCode);
 
-        URL result = getResource(Utils.RESULTS.resolve(queryName + ".ecore"));
+        URI result = getResource(Utils.RESULTS.resolve(queryName + ".ecore"));
 
-        Stream<Diff> differences = compareEcoreFiles(Path.of(result.toURI()), output)
+        Stream<Diff> differences = compareEcoreFiles(Path.of(result), output)
             .getDifferences()
             .stream()
             .filter(diff -> diff.getKind() != DifferenceKind.MOVE);
