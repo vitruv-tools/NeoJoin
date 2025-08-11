@@ -1,0 +1,13 @@
+export booksontape to "http://example.org/booksontape"
+
+import "http://example.org/library"
+
+from BookOnTape bot
+join Book b
+    using title
+create AudioBook {
+    bot.title
+    b.pages
+    bot.minutesLength
+    minutesPerPage := bot.minutesLength / b.pages
+}

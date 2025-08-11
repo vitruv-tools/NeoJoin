@@ -1,0 +1,7 @@
+export invalid to "http://example.org/movies"
+
+import "http://example.org/imdb"
+import "http://example.org/library"
+
+from Invalid
+create
