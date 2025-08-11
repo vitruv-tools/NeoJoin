@@ -67,8 +67,7 @@ create ReviewedRestaurant {
 ### Requirements
 
 * JDK 21+
-* Maven
-* Node.js (+ NPM)
+* Node.js 20 (+ NPM)
 
 ### Maven Projects
 
