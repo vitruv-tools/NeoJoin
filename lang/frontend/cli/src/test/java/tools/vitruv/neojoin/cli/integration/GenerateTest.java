@@ -24,6 +24,9 @@ public class GenerateTest {
 
     static List<String> validQueries = List.of("actor-rating", "books-on-tape", "customer-borrowings", "movies");
 
+    /**
+     * {@code java -jar cli.jar --meta-model-path=<meta-model-path> --generate=<output> <query>}
+     */
     @ParameterizedTest
     @FieldSource("validQueries")
     public void testGenerateMetaModel(String queryName, @TempDir Path outputDirectory) throws IOException {

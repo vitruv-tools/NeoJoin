@@ -35,6 +35,9 @@ public class TransformTest {
         }
     }
 
+    /**
+     * {@code java -jar cli.jar --meta-model-path=<meta-model-path> --instance-model-path=<instance-model-path> --transform=<output> <query>}
+     */
     @ParameterizedTest
     @FieldSource("validQueries")
     public void testTransformInputModels(String queryName, @TempDir Path outputDirectory) throws URISyntaxException, IOException {
