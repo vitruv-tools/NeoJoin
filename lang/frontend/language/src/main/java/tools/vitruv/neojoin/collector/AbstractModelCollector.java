@@ -34,7 +34,7 @@ public abstract class AbstractModelCollector {
     private static URI createURI(String string) {
         try {
             URI uri = URI.createURI(string);
-            if (uri.scheme() == null) {
+            if (uri.scheme() == null || URIAccessor.Registry.get(uri).isEmpty()) {
                 uri = URI.createURI(Path.of(string).toAbsolutePath().toUri().toString());
             }
             return uri;
@@ -47,7 +47,10 @@ public abstract class AbstractModelCollector {
 
     protected Stream<Resource> collectResourcesAsStream(ResourceSet resourceSet) {
         return paths.stream()
-            .flatMap(p -> URIAccessor.Registry.get(p).getContainedFiles(p, getFilter()).stream())
+            .flatMap(p -> URIAccessor.Registry.get(p)
+                .orElseThrow(() -> new IllegalArgumentException("No handler for URI: " + p))
+                .getContainedFiles(p, getFilter())
+                .stream())
             .map(uri -> resourceSet.getResource(uri, true));
     }
 
