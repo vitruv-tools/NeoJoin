@@ -47,6 +47,11 @@
                 "command": "neojoin.visualization",
                 "title": "Show Query Visualization",
                 "category": "NeoJoin"
+            },
+            {
+                "command": "neojoin.generate-viewtype",
+                "title": "Generate View Type",
+                "category": "NeoJoin"
             }
         ],
         "menus": {
