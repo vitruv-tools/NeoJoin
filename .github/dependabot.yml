@@ -28,6 +28,9 @@ updates:
     vitruv:
       patterns:
       - "tools.vitruv:tools.vitruv.change.*"
+    junit:
+      patterns:
+      - "org.junit.jupiter:junit-jupiter-*"
 - package-ecosystem: npm
   directory: "/vscode-plugin/"
   schedule:
@@ -35,3 +38,8 @@ updates:
   commit-message:
     prefix: "NPM"
     include: "scope"
+  groups:
+    eslint:
+      patterns:
+      - "@eslint/js"
+      - "eslint"
