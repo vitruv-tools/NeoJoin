@@ -46,7 +46,11 @@
             {
                 "command": "neojoin.visualization",
                 "title": "Show Query Visualization",
-                "category": "NeoJoin"
+                "category": "NeoJoin",
+                "icon": {
+                    "light": "./resources/icons/preview.svg",
+                    "dark": "./resources/icons/preview-inverse.svg"
+                }
             }
         ],
         "menus": {
@@ -55,6 +59,13 @@
                     "command": "neojoin.visualization",
                     "when": "editorLangId == neojoin",
                     "group": "z_commands@99"
+                }
+            ],
+            "editor/title": [
+                {
+                    "command": "neojoin.visualization",
+                    "when": "editorLangId == neojoin",
+                    "group": "navigation"
                 }
             ]
         },
