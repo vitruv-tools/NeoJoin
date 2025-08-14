@@ -58,4 +58,40 @@ public class CheckTest {
         assertEquals(1, exitCode);
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = { "actor-rating" })
+    public void testAbsoluteMetaModelPath(String queryName) {
+        // GIVEN meta-models and a valid query on them specified using absolute paths instead of URIs
+        URI metaModelPath = getResource(Utils.MODELS);
+        URI query = getResource(Utils.QUERIES.resolve(queryName + ".nj"));
+
+        String metaModelPathArg = "--meta-model-path=" + Path.of(metaModelPath);
+        String queryArg = Path.of(query).toString();
+
+        // WHEN checking the query
+        int exitCode = new CommandLine(new Main()).execute(new String[] { metaModelPathArg, queryArg });
+        
+        // THEN the query is accepted
+        assertEquals(0, exitCode);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "actor-rating" })
+    public void testRelativePaths(String queryName) {
+        // GIVEN meta-models and a valid query on them specified using relative paths instead of URIs
+        URI metaModelPath = getResource(Utils.MODELS);
+        URI query = getResource(Utils.QUERIES.resolve(queryName + ".nj"));
+
+        Path relativeMetaModelPath = Path.of("").toAbsolutePath().relativize(Path.of(metaModelPath));
+        Path relativeQuery = Path.of("").toAbsolutePath().relativize(Path.of(query));
+
+        String metaModelPathArg = "--meta-model-path=" + relativeMetaModelPath;
+        String queryArg = relativeQuery.toString();
+
+        // WHEN checking the query
+        int exitCode = new CommandLine(new Main()).execute(new String[] { metaModelPathArg, queryArg });
+        
+        // THEN the query is accepted
+        assertEquals(0, exitCode);
+    }
 }
