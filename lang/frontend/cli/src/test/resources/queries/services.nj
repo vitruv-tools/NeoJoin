@@ -1,0 +1,13 @@
+export services to "http://example.org/services"
+
+import "http://example.org/automation" as automation
+
+from Server server
+create Service {
+    server.functions
+}
+
+from Function function
+create Function {
+    ^id := function.name
+}
