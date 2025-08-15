@@ -13,6 +13,7 @@ public class PlantUMLBuilder {
     public static final String ReferenceNormal = "-->";
     public static final String ReferenceContainment = "*-->";
     public static final String ReferenceInheritance = "--|>";
+    public static final String ReferenceInheritanceUpwards = "-up-|>";
 
     private final StringBuilder out = new StringBuilder();
 
