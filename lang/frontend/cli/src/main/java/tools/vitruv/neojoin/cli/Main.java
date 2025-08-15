@@ -5,10 +5,7 @@ import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.common.util.WrappedException;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
-import org.eclipse.emf.ecore.resource.ResourceSet;
-import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.util.Diagnostician;
-import org.eclipse.emf.ecore.xmi.XMLResource;
 import org.eclipse.xtext.validation.Issue;
 import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
@@ -33,7 +30,6 @@ import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Callable;
 
 @NullUnmarked
@@ -156,7 +152,7 @@ public class Main implements Callable<Integer> {
         var targetMetaModel = new MetaModelGenerator(aqr).generate();
         printIssues(targetMetaModel.diagnostic());
         if (generate != null) {
-            write(getOutputURI(generate.output, "ecore"), targetMetaModel.pack());
+            EMFUtils.save(getOutputURI(generate.output, "ecore"), targetMetaModel.pack());
         }
 
         if (transform != null) {
@@ -168,7 +164,7 @@ public class Main implements Callable<Integer> {
                 targetMetaModel.pack(),
                 inputModels
             ).transform();
-            write(getOutputURI(transform.output, "xmi"), targetInstanceModel);
+            EMFUtils.save(getOutputURI(transform.output, "xmi"), targetInstanceModel);
             validateInstanceModel(targetInstanceModel);
         }
 
@@ -194,25 +190,6 @@ public class Main implements Callable<Integer> {
         rootDiagnostic.getChildren().forEach(d -> {
             System.err.printf("[%s] %s%n", EMFUtils.diagnosticSeverityText(d), d.getMessage());
         });
-    }
-
-    private @Nullable ResourceSet resourceSet;
-
-    /**
-     * Write the given {@link EObject} to a file specified by the given {@link URI}.
-     *
-     * @param outputUri URI of the output file
-     * @param object    the {@link EObject} to write
-     */
-    private void write(URI outputUri, EObject object) throws IOException {
-        if (resourceSet == null) {
-            resourceSet = new ResourceSetImpl();
-        }
-
-        var resource = resourceSet.createResource(outputUri);
-        resource.getContents().add(object);
-        var options = Map.of(XMLResource.OPTION_URI_HANDLER, new RelativeURIResolver(resource));
-        resource.save(options);
     }
 
     /**

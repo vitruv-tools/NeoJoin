@@ -111,6 +111,7 @@ Provides basic IDE support (syntax highlighting, code-completion, etc.) and a si
 
 #### Commands
 * **Show Query Visualization** - Show a live visualization of the queries in the currently active text editor.
+* **Generate View Type** - Generate the view type resulting from the queries in the currently active text editor and save it as an Ecore file next to the query file.
 * **Restart Server** - Restart the language server after configuration changes.
 
 #### Settings

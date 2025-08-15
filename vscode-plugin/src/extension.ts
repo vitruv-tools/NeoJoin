@@ -56,6 +56,33 @@ function registerCommands(
             );
         })
     );
+    context.subscriptions.push(
+        vscode.commands.registerCommand("neojoin.generate-viewtype", () => {
+            if (languageClient.state !== State.Running) {
+                vscode.window.showErrorMessage(
+                    "NeoJoin: Language server not ready"
+                );
+                return;
+            }
+    
+            const currentEditor = vscode.window.activeTextEditor;
+            if (!currentEditor) {
+                vscode.window.showErrorMessage("NeoJoin: No active editor");
+                return;
+            }
+    
+            if (currentEditor.document.languageId !== "neojoin") {
+                vscode.window.showErrorMessage("NeoJoin: Not a NeoJoin query file");
+                return;
+            }
+
+            languageClient.sendRequest<Response>("viewtype", {
+                textDocument: languageClient.getDocumentId(currentEditor.document),
+            }).catch (reason => {
+                vscode.window.showErrorMessage("NeoJoin: " + reason.message);
+            });
+        })
+    );
 }
 
 export async function activate(context: ExtensionContext) {
