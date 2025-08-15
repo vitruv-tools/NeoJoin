@@ -25,7 +25,6 @@ import tools.vitruv.neojoin.ast.Query;
 import tools.vitruv.neojoin.ast.ViewTypeDefinition;
 import tools.vitruv.neojoin.generation.MetaModelGenerator;
 import tools.vitruv.neojoin.generation.ModelInfo;
-import tools.vitruv.neojoin.ide.generation.EcoreSerializer;
 import tools.vitruv.neojoin.ide.generation.ViewTypeGenerationService;
 import tools.vitruv.neojoin.ide.visualization.PlantUMLRenderer;
 import tools.vitruv.neojoin.ide.visualization.VisualizationGenerator;
@@ -263,7 +262,7 @@ public class NeoJoinIdeServer extends LanguageServerImpl implements Visualizatio
             checkError(result.diagnostic());
 
             try {
-                EcoreSerializer.save(result.pack(), params.textDocument().getUri() + ".ecore");
+                EMFUtils.save(URI.createURI(params.textDocument().getUri() + ".ecore"), result.pack());
             } catch (IOException e) {
                 throw makeResponseErrorException("Cannot save view type file");
             }

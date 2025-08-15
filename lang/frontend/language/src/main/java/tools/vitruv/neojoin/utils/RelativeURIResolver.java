@@ -1,4 +1,4 @@
-package tools.vitruv.neojoin.cli;
+package tools.vitruv.neojoin.utils;
 
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
