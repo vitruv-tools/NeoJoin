@@ -142,11 +142,11 @@ Transform the input models:
                              directory.
 
 Model Path
-  A semicolon separated list of file URLs to search for models
+  A semicolon separated list of paths to search for models
   used in the options --meta-model-path and --instance-model-path.
   Examples:
-  - Linux: file:///path/to/directory;file:///path/to/file.ecore
-  - Windows: file:///C:/path/to/directory;file:///C:/path/to/file.ecore
+  - Linux: /path/to/directory;/path/to/file.ecore
+  - Windows: C:\path\to\directory;C:/path/to/file.ecore
 ```
 
 *Note: `QUERY` and `OUTPUT`s need to be specified with regular paths, e.g., `/x/y/z` or `./x/y`.*

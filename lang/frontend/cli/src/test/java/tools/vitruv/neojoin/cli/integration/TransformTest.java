@@ -25,7 +25,7 @@ import picocli.CommandLine;
 import tools.vitruv.neojoin.cli.Main;
 
 public class TransformTest {
-    
+
     static List<String> validQueries = List.of("pizza");
 
     @BeforeAll
@@ -42,27 +42,27 @@ public class TransformTest {
     @FieldSource("validQueries")
     public void testTransformInputModels(String queryName, @TempDir Path outputDirectory) throws URISyntaxException, IOException {
         // GIVEN meta-models, instance models, a valid query and an output path
-        URI metaModelPath = getResource(Utils.MODELS);
-        URI instanceModelPath = getResource(Utils.INSTANCES);
-        URI query = getResource(Utils.QUERIES.resolve(queryName + ".nj"));
+        var metaModelPath = getResource(Utils.MODELS);
+        var instanceModelPath = getResource(Utils.INSTANCES);
+        var query = getResource(Utils.QUERIES.resolve(queryName + ".nj"));
 
         Path output = outputDirectory.resolve(queryName + ".xmi");
 
         String metaModelPathArg = "--meta-model-path=" + metaModelPath;
         String instanceModelPathArg = "--instance-model-path=" + instanceModelPath;
         String transformArg = "--transform=" + output;
-        String queryArg = Path.of(query).toString();
+        String queryArg = query.toString();
 
         // WHEN transforming the instance models
         int exitCode = new CommandLine(new Main()).execute(new String[] { metaModelPathArg, instanceModelPathArg, transformArg, queryArg });
 
         // THEN the correct view is generated (ignoring the order of view elements)
         assertEquals(0, exitCode);
-        
-        URI resultModel = getResource(Utils.MODELS.resolve(queryName + ".ecore"));
-        URI result = getResource(Utils.RESULTS.resolve(queryName + ".xmi"));
 
-        Stream<Diff> differences = compareInstanceFiles(Path.of(resultModel), Path.of(result), output)
+        var resultModel = getResource(Utils.MODELS.resolve(queryName + ".ecore"));
+        var result = getResource(Utils.RESULTS.resolve(queryName + ".xmi"));
+
+        Stream<Diff> differences = compareInstanceFiles(resultModel, result, output)
             .getDifferences()
             .stream()
             .filter(diff -> diff.getKind() != DifferenceKind.MOVE);

@@ -22,16 +22,16 @@ public class InstanceModelCollector extends AbstractModelCollector {
 
     public static final String FileExtension = "xmi";
 
+    @Override
+    protected String fileExtension() {
+        return FileExtension;
+    }
+
     private final EPackage.Registry registry;
 
     public InstanceModelCollector(String searchPathString, EPackage.Registry registry) {
         super(searchPathString);
         this.registry = registry;
-    }
-
-    @Override
-    protected Predicate<URI> getFilter() {
-        return uri -> Objects.equals(uri.fileExtension(), FileExtension);
     }
 
     public Map<EPackage, Resource> collect() {
