@@ -3,8 +3,6 @@ package tools.vitruv.neojoin.cli.integration;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static tools.vitruv.neojoin.cli.integration.Utils.getResource;
 
-import java.net.URI;
-import java.nio.file.Path;
 import java.util.List;
 
 import org.junit.jupiter.params.ParameterizedTest;

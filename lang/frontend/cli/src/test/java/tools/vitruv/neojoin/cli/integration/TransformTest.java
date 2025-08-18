@@ -6,7 +6,6 @@ import static tools.vitruv.neojoin.cli.integration.Utils.compareInstanceFiles;
 import static tools.vitruv.neojoin.cli.integration.Utils.getResource;
 
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.List;
