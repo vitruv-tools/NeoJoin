@@ -1,0 +1,9 @@
+export devices to "http://example.org/devices"
+
+import "http://example.org/smarthome" as smarthome
+
+from Device device
+create Device {
+    device.name
+    device.supportedProtocols
+}

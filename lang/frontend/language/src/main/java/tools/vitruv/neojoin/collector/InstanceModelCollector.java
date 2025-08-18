@@ -1,6 +1,5 @@
 package tools.vitruv.neojoin.collector;
 
-import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
@@ -9,8 +8,6 @@ import tools.vitruv.neojoin.utils.EMFUtils;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
-import java.util.function.Predicate;
 
 /**
  * Searches for instance-model files with the {@code .xmi} extension and collects them into a map indexed by

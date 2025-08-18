@@ -1,7 +1,6 @@
 package tools.vitruv.neojoin.cli.integration;
 
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.List;
@@ -15,8 +14,6 @@ import org.eclipse.emf.ecore.impl.EPackageRegistryImpl;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
-import tools.vitruv.neojoin.utils.Assertions;
-
 import static tools.vitruv.neojoin.utils.Assertions.check;
 
 public class Utils {
