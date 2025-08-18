@@ -157,7 +157,8 @@ public final class EMFUtils {
     }
 
     /**
-     * Write the given {@link EObject} to a file specified by the given {@link URI}.
+     * Write the given {@link EObject} to a file specified by the given {@link URI}. Requires a registered resource factory
+     * for the file extension of the given {@link URI}.
      *
      * @param uri    URI of the output file
      * @param object the {@link EObject} to write
