@@ -6,26 +6,7 @@
 
 ### Syntax Example
 
-```
-export as reviewedrestaurants to "http://vitruv.tools/models/reviewedrestaurant"
-
-import "http://vitruv.tools/models/restaurant"
-import "http://vitruv.tools/models/reviewpage"
-
-from Restaurant rest
-join ReviewPage rev
-    using name
-where rev.reviews.length > 3
-create ReviewedRestaurant {
-    rest.name
-    offeredDishes = rest.sells create Dish {
-        it.name
-        it.price
-    }
-    avgRating := rev.reviews.avg[ it.rating ]
-    numReviews := rev.reviews.length
-}
-```
+![](docs/example.png)
 
 ### Features
 
