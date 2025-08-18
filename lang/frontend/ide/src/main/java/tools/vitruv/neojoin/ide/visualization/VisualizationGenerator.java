@@ -251,7 +251,7 @@ public class VisualizationGenerator {
         for (var superType : clazz.getESuperTypes()) {
             clazzIfNew(superType);
             var superName = getQualifiedName(superType);
-            out.arrow(qualifiedName, PlantUMLBuilder.ReferenceInheritance, superName);
+            out.arrow(qualifiedName, PlantUMLBuilder.ReferenceInheritanceUpwards, superName);
         }
 
         // referenced enumerations
