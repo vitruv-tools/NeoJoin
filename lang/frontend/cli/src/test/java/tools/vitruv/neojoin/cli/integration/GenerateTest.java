@@ -31,24 +31,24 @@ public class GenerateTest {
     @FieldSource("validQueries")
     public void testGenerateMetaModel(String queryName, @TempDir Path outputDirectory) throws IOException {
         // GIVEN meta-models, a valid query and an output path
-        URI metaModelPath = getResource(Utils.MODELS);
-        URI query = getResource(Utils.QUERIES.resolve(queryName + ".nj"));
+        var metaModelPath = getResource(Utils.MODELS);
+        var query = getResource(Utils.QUERIES.resolve(queryName + ".nj"));
 
         Path output = outputDirectory.resolve(queryName + ".ecore");
 
         String metaModelPathArg = "--meta-model-path=" + metaModelPath;
         String generateArg = "--generate=" + output;
-        String queryArg = Path.of(query).toString();
+        String queryArg = query.toString();
 
         // WHEN generating the view type
         int exitCode = new CommandLine(new Main()).execute(new String[] { metaModelPathArg, generateArg, queryArg });
-        
+
         // THEN the correct view type is generated (ignoring the order of view type elements)
         assertEquals(0, exitCode);
 
-        URI result = getResource(Utils.RESULTS.resolve(queryName + ".ecore"));
+        var result = getResource(Utils.RESULTS.resolve(queryName + ".ecore"));
 
-        Stream<Diff> differences = compareEcoreFiles(Path.of(result), output)
+        Stream<Diff> differences = compareEcoreFiles(result, output)
             .getDifferences()
             .stream()
             .filter(diff -> diff.getKind() != DifferenceKind.MOVE);

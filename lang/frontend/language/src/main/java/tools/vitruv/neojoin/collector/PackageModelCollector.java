@@ -20,13 +20,13 @@ public class PackageModelCollector extends AbstractModelCollector {
 
     public static final String FileExtension = "ecore";
 
-    public PackageModelCollector(String searchPathString) {
-        super(searchPathString);
+    @Override
+    protected String fileExtension() {
+        return FileExtension;
     }
 
-    @Override
-    protected Predicate<URI> getFilter() {
-        return uri -> Objects.equals(uri.fileExtension(), FileExtension);
+    public PackageModelCollector(String searchPathString) {
+        super(searchPathString);
     }
 
     public EPackage.Registry collect() {

@@ -40,11 +40,11 @@ import java.util.concurrent.Callable;
     footer = {
         "",
         "Model Path",
-        "  A semicolon separated list of file URLs to search for models",
+        "  A semicolon separated list of paths to search for models",
         "  used in the options --meta-model-path and --instance-model-path.",
         "  Examples:",
-        "  - Linux: file:///path/to/directory;file:///path/to/file.ecore",
-        "  - Windows: file:///C:/path/to/directory;file:///C:/path/to/file.ecore",
+        "  - Linux: /path/to/directory;/path/to/file.ecore",
+        "  - Windows: C:\\path\\to\\directory;C:/path/to/file.ecore",
     })
 public class Main implements Callable<Integer> {
 
@@ -90,7 +90,7 @@ public class Main implements Callable<Integer> {
     public Integer call() {
         try {
             return execute();
-        } catch (InvalidPathException ex) {
+        } catch (IllegalArgumentException ex) {
             printError("Invalid meta-model path: %s", ex.getMessage());
         } catch (TransformatorException e) {
             var source = e.getSourceLocation();

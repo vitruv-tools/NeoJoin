@@ -81,7 +81,7 @@
                     "type": "string",
                     "scope": "machine-overridable",
                     "default": "${workspaceFolderUri}",
-                    "markdownDescription": "List of search path URIs for meta models (*.ecore files) separated by semicolons. Found models can be imported in NeoJoin queries.\n\nExample: `file:/path/to/directory;file:/C:/path/to/directory`\n\n**Note:** Changes to this config entry or the directory on disk require a [restart of the NeoJoin server](command:neojoin.restart)."
+                    "markdownDescription": "List of search paths for meta models (*.ecore files) separated by semicolons. Found models can be imported in NeoJoin queries.\n\nExample: `/path/to/directory;/path/to/model.ecore;C:/path/to/archive.jar`\n\n**Note:** Changes to this config entry or the directory on disk require a [restart of the NeoJoin server](command:neojoin.restart)."
                 },
                 "neojoin.debug": {
                     "type": "boolean",
