@@ -1,5 +1,14 @@
 package tools.vitruv.neojoin.utils;
 
+import static tools.vitruv.neojoin.utils.Assertions.check;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Stream;
+
 import org.eclipse.emf.common.util.Diagnostic;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EClass;
@@ -12,17 +21,6 @@ import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.xmi.XMLResource;
-import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Supplier;
-import java.util.stream.Stream;
-
-import static tools.vitruv.neojoin.utils.Assertions.check;
 
 /**
  * Various utilities for EMF and especially Ecore models.
@@ -165,21 +163,6 @@ public final class EMFUtils {
      * @param object the {@link EObject} to write
      */
     public static void save(URI uri, EObject object) throws IOException {
-        save(uri, object, () -> new XMIResourceFactoryImpl());
-    }
-
-    /**
-     * Write the given {@link EObject} to a file specified by the given {@link URI}.
-     *
-     * @param uri                     URI of the output file
-     * @param object                  the {@link EObject} to write
-     * @param resourceFactoryProvider provides a {@link Resource.Factory} in case none is registered for the file extension of the given URI
-     */
-    public static void save(URI uri, EObject object, Supplier<Resource.Factory> resourceFactoryProvider) throws IOException {
-        if (!Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().containsKey(uri.fileExtension())) {
-            Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().put(uri.fileExtension(), resourceFactoryProvider.get());
-        }
-
         ResourceSet resourceSet = new ResourceSetImpl();
         
         Resource resource = resourceSet.createResource(uri);
