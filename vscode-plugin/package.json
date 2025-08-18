@@ -51,6 +51,11 @@
                     "light": "./resources/icons/preview.svg",
                     "dark": "./resources/icons/preview-inverse.svg"
                 }
+            },
+            {
+                "command": "neojoin.generate-viewtype",
+                "title": "Generate View Type",
+                "category": "NeoJoin"
             }
         ],
         "menus": {

@@ -25,6 +25,7 @@ import tools.vitruv.neojoin.ast.Query;
 import tools.vitruv.neojoin.ast.ViewTypeDefinition;
 import tools.vitruv.neojoin.generation.MetaModelGenerator;
 import tools.vitruv.neojoin.generation.ModelInfo;
+import tools.vitruv.neojoin.ide.generation.ViewTypeGenerationService;
 import tools.vitruv.neojoin.ide.visualization.PlantUMLRenderer;
 import tools.vitruv.neojoin.ide.visualization.VisualizationGenerator;
 import tools.vitruv.neojoin.ide.visualization.VisualizationService;
@@ -33,6 +34,7 @@ import tools.vitruv.neojoin.utils.AstUtils;
 import tools.vitruv.neojoin.utils.EMFUtils;
 import tools.vitruv.neojoin.utils.Mutable;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -47,7 +49,7 @@ import java.util.stream.Collectors;
 import static tools.vitruv.neojoin.utils.Assertions.check;
 import static tools.vitruv.neojoin.utils.Assertions.fail;
 
-public class NeoJoinIdeServer extends LanguageServerImpl implements VisualizationService {
+public class NeoJoinIdeServer extends LanguageServerImpl implements VisualizationService, ViewTypeGenerationService {
 
     @Inject
     OperationCanceledManager cancellation;
@@ -131,7 +133,7 @@ public class NeoJoinIdeServer extends LanguageServerImpl implements Visualizatio
     }
 
     private CompletableFuture<TargetModelResponse> makeResponse(
-        Params params,
+        VisualizationService.Params params,
         BiConsumer<Document, XtextResource> onRead,
         Function<ModelInfo, VisualizationGenerator.Mode> getMode
     ) {
@@ -206,11 +208,11 @@ public class NeoJoinIdeServer extends LanguageServerImpl implements Visualizatio
         }
     }
 
-    private CompletableFuture<TargetModelResponse> makeResponse(Params params, VisualizationGenerator.Mode mode) {
+    private CompletableFuture<TargetModelResponse> makeResponse(VisualizationService.Params params, VisualizationGenerator.Mode mode) {
         return makeResponse(params, (doc, res) -> {}, targetMetaModel -> mode);
     }
 
-    private static Options getOptions(Params params) {
+    private static Options getOptions(VisualizationService.Params params) {
         Options options = params.options();
         return options != null ? options : new Options(false, false);
     }
@@ -246,6 +248,26 @@ public class NeoJoinIdeServer extends LanguageServerImpl implements Visualizatio
                 return new VisualizationGenerator.Mode.Selected(selectedClasses);
             }
         );
+    }
+
+    @Override
+    public CompletableFuture<Void> generateViewType(ViewTypeGenerationService.Params params) {
+        var uri = getURI(params.textDocument());
+        return readAQR(uri, (doc, res) -> {}).thenApply(aqr -> {
+            if (aqr == null) {
+                throw makeResponseErrorException("Cannot generate the view type while the query has errors");
+            }
+
+            ModelInfo result = new MetaModelGenerator(aqr).generate();
+            checkError(result.diagnostic());
+
+            try {
+                EMFUtils.save(URI.createURI(params.textDocument().getUri() + ".ecore"), result.pack());
+            } catch (IOException e) {
+                throw makeResponseErrorException("Cannot save view type file");
+            }
+            return null;
+        });
     }
 
     /**

@@ -1,6 +1,16 @@
 package tools.vitruv.neojoin.utils;
 
+import static tools.vitruv.neojoin.utils.Assertions.check;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Stream;
+
 import org.eclipse.emf.common.util.Diagnostic;
+import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EDataType;
@@ -8,13 +18,9 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.impl.EPackageRegistryImpl;
 import org.eclipse.emf.ecore.resource.Resource;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.stream.Stream;
-
-import static tools.vitruv.neojoin.utils.Assertions.check;
+import org.eclipse.emf.ecore.resource.ResourceSet;
+import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
+import org.eclipse.emf.ecore.xmi.XMLResource;
 
 /**
  * Various utilities for EMF and especially Ecore models.
@@ -148,6 +154,23 @@ public final class EMFUtils {
         } else {
             return "OK";
         }
+    }
+
+    /**
+     * Write the given {@link EObject} to a file specified by the given {@link URI}. Requires a registered resource factory
+     * for the file extension of the given {@link URI}.
+     *
+     * @param uri    URI of the output file
+     * @param object the {@link EObject} to write
+     */
+    public static void save(URI uri, EObject object) throws IOException {
+        ResourceSet resourceSet = new ResourceSetImpl();
+        
+        Resource resource = resourceSet.createResource(uri);
+        resource.getContents().add(object);
+        
+        Map<String, Object> options = Map.of(XMLResource.OPTION_URI_HANDLER, new RelativeURIResolver(resource));
+        resource.save(options);
     }
 
 }
