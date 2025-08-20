@@ -82,6 +82,8 @@ cd lang
 ./mvnw verify
 ```
 
+We use [SonarQube](https://sonarcloud.io/project/overview?id=vitruv-tools_NeoJoin) to analyze our Maven projects.
+
 ### VSCode Plugin
 
 * Open the `vscode-plugin` folder in VSCode (top-level in a workspace)
