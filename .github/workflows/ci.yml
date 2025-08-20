@@ -95,6 +95,8 @@ jobs:
   sonar:
     name: SonarQube scan of Maven projects
     runs-on: ubuntu-latest
+    needs: [build-maven]
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v5.0.0
