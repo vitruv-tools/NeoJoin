@@ -91,3 +91,37 @@ jobs:
       with:
         name: build-results-vscode
         path: staging/
+
+  sonar:
+    name: SonarQube scan of Maven projects
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v5.0.0
+      with:
+        fetch-depth: 0
+
+    - name: Setup Java and Maven cache
+      uses: actions/setup-java@v4.7.1
+      with:
+        distribution: 'temurin'
+        java-version: '21'
+        check-latest: true
+        cache: 'maven'
+
+    - name: Setup SonarQube cache
+      uses: actions/cache@v4
+      with:
+        path: ~/.sonar/cache
+        key: ${{ runner.os }}-sonar
+        restore-keys: ${{ runner.os }}-sonar
+
+    - name: Analyze projects
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      working-directory: lang
+      run: >
+        ./mvnw clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
+        --batch-mode
+        --no-transfer-progress
+        -Dsonar.projectKey=vitruv-tools_NeoJoin
