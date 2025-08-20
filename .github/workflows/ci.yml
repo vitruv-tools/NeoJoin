@@ -123,7 +123,8 @@ jobs:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       working-directory: lang
       run: >
-        ./mvnw clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
+        ./mvnw clean verify sonar:sonar -P coverage
         --batch-mode
+        --update-snapshots
         --no-transfer-progress
         -Dsonar.projectKey=vitruv-tools_NeoJoin
