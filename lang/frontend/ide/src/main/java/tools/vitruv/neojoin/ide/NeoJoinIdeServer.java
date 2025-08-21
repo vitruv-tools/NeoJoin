@@ -76,7 +76,7 @@ public class NeoJoinIdeServer extends LanguageServerImpl implements Visualizatio
      * @param <T>       result type
      * @return future for the result of the read operation
      */
-    private <T> CompletableFuture<T> read(
+    private <T extends @Nullable Object> CompletableFuture<T> read(
         URI uri,
         Function3<@Nullable Document, @Nullable XtextResource, CancelIndicator, T> operation
     ) {

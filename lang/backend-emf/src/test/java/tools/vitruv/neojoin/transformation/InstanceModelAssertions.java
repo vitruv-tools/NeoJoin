@@ -136,7 +136,6 @@ public class InstanceModelAssertions extends AbstractAssert<InstanceModelAsserti
     public InstanceModelAssertions hasManyReference(String name, Consumer<List<EObject>> consumer) {
         return hasReference(
             name, obj -> {
-                //noinspection DataFlowIssue - false positive
                 Assertions.assertThat(obj).isInstanceOfSatisfying(List.class, consumer::accept);
             }
         );

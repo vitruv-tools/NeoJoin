@@ -28,7 +28,6 @@ public class AQRTargetClassAssertions extends AbstractAssert<AQRTargetClassAsser
 
     public AQRTargetClassAssertions hasSource() {
         isNotNull();
-        //noinspection DataFlowIssue - false positive
         Assertions.assertThat(actual.source())
             .as("Expected a source in %s, but found none", actual.name())
             .isNotNull();
@@ -79,7 +78,6 @@ public class AQRTargetClassAssertions extends AbstractAssert<AQRTargetClassAsser
     public AQRTargetClassAssertions hasCondition() {
         hasSource();
         check(actual.source() != null);
-        //noinspection DataFlowIssue - false positive
         Assertions.assertThat(actual.source().condition()).as(
                 "Expected a condition in %s, but found none",
                 actual.name()
@@ -91,7 +89,6 @@ public class AQRTargetClassAssertions extends AbstractAssert<AQRTargetClassAsser
     public AQRTargetClassAssertions hasNoCondition() {
         isNotNull();
         if (actual.source() != null) {
-            //noinspection DataFlowIssue - false positive
             Assertions.assertThat(actual.source().condition()).as(
                     "Expected no condition in '%s', but found one",
                     actual.name()
