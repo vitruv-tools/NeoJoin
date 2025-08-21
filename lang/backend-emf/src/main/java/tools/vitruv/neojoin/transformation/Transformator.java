@@ -15,6 +15,7 @@ import tools.vitruv.neojoin.aqr.AQRTargetClass;
 import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
 import tools.vitruv.neojoin.transformation.source.GroupingSource;
 import tools.vitruv.neojoin.transformation.source.InstanceSourceFactory;
+import tools.vitruv.neojoin.utils.TypeCasts;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -265,6 +266,7 @@ public class Transformator {
             value = targetEnum.getEEnumLiteral(enumLiteral.getName());
             check(value != null);
         }
+        value = TypeCasts.cast(value, feature.getEType().getInstanceClass());
         target.eSet(feature, value);
     }
 

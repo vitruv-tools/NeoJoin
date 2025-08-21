@@ -65,7 +65,7 @@ public class BasicTest extends DefaultTransformationTest {
             from Restaurant r create {
                 r.name
             }
-            
+
             from Food f create {
                 f.name
             }
@@ -87,7 +87,7 @@ public class BasicTest extends DefaultTransformationTest {
                 r.name
                 r.sells
             }
-            
+
             from Food f create {
                 f.name
             }
@@ -121,7 +121,7 @@ public class BasicTest extends DefaultTransformationTest {
                 r.name
                 r.sells
             }
-            
+
             from Food f create TastyFood {
                 f.name
             }
@@ -141,7 +141,7 @@ public class BasicTest extends DefaultTransformationTest {
         assertThatThrownBy(() -> {
             transform("""
                 from Restaurant create
-                
+
                 from Food f
                 where false
                 create TastyFood {}
@@ -156,7 +156,7 @@ public class BasicTest extends DefaultTransformationTest {
         assertThatThrownBy(() -> {
             transform("""
                 from Restaurant create
-                
+
                 from Food f
                 join Food f2
                 create TastyFood {}
@@ -313,6 +313,24 @@ public class BasicTest extends DefaultTransformationTest {
             .hasInstance("Food", named("Fanta"))
             .hasInstance("Food", named("Maultaschen"))
             .hasNoMoreInstances();
+    }
+
+    @Test
+    void typeCast() {
+        var result = transform("""
+            from Food create {
+                it.name
+                price: EInt = it.price // price is an EFloat
+            }
+            """);
+
+        assertThat(result)
+            .hasInstance(
+                "Food", named("Pizza Margherita"), food -> {
+                    assertThat(food)
+                        .hasAttribute("price", 7);
+                }
+            );
     }
 
 }

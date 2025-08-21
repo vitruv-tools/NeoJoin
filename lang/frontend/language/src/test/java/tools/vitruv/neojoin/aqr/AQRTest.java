@@ -162,4 +162,19 @@ class AQRTest extends AbstractAQRTest {
             );
     }
 
+    @Test
+    void explicitTypeWithSubQueryWithImplicitName() {
+        parse("""
+            from Food f create Dish {
+                name: EString := f.name
+            }
+
+            from Restaurant r create {
+                r.sells create {
+                    it.name
+                }
+            }
+            """);
+    }
+
 }

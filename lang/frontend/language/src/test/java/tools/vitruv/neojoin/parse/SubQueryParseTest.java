@@ -74,7 +74,7 @@ public class SubQueryParseTest extends AbstractParseTest {
                     it.sells
                 }
             }
-            
+
             from Food f1
             join Food f2
             create MixedFoods {}
@@ -119,7 +119,7 @@ public class SubQueryParseTest extends AbstractParseTest {
                     it.name
                 }
             }
-            
+
             create Test { test: TastyFood := null }
             """);
 
@@ -132,7 +132,7 @@ public class SubQueryParseTest extends AbstractParseTest {
             from Restaurant r create {
                 sells1 = r.sells create TastyFood {}
                 sells2 = r.sells create TastyFood {}
-            
+
                 sells3 = r.sells create {}
                 sells4 = r.sells create Food {}
             }
@@ -161,7 +161,7 @@ public class SubQueryParseTest extends AbstractParseTest {
             """);
 
         assertThat(result).hasIssues(
-            "Type mismatch: cannot convert from String to float",
+            "Type mismatch: cannot convert from EString (String) to EFloat (float)",
             "Type mismatch: cannot convert from EString to Restaurant",
             "Type mismatch: cannot convert from Food to Restaurant",
             "Food cannot be resolved.",
@@ -178,7 +178,7 @@ public class SubQueryParseTest extends AbstractParseTest {
                     test3 = it.sells
                 }
             }
-            
+
             from Food create NotSoTastyFood
             """);
 
@@ -274,7 +274,7 @@ public class SubQueryParseTest extends AbstractParseTest {
             from Restaurant r create {
                 test: Food := r.sells create TastyFood
             }
-            
+
             from Food create
             """);
 

@@ -11,6 +11,8 @@ public class TypeParseTest extends AbstractParseTest {
         var result = parse("""
             from Restaurant r create {
                 name: EString := r.name
+                idPrimitive: EInt := 1
+                idObject: EInt := 1 as Integer
             }
             """);
 
@@ -25,7 +27,7 @@ public class TypeParseTest extends AbstractParseTest {
             }
             """);
 
-        assertThat(result).hasIssues("Type mismatch: cannot convert from String to int");
+        assertThat(result).hasIssues("Type mismatch: cannot convert from EString (String) to EInt (int)");
     }
 
     @Test
@@ -34,7 +36,7 @@ public class TypeParseTest extends AbstractParseTest {
             from Restaurant r create {
                 name: TastyFood := r.name
             }
-            
+
             from Food create TastyFood
             """);
 
@@ -47,7 +49,7 @@ public class TypeParseTest extends AbstractParseTest {
             from Restaurant r create {
                 sells: TastyFood := r.sells
             }
-            
+
             from Food create TastyFood
             """);
 
@@ -60,7 +62,7 @@ public class TypeParseTest extends AbstractParseTest {
             from Restaurant r create {
                 sells: TastyFood := r.sells.first
             }
-            
+
             from Food create TastyFood
             """);
 
@@ -73,11 +75,11 @@ public class TypeParseTest extends AbstractParseTest {
             from Restaurant r create {
                 sells: EString := r.sells.first
             }
-            
+
             from Food create TastyFood
             """);
 
-        assertThat(result).hasIssues("Type mismatch: cannot convert from Food to String");
+        assertThat(result).hasIssues("Type mismatch: cannot convert from Food to EString");
     }
 
     @Test
@@ -86,7 +88,7 @@ public class TypeParseTest extends AbstractParseTest {
             from Restaurant r create {
                 sells: Restaurant := r.sells.first
             }
-            
+
             from Food create TastyFood
             """);
 
@@ -99,7 +101,7 @@ public class TypeParseTest extends AbstractParseTest {
             from Restaurant r create {
                 test: Food := null
             }
-            
+
             from Food create
             """);
 
@@ -112,7 +114,7 @@ public class TypeParseTest extends AbstractParseTest {
             from Restaurant r create {
                 test := null
             }
-            
+
             from Food create
             """);
 
@@ -125,7 +127,7 @@ public class TypeParseTest extends AbstractParseTest {
             from Restaurant r create {
                 r.sells
             }
-            
+
             from Food create TastyFood
             from Food create NotSoTastyFood
             """);
@@ -140,7 +142,7 @@ public class TypeParseTest extends AbstractParseTest {
             from Restaurant r create {
                 sells: Food = r.sells
             }
-            
+
             from Food create TastyFood
             """);
 
