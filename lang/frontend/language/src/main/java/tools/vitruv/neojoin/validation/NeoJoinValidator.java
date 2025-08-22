@@ -48,7 +48,7 @@ public class NeoJoinValidator extends AbstractNeoJoinValidator {
                     error(
                         ("Target class name '%s' collides with name of the implicit root class. " +
                             "Either choose a different name for this class or explicitly create a root class with a different name.")
-                            .formatted(query.getName()),
+                            .formatted(Constants.DefaultRootClassName),
                         query,
                         query.getName() != null ? AstPackage.Literals.QUERY__NAME : null
                     );

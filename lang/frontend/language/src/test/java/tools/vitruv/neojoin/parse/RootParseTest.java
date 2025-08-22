@@ -42,7 +42,7 @@ public class RootParseTest extends AbstractParseTest {
     void featureNameConflict() {
         var result = parse("""
             from Food create
-            
+
             create root Rooty {
                 allFoods := 5
             }
@@ -67,6 +67,21 @@ public class RootParseTest extends AbstractParseTest {
     void implicitRootNameCollision() {
         var result = parse("""
             create Root {}
+            """);
+
+        assertThat(result)
+            .hasIssues("Target class name 'Root' collides with name of the implicit root class. " +
+                "Either choose a different name for this class or explicitly create a root class with a different name.");
+    }
+
+    @Test
+    void implicitRootNameCollisionWithImplicitName() {
+        var result = internalParse("""
+            export package to "http://example.com"
+
+            import "http://vitruv.tools/cyclic"
+
+            from Root create {}
             """);
 
         assertThat(result)
