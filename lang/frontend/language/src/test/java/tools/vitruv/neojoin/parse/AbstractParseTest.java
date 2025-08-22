@@ -11,16 +11,16 @@ public class AbstractParseTest extends AbstractIntegrationTest {
 
     @Override
     protected List<String> getMetaModelPaths() {
-        return List.of("/models/restaurant.ecore", "/models/reviewpage.ecore");
+        return List.of("/models/restaurant.ecore", "/models/reviewpage.ecore", "/models/cyclic.ecore");
     }
 
     protected Pair<ViewTypeDefinition, List<Issue>> parse(String query) {
         return internalParse("""
             export package to "http://example.com"
-            
+
             import "http://example.org/restaurant" as rest
             import "http://example.org/reviewpage"
-            
+
             """ + query);
     }
 
