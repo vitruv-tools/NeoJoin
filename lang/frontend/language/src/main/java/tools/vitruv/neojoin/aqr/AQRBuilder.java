@@ -329,7 +329,11 @@ public class AQRBuilder {
     }
 
     private static boolean isAssignable(EDataType to, EClassifier from) {
-        return TypeCasts.canCast(from.getInstanceClass(), to.getInstanceClass());
+        if (to.getInstanceClass() == null || from.getInstanceClass() == null) {
+            return to == from;
+        } else {
+            return TypeCasts.canCast(from.getInstanceClass(), to.getInstanceClass());
+        }
     }
 
     /**
