@@ -1,6 +1,7 @@
 package tools.vitruv.neojoin.parse;
 
 import org.assertj.core.api.AbstractAssert;
+import org.eclipse.xtext.diagnostics.Severity;
 import org.eclipse.xtext.validation.Issue;
 import tools.vitruv.neojoin.ast.ViewTypeDefinition;
 import tools.vitruv.neojoin.utils.Pair;
@@ -39,6 +40,12 @@ public class ParseAssertions extends AbstractAssert<ParseAssertions, List<Issue>
 
     public void hasNoIssues() {
         if (!actual.isEmpty()) {
+            failWithMessage(formatUnexpectedIssues(actual));
+        }
+    }
+
+    public void hasNoErrors() {
+        if (actual.stream().anyMatch(i -> i.getSeverity() == Severity.ERROR)) {
             failWithMessage(formatUnexpectedIssues(actual));
         }
     }

@@ -107,7 +107,7 @@ public abstract class AbstractIntegrationTest implements HasPackageRegistry {
 
     protected AQR internalParseAQR(String query) {
         var result = internalParse(query);
-        assertThat(result).hasNoIssues();
+        assertThat(result).hasNoErrors();
         //noinspection DataFlowIssue - false positive
         return new AQRBuilder(result.left(), injector.getInstance(ExpressionHelper.class)).build();
     }
