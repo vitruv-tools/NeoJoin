@@ -1,7 +1,6 @@
 package tools.vitruv.neojoin.utils;
 
 import com.google.common.primitives.Primitives;
-import org.jspecify.annotations.Nullable;
 
 import static tools.vitruv.neojoin.utils.Assertions.check;
 import static tools.vitruv.neojoin.utils.Assertions.fail;
@@ -41,13 +40,9 @@ public final class TypeCasts {
      * Casts the given value to the given type.
      * @param value the value to cast
      * @param to the type to cast to
-     * @return the cast value, or {@code null} if the value was {@code null}
+     * @return the cast value
      */
-    public static @Nullable Object cast(@Nullable Object value, Class<?> to) {
-        if (value == null) {
-            return null;
-        }
-
+    public static Object cast(Object value, Class<?> to) {
         check(canCast(value.getClass(), to));
         var wrappedTo = Primitives.wrap(to);
 

@@ -266,7 +266,9 @@ public class Transformator {
             value = targetEnum.getEEnumLiteral(enumLiteral.getName());
             check(value != null);
         }
-        value = TypeCasts.cast(value, feature.getEType().getInstanceClass());
+        if (value != null) {
+            value = TypeCasts.cast(value, feature.getEType().getInstanceClass());
+        }
         target.eSet(feature, value);
     }
 
