@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<typecasts:Container
+    xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:typecasts="http://vitruv.tools/typecasts"
+    xsi:schemaLocation="http://vitruv.tools/typecasts type-casts.ecore">
+  <tests name="basic"
+      attrShort="30000"
+      attrFloat="7.6"
+      attrShortObj="30000"
+      attrFloatObj="7.6"/>
+</typecasts:Container>

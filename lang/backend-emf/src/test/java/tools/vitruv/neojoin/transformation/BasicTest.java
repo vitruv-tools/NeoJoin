@@ -65,7 +65,7 @@ public class BasicTest extends DefaultTransformationTest {
             from Restaurant r create {
                 r.name
             }
-            
+
             from Food f create {
                 f.name
             }
@@ -87,7 +87,7 @@ public class BasicTest extends DefaultTransformationTest {
                 r.name
                 r.sells
             }
-            
+
             from Food f create {
                 f.name
             }
@@ -121,7 +121,7 @@ public class BasicTest extends DefaultTransformationTest {
                 r.name
                 r.sells
             }
-            
+
             from Food f create TastyFood {
                 f.name
             }
@@ -141,7 +141,7 @@ public class BasicTest extends DefaultTransformationTest {
         assertThatThrownBy(() -> {
             transform("""
                 from Restaurant create
-                
+
                 from Food f
                 where false
                 create TastyFood {}
@@ -156,7 +156,7 @@ public class BasicTest extends DefaultTransformationTest {
         assertThatThrownBy(() -> {
             transform("""
                 from Restaurant create
-                
+
                 from Food f
                 join Food f2
                 create TastyFood {}
@@ -313,6 +313,66 @@ public class BasicTest extends DefaultTransformationTest {
             .hasInstance("Food", named("Fanta"))
             .hasInstance("Food", named("Maultaschen"))
             .hasNoMoreInstances();
+    }
+
+    @Test
+    void typeCast() {
+        var result = internalTransform("""
+            export package to "http://example.com"
+            import "http://vitruv.tools/typecasts"
+
+            from Test create {
+                it.name
+
+                p1: EByte = it.attrShort
+                p2: EInt = it.attrShort
+                p3: ELong = it.attrShort
+                p4: EFloat = it.attrShort
+                p5: EDouble = it.attrShort
+            }
+            """);
+
+        assertThat(result)
+            .hasInstance(
+                "Test", named("basic"), t -> {
+                    assertThat(t)
+                        .hasAttribute("p1", (byte) 30000)
+                        .hasAttribute("p2", (int) 30000)
+                        .hasAttribute("p3", (long) 30000)
+                        .hasAttribute("p4", (float) 30000)
+                        .hasAttribute("p5", (double) 30000);
+                }
+            );
+    }
+
+    @Test
+    void typeCastFromBoxed() {
+        var result = internalTransform("""
+            export package to "http://example.com"
+            import "http://vitruv.tools/typecasts"
+
+            from Test create {
+                it.name
+
+                p1: EByte = it.attrShortObj
+                p2: EInt = it.attrShortObj
+                p3: ELong = it.attrShortObj
+                p4: EFloat = it.attrShortObj
+                p5: EDouble = it.attrShortObj
+            }
+            """);
+
+        assertThat(result)
+            .hasInstance(
+                "Test", named("basic"), t -> {
+                    assertThat(t)
+                        .hasAttribute("p1", (byte) 30000)
+                        .hasAttribute("p2", (int) 30000)
+                        .hasAttribute("p3", (long) 30000)
+                        .hasAttribute("p4", (float) 30000)
+                        .hasAttribute("p5", (double) 30000);
+                }
+            );
     }
 
 }

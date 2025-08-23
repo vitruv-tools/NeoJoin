@@ -1,6 +1,7 @@
 package tools.vitruv.neojoin.transformation;
 
 import org.eclipse.emf.ecore.EClass;
+import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EEnum;
 import org.eclipse.emf.ecore.EEnumLiteral;
 import org.eclipse.emf.ecore.EObject;
@@ -15,6 +16,7 @@ import tools.vitruv.neojoin.aqr.AQRTargetClass;
 import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
 import tools.vitruv.neojoin.transformation.source.GroupingSource;
 import tools.vitruv.neojoin.transformation.source.InstanceSourceFactory;
+import tools.vitruv.neojoin.utils.TypeCasts;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -265,7 +267,27 @@ public class Transformator {
             value = targetEnum.getEEnumLiteral(enumLiteral.getName());
             check(value != null);
         }
+        value = cast(value, feature.getEType(), feature.isMany());
         target.eSet(feature, value);
+    }
+
+    private @Nullable Object cast(@Nullable Object value, EClassifier to, boolean isMany) {
+        if (value == null) {
+            return null;
+        }
+
+        if (to.getInstanceClass() == null) {
+            return value;
+        }
+
+        if (isMany) {
+            var list = (List<?>) value;
+            return list.stream()
+                .map(v -> cast(v, to, false))
+                .toList();
+        } else {
+            return TypeCasts.cast(value, to.getInstanceClass());
+        }
     }
 
     private void populateReference(

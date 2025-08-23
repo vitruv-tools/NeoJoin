@@ -25,6 +25,7 @@ import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
 import tools.vitruv.neojoin.jvmmodel.TypeInfo;
 import tools.vitruv.neojoin.jvmmodel.TypeResolutionException;
 import tools.vitruv.neojoin.utils.AstUtils;
+import tools.vitruv.neojoin.utils.TypeCasts;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -154,6 +155,27 @@ public class FeatureValidator extends ComposableValidator {
                 error(
                     "Type mismatch: cannot convert from %s to %s".formatted(
                         inferredType.classifier().getName(), eEnum.getName()
+                    ),
+                    feature,
+                    AstPackage.Literals.FEATURE__EXPRESSION
+                );
+            }
+        } else if (feature.getType() instanceof EDataType eDataType) {
+            if (inferredType.classifier() instanceof EDataType && !(inferredType.classifier() instanceof EEnum)) {
+                if (!TypeCasts.canCast(inferredType.classifier().getInstanceClass(), eDataType.getInstanceClass())) {
+                    error(
+                        "Type mismatch: cannot convert from %s (%s) to %s (%s)".formatted(
+                            inferredType.classifier().getName(), inferredType.classifier().getInstanceClass().getSimpleName(),
+                            eDataType.getName(), eDataType.getInstanceClass().getSimpleName()
+                        ),
+                        feature,
+                        AstPackage.Literals.FEATURE__EXPRESSION
+                    );
+                }
+            } else {
+                error(
+                    "Type mismatch: cannot convert from %s to %s".formatted(
+                        inferredType.classifier().getName(), eDataType.getName()
                     ),
                     feature,
                     AstPackage.Literals.FEATURE__EXPRESSION
