@@ -164,6 +164,7 @@ class AQRTest extends AbstractAQRTest {
 
     @Test
     void explicitTypeWithSubQueryWithImplicitName() {
+        // see https://github.com/vitruv-tools/NeoJoin/issues/80
         parse("""
             from Food f create Dish {
                 name: EString := f.name
