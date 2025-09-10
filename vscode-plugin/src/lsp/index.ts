@@ -40,7 +40,7 @@ const EXEC_OPTIONS = (() => {
         };
     } else {
         return {
-            jarFile: "ide.jar",
+            jarFile: "tools.vitruv.neojoin.frontend.ide.jar",
             jvmOpts: [],
             programOpts: config.debug
                 ? ["--trace", "--log", debugLogFilePath()]
