@@ -268,7 +268,7 @@ public class ExpressionHelper {
     @Inject
     private OnChangeEvictingCache cache;
 
-    public <T> T execUncached(Resource resource, Supplier<T> fun) {
+    public <T extends @Nullable Object> T execUncached(Resource resource, Supplier<T> fun) {
         return cache.execWithTemporaryCaching(resource, res -> fun.get());
     }
 
