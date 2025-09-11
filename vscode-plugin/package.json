@@ -96,6 +96,7 @@
         "package.json",
         "dist/extension.js",
         "src/language/*",
+        "resources/**/*",
         "tools.vitruv.neojoin.frontend.ide.jar"
     ],
     "scripts": {
