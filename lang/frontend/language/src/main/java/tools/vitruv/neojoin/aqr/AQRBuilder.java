@@ -26,6 +26,7 @@ import tools.vitruv.neojoin.jvmmodel.TypeInfo;
 import tools.vitruv.neojoin.jvmmodel.TypeResolutionException;
 import tools.vitruv.neojoin.utils.AstUtils;
 import tools.vitruv.neojoin.utils.Pair;
+import tools.vitruv.neojoin.utils.TypeCasts;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -328,10 +329,10 @@ public class AQRBuilder {
     }
 
     private static boolean isAssignable(EDataType to, EClassifier from) {
-        if (to == from) { // needed for enums because they don't have an instance class
-            return true;
+        if (to.getInstanceClass() == null || from.getInstanceClass() == null) {
+            return to == from;
         } else {
-            return to.getInstanceClass().isAssignableFrom(from.getInstanceClass());
+            return TypeCasts.canCast(from.getInstanceClass(), to.getInstanceClass());
         }
     }
 
