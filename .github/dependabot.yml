@@ -3,11 +3,11 @@ updates:
 - package-ecosystem: "github-actions"
   directory: "/"
   schedule:
-    interval: "daily"
+    interval: daily
   commit-message:
     prefix: "GitHub Actions"
     include: "scope"
-- package-ecosystem: maven
+- package-ecosystem: "maven"
   directory: "/lang/"
   schedule:
     interval: daily
@@ -18,7 +18,7 @@ updates:
     ecore:
       patterns:
       - "org.eclipse.emf:org.eclipse.emf.ecore*"
-      - "org.eclipse.xtext:org.eclipse.xtext:*"
+      - "org.eclipse.xtext:org.eclipse.xtext*"
     jte:
       patterns:
       - "gg.jte:*"
@@ -31,7 +31,7 @@ updates:
     junit:
       patterns:
       - "org.junit.jupiter:junit-jupiter-*"
-- package-ecosystem: npm
+- package-ecosystem: "npm"
   directory: "/vscode-plugin/"
   schedule:
     interval: daily

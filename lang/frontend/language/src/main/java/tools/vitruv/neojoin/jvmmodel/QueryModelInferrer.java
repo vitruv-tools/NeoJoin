@@ -173,7 +173,6 @@ public class QueryModelInferrer {
                 }
             }
         );
-        //noinspection ConstantValue - false positive
         if (typeInfo != null && typeInfo.classifier() instanceof EClass clazz) {
             return clazz;
         } else {
