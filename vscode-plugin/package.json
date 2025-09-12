@@ -80,7 +80,7 @@
                 "neojoin.metaModelSearchPath": {
                     "type": "string",
                     "scope": "machine-overridable",
-                    "default": "${workspaceFolderUri}",
+                    "default": "${workspaceFolder}",
                     "markdownDescription": "List of search paths for meta models (*.ecore files) separated by semicolons. Found models can be imported in NeoJoin queries.\n\nExample: `/path/to/directory;/path/to/model.ecore;C:/path/to/archive.jar`\n\n**Note:** Changes to this config entry or the directory on disk require a [restart of the NeoJoin server](command:neojoin.restart)."
                 },
                 "neojoin.debug": {
@@ -96,6 +96,7 @@
         "package.json",
         "dist/extension.js",
         "src/language/*",
+        "resources/**/*",
         "tools.vitruv.neojoin.frontend.ide.jar"
     ],
     "scripts": {
@@ -108,15 +109,15 @@
         "package": "npm run check-types && node esbuild.cjs --production"
     },
     "devDependencies": {
-        "@eslint/js": "^9.33.0",
-        "@stylistic/eslint-plugin": "^5.2.3",
+        "@eslint/js": "^9.35.0",
+        "@stylistic/eslint-plugin": "^5.3.1",
         "@types/node": "^20",
         "@types/vscode": "^1.75.0",
         "esbuild": "^0.25.9",
-        "eslint": "^9.33.0",
+        "eslint": "^9.35.0",
         "npm-run-all": "^4.1.5",
         "typescript": "^5.9.2",
-        "typescript-eslint": "^8.40.0"
+        "typescript-eslint": "^8.43.0"
     },
     "dependencies": {
         "vscode-languageclient": "^9.0.1"

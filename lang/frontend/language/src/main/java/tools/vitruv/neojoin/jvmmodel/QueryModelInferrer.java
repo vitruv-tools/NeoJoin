@@ -140,16 +140,8 @@ public class QueryModelInferrer {
         Utils.forEachIndexed(
             body.getFeatures(), (feature, index) -> {
                 var exprName = name + "_feature_" + index;
-                // type checking for attributes works by specifying the correct expression type here,
-                // references are handled via custom validators
-                String exprType;
-                if (feature.getType() instanceof EDataType dataType && !(dataType instanceof EEnum)) {
-                    check(dataType.getInstanceClassName() != null);
-                    exprType = dataType.getInstanceClassName();
-                } else {
-                    exprType = "java.lang.Object";
-                }
-                addExpression(feature, exprName, exprType, feature.getExpression(), addParams);
+                // expression type is validated using a custom validator
+                addExpression(feature, exprName, "java.lang.Object", feature.getExpression(), addParams);
 
                 if (feature.getSubQuery() != null && feature.getSubQuery().getBody() != null) {
                     var featureType = inferEClassFromExpressionOrNull(feature.getExpression());
@@ -181,7 +173,6 @@ public class QueryModelInferrer {
                 }
             }
         );
-        //noinspection ConstantValue - false positive
         if (typeInfo != null && typeInfo.classifier() instanceof EClass clazz) {
             return clazz;
         } else {

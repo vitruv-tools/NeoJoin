@@ -64,7 +64,7 @@ public class CustomDataTypeParseTest extends AbstractParseTest {
             }
             """);
 
-        assertThat(result).hasIssues("Type mismatch: cannot convert from String to float");
+        assertThat(result).hasIssues("Type mismatch: cannot convert from EString (String) to Money (float)");
     }
 
     @Test
@@ -86,7 +86,7 @@ public class CustomDataTypeParseTest extends AbstractParseTest {
             }
             """);
 
-        assertThat(result).hasIssues("Type mismatch: cannot convert from FoodType to String");
+        assertThat(result).hasIssues("Type mismatch: cannot convert from FoodType to EString");
     }
 
 }
