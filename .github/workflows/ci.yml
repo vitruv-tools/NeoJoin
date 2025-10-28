@@ -46,7 +46,7 @@ jobs:
       if: matrix.os == 'ubuntu-latest'
       uses: actions/upload-artifact@v4
       with:
-        name: build-results-maven
+        name: framework-and-cli
         path: staging/
 
   build-vscode-extension:
@@ -61,11 +61,11 @@ jobs:
     - name: Download Maven build results
       uses: actions/download-artifact@v5
       with:
-        name: build-results-maven
-        path: build-results-maven
+        name: framework-and-cli
+        path: framework-and-cli
 
     - name: Extract IDE package
-      run: cp build-results-maven/tools.vitruv.neojoin.frontend.ide.jar vscode-plugin/
+      run: cp framework-and-cli/tools.vitruv.neojoin.frontend.ide.jar vscode-plugin/
 
     - name: Setup node
       uses: actions/setup-node@v6
@@ -89,7 +89,7 @@ jobs:
     - name: Upload build results
       uses: actions/upload-artifact@v4
       with:
-        name: build-results-vscode
+        name: vscode-plugin
         path: staging/
 
   sonar:

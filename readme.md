@@ -1,5 +1,10 @@
 # NeoJoin
 
+[![GitHub Action CI](https://github.com/vitruv-tools/NeoJoin/actions/workflows/ci.yml/badge.svg)](https://github.com/vitruv-tools/NeoJoin/actions/workflows/ci.yml)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=vitruv-tools_NeoJoin&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=vitruv-tools_NeoJoin)
+[![Issues](https://img.shields.io/github/issues/vitruv-tools/NeoJoin.svg)](https://github.com/vitruv-tools/NeoJoin/issues)
+[![License](https://img.shields.io/github/license/vitruv-tools/NeoJoin.svg)](https://raw.githubusercontent.com/vitruv-tools/NeoJoin/main/LICENSE)
+
 *NeoJoin* is a declarative query language for view-based model-driven software development. It allows to easily create views based on one or more source models using a declarative SQL-like syntax. It supports multiple backends for the model-view transformation, one of which is based on triple graph grammars (TGGs) and supports bidirectional and incremental transformations between models and views.
 
 *Note: The frontend is currently not connected to the TGG backend, so an automatic transformation of the queries in NeoJoin syntax is only possible with the EMF backend. We plan to add support for this in the future.*
@@ -38,67 +43,11 @@ create ReviewedRestaurant {
 * [VSCode](https://code.visualstudio.com/) plugin for syntax highlighting, code completion, and live visualization of the resulting view type
 * Input and output meta-models as `.ecore` and instance-models as `.xmi` files
 
-## Structure
-
-### Project
-| Directory     | Content                                                      |
-|---------------|--------------------------------------------------------------|
-| docs          | Project documentation                                        |
-| lang          | Prototype implementation *(see below)*                       |
-| scripts       | Helper scripts for the project                               |
-| scripts/dump  | Script for exporting models from a Neo4j graph database      |
-| vscode-plugin | VSCode plugin for NeoJoin language support and visualization |
-
-### Prototype Implementation
-| **Module** / Package       | Description                                                                                             |
-|----------------------------|---------------------------------------------------------------------------------------------------------|
-| **backend-emf**            | EMF-based transformation engine to derive instances of the view based on the query                      |
-| **backend-tgg**            | eMoflon::Neo-based transformation engine for bidirectional transformation between models and views      |
-| backend-tgg/**driver**     | Auxiliary logic for generating eMoflon::Neo Eclipse projects                                            |
-| backend-tgg/**operators**  | Primary operators for creating TGGs                                                                     |
-| backend-tgg/**transpiler** | The core logic and operators for creating TGGs from operators                                           |
-| frontend/**cli**           | CLI interface to execute meta-model generation and instance model transformation *(currently EMF-only)* |
-| frontend/**ide**           | IDE support via language server protocol (LSP)                                                          |
-| frontend/**language**      | Main language implementation and meta-model generator                                                   |
-| **model**                  | Abstract query representation (AQR)                                                                     |
-
-## Build
-
-### Requirements
-
-* JDK 21+
-* Node.js 20 (+ NPM)
-
-### Maven Projects
-
-```sh
-cd lang
-
-# either: re-generate and compile the code
-./mvnw clean compile
-# or: skip the generation, compile the code and run the tests
-./mvnw test -P skip-code-generation
-# or: package everything to JAR files
-./mvnw verify
-```
-
-We use [SonarQube](https://sonarcloud.io/project/overview?id=vitruv-tools_NeoJoin) to analyze our Maven projects.
-
-### VSCode Plugin
-
-* Open the `vscode-plugin` folder in VSCode (top-level in a workspace)
-* Run `npm install` to install dependencies
-* Go to `Run and Debug` > Select launch configuration `Launch Client` > Press `Start Debugging`
-    * The language server needs a few seconds to start up, so code completion / analysis will not work right at the start.
-    * The plugin requires that the `.jar` files have been generated and are at their default location.
-    * If you cannot find the launch configuration `Launch Client`, ensure that you have opened VSCode with the `vscode-plugin` folder as your workspace.
-* If you get the error message `Activating extension 'vitruv-tools.neojoin' failed: Cannot find module` check the build task for potential problems: Bottom Panel > Select tab `Terminal` > Select task `watch` (on the right)
-
-### Notes
-
-* Xtext heavily uses generated classes which means that opening this repository in a Java IDE after cloning will look like a christmas tree. Run `maven compile` to generate all missing classes. To improve compile times afterwards you can skip re-generation of classes by activating the maven profile `skip-workflow`.
-
 ## Usage
+
+NeoJoin comes with two frontends and two backends. The first frontend is the VSCode plugin, which provides IDE support and view type visualization. The second frontend is the CLI, which provides commands for generating the view type, as well as executing the model-level transformations, currently only with our unidirectional, state-based EMF backend. The other backend, currently in development, offers bidirectional, incremental model-level transformations by generating triple graph grammars (TGGs).
+
+The VSCode plugin and the CLI executable can be downloaded from the build results of the last [successful nightly builds](https://github.com/vitruv-tools/NeoJoin/actions/workflows/ci.yml?query=branch%3Amain+event%3Aschedule+is%3Asuccess).
 
 ### Requirements
 
@@ -167,6 +116,66 @@ You can use the convenience function `API.generateProjectForView(...)` for steps
 ### Running the Generated Model-View Transformations
 
 *to do*
+
+## Repository Structure
+
+### Project
+| Directory     | Content                                                      |
+|---------------|--------------------------------------------------------------|
+| docs          | Project documentation                                        |
+| lang          | Prototype implementation *(see below)*                       |
+| scripts       | Helper scripts for the project                               |
+| scripts/dump  | Script for exporting models from a Neo4j graph database      |
+| vscode-plugin | VSCode plugin for NeoJoin language support and visualization |
+
+### Prototype Implementation
+| **Module** / Package       | Description                                                                                             |
+|----------------------------|---------------------------------------------------------------------------------------------------------|
+| **backend-emf**            | EMF-based transformation engine to derive instances of the view based on the query                      |
+| **backend-tgg**            | eMoflon::Neo-based transformation engine for bidirectional transformation between models and views      |
+| backend-tgg/**driver**     | Auxiliary logic for generating eMoflon::Neo Eclipse projects                                            |
+| backend-tgg/**operators**  | Primary operators for creating TGGs                                                                     |
+| backend-tgg/**transpiler** | The core logic and operators for creating TGGs from operators                                           |
+| frontend/**cli**           | CLI interface to execute meta-model generation and instance model transformation *(currently EMF-only)* |
+| frontend/**ide**           | IDE support via language server protocol (LSP)                                                          |
+| frontend/**language**      | Main language implementation and meta-model generator                                                   |
+| **model**                  | Abstract query representation (AQR)                                                                     |
+
+## Build
+
+### Requirements
+
+* JDK 21+
+* Node.js 20 (+ NPM)
+
+### Maven Projects
+
+```sh
+cd lang
+
+# either: re-generate and compile the code
+./mvnw clean compile
+# or: skip the generation, compile the code and run the tests
+./mvnw test -P skip-code-generation
+# or: package everything to JAR files
+./mvnw verify
+```
+
+We use [SonarQube](https://sonarcloud.io/project/overview?id=vitruv-tools_NeoJoin) to analyze our Maven projects.
+
+### VSCode Plugin
+
+* Open the `vscode-plugin` folder in VSCode (top-level in a workspace)
+* Run `npm install` to install dependencies
+* Go to `Run and Debug` > Select launch configuration `Launch Client` > Press `Start Debugging`
+    * The language server needs a few seconds to start up, so code completion / analysis will not work right at the start.
+    * The plugin requires that the `.jar` files have been generated and are at their default location.
+    * If you cannot find the launch configuration `Launch Client`, ensure that you have opened VSCode with the `vscode-plugin` folder as your workspace.
+* If you get the error message `Activating extension 'vitruv-tools.neojoin' failed: Cannot find module` check the build task for potential problems: Bottom Panel > Select tab `Terminal` > Select task `watch` (on the right)
+
+### Notes
+
+* Xtext heavily uses generated classes which means that opening this repository in a Java IDE after cloning will look like a christmas tree. Run `maven compile` to generate all missing classes. To improve compile times afterwards you can skip re-generation of classes by activating the maven profile `skip-workflow`.
 
 ## Used Technology
 
