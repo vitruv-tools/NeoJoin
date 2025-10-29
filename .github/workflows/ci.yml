@@ -44,7 +44,7 @@ jobs:
 
     - name: Upload build results
       if: matrix.os == 'ubuntu-latest'
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: framework-and-cli
         path: staging/
@@ -87,7 +87,7 @@ jobs:
       run: mkdir staging && cp vscode-plugin/*.vsix staging/;
 
     - name: Upload build results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: vscode-plugin
         path: staging/
