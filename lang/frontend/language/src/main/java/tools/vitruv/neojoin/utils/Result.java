@@ -1,5 +1,7 @@
 package tools.vitruv.neojoin.utils;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * Represents the result of an operation that can either {@link Success succeed} by returning a value or {@link Failure fail}
  * with an exception.
@@ -9,11 +11,11 @@ package tools.vitruv.neojoin.utils;
 public sealed interface Result<T> {
 
     record Success<T>(
-        T value
+        @Nullable T value
     ) implements Result<T> {}
 
     record Failure<T>(
-        Throwable throwable
+        @Nullable Throwable throwable
     ) implements Result<T> {}
 
 }
