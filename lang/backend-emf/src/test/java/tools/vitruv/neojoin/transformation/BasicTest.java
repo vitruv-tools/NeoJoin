@@ -22,6 +22,18 @@ public class BasicTest extends DefaultTransformationTest {
     }
 
     @Test
+    void implicitFeatureAccess() {
+        var result = transform("""
+            from Restaurant create { name }
+            """);
+
+        assertThat(result)
+            .hasInstance("Restaurant", named("Pizzeria Toni"))
+            .hasInstance("Restaurant", named("Brauhaus"))
+            .hasNoMoreInstances();
+    }
+
+    @Test
     void condition() {
         var result = transform("""
             from Restaurant r where r.name.startsWith("Pizzeria") create { r.name }

@@ -17,8 +17,8 @@ import org.eclipse.xtext.common.types.util.TypeReferences;
 import org.eclipse.xtext.naming.QualifiedName;
 import org.eclipse.xtext.util.CancelIndicator;
 import org.eclipse.xtext.util.OnChangeEvictingCache;
+import org.eclipse.xtext.xbase.XAbstractFeatureCall;
 import org.eclipse.xtext.xbase.XExpression;
-import org.eclipse.xtext.xbase.XMemberFeatureCall;
 import org.eclipse.xtext.xbase.interpreter.IEvaluationContext;
 import org.eclipse.xtext.xbase.interpreter.IEvaluationResult;
 import org.eclipse.xtext.xbase.interpreter.impl.XbaseInterpreter;
@@ -180,7 +180,7 @@ public class ExpressionHelper {
      * @throws TypeResolutionException if the receiver type cannot be resolved
      */
     public @Nullable EStructuralFeature getFeatureOrNull(XExpression expression) throws TypeResolutionException {
-        if (expression instanceof XMemberFeatureCall featureCall) {
+        if (expression instanceof XAbstractFeatureCall featureCall) {
             if (featureCall.getFeature() instanceof JvmVoid) {
                 throw new TypeResolutionException(expression);
             }

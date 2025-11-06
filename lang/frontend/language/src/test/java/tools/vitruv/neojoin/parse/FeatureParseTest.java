@@ -112,7 +112,7 @@ public class FeatureParseTest extends AbstractParseTest {
             from Restaurant r create {
                 r.sells
             }
-            
+
             from Food f1
             join Food f2
             create MixedFoods {}
@@ -130,7 +130,7 @@ public class FeatureParseTest extends AbstractParseTest {
             from Restaurant r create {
                 r.sells
             }
-            
+
             from Food f1
             group by f1.name
             create MixedFoods {}
@@ -146,6 +146,15 @@ public class FeatureParseTest extends AbstractParseTest {
     void implicitClassAlias() {
         var result = parse("""
             from Restaurant create { it.name }
+            """);
+
+        assertThat(result).hasNoIssues();
+    }
+
+    @Test
+    void implicitClassAliasImplicitAccess() {
+        var result = parse("""
+            from Restaurant create { name }
             """);
 
         assertThat(result).hasNoIssues();
