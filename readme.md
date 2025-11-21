@@ -53,6 +53,7 @@ The VSCode plugin and the CLI executable can be downloaded from the build result
 
 * JDK 21+
 * [VSCode](https://code.visualstudio.com/) *(for the VSCode plugin)*
+* [Graphviz](https://plantuml.com/graphviz-dot) *(for the view type visualization in the VSCode plugin)*
 * [Neo4j](https://neo4j.com/) *(for the TGG backend)*
 * [eMoflon::Neo](https://github.com/eMoflon/emoflon-neo) installed in an Eclipse instance *(for the TGG backend)*
 
