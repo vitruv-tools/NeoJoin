@@ -12,7 +12,7 @@
 ### Syntax Example
 
 ```
-export as reviewedrestaurants to "http://vitruv.tools/models/reviewedrestaurant"
+export reviewedrestaurants to "http://vitruv.tools/models/reviewedrestaurant"
 
 import "http://vitruv.tools/models/restaurant"
 import "http://vitruv.tools/models/reviewpage"
