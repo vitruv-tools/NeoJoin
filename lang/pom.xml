@@ -181,7 +181,7 @@
       <dependency>
         <groupId>tools.vitruv</groupId>
         <artifactId>tools.vitruv.change.p2wrappers.emfcompare</artifactId>
-        <version>3.2.2</version>
+        <version>3.2.3</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
