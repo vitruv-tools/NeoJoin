@@ -80,6 +80,8 @@ public class NeoJoinScopeProvider extends AbstractNeoJoinScopeProvider {
             }
         } else if (reference == AstPackage.Literals.FEATURE__TYPE) {
             return createFeatureTypeScope(AstUtils.getViewType(context));
+        } else if (reference == AstPackage.Literals.ABSTRACT_FEATURE__TYPE) {
+            return createFeatureTypeScope(AstUtils.getViewType(context));
         } else {
             return super.getScope(context, reference);
         }
