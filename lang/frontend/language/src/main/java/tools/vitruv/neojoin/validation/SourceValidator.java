@@ -50,7 +50,7 @@ public class SourceValidator extends ComposableValidator {
             if (mainQuery.getName() == null) {
                 error("Query without source must have a target name", mainQuery, AstPackage.Literals.QUERY__NAME);
             }
-            if (mainQuery.getBody() == null) {
+            if (mainQuery.getBody() == null && mainQuery.getAbstractBody() == null) {
                 error("Query without source must have a body", mainQuery, AstPackage.Literals.QUERY__BODY);
             }
         }

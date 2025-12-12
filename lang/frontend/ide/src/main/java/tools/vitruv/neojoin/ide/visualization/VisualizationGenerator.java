@@ -141,14 +141,16 @@ public class VisualizationGenerator {
                 // show selected target classes
                 selectedClasses.stream()
                     .sorted(Comparator.comparing(EClassifier::getName))
-                    .forEach(this::targetClazz);
+                    // class might have already been generated as super class of another class
+                    .forEach(this::targetClazzIfNew);
             } else {
                 // show all target classes
                 targetMetaModel.pack().getEClassifiers().stream()
                     .sorted(Comparator.comparing(EClassifier::getName))
                     .forEach(classifier -> {
                         if (classifier instanceof EClass clazz) {
-                            targetClazz(clazz);
+                            // class might have already been generated as super class of another class
+                            targetClazzIfNew(clazz);
                         } else if (classifier instanceof EEnum eEnum) {
                             // enum might have already been generated from a class attribute
                             enumerationIfNew(eEnum);
@@ -193,6 +195,12 @@ public class VisualizationGenerator {
 
         var targetName = aqr.export().name();
         out.pack("\"Target: %s\" as %s".formatted(targetName, targetName), Empty);
+    }
+
+    private void targetClazzIfNew(EClass target) {
+        if (!seenClazzes.contains(target)) {
+            targetClazz(target);
+        }
     }
 
     private void targetClazz(EClass target) {

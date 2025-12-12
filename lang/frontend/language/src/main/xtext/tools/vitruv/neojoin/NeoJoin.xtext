@@ -18,8 +18,15 @@ Import:
 
 MainQuery:
     source=Source?
-    'create' root?='root'? name=ID?
-    body=Body?;
+    (
+        'create' root?='root'? name=ID?
+        ('extends' superClasses+=QualifiedName (',' superClasses+=QualifiedName)*)?
+        body=Body?
+    )|(
+        'abstract' name=ID?
+        ('extends' superClasses+=QualifiedName (',' superClasses+=QualifiedName)*)?
+        abstractBody=AbstractBody
+    );
 
 Source:
     'from' from=From
@@ -45,6 +52,9 @@ JoinExpressionCondition:
 Body:
     {Body} '{' features+=Feature* '}'; // {Body} ensures that the object is created to differentiate an empty body {} from a missing body
 
+AbstractBody:
+    {AbstractBody} '{' abstractFeatures+=AbstractFeature* '}';
+
 Feature:
     (
         name=ID
@@ -54,6 +64,11 @@ Feature:
     )?
     expression=XOrExpression
     subQuery=SubQuery?;
+
+AbstractFeature:
+    name=ID
+    ':' type=[ecore::EObject|QualifiedName] // type refers either to an EDataType or a Query
+    (hasModifiers?='[' (modifiers+=Modifier (',' modifiers+=Modifier)*)? ']')?; // allow empty modifier list in grammar and forbid it using a validator for improved error messages
 
 enum FeatureOp:
     COPY='=' | CALCULATE=':=';
