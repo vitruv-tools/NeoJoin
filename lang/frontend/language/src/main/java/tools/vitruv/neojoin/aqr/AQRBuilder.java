@@ -95,11 +95,16 @@ public class AQRBuilder {
             addSuperClassesToTargetClass(entry.left(), entry.right());
         }
         
-
+        // populate target classes
         while (!populationQueue.isEmpty()) {
             var entry = populationQueue.poll();
             //noinspection DataFlowIssue - false positive
             populateTargetClass(entry.left(), entry.right() == null ? null : entry.right().getBody());
+        }
+
+        // identify and verify inheritance
+        for (var targetClass : targetClasses) {
+            applyInheritance(targetClass);
         }
 
         var root = createRootIfNeededAndInit();
@@ -223,7 +228,7 @@ public class AQRBuilder {
     private void populateTargetClass(AQRTargetClass targetClazz, @Nullable Body body) {
         if (body != null) { // create features based on definition in Body
             for (Feature feature : body.getFeatures()) {
-                targetClazz.features().add(createFeature(targetClazz, feature));
+                targetClazz.features().add(createFeature(feature));
             }
         } else { // copy all features from the source class
             invariant(targetClazz.source() != null, "Query without source must have a body");
@@ -259,8 +264,8 @@ public class AQRBuilder {
     /**
      * Create a feature based on the given definition.
      */
-    private AQRFeature createFeature(AQRTargetClass targetClass, Feature feature) {
-        var kind = getFeatureKind(targetClass, feature);
+    private AQRFeature createFeature(Feature feature) {
+        var kind = getFeatureKind(feature);
         var name = getFeatureName(feature, kind);
 
         var inferredType = inferType(feature.getExpression());
@@ -280,8 +285,8 @@ public class AQRBuilder {
     /**
      * Determines the {@link AQRFeature.Kind kind} of the feature.
      */
-    private AQRFeature.Kind getFeatureKind(AQRTargetClass targetClass, Feature feature) {
-        AQRFeature.Kind defKind = switch (feature.getOp()) {
+    private AQRFeature.Kind getFeatureKind(Feature feature) {
+        return switch (feature.getOp()) {
             case COPY -> {
                 try {
                     var type = expressionHelper.getFeatureOrNull(feature.getExpression());
@@ -296,14 +301,6 @@ public class AQRBuilder {
             }
             case CALCULATE -> new AQRFeature.Kind.Calculate(feature.getExpression());
         };
-
-        var overwrittenFeature = targetClass.allSuperClasses().stream().flatMap(superClass -> superClass.features().stream()).filter(inheritedFeature -> inheritedFeature.name().equals(getFeatureName(feature, defKind))).findAny();
-        if (overwrittenFeature.isPresent()) {
-            invariant(feature.getModifiers().isEmpty(), "Overwriting features may not have modifiers");
-            return new AQRFeature.Kind.Overwrite(overwrittenFeature.get(), feature.getExpression());
-        } else {
-            return defKind;
-        }
     }
 
     /**
@@ -411,6 +408,49 @@ public class AQRBuilder {
             return Objects.requireNonNull(expressionHelper.inferEType(expression));
         } catch (TypeResolutionException e) {
             return invariantFailed(); // should have been handled by Xbase type checking
+        }
+    }
+
+    private void applyInheritance(AQRTargetClass targetClass) {
+        var superClassFeatures = targetClass.allSuperClasses().stream().flatMap(superClass -> superClass.features().stream()).toList();
+
+        // update overwriting features
+        targetClass.features().replaceAll(feature -> {
+            var overwrittenFeatures = superClassFeatures.stream().filter(superClassFeature -> superClassFeature.name().equals(feature.name())).toList();
+            if (overwrittenFeatures.isEmpty()) {
+                return feature;
+            }
+
+            invariant(overwrittenFeatures.size() == 1);
+            var overwrittenFeature = overwrittenFeatures.getFirst();
+
+            invariant(feature.options().equals(overwrittenFeature.options()), "Overwriting features may not change modifiers");
+
+            switch (feature) {
+                case AQRFeature.Attribute attribute -> {
+                    invariant(overwrittenFeature instanceof AQRFeature.Attribute, "Attribute must overwrite attribute");
+                    var overwrittenAttribute = (AQRFeature.Attribute)overwrittenFeature;
+                    invariant(overwrittenAttribute.type().equals(attribute.type()), "Type of overwriting feature must be equal to type of overwritten feature");
+
+                    return attribute.setFeatureKind(new AQRFeature.Kind.Overwrite(overwrittenFeature, feature.kind().expression()));
+                }
+                case AQRFeature.Reference reference -> {
+                    invariant(overwrittenFeature instanceof AQRFeature.Reference, "Reference must overwrite reference");
+                    var overwrittenReference = (AQRFeature.Reference)overwrittenFeature;
+                    invariant(overwrittenReference.type().equals(reference.type()), "Type of overwriting feature must be equal to type of overwritten feature");
+
+                    return reference.setFeatureKind(new AQRFeature.Kind.Overwrite(overwrittenFeature, feature.kind().expression()));
+                }
+            }
+        });
+
+        // check if all inherited features are overwritten
+        var missingFeatures = superClassFeatures.stream().filter(superClassFeature -> !targetClass.features().stream().filter(feature ->
+            feature.name().equals(superClassFeature.name()) &&
+            (feature.kind() instanceof AQRFeature.Kind.Overwrite)
+        ).findAny().isPresent()).toList();
+        if (!missingFeatures.isEmpty()) {
+            invariant(!missingFeatures.isEmpty(), "Sub classes must overwrite all inherited features");
         }
     }
 

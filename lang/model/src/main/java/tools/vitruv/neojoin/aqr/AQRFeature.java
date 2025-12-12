@@ -76,6 +76,12 @@ public sealed interface AQRFeature {
          */
         record Generate() implements Kind {}
 
+        /**
+         * The feature overwrites a feature in a super classs.
+         * 
+         * @param overwritten overwritten feature in a super class
+         * @param expression expression calculating the value of the feature (not inherited)
+         */
         record Overwrite(AQRFeature overwritten, XExpression expression) implements Kind {}
     }
 
@@ -152,6 +158,10 @@ public sealed interface AQRFeature {
             return "Attribute[name='%s', type=%s, kind=%s, options=%s]".formatted(name, type.getName(), kind, options);
         }
 
+        Attribute setFeatureKind(Kind kind) {
+            return new Attribute(name, type, kind, options);
+        }
+
     }
 
     /**
@@ -172,6 +182,10 @@ public sealed interface AQRFeature {
         @Override
         public String toString() {
             return "Reference[name='%s', type=%s, kind=%s, options=%s]".formatted(name, type.name(), kind, options);
+        }
+
+        Reference setFeatureKind(Kind kind) {
+            return new Reference(name, type, kind, options);
         }
 
     }
