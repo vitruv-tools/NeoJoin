@@ -64,7 +64,7 @@ public class AQRBuilder {
     private final ViewTypeDefinition viewTypeDefinition;
     private final ExpressionHelper expressionHelper;
 
-    private final Queue<Pair<AQRTargetClass, @Nullable Body>> populationQueue = new ArrayDeque<>(); // target class + query it originated from (or null if implicit)
+    private final Queue<Pair<AQRTargetClass, @Nullable Query>> populationQueue = new ArrayDeque<>(); // target class + query it originated from (or null if implicit)
 
     private final Set<EDataType> encounteredDataTypes = new HashSet<>();
 
@@ -90,10 +90,16 @@ public class AQRBuilder {
         // create empty (= without features) target classes for all queries
         AstUtils.getAllQueries(viewTypeDefinition).forEach(this::createTargetClass);
 
+        // add super classes to target classes
+        for (var entry : populationQueue) {
+            addSuperClassesToTargetClass(entry.left(), entry.right());
+        }
+        
+
         while (!populationQueue.isEmpty()) {
             var entry = populationQueue.poll();
             //noinspection DataFlowIssue - false positive
-            populateTargetClass(entry.left(), entry.right());
+            populateTargetClass(entry.left(), entry.right() == null ? null : entry.right().getBody());
         }
 
         var root = createRootIfNeededAndInit();
@@ -128,7 +134,7 @@ public class AQRBuilder {
     }
 
     private AQRTargetClass createTargetClass(String name, @Nullable AQRSource source, @Nullable Query query) {
-        var target = new AQRTargetClass(name, source, new ArrayList<>());
+        var target = new AQRTargetClass(name, source, new ArrayList<>(), new ArrayList<>());
 
         targetClasses.add(target);
 
@@ -143,7 +149,7 @@ public class AQRBuilder {
             });
         }
 
-        populationQueue.add(new Pair<>(target, query != null ? query.getBody() : null));
+        populationQueue.add(new Pair<>(target, query));
         return target;
     }
 
@@ -191,6 +197,23 @@ public class AQRBuilder {
         return targets.iterator().next();
     }
 
+    private void addSuperClassesToTargetClass(AQRTargetClass targetClazz, @Nullable Query query) {
+        if (query != null) {
+            switch (query) {
+                case MainQuery mainQuery -> {
+                    for (String superClassName : mainQuery.getSuperClasses()) {
+                        var superClassCandidates = targetClasses.stream().filter(targetClass -> targetClass.name().equals(superClassName)).toList();
+                        invariant(!superClassCandidates.isEmpty(), "Classes can only extend target classes");
+                        invariant(superClassCandidates.size() == 1, "Class names must be unique");
+
+                        targetClazz.superClasses().add(superClassCandidates.getFirst());
+                    }
+                }
+                default -> {}
+            }
+        }
+    }
+
     /**
      * Populates the target class with features specified in the given body or copies all features if no body was given.
      *
@@ -200,7 +223,7 @@ public class AQRBuilder {
     private void populateTargetClass(AQRTargetClass targetClazz, @Nullable Body body) {
         if (body != null) { // create features based on definition in Body
             for (Feature feature : body.getFeatures()) {
-                targetClazz.features().add(createFeature(feature));
+                targetClazz.features().add(createFeature(targetClazz, feature));
             }
         } else { // copy all features from the source class
             invariant(targetClazz.source() != null, "Query without source must have a body");
@@ -236,8 +259,8 @@ public class AQRBuilder {
     /**
      * Create a feature based on the given definition.
      */
-    private AQRFeature createFeature(Feature feature) {
-        var kind = getFeatureKind(feature);
+    private AQRFeature createFeature(AQRTargetClass targetClass, Feature feature) {
+        var kind = getFeatureKind(targetClass, feature);
         var name = getFeatureName(feature, kind);
 
         var inferredType = inferType(feature.getExpression());
@@ -257,8 +280,8 @@ public class AQRBuilder {
     /**
      * Determines the {@link AQRFeature.Kind kind} of the feature.
      */
-    private AQRFeature.Kind getFeatureKind(Feature feature) {
-        return switch (feature.getOp()) {
+    private AQRFeature.Kind getFeatureKind(AQRTargetClass targetClass, Feature feature) {
+        AQRFeature.Kind defKind = switch (feature.getOp()) {
             case COPY -> {
                 try {
                     var type = expressionHelper.getFeatureOrNull(feature.getExpression());
@@ -273,6 +296,14 @@ public class AQRBuilder {
             }
             case CALCULATE -> new AQRFeature.Kind.Calculate(feature.getExpression());
         };
+
+        var overwrittenFeature = targetClass.allSuperClasses().stream().flatMap(superClass -> superClass.features().stream()).filter(inheritedFeature -> inheritedFeature.name().equals(getFeatureName(feature, defKind))).findAny();
+        if (overwrittenFeature.isPresent()) {
+            invariant(feature.getModifiers().isEmpty(), "Overwriting features may not have modifiers");
+            return new AQRFeature.Kind.Overwrite(overwrittenFeature.get(), feature.getExpression());
+        } else {
+            return defKind;
+        }
     }
 
     /**
@@ -287,6 +318,7 @@ public class AQRBuilder {
             case AQRFeature.Kind.Copy copy -> copy.source().getName();
             case AQRFeature.Kind.Calculate ignored ->
                 invariantFailed("Calculated feature must have a name: " + feature.getExpression());
+            case AQRFeature.Kind.Overwrite overwriding -> overwriding.overwritten().name();
             default -> fail();
         };
     }
@@ -389,7 +421,7 @@ public class AQRBuilder {
         if (rootQuery != null) {
             root = getTargetForQuery(rootQuery);
         } else {
-            root = new AQRTargetClass(Constants.DefaultRootClassName, null, new ArrayList<>());
+            root = new AQRTargetClass(Constants.DefaultRootClassName, null, new ArrayList<>(), new ArrayList<>());
             targetClasses.add(root);
         }
 

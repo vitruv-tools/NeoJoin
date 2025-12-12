@@ -76,6 +76,7 @@ public sealed interface AQRFeature {
          */
         record Generate() implements Kind {}
 
+        record Overwrite(AQRFeature overwritten, XExpression expression) implements Kind {}
     }
 
     /**

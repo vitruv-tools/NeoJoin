@@ -105,7 +105,11 @@ public class MetaModelGenerator {
 
     private void populateClass(AQRTargetClass targetClass) {
         var target = Objects.requireNonNull(trace.aqrToTarget().get(targetClass));
-        var features = targetClass.features().stream().map(this::createFeature).toList();
+
+        var superTypes = targetClass.superClasses().stream().map(superClass -> trace.aqrToTarget().get(superClass)).toList();
+        target.getESuperTypes().addAll(superTypes);
+
+        var features = targetClass.features().stream().filter(feature -> !(feature.kind() instanceof AQRFeature.Kind.Overwrite)).map(this::createFeature).toList();
         target.getEStructuralFeatures().addAll(features);
     }
 
