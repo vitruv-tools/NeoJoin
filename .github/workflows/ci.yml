@@ -40,7 +40,7 @@ jobs:
 
     - name: Stage build results
       if: matrix.os == 'ubuntu-latest'
-      run: mkdir staging && find . -path '*/target/*.jar' -exec cp {} staging/ \;
+      run: mkdir staging && find . -path '*/target/*/*' -prune -o -path '*/target/*.jar' -exec cp {} staging/ \;
 
     - name: Upload build results
       if: matrix.os == 'ubuntu-latest'
