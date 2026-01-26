@@ -64,7 +64,7 @@ public class AQRBuilder {
     private final ViewTypeDefinition viewTypeDefinition;
     private final ExpressionHelper expressionHelper;
 
-    private final Queue<Pair<AQRTargetClass, @Nullable Body>> populationQueue = new ArrayDeque<>(); // target class + query it originated from (or null if implicit)
+    private final Queue<Pair<AQRTargetClass, @Nullable Query>> populationQueue = new ArrayDeque<>(); // target class + query it originated from (or null if implicit)
 
     private final Set<EDataType> encounteredDataTypes = new HashSet<>();
 
@@ -90,10 +90,21 @@ public class AQRBuilder {
         // create empty (= without features) target classes for all queries
         AstUtils.getAllQueries(viewTypeDefinition).forEach(this::createTargetClass);
 
+        // add super classes to target classes
+        for (var entry : populationQueue) {
+            addSuperClassesToTargetClass(entry.left(), entry.right());
+        }
+        
+        // populate target classes
         while (!populationQueue.isEmpty()) {
             var entry = populationQueue.poll();
             //noinspection DataFlowIssue - false positive
-            populateTargetClass(entry.left(), entry.right());
+            populateTargetClass(entry.left(), entry.right() == null ? null : entry.right().getBody());
+        }
+
+        // identify and verify inheritance
+        for (var targetClass : targetClasses) {
+            applyInheritance(targetClass);
         }
 
         var root = createRootIfNeededAndInit();
@@ -128,7 +139,7 @@ public class AQRBuilder {
     }
 
     private AQRTargetClass createTargetClass(String name, @Nullable AQRSource source, @Nullable Query query) {
-        var target = new AQRTargetClass(name, source, new ArrayList<>());
+        var target = new AQRTargetClass(name, source, new ArrayList<>(), new ArrayList<>());
 
         targetClasses.add(target);
 
@@ -143,7 +154,7 @@ public class AQRBuilder {
             });
         }
 
-        populationQueue.add(new Pair<>(target, query != null ? query.getBody() : null));
+        populationQueue.add(new Pair<>(target, query));
         return target;
     }
 
@@ -189,6 +200,23 @@ public class AQRBuilder {
         );
 
         return targets.iterator().next();
+    }
+
+    private void addSuperClassesToTargetClass(AQRTargetClass targetClazz, @Nullable Query query) {
+        if (query != null) {
+            switch (query) {
+                case MainQuery mainQuery -> {
+                    for (String superClassName : mainQuery.getSuperClasses()) {
+                        var superClassCandidates = targetClasses.stream().filter(targetClass -> targetClass.name().equals(superClassName)).toList();
+                        invariant(!superClassCandidates.isEmpty(), "Classes can only extend target classes");
+                        invariant(superClassCandidates.size() == 1, "Class names must be unique");
+
+                        targetClazz.superClasses().add(superClassCandidates.getFirst());
+                    }
+                }
+                default -> {}
+            }
+        }
     }
 
     /**
@@ -287,6 +315,7 @@ public class AQRBuilder {
             case AQRFeature.Kind.Copy copy -> copy.source().getName();
             case AQRFeature.Kind.Calculate ignored ->
                 invariantFailed("Calculated feature must have a name: " + feature.getExpression());
+            case AQRFeature.Kind.Overwrite overwriding -> overwriding.overwritten().name();
             default -> fail();
         };
     }
@@ -382,6 +411,49 @@ public class AQRBuilder {
         }
     }
 
+    private void applyInheritance(AQRTargetClass targetClass) {
+        var superClassFeatures = targetClass.allSuperClasses().stream().flatMap(superClass -> superClass.features().stream()).toList();
+
+        // update overwriting features
+        targetClass.features().replaceAll(feature -> {
+            var overwrittenFeatures = superClassFeatures.stream().filter(superClassFeature -> superClassFeature.name().equals(feature.name())).toList();
+            if (overwrittenFeatures.isEmpty()) {
+                return feature;
+            }
+
+            invariant(overwrittenFeatures.size() == 1);
+            var overwrittenFeature = overwrittenFeatures.getFirst();
+
+            invariant(feature.options().equals(overwrittenFeature.options()), "Overwriting features may not change modifiers");
+
+            switch (feature) {
+                case AQRFeature.Attribute attribute -> {
+                    invariant(overwrittenFeature instanceof AQRFeature.Attribute, "Attribute must overwrite attribute");
+                    var overwrittenAttribute = (AQRFeature.Attribute)overwrittenFeature;
+                    invariant(overwrittenAttribute.type().equals(attribute.type()), "Type of overwriting feature must be equal to type of overwritten feature");
+
+                    return attribute.setFeatureKind(new AQRFeature.Kind.Overwrite(overwrittenFeature, feature.kind().expression()));
+                }
+                case AQRFeature.Reference reference -> {
+                    invariant(overwrittenFeature instanceof AQRFeature.Reference, "Reference must overwrite reference");
+                    var overwrittenReference = (AQRFeature.Reference)overwrittenFeature;
+                    invariant(overwrittenReference.type().equals(reference.type()), "Type of overwriting feature must be equal to type of overwritten feature");
+
+                    return reference.setFeatureKind(new AQRFeature.Kind.Overwrite(overwrittenFeature, feature.kind().expression()));
+                }
+            }
+        });
+
+        // check if all inherited features are overwritten
+        var missingFeatures = superClassFeatures.stream().filter(superClassFeature -> !targetClass.features().stream().filter(feature ->
+            feature.name().equals(superClassFeature.name()) &&
+            (feature.kind() instanceof AQRFeature.Kind.Overwrite)
+        ).findAny().isPresent()).toList();
+        if (!missingFeatures.isEmpty()) {
+            invariant(!missingFeatures.isEmpty(), "Sub classes must overwrite all inherited features");
+        }
+    }
+
     private AQRTargetClass createRootIfNeededAndInit() {
         AQRTargetClass root;
 
@@ -389,7 +461,7 @@ public class AQRBuilder {
         if (rootQuery != null) {
             root = getTargetForQuery(rootQuery);
         } else {
-            root = new AQRTargetClass(Constants.DefaultRootClassName, null, new ArrayList<>());
+            root = new AQRTargetClass(Constants.DefaultRootClassName, null, new ArrayList<>(), new ArrayList<>());
             targetClasses.add(root);
         }
 

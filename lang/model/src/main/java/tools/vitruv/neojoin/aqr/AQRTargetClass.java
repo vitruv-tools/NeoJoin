@@ -2,7 +2,11 @@ package tools.vitruv.neojoin.aqr;
 
 import org.jspecify.annotations.Nullable;
 
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
+import java.util.Set;
 
 /**
  * Class within the target model.
@@ -20,6 +24,7 @@ public final class AQRTargetClass {
 
     private final String name;
     private final @Nullable AQRSource source;
+    private final List<AQRTargetClass> superClasses;
     private final List<AQRFeature> features;
 
     /**
@@ -30,10 +35,12 @@ public final class AQRTargetClass {
     public AQRTargetClass(
         String name,
         @Nullable AQRSource source,
+        List<AQRTargetClass> superClasses,
         List<AQRFeature> features
     ) {
         this.name = name;
         this.source = source;
+        this.superClasses = superClasses;
         this.features = features;
     }
 
@@ -45,15 +52,37 @@ public final class AQRTargetClass {
         return source;
     }
 
+    public List<AQRTargetClass> superClasses() {
+        return superClasses;
+    }
+
+    public List<AQRTargetClass> allSuperClasses() {
+        // BFS
+        Queue<AQRTargetClass> queue = new LinkedList<>(superClasses());
+        Set<AQRTargetClass> allSuperClasses = new HashSet<>();
+
+        while (!queue.isEmpty()) {
+            var superClass = queue.poll();
+            allSuperClasses.add(superClass);
+
+            var newSuperClasses = superClass.superClasses();
+            newSuperClasses.removeAll(allSuperClasses);
+            queue.addAll(newSuperClasses);
+        }
+
+        return allSuperClasses.stream().toList();
+    }
+
     public List<AQRFeature> features() {
         return features;
     }
 
     @Override
     public String toString() {
-        return "TargetClass[name=%s, source=%s, features=%s]".formatted(
+        return "TargetClass[name=%s, source=%s, superClasses=%s, features=%s]".formatted(
             name,
             source,
+            superClasses,
             features
         );
     }
