@@ -103,7 +103,7 @@ public class NeoJoinIdeServer extends LanguageServerImpl implements Visualizatio
                     throw makeResponseErrorException("Document not found: " + uri);
                 }
 
-                if (res.getContents().isEmpty() || !(res.getContents().getFirst() instanceof ViewTypeDefinition)) {
+                if (res.getContents().isEmpty() || !(res.getContents().get(0) instanceof ViewTypeDefinition)) {
                     throw makeResponseErrorException("Not a NeoJoin query: " + uri);
                 }
 
@@ -116,7 +116,7 @@ public class NeoJoinIdeServer extends LanguageServerImpl implements Visualizatio
                 AQR aqr;
                 try {
                     aqr = new AQRBuilder(
-                        (ViewTypeDefinition) res.getContents().getFirst(),
+                        (ViewTypeDefinition) res.getContents().get(0),
                         getExpressionHelper(uri)
                     ).build();
                 } catch (AQRInvariantViolatedException ex) { // invalid query

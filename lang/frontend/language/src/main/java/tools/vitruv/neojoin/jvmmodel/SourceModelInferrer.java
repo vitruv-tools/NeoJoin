@@ -148,11 +148,14 @@ public class SourceModelInferrer {
     }
 
     private JvmTypeReference getFeatureType(EStructuralFeature feature) {
-        JvmTypeReference type = switch (feature) {
-            case EAttribute attr -> getAttributeType(attr);
-            case EReference ref -> getReferenceType(ref);
-            default -> fail("unexpected feature: " + feature);
-        };
+        JvmTypeReference type;
+        if (feature instanceof EAttribute attr) {
+            type = getAttributeType(attr);
+        } else if (feature instanceof EReference ref) {
+            type = getReferenceType(ref);
+        } else {
+            type = fail("unexpected feature: " + feature);
+        }
 
         if (feature.getUpperBound() == 0 || feature.getUpperBound() == 1) {
             return type;

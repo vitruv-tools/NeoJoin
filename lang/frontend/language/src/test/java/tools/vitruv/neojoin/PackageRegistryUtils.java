@@ -15,7 +15,7 @@ public interface PackageRegistryUtils extends HasPackageRegistry {
             .filter(r -> r.getName().equals(packageName))
             .toList();
         check(pack.size() == 1);
-        return pack.getFirst();
+        return pack.get(0);
     }
 
     default EClassifier lookup(String packageName, String classifierName) {

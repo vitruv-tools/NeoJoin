@@ -124,13 +124,13 @@ public class NeoJoinScopeProvider extends AbstractNeoJoinScopeProvider {
         var candidates = left.getEAllStructuralFeatures().stream()
             .filter(leftFeature -> {
                 var rightFeature = right.getEStructuralFeature(leftFeature.getName());
-                return switch (leftFeature) {
-                    case EAttribute leftAttr ->
-                        rightFeature instanceof EAttribute rightAttr && leftAttr.getEAttributeType() == rightAttr.getEAttributeType();
-                    case EReference leftRef ->
-                        rightFeature instanceof EReference rightRef && leftRef.getEReferenceType() == rightRef.getEReferenceType();
-                    default -> fail();
-                };
+                if (leftFeature instanceof EAttribute leftAttr) {
+                    return rightFeature instanceof EAttribute rightAttr && leftAttr.getEAttributeType() == rightAttr.getEAttributeType();
+                } else if (leftFeature instanceof EReference leftRef) {
+                    return rightFeature instanceof EReference rightRef && leftRef.getEReferenceType() == rightRef.getEReferenceType();
+                } else {
+                    return fail();
+                }
             })
             .map(feature -> EObjectDescription.create(feature.getName(), feature))
             .toList();
@@ -201,7 +201,7 @@ public class NeoJoinScopeProvider extends AbstractNeoJoinScopeProvider {
             .collect(Collectors.groupingBy(IEObjectDescription::getName, Collectors.toList()))
             .values().stream()
             .filter(collisions -> collisions.size() == 1)
-            .map(List::getFirst)
+            .map(item -> item.get(0))
             .toList();
     }
 
