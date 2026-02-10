@@ -125,7 +125,8 @@ Make sure the Neo4j database is running and the Neo4j username/password is corre
 information about how to set up Neo4j and eMoflon::Neo is
 available [here](https://emoflon.org/getting-started/#emoflonneo).
 
-Running the TGG transformations with Neo4j:
+The generated eMoflon::Neo project can be used for various model checking and transformation scenarios. The following
+steps describe how to execute the forward and sync transformations with an initial source model:
 
 1. Open the generated project folder with Eclipse
     - The `src/*.msl` files contain the generated TGG project and (meta)models
