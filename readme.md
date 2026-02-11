@@ -116,7 +116,35 @@ You can use the convenience function `API.generateProjectForView(...)` for steps
 
 ### Running the Generated Model-View Transformations
 
-*to do*
+Prerequisites:
+
+- Eclipse with [eMoflon::Neo](https://emoflon.org/download/#emoflonneo) set up
+- [Neo4j Desktop](https://neo4j.com/deployment-center/) **version 4.4.X**
+
+Make sure the Neo4j database is running and the Neo4j username/password is correctly configured in Eclipse. Additional
+information about how to set up Neo4j and eMoflon::Neo is
+available [here](https://emoflon.org/getting-started/#emoflonneo).
+
+The generated eMoflon::Neo project can be used for various model checking and transformation scenarios. The following
+steps describe how to execute the forward and sync transformations with an initial source model:
+
+1. Open the generated project folder with Eclipse
+    - The `src/*.msl` files contain the generated TGG project and (meta)models
+    - The `src/*Runner.java` files can be executed to sync the source and target models with Neo4j
+    - For each source model, a `src/*ForwardRunner.java` is available to generate the target model and establish correspondences
+2. Right-click the desired `src/*ForwardRunner.java` > `Run As` > `Java Application`
+    - This will clear the Neo4j database and run the ForwardRunner for this model
+3. Run `match (source {enamespace: "YOUR_SOURCE_MODEL_NAME"}), (target {enamespace: "Target"}) return source, target` in the Neo4j Browser
+    - This will output the graph with the source and target elements as well as the correspondences
+4. Update the source and/or target model with [Neo4j Clauses](https://neo4j.com/docs/cypher-manual/current/clauses/)
+    - Make sure the property `_cr_: true` is added to created nodes and edges
+    - Make sure the correct `enamespace: "YOUR_SOURCE_MODEL_NAME"` property is added to created nodes
+    - Make sure the property `_de_: true` is added to "deleted" nodes and edges
+5. Right-click the desired `src/*SyncRunner.java` > `Run As` > `Java Application`
+    - This will run the SyncRunner for this model
+    - Afterward, the source and target should be consistent again
+6. Optional: Dump the models using the [script](/scripts/dump/readme.md)
+    - Make sure the source and target model names are correctly configured
 
 ## Repository Structure
 
