@@ -109,7 +109,7 @@ public class MetaModelGenerator {
         var superTypes = targetClass.superClasses().stream().map(superClass -> trace.aqrToTarget().get(superClass)).toList();
         target.getESuperTypes().addAll(superTypes);
 
-        var features = targetClass.features().stream().filter(feature -> !(feature.kind() instanceof AQRFeature.Kind.Overwrite)).map(this::createFeature).toList();
+        var features = targetClass.features().stream().filter(feature -> !(feature.kind() instanceof AQRFeature.Kind.Override)).map(this::createFeature).toList();
         target.getEStructuralFeatures().addAll(features);
     }
 
