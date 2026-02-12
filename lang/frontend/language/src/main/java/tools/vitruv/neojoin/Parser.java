@@ -73,7 +73,11 @@ public class Parser {
             return new Result.Failure(issues);
         }
 
-        var aqr = new AQRBuilder((ViewTypeDefinition) resource.getContents().getFirst(), expressionHelper).build();
+        if (resource.getContents().isEmpty()) {
+            return new Result.Failure(List.of());
+        }
+
+        var aqr = new AQRBuilder((ViewTypeDefinition) resource.getContents().get(0), expressionHelper).build();
         return new Result.Success(aqr, issues);
     }
 

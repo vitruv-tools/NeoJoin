@@ -60,7 +60,7 @@ public class AQRTargetClassAssertions extends AbstractAssert<AQRTargetClassAsser
             alias,
             results.size()
         ).isTrue();
-        var join = results.getFirst();
+        var join = results.get(0);
         Assertions.assertThat(join.type()).isSameAs(type);
         seenJoins.add(join);
         return this;
@@ -104,7 +104,7 @@ public class AQRTargetClassAssertions extends AbstractAssert<AQRTargetClassAsser
         Assertions.assertThat(results.size() == 1)
             .as("Expected a feature named '%s' in '%s', but found none", name, actual.name())
             .isTrue();
-        var feature = results.getFirst();
+        var feature = results.get(0);
         seenFeatures.add(feature);
         return feature;
     }
@@ -161,12 +161,10 @@ public class AQRTargetClassAssertions extends AbstractAssert<AQRTargetClassAsser
             actual.name(),
             expected
         );
-        switch (kind) {
-            case AQRFeature.Kind.Copy copy -> failWithMessage(message + "copied from '%s'", copy.source());
-            case AQRFeature.Kind.Calculate ignored -> failWithMessage(message + "calculated");
-            case AQRFeature.Kind.Generate ignored -> failWithMessage(message + "generated");
-            default -> fail();
-        }
+        if (kind instanceof AQRFeature.Kind.Copy copy) { failWithMessage(message + "copied from '%s'", copy.source()); }
+        else if (kind instanceof AQRFeature.Kind.Calculate) { failWithMessage(message + "calculated"); }
+        else if (kind instanceof AQRFeature.Kind.Generate) { failWithMessage(message + "generated"); }
+        else { fail(); }
     }
 
     private void checkCopied(AQRFeature feature, EStructuralFeature source) {

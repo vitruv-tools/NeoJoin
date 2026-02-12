@@ -110,10 +110,14 @@ public class MetaModelGenerator {
     }
 
     protected EStructuralFeature createFeature(AQRFeature feature) {
-        EStructuralFeature eFeature = switch (feature) {
-            case AQRFeature.Attribute attr -> createAttribute(attr);
-            case AQRFeature.Reference ref -> createReference(ref);
-        };
+        EStructuralFeature eFeature;
+        if (feature instanceof AQRFeature.Attribute attr) {
+            eFeature = createAttribute(attr);
+        } else if (feature instanceof AQRFeature.Reference ref) {
+            eFeature = createReference(ref);
+        } else {
+            throw new IllegalStateException(); // sealed interface
+        }
         eFeature.setName(feature.name());
         setFeatureOptions(eFeature, feature.options());
         return eFeature;

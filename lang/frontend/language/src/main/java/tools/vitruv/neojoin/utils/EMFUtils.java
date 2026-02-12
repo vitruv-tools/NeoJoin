@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -91,7 +92,10 @@ public final class EMFUtils {
      * @return stream of all packages in the resource
      */
     public static Stream<EPackage> getAllEPackages(Resource resource) {
-        return getAllEPackages((EPackage) resource.getContents().getFirst());
+        if (resource.getContents().isEmpty()) {
+            throw new NoSuchElementException();
+        }
+        return getAllEPackages((EPackage) resource.getContents().get(0));
     }
 
     /**

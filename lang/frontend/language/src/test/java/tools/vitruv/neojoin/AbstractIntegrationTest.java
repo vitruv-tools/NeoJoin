@@ -78,7 +78,7 @@ public abstract class AbstractIntegrationTest implements HasPackageRegistry {
             var resource = packageResourceSet.createResource(URI.createURI(path));
             var input = Objects.requireNonNull(getClass().getResourceAsStream(path));
             resource.load(input, null);
-            var pack = (EPackage) resource.getContents().getFirst();
+            var pack = (EPackage) resource.getContents().get(0);
             registry.put(pack.getNsURI(), pack);
         }
         return registry;
@@ -99,7 +99,7 @@ public abstract class AbstractIntegrationTest implements HasPackageRegistry {
             CancelIndicator.NullImpl
         );
 
-        var root = resource.getContents().getFirst();
+        var root = resource.getContents().get(0);
         assertThat(root).isInstanceOf(ViewTypeDefinition.class);
 
         return new Pair<>((ViewTypeDefinition) root, issues);
