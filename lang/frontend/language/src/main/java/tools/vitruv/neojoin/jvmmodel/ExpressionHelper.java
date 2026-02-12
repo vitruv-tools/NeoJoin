@@ -259,7 +259,7 @@ public class ExpressionHelper {
         var typeAsList = type.getSuperType(listType);
         if (typeAsList != null) {
             check(typeAsList.getTypeArguments().size() == 1);
-            return typeAsList.getTypeArguments().getFirst().getType();
+            return typeAsList.getTypeArguments().get(0).getType();
         }
 
         return null;

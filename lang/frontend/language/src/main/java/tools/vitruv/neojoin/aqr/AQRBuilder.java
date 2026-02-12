@@ -159,22 +159,22 @@ public class AQRBuilder {
     }
 
     private void createTargetClass(Query query) {
-        switch (query) {
-            case MainQuery mainQuery -> createTargetClass(
+        if (query instanceof MainQuery mainQuery) {
+            createTargetClass(
                 AstUtils.getTargetName(mainQuery),
                 mainQuery.getSource() != null ? AQRSourceBuilder.createSource(mainQuery.getSource()) : null,
                 mainQuery
             );
-            case SubQuery subQuery -> {
-                var sourceType = AstUtils.inferSubQuerySourceType(subQuery, expressionHelper);
-                invariant(sourceType != null);
-                createTargetClass(
-                    AstUtils.getTargetName(subQuery, sourceType),
-                    AQRSourceBuilder.createSource(sourceType),
-                    subQuery
-                );
-            }
-            default -> fail();
+        } else if  (query instanceof SubQuery subQuery) {
+            var sourceType = AstUtils.inferSubQuerySourceType(subQuery, expressionHelper);
+            invariant(sourceType != null);
+            createTargetClass(
+                AstUtils.getTargetName(subQuery, sourceType),
+                AQRSourceBuilder.createSource(sourceType),
+                subQuery
+            );
+        } else {
+            fail();
         }
     }
 
@@ -247,18 +247,16 @@ public class AQRBuilder {
     private AQRFeature copyFeature(EStructuralFeature feature) {
         var kind = new AQRFeature.Kind.Copy.Implicit(feature);
         var options = AQRFeatureOptionsBuilder.build(feature);
-        return switch (feature) {
-            case EAttribute attr -> {
-                var type = attr.getEAttributeType();
-                encounteredDataTypes.add(type);
-                yield new AQRFeature.Attribute(attr.getName(), type, kind, options);
-            }
-            case EReference ref -> {
-                var target = getOrCreateTargetClass(ref.getEReferenceType());
-                yield new AQRFeature.Reference(ref.getName(), target, kind, options);
-            }
-            default -> fail();
-        };
+        if (feature instanceof EAttribute attr) {
+            var type = attr.getEAttributeType();
+            encounteredDataTypes.add(type);
+            return new AQRFeature.Attribute(attr.getName(), type, kind, options);
+        } else if (feature instanceof EReference ref) {
+            var target = getOrCreateTargetClass(ref.getEReferenceType());
+            return new AQRFeature.Reference(ref.getName(), target, kind, options);
+        } else {
+            return fail();
+        }
     }
 
     /**
@@ -311,13 +309,15 @@ public class AQRBuilder {
             return feature.getName();
         }
 
-        return switch (kind) {
-            case AQRFeature.Kind.Copy copy -> copy.source().getName();
-            case AQRFeature.Kind.Calculate ignored ->
-                invariantFailed("Calculated feature must have a name: " + feature.getExpression());
-            case AQRFeature.Kind.Overwrite overwriding -> overwriding.overwritten().name();
-            default -> fail();
-        };
+        if (kind instanceof AQRFeature.Kind.Copy copy) {
+            return copy.source().getName();
+        } else if (kind instanceof AQRFeature.Kind.Calculate) {
+            return invariantFailed("Calculated feature must have a name: " + feature.getExpression());
+        } else if (kind instanceof AQRFeature.Kind.Overwrite overwriding ) {
+            return overwriding.overwritten().name();
+        } else {
+            return fail();
+        }
     }
 
     /**
@@ -483,7 +483,7 @@ public class AQRBuilder {
                 .collect(Collectors.joining(", "))
         );
 
-        return roots.isEmpty() ? null : roots.getFirst();
+        return roots.isEmpty() ? null : roots.get(0);
     }
 
     private static final AQRFeature.Options RootReferenceOptions = new AQRFeature.Options(

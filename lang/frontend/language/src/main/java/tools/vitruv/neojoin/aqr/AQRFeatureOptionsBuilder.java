@@ -150,15 +150,21 @@ public class AQRFeatureOptionsBuilder {
     private static final int Unbounded = ETypedElement.UNBOUNDED_MULTIPLICITY;
 
     public static Pair<Integer, Integer> normalizeMultiplicity(MultiplicityExpr mult) {
-        return switch (mult) {
-            case MultiplicityOptional ignored -> new Pair<>(0, 1); // [?]
-            case MultiplicityMany ignored -> new Pair<>(0, Unbounded); // [*]
-            case MultiplicityManyRequired ignored -> new Pair<>(1, Unbounded); // [+]
-            case MultiplicityExact exact -> new Pair<>(exact.getExact(), exact.getExact()); // [x]
-            case MultiplicityBounds bounds -> new Pair<>(bounds.getLowerBound(), bounds.getUpperBound()); // [x..y]
-            case MultiplicityManyAtLeast manyAtLeast -> new Pair<>(manyAtLeast.getLowerBound(), Unbounded); // [x..*]
-            default -> fail();
-        };
+        if (mult instanceof MultiplicityOptional) {
+            return new Pair<>(0, 1); // [?]
+        } else if (mult instanceof MultiplicityMany) {
+            return new Pair<>(0, Unbounded); // [*]
+        } else if (mult instanceof MultiplicityManyRequired) {
+            return new Pair<>(1, Unbounded); // [+]
+        } else if (mult instanceof MultiplicityExact exact) {
+            return new Pair<>(exact.getExact(), exact.getExact()); // [x]
+        } else if (mult instanceof MultiplicityBounds bounds) {
+            return new Pair<>(bounds.getLowerBound(), bounds.getUpperBound()); // [x..y]
+        } else if (mult instanceof MultiplicityManyAtLeast manyAtLeast) {
+            return new Pair<>(manyAtLeast.getLowerBound(), Unbounded); // [x..*]
+        } else {
+            return fail();
+        }
     }
 
 }

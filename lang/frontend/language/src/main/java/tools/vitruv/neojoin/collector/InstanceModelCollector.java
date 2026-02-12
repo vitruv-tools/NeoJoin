@@ -48,7 +48,7 @@ public class InstanceModelCollector extends AbstractModelCollector {
                 return;
             }
 
-            var instancedPackage = res.getContents().getFirst().eClass().getEPackage();
+            var instancedPackage = res.getContents().get(0).eClass().getEPackage();
             if (!knownPackages.contains(instancedPackage)) {
                 return;
             }

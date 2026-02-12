@@ -71,12 +71,12 @@
       <dependency>
         <groupId>gg.jte</groupId>
         <artifactId>jte</artifactId>
-        <version>3.2.1</version>
+        <version>3.2.3</version>
       </dependency>
       <dependency>
         <groupId>gg.jte</groupId>
         <artifactId>jte-runtime</artifactId>
-        <version>3.2.1</version>
+        <version>3.2.3</version>
       </dependency>
       <dependency>
         <groupId>info.picocli</groupId>
@@ -86,7 +86,7 @@
       <dependency>
         <groupId>net.sourceforge.plantuml</groupId>
         <artifactId>plantuml</artifactId>
-        <version>1.2025.10</version>
+        <version>1.2026.1</version>
       </dependency>
       <dependency>
         <groupId>org.antlr</groupId>
@@ -96,7 +96,7 @@
       <dependency>
         <groupId>org.assertj</groupId>
         <artifactId>assertj-core</artifactId>
-        <version>3.27.6</version>
+        <version>3.27.7</version>
       </dependency>
       <dependency>
         <groupId>org.eclipse.emf</groupId>
@@ -116,12 +116,12 @@
       <dependency>
         <groupId>org.eclipse.lsp4j</groupId>
         <artifactId>org.eclipse.lsp4j</artifactId>
-        <version>0.24.0</version>
+        <version>1.0.0</version>
       </dependency>
       <dependency>
         <groupId>org.eclipse.lsp4j</groupId>
         <artifactId>org.eclipse.lsp4j.jsonrpc</artifactId>
-        <version>0.24.0</version>
+        <version>1.0.0</version>
       </dependency>
       <dependency>
         <groupId>org.eclipse.xtext</groupId>
@@ -171,12 +171,12 @@
       <dependency>
         <groupId>org.junit.jupiter</groupId>
         <artifactId>junit-jupiter-api</artifactId>
-        <version>6.0.1</version>
+        <version>6.0.2</version>
       </dependency>
       <dependency>
         <groupId>org.junit.jupiter</groupId>
         <artifactId>junit-jupiter-params</artifactId>
-        <version>6.0.1</version>
+        <version>6.0.2</version>
       </dependency>
       <dependency>
         <groupId>tools.vitruv</groupId>

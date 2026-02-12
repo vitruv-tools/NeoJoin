@@ -137,9 +137,9 @@ public class VisualizationGenerator {
                 });
             }
 
-            if (mode instanceof Mode.Selected(var selectedClasses)) {
+            if (mode instanceof Mode.Selected selected) {
                 // show selected target classes
-                selectedClasses.stream()
+                selected.selectedClasses.stream()
                     .sorted(Comparator.comparing(EClassifier::getName))
                     // class might have already been generated as super class of another class
                     .forEach(this::targetClazzIfNew);

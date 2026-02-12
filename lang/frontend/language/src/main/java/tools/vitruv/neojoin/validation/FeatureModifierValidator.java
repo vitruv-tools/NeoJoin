@@ -101,52 +101,47 @@ public class FeatureModifierValidator extends ComposableValidator {
     void checkMultiplicity(Feature feature) {
         var explicitMultiplicity = AstUtils.findMultiplicityExpression(feature);
         if (explicitMultiplicity != null) {
-            switch (explicitMultiplicity) {
-                case MultiplicityBounds bounds -> {
-                    if (bounds.getUpperBound() == 0) {
-                        error(
-                            "Upper bound must be at least 1",
-                            explicitMultiplicity,
-                            AstPackage.Literals.MULTIPLICITY_BOUNDS__UPPER_BOUND
-                        );
-                        return; // suppress duplicated errors
-                    } else if (bounds.getLowerBound() > bounds.getUpperBound()) {
-                        error("Lower bound must be less than upper bound", explicitMultiplicity, null);
-                        return; // suppress duplicated errors
-                    } else if (bounds.getLowerBound() == bounds.getUpperBound()) {
-                        warning(
-                            "Lower and upper bound are equal, consider using a single value instead",
-                            explicitMultiplicity,
-                            null
-                        );
-                    }
+            if (explicitMultiplicity instanceof MultiplicityBounds bounds) {
+                if (bounds.getUpperBound() == 0) {
+                    error(
+                        "Upper bound must be at least 1",
+                        explicitMultiplicity,
+                        AstPackage.Literals.MULTIPLICITY_BOUNDS__UPPER_BOUND
+                    );
+                    return; // suppress duplicated errors
+                } else if (bounds.getLowerBound() > bounds.getUpperBound()) {
+                    error("Lower bound must be less than upper bound", explicitMultiplicity, null);
+                    return; // suppress duplicated errors
+                } else if (bounds.getLowerBound() == bounds.getUpperBound()) {
+                    warning(
+                        "Lower and upper bound are equal, consider using a single value instead",
+                        explicitMultiplicity,
+                        null
+                    );
                 }
-                case MultiplicityManyAtLeast manyAtLeast -> {
-                    if (manyAtLeast.getLowerBound() == 0) {
-                        warning(
-                            "Lower bound is 0, consider using '*' instead",
-                            explicitMultiplicity,
-                            AstPackage.Literals.MULTIPLICITY_MANY_AT_LEAST__LOWER_BOUND
-                        );
-                    } else if (manyAtLeast.getLowerBound() == 1) {
-                        warning(
-                            "Lower bound is 1, consider using '+' instead",
-                            explicitMultiplicity,
-                            AstPackage.Literals.MULTIPLICITY_MANY_AT_LEAST__LOWER_BOUND
-                        );
-                    }
+            } else if (explicitMultiplicity instanceof MultiplicityManyAtLeast manyAtLeast) {
+                if (manyAtLeast.getLowerBound() == 0) {
+                    warning(
+                        "Lower bound is 0, consider using '*' instead",
+                        explicitMultiplicity,
+                        AstPackage.Literals.MULTIPLICITY_MANY_AT_LEAST__LOWER_BOUND
+                    );
+                } else if (manyAtLeast.getLowerBound() == 1) {
+                    warning(
+                        "Lower bound is 1, consider using '+' instead",
+                        explicitMultiplicity,
+                        AstPackage.Literals.MULTIPLICITY_MANY_AT_LEAST__LOWER_BOUND
+                    );
                 }
-                case MultiplicityExact exact -> {
-                    if (exact.getExact() == 0) {
-                        error(
-                            "Exact multiplicity must be at least 1",
-                            explicitMultiplicity,
-                            AstPackage.Literals.MULTIPLICITY_EXACT__EXACT
-                        );
-                        return; // suppress duplicated errors
-                    }
+            } else if (explicitMultiplicity instanceof MultiplicityExact exact) {
+                if (exact.getExact() == 0) {
+                    error(
+                        "Exact multiplicity must be at least 1",
+                        explicitMultiplicity,
+                        AstPackage.Literals.MULTIPLICITY_EXACT__EXACT
+                    );
+                    return; // suppress duplicated errors
                 }
-                default -> {}
             }
 
             var explicitIsMany = AstUtils.isManyMultiplicity(explicitMultiplicity);

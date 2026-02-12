@@ -27,7 +27,7 @@ public class AQRAssertions extends AbstractAssert<AQRAssertions, AQR> {
             .toList();
         Assertions.assertThat(results.size() == 1)
             .as("Expected a target class with name %s, but found %d", name, results.size()).isTrue();
-        var target = results.getFirst();
+        var target = results.get(0);
         consumer.accept(target);
         seenTargetClasses.add(target);
         return this;
