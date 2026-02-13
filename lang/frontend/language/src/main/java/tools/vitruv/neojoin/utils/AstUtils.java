@@ -7,6 +7,12 @@ import org.eclipse.emf.ecore.ETypedElement;
 import org.eclipse.xtext.EcoreUtil2;
 import org.jspecify.annotations.Nullable;
 import tools.vitruv.neojoin.aqr.AQRFeatureOptionsBuilder;
+import tools.vitruv.neojoin.ast.AbstractBody;
+import tools.vitruv.neojoin.ast.AbstractMainQuery;
+import tools.vitruv.neojoin.ast.Body;
+import tools.vitruv.neojoin.ast.ConcreteBody;
+import tools.vitruv.neojoin.ast.ConcreteFeature;
+import tools.vitruv.neojoin.ast.ConcreteMainQuery;
 import tools.vitruv.neojoin.ast.Feature;
 import tools.vitruv.neojoin.ast.From;
 import tools.vitruv.neojoin.ast.Import;
@@ -20,6 +26,7 @@ import tools.vitruv.neojoin.ast.ViewTypeDefinition;
 import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
 import tools.vitruv.neojoin.jvmmodel.TypeResolutionException;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -43,10 +50,12 @@ public final class AstUtils {
             return mainQuery.getName();
         }
 
-        if (mainQuery.getSource() != null) {
-            var source = mainQuery.getSource().getFrom().getClazz();
-            if (source != null && source.getName() != null) {
-                return source.getName();
+        if (mainQuery instanceof ConcreteMainQuery concreteMainQuery) {
+            if (concreteMainQuery.getSource() != null) {
+                var source = concreteMainQuery.getSource().getFrom().getClazz();
+                if (source != null && source.getName() != null) {
+                    return source.getName();
+                }
             }
         }
 
@@ -101,7 +110,7 @@ public final class AstUtils {
         SubQuery subQuery,
         ExpressionHelper expressionHelper
     ) {
-        if (subQuery.eContainer() instanceof Feature feature) {
+        if (subQuery.eContainer() instanceof ConcreteFeature feature) {
             try {
                 var typeInfo = expressionHelper.inferEType(feature.getExpression());
                 if (typeInfo != null && typeInfo.classifier() instanceof EClass clazz) {
@@ -227,6 +236,15 @@ public final class AstUtils {
         return isManyMultiplicity(AQRFeatureOptionsBuilder.normalizeMultiplicity(multiplicity));
     }
 
+    public static boolean isManyMultiplicityDefinition(Feature feature) {
+        var explicitMultiplicity = AstUtils.findMultiplicityExpression(feature);
+        if (explicitMultiplicity != null) {
+            return AstUtils.isManyMultiplicity(explicitMultiplicity);
+        } else {
+            return false; // should we try to infer this from the declared type?
+        }
+    }
+
     /**
      * Get all queries (main and sub queries) contained in the given view type.
      */
@@ -236,14 +254,42 @@ public final class AstUtils {
     }
 
     private static Stream<Query> getAllQueriesImpl(Query query) {
-        if (query.getBody() == null) {
+        var body = getBody(query);
+        if (body == null) {
             return Stream.of(query);
-        } else {
-            var subQueries = query.getBody().getFeatures().stream()
-                .map(Feature::getSubQuery)
+        } else if (body instanceof ConcreteBody concreteBody) {
+            var subQueries = concreteBody.getFeatures().stream()
+                .map(ConcreteFeature::getSubQuery)
                 .filter(Objects::nonNull)
                 .flatMap(AstUtils::getAllQueriesImpl);
             return Stream.concat(Stream.of(query), subQueries);
+        } else if (body instanceof AbstractBody) {
+            // abstract features cannot have sub queries
+            return Stream.of(query);
+        } else {
+            return fail("A query body must be either an abstract or a concrete body");
+        }
+    }
+
+    public static Body getBody(Query query) {
+        if (query instanceof ConcreteMainQuery concreteMainQuery) {
+            return concreteMainQuery.getBody();
+        } else if (query instanceof AbstractMainQuery abstractMainQuery) {
+            return abstractMainQuery.getBody();
+        } else if (query instanceof SubQuery subQuery) {
+            return subQuery.getBody();
+        } else {
+            return fail("Query must be either a concrete main query, an abstract main query, or a sub query"); 
+        }
+    }
+
+    public static List<Feature> getFeatures(Body body) {
+        if (body instanceof ConcreteBody concreteBody) {
+            return concreteBody.getFeatures().stream().map(e -> (Feature) e).toList();
+        } else if (body instanceof AbstractBody abstractBody) {
+            return abstractBody.getFeatures().stream().map(e -> (Feature) e).toList();
+        } else {
+            return fail("Body must be either a concrete query body or an abstract query body");
         }
     }
 

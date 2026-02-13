@@ -23,6 +23,7 @@ import java.util.Set;
 public final class AQRTargetClass {
 
     private final String name;
+    private final boolean isAbstract;
     private final @Nullable AQRSource source;
     private final List<AQRTargetClass> superClasses;
     private final List<AQRFeature> features;
@@ -34,11 +35,13 @@ public final class AQRTargetClass {
      */
     public AQRTargetClass(
         String name,
+        boolean isAbstract,
         @Nullable AQRSource source,
         List<AQRTargetClass> superClasses,
         List<AQRFeature> features
     ) {
         this.name = name;
+        this.isAbstract = isAbstract;
         this.source = source;
         this.superClasses = superClasses;
         this.features = features;
@@ -46,6 +49,10 @@ public final class AQRTargetClass {
 
     public String name() {
         return name;
+    }
+
+    public boolean isAbstract() {
+        return isAbstract;
     }
 
     public @Nullable AQRSource source() {

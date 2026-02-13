@@ -93,6 +93,7 @@ public class MetaModelGenerator {
     protected EClass createClass(AQRTargetClass targetClass) {
         EClass target = Ecore.createEClass();
         target.setName(targetClass.name());
+        target.setAbstract(targetClass.isAbstract());
 
         trace.targetToAqr().put(target, targetClass);
         trace.aqrToTarget().put(targetClass, target);

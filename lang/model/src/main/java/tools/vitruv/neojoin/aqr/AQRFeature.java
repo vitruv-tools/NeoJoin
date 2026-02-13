@@ -83,6 +83,8 @@ public sealed interface AQRFeature {
          * @param expression expression calculating the value of the feature (not inherited)
          */
         record Override(AQRFeature overwritten, XExpression expression) implements Kind {}
+
+        record Abstract() implements Kind {}
     }
 
     /**

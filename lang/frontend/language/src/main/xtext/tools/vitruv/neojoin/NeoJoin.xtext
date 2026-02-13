@@ -16,17 +16,18 @@ Export:
 Import:
     'import' package=[ecore::EPackage|STRING] ('as' alias=ID)?;
 
-MainQuery:
+MainQuery: ConcreteMainQuery | AbstractMainQuery;
+
+ConcreteMainQuery:
     source=Source?
-    (
-        'create' root?='root'? name=ID?
-        ('extends' superClasses+=QualifiedName (',' superClasses+=QualifiedName)*)?
-        body=Body?
-    )|(
-        'abstract' name=ID?
-        ('extends' superClasses+=QualifiedName (',' superClasses+=QualifiedName)*)?
-        abstractBody=AbstractBody
-    );
+    'create' root?='root'? name=ID?
+    ('extends' superClasses+=[ecore::EObject|QualifiedName] (',' superClasses+=[ecore::EObject|QualifiedName])*)?
+    body=ConcreteBody?;
+
+AbstractMainQuery:
+    'abstract' name=ID
+    ('extends' superClasses+=[ecore::EObject|QualifiedName] (',' superClasses+=[ecore::EObject|QualifiedName])*)?
+    body=AbstractBody;
 
 Source:
     'from' from=From
@@ -49,13 +50,13 @@ JoinFeatureCondition:
 JoinExpressionCondition:
     'on' expression=XOrExpression;
 
-Body:
-    {Body} '{' features+=Feature* '}'; // {Body} ensures that the object is created to differentiate an empty body {} from a missing body
+ConcreteBody:
+    {ConcreteBody} '{' features+=ConcreteFeature* '}'; // {ConcreteBody} ensures that the object is created to differentiate an empty body {} from a missing body
 
 AbstractBody:
-    {AbstractBody} '{' abstractFeatures+=AbstractFeature* '}';
+    {AbstractBody} '{' features+=AbstractFeature* '}';
 
-Feature:
+ConcreteFeature:
     (
         name=ID
         (':' type=[ecore::EObject|QualifiedName])? // type refers either to an EDataType or a Query
@@ -89,6 +90,9 @@ MultiplicityExpr:
     {MultiplicityManyAtLeast} lowerBound=INT '..*';
 
 SubQuery:
-    'create' (name=ID ->body=Body? | body=Body);
+    'create' (name=ID ->body=ConcreteBody? | body=ConcreteBody);
 
-Query: MainQuery | SubQuery; // for type hierarchy
+// for type hierarchy:
+Query: MainQuery | SubQuery;
+Body: ConcreteBody | AbstractBody;
+Feature: ConcreteFeature | AbstractFeature;

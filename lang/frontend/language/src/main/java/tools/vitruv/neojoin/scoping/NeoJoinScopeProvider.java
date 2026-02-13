@@ -63,6 +63,8 @@ public class NeoJoinScopeProvider extends AbstractNeoJoinScopeProvider {
             var from = join.getFrom();
             if (source != null && from != null) {
                 return createJoinConditionOtherScope(source, from);
+            } else {
+                return IScope.NULLSCOPE;
             }
         } else if (reference == AstPackage.Literals.JOIN_FEATURE_CONDITION__FEATURES) {
             var condition = (JoinFeatureCondition) context;
@@ -77,18 +79,16 @@ public class NeoJoinScopeProvider extends AbstractNeoJoinScopeProvider {
             var right = join.getFrom().getClazz();
             if (left != null && right != null) {
                 return createJoinConditionFieldsScope(left, right);
+            } else {
+                return IScope.NULLSCOPE;
             }
         } else if (reference == AstPackage.Literals.MAIN_QUERY__SUPER_CLASSES) {
-            createSuperClassScope(AstUtils.getViewType(context));
+            return createSuperClassScope(AstUtils.getViewType(context));
         } else if (reference == AstPackage.Literals.FEATURE__TYPE) {
-            return createFeatureTypeScope(AstUtils.getViewType(context));
-        } else if (reference == AstPackage.Literals.ABSTRACT_FEATURE__TYPE) {
             return createFeatureTypeScope(AstUtils.getViewType(context));
         } else {
             return super.getScope(context, reference);
         }
-
-        return IScope.NULLSCOPE;
     }
 
     /**

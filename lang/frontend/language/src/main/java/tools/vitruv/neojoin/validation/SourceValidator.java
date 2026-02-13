@@ -2,9 +2,9 @@ package tools.vitruv.neojoin.validation;
 
 import org.eclipse.xtext.validation.Check;
 import tools.vitruv.neojoin.ast.AstPackage;
+import tools.vitruv.neojoin.ast.ConcreteMainQuery;
 import tools.vitruv.neojoin.ast.From;
 import tools.vitruv.neojoin.ast.JoinFeatureCondition;
-import tools.vitruv.neojoin.ast.MainQuery;
 import tools.vitruv.neojoin.ast.Source;
 import tools.vitruv.neojoin.utils.AstUtils;
 
@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 public class SourceValidator extends ComposableValidator {
 
     @Check
-    public void checkUniqueAliases(MainQuery mainQuery) {
+    public void checkUniqueAliases(ConcreteMainQuery mainQuery) {
         if (mainQuery.getSource() == null) {
             return;
         }
@@ -45,19 +45,19 @@ public class SourceValidator extends ComposableValidator {
     }
 
     @Check
-    public void checkQueryWithoutSource(MainQuery mainQuery) {
+    public void checkQueryWithoutSource(ConcreteMainQuery mainQuery) {
         if (mainQuery.getSource() == null) {
             if (mainQuery.getName() == null) {
                 error("Query without source must have a target name", mainQuery, AstPackage.Literals.QUERY__NAME);
             }
-            if (mainQuery.getBody() == null && mainQuery.getAbstractBody() == null) {
-                error("Query without source must have a body", mainQuery, AstPackage.Literals.QUERY__BODY);
+            if (mainQuery.getBody() == null) {
+                error("Query without source must have a body", mainQuery, AstPackage.Literals.CONCRETE_MAIN_QUERY__BODY);
             }
         }
     }
 
     @Check
-    public void checkQueryWithAggregation(MainQuery mainQuery) {
+    public void checkQueryWithAggregation(ConcreteMainQuery mainQuery) {
         if (mainQuery.getSource() == null || mainQuery.getSource().getGroupingExpressions().isEmpty()) {
             return;
         }

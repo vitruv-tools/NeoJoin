@@ -236,7 +236,7 @@ public class VisualizationGenerator {
 
         // class with attributes
         out.clazz(
-            qualifiedName, () -> {
+            qualifiedName, clazz.isAbstract(), () -> {
                 clazz.getEAttributes().forEach(attr -> {
                     var type = getQualifiedName(attr.getEType());
                     out.attribute(attr.getName(), type);
