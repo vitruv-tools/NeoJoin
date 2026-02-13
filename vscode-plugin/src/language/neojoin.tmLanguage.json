@@ -1,12 +1,8 @@
 {
   "patterns": [
     {
-      "match": "\\b(as|by|case|catch|containment|create|default|derived|do|else|export|extends|extension|false|finally|for|from|group|id|if|import|inner|instanceof|join|left|new|null|on|ordered|readonly|return|root|static|super|switch|synchronized|throw|to|transient|true|try|typeof|unique|unsettable|using|val|var|volatile|where|while|with)\\b",
+      "match": "\\b(abstract|as|by|case|catch|changeable|containment|create|default|derived|do|else|export|extends|extension|false|finally|for|from|group|id|if|import|inner|instanceof|join|left|new|null|on|ordered|return|root|static|super|switch|synchronized|throw|to|transient|true|try|typeof|unique|unsettable|using|val|var|volatile|where|while|with)\\b",
       "name": "keyword.control.neojoin"
-    },
-    {
-      "match": "\\\"(\\\\.|[^\\\\\\\"])*\\\"",
-      "name": "string.quoted.neojoin"
     },
     {
       "match": "[0-9]([0-9]|_)*",
@@ -15,6 +11,10 @@
     {
       "match": "\\^?([a-z]|[A-Z]|\\$|_)([a-z]|[A-Z]|\\$|_|[0-9])*",
       "name": "variable.neojoin"
+    },
+    {
+      "match": "(\\\"(\\\\.|[^\\\\\\\"])*\\\"?|\u0027(\\\\.|[^\\\\\u0027])*\u0027?)",
+      "name": "string.quoted.neojoin"
     },
     {
       "begin": "/\\*",
