@@ -40,6 +40,8 @@
     <maven.compiler.source>21</maven.compiler.source>
     <maven.compiler.target>21</maven.compiler.target>
     <sonar.organization>vitruv-tools</sonar.organization>
+    <xtext.version>2.41.0</xtext.version>
+    <jte.version>3.2.3</jte.version>
   </properties>
 
   <!-- Modules -->
@@ -48,6 +50,8 @@
     <module>backend-tgg</module>
     <module>frontend</module>
     <module>model</module>
+    <module>p2wrappers</module>
+    <module>emsl-parser</module>
   </modules>
 
   <!-- Dependency Management -->
@@ -71,12 +75,12 @@
       <dependency>
         <groupId>gg.jte</groupId>
         <artifactId>jte</artifactId>
-        <version>3.2.3</version>
+          <version>${jte.version}</version>
       </dependency>
       <dependency>
         <groupId>gg.jte</groupId>
         <artifactId>jte-runtime</artifactId>
-        <version>3.2.3</version>
+        <version>${jte.version}</version>
       </dependency>
       <dependency>
         <groupId>info.picocli</groupId>
@@ -126,37 +130,37 @@
       <dependency>
         <groupId>org.eclipse.xtext</groupId>
         <artifactId>org.eclipse.xtext</artifactId>
-        <version>2.41.0</version>
+        <version>${xtext.version}</version>
       </dependency>
       <dependency>
         <groupId>org.eclipse.xtext</groupId>
         <artifactId>org.eclipse.xtext.common.types</artifactId>
-        <version>2.41.0</version>
+        <version>${xtext.version}</version>
       </dependency>
       <dependency>
         <groupId>org.eclipse.xtext</groupId>
         <artifactId>org.eclipse.xtext.ide</artifactId>
-        <version>2.41.0</version>
+        <version>${xtext.version}</version>
       </dependency>
       <dependency>
         <groupId>org.eclipse.xtext</groupId>
         <artifactId>org.eclipse.xtext.util</artifactId>
-        <version>2.41.0</version>
+        <version>${xtext.version}</version>
       </dependency>
       <dependency>
         <groupId>org.eclipse.xtext</groupId>
         <artifactId>org.eclipse.xtext.xbase</artifactId>
-        <version>2.41.0</version>
+        <version>${xtext.version}</version>
       </dependency>
       <dependency>
         <groupId>org.eclipse.xtext</groupId>
         <artifactId>org.eclipse.xtext.xbase.ide</artifactId>
-        <version>2.41.0</version>
+        <version>${xtext.version}</version>
       </dependency>
       <dependency>
         <groupId>org.eclipse.xtext</groupId>
         <artifactId>org.eclipse.xtext.xbase.lib</artifactId>
-        <version>2.41.0</version>
+        <version>${xtext.version}</version>
       </dependency>
       <dependency>
         <groupId>org.jetbrains</groupId>
