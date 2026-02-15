@@ -75,7 +75,7 @@
       <dependency>
         <groupId>gg.jte</groupId>
         <artifactId>jte</artifactId>
-          <version>${jte.version}</version>
+        <version>${jte.version}</version>
       </dependency>
       <dependency>
         <groupId>gg.jte</groupId>
