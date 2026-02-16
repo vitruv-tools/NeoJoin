@@ -396,18 +396,20 @@ public class AQRBuilder {
         @Nullable SubQuery subQuery
     ) {
         if (explicitType != null) {
-            invariant(subQuery == null || explicitType == subQuery);
-            if (inferredType != null && inferredType.classifier() != null) {
-                var inferredClass = (EClass) inferredType.classifier();
+            var explicitTargetType = getTargetForQuery(explicitType);
 
-                // check that the inferred type is assignable to the explicit type
-                if (explicitType instanceof ConcreteMainQuery explicitMainQueryType) {
-                    invariant(explicitMainQueryType.getSource() != null, "Cannot reference a query without source");
-                    invariant(AstUtils.checkSourceType(explicitMainQueryType.getSource(), inferredClass));
-                } else if (explicitType instanceof AbstractMainQuery) {
-                    // TODO
-                } else {
-                    var explicitSubQueryType = (SubQuery) explicitType;
+            invariant(subQuery == null || explicitType == subQuery);
+            if (inferredType != null && inferredType.classifier() instanceof EClass inferredClass) {
+                // check that the inferred type is unambiguously assignable to the explicit type
+                var inferredTargetClasses = sourceClassToAQR.get(inferredClass);
+                var assignableTargetClasses = inferredTargetClasses.stream()
+                    .filter(targetClass ->
+                        targetClass.equals(explicitTargetType) ||
+                        targetClass.allSuperClasses().contains(explicitTargetType))
+                    .toList();
+                invariant(assignableTargetClasses.size() == 1, "Expression cannot be assigned to feature with this type");
+
+                if (explicitType instanceof SubQuery explicitSubQueryType) {
                     var subQuerySourceType = AstUtils.inferSubQuerySourceType(
                         explicitSubQueryType,
                         expressionHelper
@@ -416,7 +418,7 @@ public class AQRBuilder {
                     invariant(AstUtils.checkSourceType(subQuerySourceType, inferredClass));
                 }
             }
-            return getTargetForQuery(explicitType);
+            return explicitTargetType;
         } else {
             invariant(inferredType != null && inferredType.classifier() instanceof EClass); // includes null check
             if (subQuery != null) {

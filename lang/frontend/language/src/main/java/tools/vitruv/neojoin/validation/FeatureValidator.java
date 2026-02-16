@@ -14,7 +14,6 @@ import org.eclipse.xtext.xbase.typesystem.references.LightweightTypeReference;
 import org.jspecify.annotations.Nullable;
 import tools.vitruv.neojoin.Constants;
 import tools.vitruv.neojoin.aqr.AQRFeatureOptionsBuilder;
-import tools.vitruv.neojoin.ast.AbstractMainQuery;
 import tools.vitruv.neojoin.ast.AstPackage;
 import tools.vitruv.neojoin.ast.ConcreteBody;
 import tools.vitruv.neojoin.ast.ConcreteFeature;
@@ -222,17 +221,17 @@ public class FeatureValidator extends ComposableValidator {
     }
 
     private void checkQueryType(ConcreteFeature feature, Query explicitType, EClassifier inferredClassifier) {
-        if (explicitType instanceof ConcreteMainQuery mainQuery) {
-            if (mainQuery.getSource() != null && inferredClassifier instanceof EClass inferredClass) {
-                if (AstUtils.checkSourceType(mainQuery.getSource(), inferredClass)) {
-                    return;
-                }
+        if (inferredClassifier instanceof EClass inferredClass) {
+            var sourceMap = createSourceMap(AstUtils.getViewType(feature));
+            var inferredType = sourceMap.get(inferredClass);
+            if (inferredType.stream().anyMatch(type -> type.equals(explicitType))) {
+                return;
+            } else if (inferredType.stream().anyMatch(type -> AstUtils.isSuperTypeOf(explicitType, type))) {
+                return;
             }
-        } else if (explicitType instanceof AbstractMainQuery) {
-            // TODO
-        } else {
-            var subQuery = (SubQuery) explicitType;
+        }
 
+        if (explicitType instanceof SubQuery subQuery) {
             if (inferredClassifier instanceof EClass inferredClass) {
                 var subQuerySourceType = AstUtils.inferSubQuerySourceType(subQuery, expressionHelper);
                 if (subQuerySourceType == null) {
@@ -280,8 +279,7 @@ public class FeatureValidator extends ComposableValidator {
         return options.isRequired();
     }
 
-    @Check
-    public void checkAmbiguousImplicitFeatureTypes(ViewTypeDefinition viewType) {
+    private Map<EClass, Set<Query>> createSourceMap(ViewTypeDefinition viewType) {
         var sourceMap = new HashMap<EClass, Set<Query>>();
         BiConsumer<EClass, Query> register = (sourceType, query) -> {
             sourceMap.computeIfAbsent(sourceType, k -> new HashSet<>()).add(query);
@@ -302,6 +300,13 @@ public class FeatureValidator extends ComposableValidator {
                 }
             }
         });
+
+        return sourceMap;
+    }
+
+    @Check
+    public void checkAmbiguousImplicitFeatureTypes(ViewTypeDefinition viewType) {
+        var sourceMap = createSourceMap(viewType);
 
         var alreadyChecked = new HashSet<EClass>(); // to prevent infinite recursion because of cyclic references
         AstUtils.getAllQueries(viewType)

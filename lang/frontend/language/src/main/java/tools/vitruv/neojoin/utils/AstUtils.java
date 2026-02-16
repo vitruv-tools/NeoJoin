@@ -184,6 +184,27 @@ public final class AstUtils {
     }
 
     /**
+     * Check whether the given query defines a super type of the type defined by the given other query.
+     * 
+     * @return {@code true} if the given query is a super type of the given other query
+     */
+    public static boolean isSuperTypeOf(Query superType, Query subType) {
+        if (subType instanceof MainQuery subMainQuery) {
+            if (subMainQuery.getSuperClasses().contains(superType)) {
+                return true;
+            }
+            for (var subSuperType : subMainQuery.getSuperClasses()) {
+                if (subSuperType instanceof Query subSuperQuery) {
+                    if (isSuperTypeOf(superType, subSuperQuery)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
      * Get all {@link From froms} contained in {@code source} including the one {@link Source#getFrom() directly contained} as well as those contained in {@link Source#getJoins() joins}.
      *
      * @param source the source to get the froms from
