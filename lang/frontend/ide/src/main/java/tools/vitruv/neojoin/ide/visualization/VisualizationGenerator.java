@@ -128,7 +128,7 @@ public class VisualizationGenerator {
                         .forEach(classifier -> {
                             if (classifier instanceof EClass clazz) {
                                 // class might have already been generated as super class of another class
-                                clazzIfNew(clazz);
+                                clazzIfNew(clazz, false);
                             } else if (classifier instanceof EEnum eEnum) {
                                 // enum might have already been generated from a class attribute
                                 enumerationIfNew(eEnum);
@@ -204,13 +204,13 @@ public class VisualizationGenerator {
     }
 
     private void targetClazz(EClass target) {
-        clazz(target);
+        clazz(target, true);
 
         // show arrow from source to target classes
         var sourceClasses = targetMetaModel.trace().getSourceClassesForTargetClass(target);
         if (sourceClasses != null) {
             sourceClasses.forEach(source -> {
-                clazzIfNew(source);
+                clazzIfNew(source, true);
                 out.arrow(
                     getQualifiedName(source),
                     ArrowSourceClass,
@@ -222,13 +222,13 @@ public class VisualizationGenerator {
 
     private final HashSet<EClass> seenClazzes = new HashSet<>();
 
-    private void clazzIfNew(EClass clazz) {
+    private void clazzIfNew(EClass clazz, boolean target) {
         if (!seenClazzes.contains(clazz)) {
-            clazz(clazz);
+            clazz(clazz, target);
         }
     }
 
-    private void clazz(EClass clazz) {
+    private void clazz(EClass clazz, boolean target) {
         var isNew = seenClazzes.add(clazz);
         check(isNew);
 
@@ -257,7 +257,11 @@ public class VisualizationGenerator {
 
         // super types
         for (var superType : clazz.getESuperTypes()) {
-            clazzIfNew(superType);
+            if (target) {
+                targetClazzIfNew(superType);
+            } else {
+                clazzIfNew(superType, false);
+            }
             var superName = getQualifiedName(superType);
             out.arrow(qualifiedName, PlantUMLBuilder.ReferenceInheritanceUpwards, superName);
         }

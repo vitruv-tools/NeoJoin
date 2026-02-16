@@ -461,7 +461,7 @@ public class AQRBuilder {
             } else if (feature instanceof AQRFeature.Reference reference) {
                 invariant(overriddenFeature instanceof AQRFeature.Reference, "Reference must override reference");
                 var overriddenReference = (AQRFeature.Reference)overriddenFeature;
-                invariant(overriddenReference.type().equals(reference.type()), "Type of overriding feature must be equal to type of overridden feature");
+                invariant(overriddenReference.type().equals(reference.type()) || reference.type().allSuperClasses().contains(overriddenReference.type()), "Type of overriding feature must be equal to or a subtype of the type of the overridden feature");
 
                 return reference.withFeatureKind(new AQRFeature.Kind.Override(overriddenFeature, feature.kind().expression()));
             } else {
@@ -470,13 +470,8 @@ public class AQRBuilder {
         });
 
         // check if all inherited features are overridden
-        var missingFeatures = superClassFeatures.stream().filter(superClassFeature -> !targetClass.features().stream().filter(feature ->
-            feature.name().equals(superClassFeature.name()) &&
-            (feature.kind() instanceof AQRFeature.Kind.Override)
-        ).findAny().isPresent()).toList();
-        if (!missingFeatures.isEmpty()) {
-            invariant(!missingFeatures.isEmpty(), "Sub classes must override all inherited features");
-        }
+        invariant(superClassFeatures.stream().allMatch(superClassFeature -> targetClass.features().stream().anyMatch(feature -> feature.name().equals(superClassFeature.name()) && (feature.kind() instanceof AQRFeature.Kind.Override))),
+            "Sub classes must override all inherited features");
     }
 
     private AQRTargetClass createRootIfNeededAndInit() {
