@@ -77,12 +77,12 @@ public sealed interface AQRFeature {
         record Generate() implements Kind {}
 
         /**
-         * The feature overwrites a feature in a super classs.
+         * The feature overrides a feature in a super classs.
          * 
-         * @param overwritten overwritten feature in a super class
+         * @param overridden overridden feature in a super class
          * @param expression expression calculating the value of the feature (not inherited)
          */
-        record Override(AQRFeature overwritten, XExpression expression) implements Kind {}
+        record Override(AQRFeature overridden, XExpression expression) implements Kind {}
 
         record Abstract() implements Kind {}
     }
