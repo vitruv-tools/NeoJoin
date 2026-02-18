@@ -457,13 +457,13 @@ public class AQRBuilder {
                 var overriddenAttribute = (AQRFeature.Attribute)overriddenFeature;
                 invariant(overriddenAttribute.type().equals(attribute.type()), "Type of overriding feature must be equal to type of overridden feature");
 
-                return attribute.withFeatureKind(new AQRFeature.Kind.Override(overriddenFeature, feature.kind().expression()));
+                return attribute.withFeatureKind(new AQRFeature.Kind.Override(overriddenFeature, feature.kind()));
             } else if (feature instanceof AQRFeature.Reference reference) {
                 invariant(overriddenFeature instanceof AQRFeature.Reference, "Reference must override reference");
                 var overriddenReference = (AQRFeature.Reference)overriddenFeature;
                 invariant(overriddenReference.type().equals(reference.type()) || reference.type().allSuperClasses().contains(overriddenReference.type()), "Type of overriding feature must be equal to or a subtype of the type of the overridden feature");
 
-                return reference.withFeatureKind(new AQRFeature.Kind.Override(overriddenFeature, feature.kind().expression()));
+                return reference.withFeatureKind(new AQRFeature.Kind.Override(overriddenFeature, feature.kind()));
             } else {
                 throw new IllegalStateException("AQRFeature is a sealed interface therefore this check should be exhaustive");
             }

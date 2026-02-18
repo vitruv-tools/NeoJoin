@@ -80,9 +80,16 @@ public sealed interface AQRFeature {
          * The feature overrides a feature in a super classs.
          * 
          * @param overridden overridden feature in a super class
-         * @param expression expression calculating the value of the feature (not inherited)
+         * @param overriding 
          */
-        record Override(AQRFeature overridden, XExpression expression) implements Kind {}
+        record Override(AQRFeature overridden, AQRFeature.Kind overriding) implements Kind {
+
+            @java.lang.Override
+            public XExpression expression() {
+                return overriding.expression();
+            }
+
+        }
 
         record Abstract() implements Kind {}
     }
