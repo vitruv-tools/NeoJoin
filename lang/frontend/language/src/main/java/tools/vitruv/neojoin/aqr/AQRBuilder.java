@@ -527,7 +527,7 @@ public class AQRBuilder {
      */
     private void populateRoot(AQRTargetClass root) {
         for (var target : targetClasses) {
-            if (target == root) {
+            if (target == root || target.isAbstract()) {
                 continue;
             }
 

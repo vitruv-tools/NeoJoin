@@ -12,20 +12,18 @@
   <eClassifiers xsi:type="ecore:EClass" name="Item">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="Restaurant" abstract="true">
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="sells" upperBound="-1"
-        eType="#//Item"/>
-  </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Root">
     <eStructuralFeatures xsi:type="ecore:EReference" name="allFoods" ordered="false"
         upperBound="-1" eType="#//Food" containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="allItems" ordered="false"
         upperBound="-1" eType="#//Item" containment="true"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="allRestaurants" ordered="false"
-        upperBound="-1" eType="#//Restaurant" containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="allPizzerias" ordered="false"
         upperBound="-1" eType="#//Pizzeria" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Restaurant" abstract="true">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="sells" upperBound="-1"
+        eType="#//Item"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Pizzeria" eSuperTypes="#//Restaurant"/>
 </ecore:EPackage>
