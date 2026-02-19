@@ -63,6 +63,8 @@ public class NeoJoinScopeProvider extends AbstractNeoJoinScopeProvider {
             var from = join.getFrom();
             if (source != null && from != null) {
                 return createJoinConditionOtherScope(source, from);
+            } else {
+                return IScope.NULLSCOPE;
             }
         } else if (reference == AstPackage.Literals.JOIN_FEATURE_CONDITION__FEATURES) {
             var condition = (JoinFeatureCondition) context;
@@ -77,14 +79,16 @@ public class NeoJoinScopeProvider extends AbstractNeoJoinScopeProvider {
             var right = join.getFrom().getClazz();
             if (left != null && right != null) {
                 return createJoinConditionFieldsScope(left, right);
+            } else {
+                return IScope.NULLSCOPE;
             }
+        } else if (reference == AstPackage.Literals.MAIN_QUERY__SUPER_CLASSES) {
+            return createSuperClassScope(AstUtils.getViewType(context));
         } else if (reference == AstPackage.Literals.FEATURE__TYPE) {
             return createFeatureTypeScope(AstUtils.getViewType(context));
         } else {
             return super.getScope(context, reference);
         }
-
-        return IScope.NULLSCOPE;
     }
 
     /**
@@ -135,6 +139,14 @@ public class NeoJoinScopeProvider extends AbstractNeoJoinScopeProvider {
             .map(feature -> EObjectDescription.create(feature.getName(), feature))
             .toList();
         return new SimpleScope(IScope.NULLSCOPE, candidates);
+    }
+
+    private IScope createSuperClassScope(ViewTypeDefinition viewType) {
+        var queryCandidates = AstUtils.getAllQueries(viewType)
+            .map(query -> EObjectDescription.create(AstUtils.getTargetName(query, expressionHelper), query))
+            .toList();
+
+        return new SimpleScope(queryCandidates);
     }
 
     /**
