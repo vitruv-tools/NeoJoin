@@ -49,7 +49,6 @@
     <module>frontend</module>
     <module>model</module>
     <module>p2wrappers</module>
-    <module>emsl-parser</module>
   </modules>
 
   <!-- Dependency Management -->
