@@ -36,6 +36,8 @@ class EmslMetamodelGeneratorTest {
 
     @BeforeEach
     void setup() {
+        EmslParser.initialize();
+
         // Setup ResourceSet
         resourceSet = new ResourceSetImpl();
         resourceSet

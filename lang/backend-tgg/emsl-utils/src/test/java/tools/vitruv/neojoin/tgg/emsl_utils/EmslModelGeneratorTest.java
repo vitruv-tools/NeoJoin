@@ -42,6 +42,8 @@ class EmslModelGeneratorTest extends AbstractEmslGeneratorTest {
 
     @BeforeEach
     void setup() {
+        EmslParser.initialize();
+
         // Setup ResourceSet
         resourceSet = new ResourceSetImpl();
         resourceSet
