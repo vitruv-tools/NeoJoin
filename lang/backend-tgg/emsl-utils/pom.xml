@@ -9,7 +9,7 @@
         <version>0.1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>tools.vitruv.neojoin.tgg.emsl_utils</artifactId>
+    <artifactId>tools.vitruv.neojoin.tgg.emsl-utils</artifactId>
 
     <name>eMSL Utils</name>
     <description/>
