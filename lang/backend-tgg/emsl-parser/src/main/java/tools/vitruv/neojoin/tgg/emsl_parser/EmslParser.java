@@ -1,4 +1,4 @@
-package tools.vitruv.neojoin.emsl_parser;
+package tools.vitruv.neojoin.tgg.emsl_parser;
 
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;

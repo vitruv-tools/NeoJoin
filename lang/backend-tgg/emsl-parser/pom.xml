@@ -9,7 +9,7 @@
         <version>0.1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>tools.vitruv.neojoin.emsl-parser</artifactId>
+    <artifactId>tools.vitruv.neojoin.tgg.emsl-parser</artifactId>
     <name>eMSL Parser</name>
 
     <dependencies>
