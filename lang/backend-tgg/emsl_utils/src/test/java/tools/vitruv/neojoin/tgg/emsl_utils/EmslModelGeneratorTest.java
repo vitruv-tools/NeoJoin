@@ -36,6 +36,7 @@ class EmslModelGeneratorTest extends AbstractEmslGeneratorTest {
 
     private static final String ECORE_MODEL_FILENAME = "SimpleCarModel.xmi";
     private static final String METAMODEL_OUTPUT_FILENAME = "metamodel-output.msl";
+    private static final String MODEL_OUTPUT_FILENAME = "test-model-output.msl";
 
     private ResourceSet resourceSet;
 
@@ -68,7 +69,7 @@ class EmslModelGeneratorTest extends AbstractEmslGeneratorTest {
     @Test
     void generateModels() throws IOException {
         // given
-        final Path outputPath = tempDirectory.resolve("test-model-output.msl");
+        final Path outputPath = tempDirectory.resolve(MODEL_OUTPUT_FILENAME);
 
         // when
         assertThatCode(() -> EmslModelGenerator.generateModels(resourceSet, outputPath))
