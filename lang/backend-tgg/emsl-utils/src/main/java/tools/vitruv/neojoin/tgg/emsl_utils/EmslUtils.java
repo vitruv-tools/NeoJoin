@@ -18,7 +18,7 @@ public class EmslUtils {
 
     public static String escapeKeywords(String str) {
         if (str == null) {
-            throw new IllegalArgumentException("Keyword cannot be null");
+            throw new IllegalArgumentException("String to escape cannot be null");
         }
 
         if (isEmslKeyword(str)) return "^" + str;
