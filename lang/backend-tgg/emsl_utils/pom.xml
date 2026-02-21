@@ -52,7 +52,6 @@
             <plugin>
                 <groupId>gg.jte</groupId>
                 <artifactId>jte-maven-plugin</artifactId>
-                <version>${jte.version}</version>
                 <configuration>
                     <sourceDirectory>
                         ${project.basedir}/src/main/resources/tools/vitruv/neojoin/tgg/emsl_utils/templates
