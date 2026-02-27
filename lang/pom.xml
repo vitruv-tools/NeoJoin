@@ -48,6 +48,7 @@
     <module>backend-tgg</module>
     <module>frontend</module>
     <module>model</module>
+    <module>p2wrappers</module>
   </modules>
 
   <!-- Dependency Management -->
@@ -159,6 +160,16 @@
         <version>2.42.0</version>
       </dependency>
       <dependency>
+        <groupId>org.eclipse.platform</groupId>
+        <artifactId>org.eclipse.osgi</artifactId>
+        <version>3.19.0</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.platform</groupId>
+        <artifactId>org.eclipse.core.resources</artifactId>
+        <version>3.19.0</version>
+      </dependency>
+      <dependency>
         <groupId>org.jetbrains</groupId>
         <artifactId>annotations</artifactId>
         <version>26.1.0</version>
@@ -179,6 +190,11 @@
         <groupId>tools.vitruv</groupId>
         <artifactId>tools.vitruv.change.p2wrappers.emfcompare</artifactId>
         <version>3.2.3</version>
+      </dependency>
+      <dependency>
+        <groupId>commons-lang</groupId>
+        <artifactId>commons-lang</artifactId>
+        <version>2.6</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
