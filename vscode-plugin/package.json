@@ -34,7 +34,7 @@
             {
                 "language": "neojoin",
                 "scopeName": "source.neojoin",
-                "path": "./src/language/neojoin.tmGrammar.json"
+                "path": "./src/language/neojoin.tmLanguage.json"
             }
         ],
         "commands": [

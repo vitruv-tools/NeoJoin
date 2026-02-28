@@ -6,6 +6,7 @@ import org.eclipse.xtext.validation.Check;
 import org.jspecify.annotations.Nullable;
 import tools.vitruv.neojoin.ast.AstPackage;
 import tools.vitruv.neojoin.ast.BooleanModifier;
+import tools.vitruv.neojoin.ast.ConcreteFeature;
 import tools.vitruv.neojoin.ast.Feature;
 import tools.vitruv.neojoin.ast.Modifier;
 import tools.vitruv.neojoin.ast.MultiplicityBounds;
@@ -83,9 +84,9 @@ public class FeatureModifierValidator extends ComposableValidator {
     private @Nullable Boolean isAttribute(Feature feature) {
         if (feature.getType() != null) {
             return feature.getType() instanceof EDataType;
-        } else {
+        } else if (feature instanceof ConcreteFeature concreteFeature) {
             try {
-                var inferredType = expressionHelper.inferEType(feature.getExpression());
+                var inferredType = expressionHelper.inferEType(concreteFeature.getExpression());
                 if (inferredType != null) {
                     return inferredType.classifier() instanceof EDataType;
                 }
@@ -145,26 +146,28 @@ public class FeatureModifierValidator extends ComposableValidator {
             }
 
             var explicitIsMany = AstUtils.isManyMultiplicity(explicitMultiplicity);
-            try {
-                var inferredType = expressionHelper.inferEType(feature.getExpression());
-                if (inferredType != null) {
-                    var inferredIsMany = inferredType.isMany();
-                    if (explicitIsMany && !inferredIsMany) {
-                        error(
-                            "Cannot assign a single value to a multi-valued feature",
-                            feature,
-                            AstPackage.Literals.FEATURE__EXPRESSION
-                        );
-                    } else if (!explicitIsMany && inferredIsMany) {
-                        error(
-                            "Cannot assign multiple values to a single-valued feature",
-                            feature,
-                            AstPackage.Literals.FEATURE__EXPRESSION
-                        );
+            if (feature instanceof ConcreteFeature concreteFeature) {
+                try {
+                    var inferredType = expressionHelper.inferEType(concreteFeature.getExpression());
+                    if (inferredType != null) {
+                        var inferredIsMany = inferredType.isMany();
+                        if (explicitIsMany && !inferredIsMany) {
+                            error(
+                                "Cannot assign a single value to a multi-valued feature",
+                                concreteFeature,
+                                AstPackage.Literals.CONCRETE_FEATURE__EXPRESSION
+                            );
+                        } else if (!explicitIsMany && inferredIsMany) {
+                            error(
+                                "Cannot assign multiple values to a single-valued feature",
+                                concreteFeature,
+                                AstPackage.Literals.CONCRETE_FEATURE__EXPRESSION
+                            );
+                        }
                     }
+                } catch (TypeResolutionException e) {
+                    // ignore: will be handled by type checking
                 }
-            } catch (TypeResolutionException e) {
-                // ignore: will be handled by type checking
             }
         }
     }

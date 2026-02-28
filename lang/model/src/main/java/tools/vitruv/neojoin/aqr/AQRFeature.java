@@ -47,7 +47,7 @@ public sealed interface AQRFeature {
          */
         sealed interface Copy extends Kind {
 
-            @Override
+            @java.lang.Override
             EStructuralFeature source();
 
             /**
@@ -76,6 +76,22 @@ public sealed interface AQRFeature {
          */
         record Generate() implements Kind {}
 
+        /**
+         * The feature overrides a feature in a super classs.
+         * 
+         * @param overridden overridden feature in a super class
+         * @param overriding 
+         */
+        record Override(AQRFeature overridden, AQRFeature.Kind overriding) implements Kind {
+
+            @java.lang.Override
+            public XExpression expression() {
+                return overriding.expression();
+            }
+
+        }
+
+        record Abstract() implements Kind {}
     }
 
     /**
@@ -151,6 +167,10 @@ public sealed interface AQRFeature {
             return "Attribute[name='%s', type=%s, kind=%s, options=%s]".formatted(name, type.getName(), kind, options);
         }
 
+        Attribute withFeatureKind(Kind kind) {
+            return new Attribute(name, type, kind, options);
+        }
+
     }
 
     /**
@@ -171,6 +191,10 @@ public sealed interface AQRFeature {
         @Override
         public String toString() {
             return "Reference[name='%s', type=%s, kind=%s, options=%s]".formatted(name, type.name(), kind, options);
+        }
+
+        Reference withFeatureKind(Kind kind) {
+            return new Reference(name, type, kind, options);
         }
 
     }
