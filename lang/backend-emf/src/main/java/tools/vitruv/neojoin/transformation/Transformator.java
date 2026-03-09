@@ -307,9 +307,9 @@ public class Transformator {
 
     private Object mapInstances(Object instance, AQRTargetClass target) {
         if (instance instanceof List<?> list) {
-            return list.stream().map(i -> targetMap.get((EObject) i, target)).toList();
+            return list.stream().map(i -> targetMap.get((EObject) i, target, true)).toList();
         } else {
-            return targetMap.get((EObject) instance, target);
+            return targetMap.get((EObject) instance, target, true);
         }
     }
 
