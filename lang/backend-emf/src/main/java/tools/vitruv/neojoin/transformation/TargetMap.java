@@ -6,6 +6,7 @@ import tools.vitruv.neojoin.utils.Pair;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * Mapping from source instances to target instances. Given that one source class can be the source for multiple
@@ -16,15 +17,15 @@ public class TargetMap {
 
     private sealed interface Mapping {
 
-        Mapping with(EObject value);
+        Mapping join(Mapping other);
 
     }
 
     private record None() implements Mapping {
 
         @Override
-        public Mapping with(EObject value) {
-            return new One(value);
+        public Mapping join(Mapping other) {
+            return other;
         }
 
     }
@@ -32,8 +33,11 @@ public class TargetMap {
     private record One(EObject value) implements Mapping {
 
         @Override
-        public Mapping with(EObject value) {
-            return new Many();
+        public Mapping join(Mapping other) {
+            return switch (other)  {
+                case None ignored -> this;
+                default -> new Many();
+            };
         }
 
     }
@@ -41,7 +45,7 @@ public class TargetMap {
     private record Many() implements Mapping {
 
         @Override
-        public Mapping with(EObject value) {
+        public Mapping join(Mapping other) {
             return this;
         }
 
@@ -56,6 +60,14 @@ public class TargetMap {
         );
     }
 
+    private Mapping getMappingInstanceOf(EObject source, AQRTargetClass targetClass) {
+        return map.entrySet().stream()
+            .filter(entry -> entry.getKey().left().equals(source))
+            .filter(entry -> entry.getKey().right().equals(targetClass) || entry.getKey().right().allSuperClasses().contains(targetClass))
+            .map(Entry::getValue)
+            .reduce(new None(), Mapping::join);
+    }
+
     /**
      * Register a new mapping from the source instance to the target instance via the target class.
      */
@@ -63,7 +75,7 @@ public class TargetMap {
         var previous = getMapping(source, targetClass);
         map.put(
             new Pair<>(source, targetClass),
-            previous.with(target)
+            previous.join(new One(target))
         );
     }
 
@@ -73,14 +85,30 @@ public class TargetMap {
      * @throws TransformatorException if none or multiple target instances are mapped to the given source instance and target class
      */
     public EObject get(EObject source, AQRTargetClass targetClass) {
-        return switch (getMapping(source, targetClass)) {
+        return get(source, targetClass, false);
+    }
+
+    /**
+     * Retrieve the target instance that is mapped to the given source instance and target class or subclasses or the target class.
+     *
+     * @throws TransformatorException if none or multiple target instances are mapped to the given source instance and target class
+     */
+    public EObject get(EObject source, AQRTargetClass targetClass, boolean allowSubclasses) {
+        Mapping mapping;
+        if (allowSubclasses) {
+            mapping = getMappingInstanceOf(source, targetClass);
+        } else {
+            mapping = getMapping(source, targetClass);
+        }
+
+        return switch (mapping) {
             case One(var value) -> value;
             case None ignored -> throw new TransformatorException(
-                "no target instance of class '%s' found for source instance of class '%s'".formatted(
-                    targetClass.name(), source.eClass().getName()
-                )
-            );
-            case Many ignored -> throw new TransformatorException(
+                    "no target instance of class '%s' found for source instance of class '%s'".formatted(
+                        targetClass.name(), source.eClass().getName()
+                    )
+                );
+                        case Many ignored -> throw new TransformatorException(
                 "multiple target instances of class '%s' found for source instance of class '%s'".formatted(
                     targetClass.name(), source.eClass().getName()
                 )

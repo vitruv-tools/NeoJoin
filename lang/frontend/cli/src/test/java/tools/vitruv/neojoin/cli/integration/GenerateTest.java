@@ -21,7 +21,7 @@ import tools.vitruv.neojoin.cli.Main;
 
 public class GenerateTest {
 
-    static List<String> validQueries = List.of("actor-rating", "books-on-tape", "customer-borrowings", "movies");
+    static List<String> validQueries = List.of("actor-rating", "books-on-tape", "customer-borrowings", "movies", "pizza2");
 
     /**
      * {@code java -jar cli.jar --meta-model-path=<meta-model-path> --generate=<output> <query>}

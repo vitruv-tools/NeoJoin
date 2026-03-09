@@ -1,0 +1,21 @@
+export pizza to "http://example.org/pizza2"
+
+import "http://example.org/restaurant"
+
+create abstract Restaurant {
+    name: EString
+    sells: Item [*]
+}
+
+create Item {
+    name := "<default>"
+}
+from Food
+create extends Item
+
+from Restaurant
+where name.startsWith("Pizzeria")
+create Pizzeria extends Restaurant {
+    name := name
+    sells := sells
+}

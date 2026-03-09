@@ -97,6 +97,7 @@ public class Transformator {
         // create other instances
         aqr.classes().stream()
             .filter(target -> target != aqr.root())
+            .filter(target -> !target.isAbstract())
             .forEach(target -> {
                 var instances = transformTargetClass(target);
                 var rootRef = root.eClass()
@@ -306,9 +307,9 @@ public class Transformator {
 
     private Object mapInstances(Object instance, AQRTargetClass target) {
         if (instance instanceof List<?> list) {
-            return list.stream().map(i -> targetMap.get((EObject) i, target)).toList();
+            return list.stream().map(i -> targetMap.get((EObject) i, target, true)).toList();
         } else {
-            return targetMap.get((EObject) instance, target);
+            return targetMap.get((EObject) instance, target, true);
         }
     }
 
@@ -342,6 +343,8 @@ public class Transformator {
         } else if (featureKind instanceof AQRFeature.Kind.Copy.Implicit(EStructuralFeature feature)) {
             check(source != null && source.eClass() == feature.getEContainingClass());
             return source.eGet(feature);
+        } else if (featureKind instanceof AQRFeature.Kind.Override(AQRFeature overridden, AQRFeature.Kind overriding)) {
+            return evaluateFeature(overriding, source, context);
         } else {
             return fail();
         }
