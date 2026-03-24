@@ -438,7 +438,7 @@ public class AQRBuilder {
     }
 
     private void applyInheritance(AQRTargetClass targetClass) {
-        var superClassFeatures = targetClass.allSuperClasses().stream().flatMap(superClass -> superClass.features().stream()).toList();
+        var superClassFeatures = targetClass.superClasses().stream().flatMap(superClass -> superClass.features().stream()).toList();
 
         // update overriding features
         targetClass.features().replaceAll(feature -> {
@@ -450,20 +450,22 @@ public class AQRBuilder {
             invariant(overriddenFeatures.size() == 1);
             var overriddenFeature = overriddenFeatures.get(0);
 
-            invariant(feature.options().equals(overriddenFeature.options()), "Overriding features may not change modifiers");
-
             if (feature instanceof AQRFeature.Attribute attribute) {
                 invariant(overriddenFeature instanceof AQRFeature.Attribute, "Attribute must override attribute");
                 var overriddenAttribute = (AQRFeature.Attribute)overriddenFeature;
                 invariant(overriddenAttribute.type().equals(attribute.type()), "Type of overriding feature must be equal to type of overridden feature");
 
-                return attribute.withFeatureKind(new AQRFeature.Kind.Override(overriddenFeature, feature.kind()));
+                return attribute
+                    .withFeatureKind(new AQRFeature.Kind.Override(overriddenFeature, feature.kind()))
+                    .withOptions(overriddenFeature.options());
             } else if (feature instanceof AQRFeature.Reference reference) {
                 invariant(overriddenFeature instanceof AQRFeature.Reference, "Reference must override reference");
                 var overriddenReference = (AQRFeature.Reference)overriddenFeature;
                 invariant(overriddenReference.type().equals(reference.type()) || reference.type().allSuperClasses().contains(overriddenReference.type()), "Type of overriding feature must be equal to or a subtype of the type of the overridden feature");
 
-                return reference.withFeatureKind(new AQRFeature.Kind.Override(overriddenFeature, feature.kind()));
+                return reference
+                    .withFeatureKind(new AQRFeature.Kind.Override(overriddenFeature, feature.kind()))
+                    .withOptions(overriddenFeature.options());
             } else {
                 throw new IllegalStateException("AQRFeature is a sealed interface therefore this check should be exhaustive");
             }

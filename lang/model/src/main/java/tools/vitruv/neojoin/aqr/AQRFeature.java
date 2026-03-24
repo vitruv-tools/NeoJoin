@@ -171,6 +171,10 @@ public sealed interface AQRFeature {
             return new Attribute(name, type, kind, options);
         }
 
+        Attribute withOptions(Options options) {
+            return new Attribute(name, type, kind, options);
+        }
+
     }
 
     /**
@@ -194,6 +198,10 @@ public sealed interface AQRFeature {
         }
 
         Reference withFeatureKind(Kind kind) {
+            return new Reference(name, type, kind, options);
+        }
+
+        Reference withOptions(Options options) {
             return new Reference(name, type, kind, options);
         }
 
