@@ -8,7 +8,7 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * A FlatMap represents mapping a parent object to some children along a <b>one-to-many</b>
- * reference. It contains information about the reference and the child type
+ * reference and flattening the result. It contains information about the reference and the child type
  *
  * <p>An example expression may look like
  *

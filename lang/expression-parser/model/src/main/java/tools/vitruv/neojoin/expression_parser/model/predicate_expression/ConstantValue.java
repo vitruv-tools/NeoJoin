@@ -12,7 +12,7 @@ public class ConstantValue {
     }
 
     public static ConstantValue Boolean(boolean isTrue) {
-        return ConstantValue.of(isTrue ? "true" : "false");
+        return ConstantValue.of(Boolean.toString(isTrue));
     }
 
     public static ConstantValue of(String value) {
