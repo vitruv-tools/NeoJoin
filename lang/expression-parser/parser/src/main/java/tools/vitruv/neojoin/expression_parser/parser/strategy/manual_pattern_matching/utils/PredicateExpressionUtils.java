@@ -87,9 +87,9 @@ public class PredicateExpressionUtils {
         if (expression instanceof XNumberLiteral numberLiteral) {
             return Optional.of(ConstantValue.of(numberLiteral.getValue()));
         } else if (expression instanceof XStringLiteral stringLiteral) {
-            return Optional.of(ConstantValue.String(stringLiteral.getValue()));
+            return Optional.of(ConstantValue.fromString(stringLiteral.getValue()));
         } else if (expression instanceof XBooleanLiteral booleanLiteral) {
-            return Optional.of(ConstantValue.Boolean(booleanLiteral.isIsTrue()));
+            return Optional.of(ConstantValue.fromBoolean(booleanLiteral.isIsTrue()));
         }
         return Optional.empty();
     }

@@ -19,7 +19,7 @@ import tools.vitruv.neojoin.expression_parser.parser.strategy.manual_pattern_mat
 import java.util.Optional;
 
 public class FilterParser implements ReferenceOperatorParser {
-    private static final String FILTER_MAP_OPERATION_SIMPLE_NAME = "filter";
+    private static final String FILTER_OPERATION_SIMPLE_NAME = "filter";
 
     public Optional<ReferenceOperator> parse(
             PatternMatchingStrategy strategy, XExpression expression)
@@ -58,7 +58,7 @@ public class FilterParser implements ReferenceOperatorParser {
                 .map(XAbstractFeatureCall::getFeature)
                 .flatMap(CastingUtils::asJvmOperation)
                 .map(JvmIdentifiableElement::getSimpleName)
-                .map(FILTER_MAP_OPERATION_SIMPLE_NAME::equals)
+                .map(FILTER_OPERATION_SIMPLE_NAME::equals)
                 .orElse(false);
     }
 }

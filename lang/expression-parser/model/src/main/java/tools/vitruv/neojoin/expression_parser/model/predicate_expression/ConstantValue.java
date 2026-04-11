@@ -7,11 +7,11 @@ public class ConstantValue {
     String value;
     boolean isString;
 
-    public static ConstantValue String(String value) {
+    public static ConstantValue fromString(String value) {
         return new ConstantValue(value, true);
     }
 
-    public static ConstantValue Boolean(boolean isTrue) {
+    public static ConstantValue fromBoolean(boolean isTrue) {
         return ConstantValue.of(Boolean.toString(isTrue));
     }
 

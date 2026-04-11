@@ -13,6 +13,6 @@ public class UnsupportedReferenceExpressionException extends Exception {
     }
 
     public UnsupportedReferenceExpressionException(String message, XExpression expression) {
-        super(String.format(message + ". The expression was %s", expression));
+        super(String.format("%s. The expression was %s", message, expression));
     }
 }

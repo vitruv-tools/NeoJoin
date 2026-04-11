@@ -221,6 +221,4 @@ class MapParserTest implements ExpressionParserTest {
 
         assertNull(thirdFlatMapOperator.getFollowingOperator());
     }
-
-    // TODO: Nested expressions (multiple layers) and filter operator
 }
