@@ -64,4 +64,16 @@ public class AQRAssertions extends AbstractAssert<AQRAssertions, AQR> {
             .isEmpty();
     }
 
+    public AQRAssertions hasParameter(String alias, String type) {
+        isNotNull();
+        var results = actual.parameters().stream()
+            .filter(p -> p.alias().equals(alias))
+            .toList();
+        Assertions.assertThat(results.size() == 1)
+            .as("Expected a parameter with alias %s, but found %d", alias, results.size()).isTrue();
+        var parameter = results.get(0);
+        Assertions.assertThat(parameter.type().equals(type)).as("Expected the parameter to have type %s, but it was of type %s", type, parameter.type());
+        return this;
+    }
+
 }
