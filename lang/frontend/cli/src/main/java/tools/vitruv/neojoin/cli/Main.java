@@ -50,6 +50,9 @@ public class Main implements Callable<Integer> {
     @Parameters(index = "0", paramLabel = "QUERY", description = "Path to the query file.")
     Path queryFile;
 
+    @Option(names = {"-p", "--parameters-path"}, paramLabel = "PARAM-PATH", required = false, description = "Parameters path (see below) to find xmi-file containing a list of parameters.")
+    Path parametersPath;
+
     @Option(names = {"-m", "--meta-model-path"}, paramLabel = "MODEL-PATH", required = true, description = "Model path (see below) to find referenced meta-models (.ecore).")
     String metaModelPath;
 
@@ -160,7 +163,7 @@ public class Main implements Callable<Integer> {
             var targetInstanceModel = new Transformator(
                 setup.getExpressionHelper(),
                 aqr,
-                targetMetaModel.pack(),
+                targetMetaModel.pack(), 
                 inputModels
             ).transform();
             EMFUtils.save(getOutputURI(transform.output, "xmi"), targetInstanceModel);

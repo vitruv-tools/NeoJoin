@@ -18,6 +18,7 @@ import tools.vitruv.neojoin.ast.Export;
 import tools.vitruv.neojoin.ast.Feature;
 import tools.vitruv.neojoin.ast.Import;
 import tools.vitruv.neojoin.ast.MainQuery;
+import tools.vitruv.neojoin.ast.Parameter;
 import tools.vitruv.neojoin.ast.Query;
 import tools.vitruv.neojoin.ast.SubQuery;
 import tools.vitruv.neojoin.ast.ViewTypeDefinition;
@@ -101,6 +102,7 @@ public class AQRBuilder {
         return new AQR(
             createExport(viewTypeDefinition.getExport()),
             viewTypeDefinition.getImports().stream().map(AQRBuilder::createImport).toList(),
+            viewTypeDefinition.getParameters().stream().map(AQRBuilder::createParameter).toList(),
             encounteredDataTypes.stream().filter(dataType -> dataType.getEPackage() != EcorePackage.eINSTANCE).toList(),
             List.copyOf(targetClasses),
             root
@@ -118,6 +120,13 @@ public class AQRBuilder {
         return new AQRImport(
             Objects.requireNonNull(imp.getPackage()),
             Objects.requireNonNull(AstUtils.getImportAlias(imp))
+        );
+    }
+
+        private static AQRParameter createParameter(Parameter parameter) {
+        return new AQRParameter(
+            Objects.requireNonNull(parameter.getAlias()),
+            Objects.requireNonNull(parameter.getType())
         );
     }
 
