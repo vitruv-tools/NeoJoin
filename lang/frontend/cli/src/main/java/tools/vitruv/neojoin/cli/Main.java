@@ -3,6 +3,7 @@ package tools.vitruv.neojoin.cli;
 import org.eclipse.emf.common.util.Diagnostic;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.common.util.WrappedException;
+import org.eclipse.emf.ecore.EDataType;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.util.Diagnostician;
@@ -17,6 +18,8 @@ import picocli.CommandLine.Parameters;
 import tools.vitruv.neojoin.NeoJoinStandaloneSetup;
 import tools.vitruv.neojoin.Parser;
 import tools.vitruv.neojoin.SourceLocation;
+import tools.vitruv.neojoin.aqr.AQR;
+import tools.vitruv.neojoin.aqr.AQRParameter;
 import tools.vitruv.neojoin.collector.InstanceModelCollector;
 import tools.vitruv.neojoin.collector.PackageModelCollector;
 import tools.vitruv.neojoin.generation.MetaModelGenerator;
@@ -25,10 +28,16 @@ import tools.vitruv.neojoin.transformation.TransformatorException;
 import tools.vitruv.neojoin.utils.EMFUtils;
 import tools.vitruv.neojoin.utils.Utils;
 
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 
 @NullUnmarked
@@ -50,8 +59,7 @@ public class Main implements Callable<Integer> {
     @Parameters(index = "0", paramLabel = "QUERY", description = "Path to the query file.")
     Path queryFile;
 
-    @Option(names = {"-p", "--parameters-path"}, paramLabel = "PARAM-PATH", required = false, description = "Parameters path (see below) to find xmi-file containing a list of parameters.")
-    Path parametersPath;
+
 
     @Option(names = {"-m", "--meta-model-path"}, paramLabel = "MODEL-PATH", required = true, description = "Model path (see below) to find referenced meta-models (.ecore).")
     String metaModelPath;
@@ -80,6 +88,9 @@ public class Main implements Callable<Integer> {
 
         @Option(names = {"-t", "--transform"}, paramLabel = "OUTPUT", required = true, description = "Transform the input models based on the query and write the result to the given output file or directory.")
         Path output;
+
+        @Option(names = {"-p", "--parameters-path"}, paramLabel = "PARAM-PATH", required = false, description = "Parameters path (see below) to find xmi-file containing a list of parameters.")
+        Path parametersPath;
 
     }
 
@@ -160,17 +171,71 @@ public class Main implements Callable<Integer> {
         if (transform != null) {
             // transform instance models
             var inputModels = new InstanceModelCollector(transform.instanceModelPath, registry).collect();
+            Map<String, Object> paramValues = resolveParamValues(aqr);
+
             var targetInstanceModel = new Transformator(
                 setup.getExpressionHelper(),
                 aqr,
                 targetMetaModel.pack(), 
-                inputModels
+                inputModels,
+                paramValues
             ).transform();
             EMFUtils.save(getOutputURI(transform.output, "xmi"), targetInstanceModel);
             validateInstanceModel(targetInstanceModel);
         }
 
         return 0;
+    }
+
+    private Map<String, Object> resolveParamValues(AQR aqr) throws IOException {
+        var aqrParams = aqr.parameters();
+        if (aqrParams.isEmpty()) {
+            return Map.of();
+        }
+
+        if (transform.parametersPath == null) {
+            throw new IllegalArgumentException(
+                "Missing path to parameters file."
+            );
+        }
+        var inputParams = readInputParameters(transform.parametersPath);
+        
+        HashMap<String, Object> result = new HashMap<>();
+        for (AQRParameter param : aqrParams) {
+            if (!inputParams.containsKey(param.alias())) {
+                throw new IllegalArgumentException(
+                    "Missing value for parameter '%s' of type '%s'.".formatted(param.alias(), param.type().getName())
+                );
+            } else {
+                result.put(param.alias(), getTypedParameter(inputParams.get(param.alias()), param.type()));
+            }
+        }
+
+        return result;
+    }
+
+    private Map<String, String> readInputParameters(Path path) throws IOException {
+        Properties p = new Properties();
+        p.load(new FileInputStream(path.toFile()));
+        HashMap<String, String> result = new HashMap<>();
+        for (String name : p.stringPropertyNames()) {
+            result.put(name, p.getProperty(name));
+        }
+
+        return result;
+    }
+
+    private Object getTypedParameter(String raw, EDataType type) {
+        var cls = type.getInstanceClass();
+        if (cls == String.class) return raw;
+        if (cls == int.class || cls == Integer.class) return Integer.parseInt(raw);
+        if (cls == double.class || cls == Double.class) return Double.parseDouble(raw);
+        if (cls == boolean.class || cls == Boolean.class) return Boolean.parseBoolean(raw);
+        if (cls == long.class || cls == Long.class)  return Long.parseLong(raw);
+        if (cls == float.class || cls == Float.class) return Float.parseFloat(raw);
+        throw new IllegalArgumentException(
+            "Unsupported parameter type '%s'".formatted(type.getName())
+        );
     }
 
     private static void printIssues(List<Issue> issues) {
