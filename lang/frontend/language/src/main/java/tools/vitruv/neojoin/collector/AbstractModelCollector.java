@@ -33,7 +33,7 @@ public abstract class AbstractModelCollector {
 
     private final List<Path> paths;
 
-    public AbstractModelCollector(String searchPathString) {
+    protected AbstractModelCollector(String searchPathString) {
         this.paths = parseSearchPathString(searchPathString);
     }
 
