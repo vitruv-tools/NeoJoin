@@ -10,6 +10,8 @@ import static tools.vitruv.neojoin.utils.Assertions.fail;
  */
 public final class TypeCasts {
 
+    private TypeCasts() {}
+
     /**
      * Checks whether a cast from one java class to another is possible.
      * @param from source type

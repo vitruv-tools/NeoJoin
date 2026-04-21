@@ -11,8 +11,10 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Map;
 
-public class EmslModelGenerator {
+public final class EmslModelGenerator {
     private static final String EMSL_MODEL_COLLECTION_TEMPLATE = "EmslModelCollection.jte";
+
+    private EmslModelGenerator() {}
 
     public static void generateModels(ResourceSet resourceSet, Path output) {
         TemplateEngine engine = TemplateEngine.createPrecompiled(ContentType.Plain);
