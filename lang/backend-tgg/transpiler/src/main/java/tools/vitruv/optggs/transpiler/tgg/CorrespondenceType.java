@@ -11,8 +11,8 @@ public record CorrespondenceType(FQN source, FQN target) {
 
     @Override
     public boolean equals(Object o) {
-        if (!(o instanceof CorrespondenceType that)) return false;
-        return Objects.equals(source, that.source) && Objects.equals(target, that.target);
+        return o instanceof CorrespondenceType(FQN source1, FQN target1) &&
+            Objects.equals(source, source1) && Objects.equals(target, target1);
     }
 
     @Override
