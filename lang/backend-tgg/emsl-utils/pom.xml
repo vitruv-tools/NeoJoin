@@ -57,6 +57,7 @@
             <plugin>
                 <groupId>gg.jte</groupId>
                 <artifactId>jte-maven-plugin</artifactId>
+                <version>3.2.3</version>
                 <configuration>
                     <sourceDirectory>
                         ${project.basedir}/src/main/resources/tools/vitruv/neojoin/tgg/emsl_utils/templates
@@ -71,6 +72,23 @@
                             <goal>generate</goal>
                         </goals>
                     </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <executions>
+                <execution>
+                    <id>jte-sources</id>
+                    <goals>
+                        <goal>add-source</goal>
+                    </goals>
+                    <configuration>
+                        <sources>
+                            <source>${project.build.directory}/generated-sources/jte</source>
+                        </sources>
+                    </configuration>
+                </execution>
                 </executions>
             </plugin>
         </plugins>
