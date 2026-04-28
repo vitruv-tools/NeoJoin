@@ -7,7 +7,6 @@ import tools.vitruv.optggs.operators.expressions.ValueExpression;
 import tools.vitruv.optggs.operators.filters.FunctionFilter;
 import tools.vitruv.optggs.transpiler.operators.ResolvedFilter;
 import tools.vitruv.optggs.transpiler.tgg.AttributeConstraint;
-import tools.vitruv.optggs.transpiler.tgg.Node;
 import tools.vitruv.optggs.transpiler.tgg.TripleRule;
 
 public class ResolvedFunctionFilter implements ResolvedFilter {
