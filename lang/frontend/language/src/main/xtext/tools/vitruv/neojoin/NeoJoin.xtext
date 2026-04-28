@@ -18,7 +18,16 @@ Import:
     'import' package=[ecore::EPackage|STRING] ('as' alias=ID)?;
 
 Parameter:
-    'param' alias=ID ':' type=[ecore::EDataType|QualifiedName];
+    'param' alias=ID ':' type=ParamType;
+
+ParamType:
+    CollectionParamType | SimpleParamType;
+
+CollectionParamType:
+    'EList' '<' elementType=[ecore::EClassifier|QualifiedName] '>';
+
+SimpleParamType:
+    elementType=[ecore::EClassifier|QualifiedName];
     
 MainQuery:
     source=Source?

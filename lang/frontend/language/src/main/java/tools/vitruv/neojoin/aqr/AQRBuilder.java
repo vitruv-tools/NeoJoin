@@ -14,6 +14,7 @@ import org.eclipse.xtext.xbase.XExpression;
 import org.jspecify.annotations.Nullable;
 import tools.vitruv.neojoin.Constants;
 import tools.vitruv.neojoin.ast.Body;
+import tools.vitruv.neojoin.ast.CollectionParamType;
 import tools.vitruv.neojoin.ast.Export;
 import tools.vitruv.neojoin.ast.Feature;
 import tools.vitruv.neojoin.ast.Import;
@@ -123,10 +124,12 @@ public class AQRBuilder {
         );
     }
 
-        private static AQRParameter createParameter(Parameter parameter) {
+    private static AQRParameter createParameter(Parameter parameter) {
+        var paramType = parameter.getType();
         return new AQRParameter(
             Objects.requireNonNull(parameter.getAlias()),
-            Objects.requireNonNull(parameter.getType())
+            Objects.requireNonNull(paramType.getElementType()),
+            paramType instanceof CollectionParamType
         );
     }
 
