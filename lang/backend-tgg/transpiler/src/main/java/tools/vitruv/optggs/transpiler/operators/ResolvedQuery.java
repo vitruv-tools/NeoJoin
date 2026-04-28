@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class ResolvedQuery {
     private final ResolvedSelection selection;
@@ -54,10 +55,10 @@ public class ResolvedQuery {
 
     @Override
     public String toString() {
-        var p = String.join(".", projections.stream().map(Object::toString).toList());
-        var f = String.join(".", filters.stream().map(Object::toString).toList());
-        var c = String.join(".", container.stream().map(Object::toString).toList());
-        var l = String.join(".", links.stream().map(Object::toString).toList());
+        var p = projections.stream().map(Object::toString).collect(Collectors.joining("."));
+        var f = filters.stream().map(Object::toString).collect(Collectors.joining("."));
+        var c = container.stream().map(Object::toString).collect(Collectors.joining("."));
+        var l = links.stream().map(Object::toString).collect(Collectors.joining("."));
         return selection + f + p + c + l;
     }
 }

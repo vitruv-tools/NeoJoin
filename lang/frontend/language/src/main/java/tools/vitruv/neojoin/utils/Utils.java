@@ -17,6 +17,8 @@ import java.util.stream.StreamSupport;
  */
 public class Utils {
 
+    private Utils() {}
+
     /**
      * {@link Stream#collect(Collector) Collects} a stream of {@link Map.Entry} into a map.
      *

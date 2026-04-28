@@ -11,7 +11,10 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.HashMap;
 
-public class TripleGraphPrinter {
+public final class TripleGraphPrinter {
+
+    private TripleGraphPrinter() {}
+
     public static void print(TripleGrammar grammar, Path file, NameResolver nameResolver) {
         CodeResolver codeResolver = new ResourceCodeResolver("tools/vitruv/optggs/transpiler/templates");
         TemplateEngine engine = TemplateEngine.create(codeResolver, ContentType.Plain);

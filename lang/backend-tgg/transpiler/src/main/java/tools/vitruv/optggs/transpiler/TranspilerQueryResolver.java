@@ -38,24 +38,21 @@ public class TranspilerQueryResolver extends QueryResolver<ResolvedView, Resolve
 
     @Override
     public ResolvedProjection resolveProjection(Projection projection) {
-        if (projection instanceof SimpleProjection sp) {
-            return new ResolvedSimpleProjection(resolvePattern(sp.source()), sp.target(), sp.sourceProperty(), sp.targetProperty());
-        } else if (projection instanceof DerivedProjection dp) {
-            return new ResolvedDerivedProjection(dp);
-        } else {
-            throw new RuntimeException("Unknown projection type while resolving");
-        }
+        return switch (projection) {
+            case SimpleProjection(var source, var target, var sourceProperty, var targetProperty) ->
+                new ResolvedSimpleProjection(resolvePattern(source), target, sourceProperty, targetProperty);
+            case DerivedProjection derivedProjection -> new ResolvedDerivedProjection(derivedProjection);
+            case null, default -> throw new RuntimeException("Unknown projection type while resolving");
+        };
     }
 
     @Override
     public ResolvedFilter resolveFilter(Filter filter) {
-        if (filter instanceof ConstantFilter cf) {
-            return new ResolvedConstantFilter(cf);
-        } else if (filter instanceof FunctionFilter ff) {
-            return new ResolvedFunctionFilter(ff);
-        } else {
-            throw new RuntimeException("Unknown filter type while resolving");
-        }
+        return switch (filter) {
+            case ConstantFilter constantFilter -> new ResolvedConstantFilter(constantFilter);
+            case FunctionFilter functionFilter -> new ResolvedFunctionFilter(functionFilter);
+            default -> throw new RuntimeException("Unknown filter type while resolving");
+        };
     }
 
     @Override
@@ -75,16 +72,12 @@ public class TranspilerQueryResolver extends QueryResolver<ResolvedView, Resolve
 
     @Override
     ResolvedPatternLink resolvePatternLink(PatternLink patternLink) {
-        if (patternLink instanceof From f) {
-            return new ResolvedFrom(f.element());
-        } else if (patternLink instanceof Join j) {
-            return new ResolvedJoin(j.element(), j.constrainedProperties());
-        } else if (patternLink instanceof ThetaJoin tj) {
-            return new ResolvedThetaJoin(tj.element(), tj.function());
-        } else if (patternLink instanceof Ref r) {
-            return new ResolvedRef(r.element(), r.reference());
-        } else {
-            throw new RuntimeException("Unknown pattern type while resolving");
-        }
+        return switch (patternLink) {
+            case From form -> new ResolvedFrom(form.element());
+            case Join join -> new ResolvedJoin(join.element(), join.constrainedProperties());
+            case ThetaJoin thetaJoin -> new ResolvedThetaJoin(thetaJoin.element(), thetaJoin.function());
+            case Ref ref -> new ResolvedRef(ref.element(), ref.reference());
+            default -> throw new RuntimeException("Unknown pattern type while resolving");
+        };
     }
 }

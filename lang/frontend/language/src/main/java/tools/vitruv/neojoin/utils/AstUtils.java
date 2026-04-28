@@ -33,6 +33,8 @@ public final class AstUtils {
 
     public static final String UnknownTargetName = "<unknown>";
 
+    private AstUtils() {}
+
     /**
      * Returns the name of the target class of the given main query.
      *

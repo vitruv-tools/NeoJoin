@@ -12,9 +12,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-public class EmslUtils {
+public final class EmslUtils {
     private static final Set<String> EMSL_KEYWORDS =
             Set.of("target", "abstract", "attributeConstraints", "pattern", "source", "rules");
+
+    private EmslUtils() {}
 
     public static String escapeKeywords(String str) {
         if (str == null) {

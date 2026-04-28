@@ -3,6 +3,7 @@ package tools.vitruv.optggs.transpiler.operators.filters;
 import tools.vitruv.optggs.operators.FunctionInvocation;
 import tools.vitruv.optggs.operators.LogicOperator;
 import tools.vitruv.optggs.operators.expressions.ConstantExpression;
+import tools.vitruv.optggs.operators.expressions.ValueExpression;
 import tools.vitruv.optggs.operators.filters.FunctionFilter;
 import tools.vitruv.optggs.transpiler.operators.ResolvedFilter;
 import tools.vitruv.optggs.transpiler.tgg.AttributeConstraint;
@@ -24,20 +25,22 @@ public class ResolvedFunctionFilter implements ResolvedFilter {
     public void extendRule(TripleRule rule) {
         var constraint = new AttributeConstraint(function.name());
         for (var parameter : function.parameters()) {
-            var argument = function.argument(parameter);
-            if (argument instanceof FunctionInvocation.ConstantArgument c) {
-                constraint.addParameter(parameter, new ConstantExpression(c.value()));
-            } else if (argument instanceof FunctionInvocation.ConstrainedArgument arg) {
-                Node node = rule.allSourcesAsSlice().findByType(arg.node()).orElseThrow();
-                constraint.addParameter(parameter, node.addVariableAttribute(arg.attribute(), LogicOperator.Equals));
-            }
+            var value = determineValueForFunctionParameter(rule, parameter);
+            constraint.addParameter(parameter, value);
         }
         rule.addConstraintRule(constraint);
     }
 
-    @Override
+    private ValueExpression determineValueForFunctionParameter(TripleRule rule, String parameter) {
+        return switch (function.argument(parameter)) {
+            case FunctionInvocation.ConstantArgument(var value) -> new ConstantExpression(value);
+            case FunctionInvocation.ConstrainedArgument(var node1, var attribute) -> rule.allSourcesAsSlice()
+                .findByType(node1).orElseThrow()
+                .addVariableAttribute(attribute, LogicOperator.Equals);
+        };
+    }
+
     public String toString() {
         return "Φ(" + function + ")";
     }
-
 }
