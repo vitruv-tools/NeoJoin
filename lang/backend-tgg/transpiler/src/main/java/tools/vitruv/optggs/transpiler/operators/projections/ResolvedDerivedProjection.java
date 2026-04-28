@@ -35,18 +35,15 @@ public class ResolvedDerivedProjection implements ResolvedProjection {
 
     private ValueExpression determineValueForFunctionParameter(TripleRule rule, String parameter) {
         return switch (function.argument(parameter)) {
-            case FunctionInvocation.ConstrainedArgument(var node1, var attribute) when parameter.equals(RETURN) ->
-                rule.allTargetsAsSlice()
+            case FunctionInvocation.ConstrainedArgument(var node1, var attribute) ->
+                (parameter.equals(RETURN) ? rule.allTargetsAsSlice() : rule.allSourcesAsSlice())
                     .findByType(node1)
-                    .orElseThrow(() -> new RuntimeException("Derive projection: node " + node1.fqn() + " not found in target graph"))
+                    .orElseThrow(() -> new RuntimeException("Derive projection: node " + node1.fqn() +
+                        (parameter.equals(RETURN) ? " not found in target graph" : " not found in source graph")))
                     .addVariableAttribute(attribute, LogicOperator.Equals);
             case Object ignored when parameter.equals(RETURN) ->
                 throw new RuntimeException("Derive projection: return attribute must be constrained argument in target graph");
             case FunctionInvocation.ConstantArgument(var value) -> new ConstantExpression(value);
-            case FunctionInvocation.ConstrainedArgument(var node1, var attribute) -> rule.allSourcesAsSlice()
-                .findByType(node1)
-                .orElseThrow(() -> new RuntimeException("Derive projection: node " + node1.fqn() + " not found in source graph"))
-                .addVariableAttribute(attribute, LogicOperator.Equals);
         };
     }
 
