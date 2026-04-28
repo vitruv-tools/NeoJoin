@@ -245,14 +245,27 @@ public class QueryModelInferrer {
 
             //add declared parameters
             for (var param : viewType.getParameters()) {
-                var instanceClass = param.getType().getInstanceClass();
-                if (instanceClass != null) {
-                    op.getParameters().add(
-                    types.toParameter(param, param.getAlias(), typeReferences.typeRef(instanceClass))  
-                    );
-                }
+                JvmTypeReference typeRef = paramTypeRef(param);
+                op.getParameters().add(
+                    types.toParameter(param, param.getAlias(), typeRef)
+                );
             }
         };
+    }
+
+    private JvmTypeReference paramTypeRef(Parameter param) {
+        var paramType = param.getType();                      // ParamType AST node
+        var classifier = paramType.getElementType();
+        JvmTypeReference base;
+        if (classifier instanceof EDataType dt) {
+            var cls = dt.getInstanceClass();
+            base = (cls != null) ? typeReferences.typeRef(cls) : typeReferences.typeRef("invalid");
+        } else if (classifier instanceof EClass ec) {
+            base = typeRef(sourceTypes.getClass(ec));
+        } else {
+            base = typeReferences.typeRef("invalid");
+        }
+        return paramType instanceof CollectionParamType ? wrapInList(base) : base;
     }
 
     /**

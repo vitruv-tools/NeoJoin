@@ -1,6 +1,7 @@
 package tools.vitruv.neojoin.aqr;
 
-import org.eclipse.emf.ecore.EDataType;
+import org.eclipse.emf.ecore.EClassifier;
+
 /**
  * Imported package
  *
@@ -8,5 +9,6 @@ import org.eclipse.emf.ecore.EDataType;
  */
 public record AQRParameter(
     String alias,
-    EDataType type
+    EClassifier type,
+    boolean isList
 ) {}
