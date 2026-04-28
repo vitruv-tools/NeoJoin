@@ -35,7 +35,6 @@ public class ResolvedThetaJoin implements ResolvedPatternLink {
                     Node refNode = slice.findByType(node1).orElseThrow();
                     constraint.addParameter(parameter, refNode.addVariableAttribute(attribute, LogicOperator.Equals));
                 }
-                case null, default -> {}
             }
         }
         slice.addConstraint(constraint);
