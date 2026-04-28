@@ -93,6 +93,7 @@ public class MetaModelGenerator {
     protected EClass createClass(AQRTargetClass targetClass) {
         EClass target = Ecore.createEClass();
         target.setName(targetClass.name());
+        target.setAbstract(targetClass.isAbstract());
 
         trace.targetToAqr().put(target, targetClass);
         trace.aqrToTarget().put(targetClass, target);
@@ -105,7 +106,11 @@ public class MetaModelGenerator {
 
     private void populateClass(AQRTargetClass targetClass) {
         var target = Objects.requireNonNull(trace.aqrToTarget().get(targetClass));
-        var features = targetClass.features().stream().map(this::createFeature).toList();
+
+        var superTypes = targetClass.superClasses().stream().map(superClass -> trace.aqrToTarget().get(superClass)).toList();
+        target.getESuperTypes().addAll(superTypes);
+
+        var features = targetClass.features().stream().filter(feature -> !(feature.kind() instanceof AQRFeature.Kind.Override)).map(this::createFeature).toList();
         target.getEStructuralFeatures().addAll(features);
     }
 

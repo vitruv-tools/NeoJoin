@@ -1,8 +1,6 @@
 package tools.vitruv.neojoin.jvmmodel;
 
 import org.eclipse.emf.ecore.EClass;
-import org.eclipse.emf.ecore.EDataType;
-import org.eclipse.emf.ecore.EEnum;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.xtext.common.types.JvmGenericType;
 import org.eclipse.xtext.common.types.JvmOperation;
@@ -17,7 +15,8 @@ import org.eclipse.xtext.xbase.jvmmodel.JvmTypeReferenceBuilder;
 import org.eclipse.xtext.xbase.jvmmodel.JvmTypesBuilder;
 import org.jspecify.annotations.Nullable;
 import tools.vitruv.neojoin.Constants;
-import tools.vitruv.neojoin.ast.Body;
+import tools.vitruv.neojoin.ast.ConcreteBody;
+import tools.vitruv.neojoin.ast.ConcreteMainQuery;
 import tools.vitruv.neojoin.ast.From;
 import tools.vitruv.neojoin.ast.MainQuery;
 import tools.vitruv.neojoin.ast.Source;
@@ -77,14 +76,16 @@ public class QueryModelInferrer {
 
         viewType.eResource().getContents().add(root); // otherwise type resolution fails
         for (MainQuery q : viewType.getQueries()) {
-            inferMainQuery(q);
+            if (q instanceof ConcreteMainQuery c) {
+                inferConcreteMainQuery(c);
+            }
         }
         viewType.eResource().getContents().remove(root);
 
         acceptor.accept(root);
     }
 
-    private void inferMainQuery(MainQuery mainQuery) {
+    private void inferConcreteMainQuery(ConcreteMainQuery mainQuery) {
         var targetName = AstUtils.getTargetName(mainQuery);
 
         if (mainQuery.getSource() != null) {
@@ -128,7 +129,7 @@ public class QueryModelInferrer {
         }
 
         if (mainQuery.getBody() != null) {
-            inferBody(
+            inferConcreteBody(
                 mainQuery.getBody(),
                 targetName,
                 paramsForSource(mainQuery.getSource(), AstUtils.isGrouping(mainQuery.getSource()), null)
@@ -136,7 +137,7 @@ public class QueryModelInferrer {
         }
     }
 
-    private void inferBody(Body body, String name, Consumer<JvmOperation> addParams) {
+    private void inferConcreteBody(ConcreteBody body, String name, Consumer<JvmOperation> addParams) {
         Utils.forEachIndexed(
             body.getFeatures(), (feature, index) -> {
                 var exprName = name + "_feature_" + index;
@@ -147,7 +148,7 @@ public class QueryModelInferrer {
                     var featureType = inferEClassFromExpressionOrNull(feature.getExpression());
                     if (featureType != null) {
                         var subQueryName = AstUtils.getTargetName(feature.getSubQuery(), featureType);
-                        inferBody(
+                        inferConcreteBody(
                             feature.getSubQuery().getBody(),
                             subQueryName,
                             paramsForClass(featureType, feature.getSubQuery())
