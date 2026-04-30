@@ -8,6 +8,13 @@ import java.nio.file.StandardCopyOption;
 import java.util.*;
 
 public class ConstraintSolver {
+
+    private final static String RETURN = "return";
+    private final static String SELF = "self";
+    private final static String DATA_TYPE_ESTRING = "EString";
+
+    private final static String RESOURCE_PATH_TO_CONSTRAIN = "tools/vitruv/optggs/driver/constraints/%s.java";
+
     private final String name;
     private final String className;
     private final Path file;
@@ -66,18 +73,14 @@ public class ConstraintSolver {
         // can be different than the index in the definition. And of course, we don't get the name of the parameter.
         // Alphabetical ordering, but `self` is the first and `result` the last entry.
         // E.g.: (a, c, self, return, b) becomes (self, a, b, c, return)
-        return parameters.keySet().stream().sorted((a, b) -> {
-            if (a.equals("self")) {
-                return -1;
-            } else if (a.equals("return")) {
-                return 1;
-            } else if (b.equals("self")) {
-                return 1;
-            } else if (b.equals("return")) {
-                return -1;
-            } else {
-                return a.compareTo(b);
-            }
+        return parameters.keySet().stream().sorted((a, b) -> switch (a) {
+            case SELF -> -1;
+            case RETURN -> 1;
+            default -> switch (b) {
+                case SELF -> -1;
+                case RETURN -> 1;
+                default -> a.compareTo(b);
+            };
         }).toList();
     }
 
@@ -86,24 +89,28 @@ public class ConstraintSolver {
     }
 
     public static Collection<ConstraintSolver> defaultSolvers() {
-        var classLoader = ConstraintSolver.class.getClassLoader();
         var solvers = new ArrayList<ConstraintSolver>();
         solvers.add(
-                new ConstraintSolver("concat", "Concat", classLoader.getResource("tools/vitruv/optggs/driver/constraints/Concat.java"))
-                        .parameter("self", "EString")
-                        .parameter("text", "EString")
-                        .parameter("return", "EString")
-                        .supportsBindings(List.of("B B B", "B B F", "B F B", "F B B", "B F F", "F B F", "F F B", "F F F"))
-                        .supportsGenBindings(List.of("B B B", "F F F"))
+            constraintSolverFromClass("concat", "Concat")
+                .parameter(SELF, DATA_TYPE_ESTRING)
+                .parameter("text", DATA_TYPE_ESTRING)
+                .parameter(RETURN, DATA_TYPE_ESTRING)
+                .supportsBindings(List.of("B B B", "B B F", "B F B", "F B B", "B F F", "F B F", "F F B", "F F F"))
+                .supportsGenBindings(List.of("B B B", "F F F"))
         );
         solvers.add(
-                new ConstraintSolver("startsWith", "StartsWith", classLoader.getResource("tools/vitruv/optggs/driver/constraints/StartsWith.java"))
-                        .parameter("self", "EString")
-                        .parameter("prefix", "EString")
-                        .supportsBindings(List.of("B B", "B F", "F B"))
-                        .supportsGenBindings(List.of("B B", "F F"))
+            constraintSolverFromClass("startsWith", "StartsWith")
+                .parameter(SELF, DATA_TYPE_ESTRING)
+                .parameter("prefix", DATA_TYPE_ESTRING)
+                .supportsBindings(List.of("B B", "B F", "F B"))
+                .supportsGenBindings(List.of("B B", "F F"))
         );
         return solvers;
+    }
+
+    private static ConstraintSolver constraintSolverFromClass(String name, String className) {
+        var classLoader = ConstraintSolver.class.getClassLoader();
+        return new ConstraintSolver(name, className, classLoader.getResource(RESOURCE_PATH_TO_CONSTRAIN.formatted(className)));
     }
 }
 
