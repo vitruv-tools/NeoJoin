@@ -8,7 +8,7 @@ import java.util.*;
 import java.util.stream.Stream;
 
 public class ResolvedView {
-    private List<ResolvedQuery> queries;
+    private final List<ResolvedQuery> queries;
 
     public ResolvedView(List<ResolvedQuery> queries) {
         this.queries = queries;
@@ -33,9 +33,7 @@ public class ResolvedView {
 
     private Set<String> extractMetamodels(Stream<Slice> slices) {
         var metamodels = new HashSet<String>();
-        slices.forEach(slice -> {
-            metamodels.addAll(slice.mapNodes(node -> node.type().metamodelName()));
-        });
+        slices.forEach(slice -> metamodels.addAll(slice.mapNodes(node -> node.type().metamodelName())));
         return metamodels;
     }
 
