@@ -9,11 +9,11 @@ import java.util.*;
 
 public class ConstraintSolver {
 
-    private final static String RETURN = "return";
-    private final static String SELF = "self";
-    private final static String DATA_TYPE_ESTRING = "EString";
+    private static final String RETURN = "return";
+    private static final String SELF = "self";
+    private static final String DATA_TYPE_ESTRING = "EString";
 
-    private final static String RESOURCE_PATH_TO_CONSTRAIN = "tools/vitruv/optggs/driver/constraints/%s.java";
+    private static final String RESOURCE_PATH_TO_CONSTRAIN = "tools/vitruv/optggs/driver/constraints/%s.java";
 
     private final String name;
     private final String className;
