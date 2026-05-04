@@ -9,26 +9,13 @@ public enum LogicOperator {
     MoreEquals;
 
     public String print() {
-        switch (this) {
-            case Equals -> {
-                return "==";
-            }
-            case NotEquals -> {
-                return "!=";
-            }
-            case LessThan -> {
-                return "<";
-            }
-            case LessEquals -> {
-                return "<=";
-            }
-            case MoreThan -> {
-                return ">";
-            }
-            case MoreEquals -> {
-                return ">=";
-            }
-        }
-        return "";
+        return switch (this) {
+            case Equals -> "==";
+            case NotEquals -> "!=";
+            case LessThan -> "<";
+            case LessEquals -> "<=";
+            case MoreThan -> ">";
+            case MoreEquals -> ">=";
+        };
     }
 }
