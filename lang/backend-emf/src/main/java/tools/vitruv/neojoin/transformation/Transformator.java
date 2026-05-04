@@ -230,9 +230,7 @@ public class Transformator {
         AQRTargetClass targetClass,
         Stream<@Nullable EObject> sources
     ) {
-        sources.filter(Objects::nonNull).forEach(source -> {
-            targetMap.register(source, targetClass, targetInstance);
-        });
+        sources.filter(Objects::nonNull).forEach(source -> targetMap.register(source, targetClass, targetInstance));
     }
 
     private void populateTargetInstance(
