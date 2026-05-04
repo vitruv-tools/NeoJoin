@@ -139,7 +139,7 @@ public abstract class QueryResolver<V, Q, S, P, F, C extends Mappable, L, PA, PL
             public Pattern map(Mapping mapping) {
                 return Pattern.from(targetParentElement).ref(mapping.target(), targetLink);
             }
-        }).branches().stream().map((branch) -> createContainment(resolvePattern(branch.first()), resolvePattern(branch.last()), filters)).toList();
+        }).branches().stream().map(branch -> createContainment(resolvePattern(branch.first()), resolvePattern(branch.last()), filters)).toList();
     }
 
     /**

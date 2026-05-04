@@ -24,7 +24,7 @@ public class CustomIdeCrossrefProposalProvider extends IdeCrossrefProposalProvid
             }
         }
         return getProposalCreator().createProposal(
-            qualifiedName, context, (e) -> {
+            qualifiedName, context, e -> {
                 e.setSource(candidate);
                 e.setDescription(candidate.getEClass() != null ? candidate.getEClass().getName() : null);
                 e.setKind(ContentAssistEntry.KIND_REFERENCE);

@@ -138,9 +138,9 @@ public class AQRBuilder {
         }
 
         if (source != null) {
-            source.allFroms().forEach(f -> {
-                sourceClassToAQR.computeIfAbsent(f.clazz(), (k) -> new HashSet<>()).add(target);
-            });
+            source.allFroms().forEach(f ->
+                sourceClassToAQR.computeIfAbsent(f.clazz(), k -> new HashSet<>()).add(target)
+            );
         }
 
         populationQueue.add(new Pair<>(target, query != null ? query.getBody() : null));

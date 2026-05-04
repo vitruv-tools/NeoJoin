@@ -21,7 +21,7 @@ public class ResolvedUnion {
     @Override
     public String toString() {
         return branches.stream()
-            .map((branch) -> {
+            .map(branch -> {
                 var source = branch.first();
                 var target = branch.last();
                 return source + " => " + target;
