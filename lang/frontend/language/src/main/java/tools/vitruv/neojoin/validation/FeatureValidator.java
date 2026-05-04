@@ -270,17 +270,16 @@ public class FeatureValidator extends ComposableValidator {
     @Check
     public void checkAmbiguousImplicitFeatureTypes(ViewTypeDefinition viewType) {
         var sourceMap = new HashMap<EClass, Set<Query>>();
-        BiConsumer<EClass, Query> register = (sourceType, query) -> {
+        BiConsumer<EClass, Query> register = (sourceType, query) ->
             sourceMap.computeIfAbsent(sourceType, k -> new HashSet<>()).add(query);
-        };
 
         // populate source mapping
         AstUtils.getAllQueries(viewType).forEach(query -> {
             if (query instanceof MainQuery mainQuery) {
                 if (mainQuery.getSource() != null) {
-                    AstUtils.getAllFroms(mainQuery.getSource()).forEach(f -> {
-                        register.accept(f.getClazz(), mainQuery);
-                    });
+                    AstUtils.getAllFroms(mainQuery.getSource()).forEach(f ->
+                        register.accept(f.getClazz(), mainQuery)
+                    );
                 }
             } else if (query instanceof SubQuery subQuery) {
                 var sourceType = AstUtils.inferSubQuerySourceType(subQuery, expressionHelper);
