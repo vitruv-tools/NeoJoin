@@ -124,7 +124,7 @@ public class Node {
     @Override
     public String toString() {
         var links = String.join(",", links().stream().map(Objects::toString).toList());
-        var attrbutes = String.join(",", attributes().stream().map(Objects::toString).toList());
-        return "<" + (green ? "++" : "") + id + ": " + type.fqn() + ";" + links + ";" + attrbutes + ">";
+        var attributes = String.join(",", attributes().stream().map(Objects::toString).toList());
+        return "<" + (green ? "++" : "") + id + ": " + type.fqn() + ";" + links + ";" + attributes + ">";
     }
 }
