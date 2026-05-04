@@ -54,12 +54,9 @@ public class AQRTargetClassAssertions extends AbstractAssert<AQRTargetClassAsser
         var results = actual.source().joins().stream()
             .filter(join -> join.from().clazz() == source && Objects.equals(join.from().alias(), alias))
             .toList();
-        Assertions.assertThat(results.size() == 1).as(
-            "Expected a join with source class %s and alias %s, but found %d",
-            source.getName(),
-            alias,
-            results.size()
-        ).isTrue();
+        Assertions.assertThat(results.size())
+            .as("Expected a join with source class %s and alias %s, but found %d", source.getName(), alias, results.size())
+            .isSameAs(1);
         var join = results.get(0);
         Assertions.assertThat(join.type()).isSameAs(type);
         seenJoins.add(join);
