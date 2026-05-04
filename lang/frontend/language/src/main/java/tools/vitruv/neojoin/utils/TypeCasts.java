@@ -63,7 +63,7 @@ public final class TypeCasts {
         check(value.getClass() != Boolean.class && wrappedTo != Boolean.class);
 
         if (wrappedTo == Character.class) {
-            return castNumberToChar(value, wrappedTo);
+            return castNumberToChar(value);
         }
 
         if (value instanceof Character character) {
@@ -73,7 +73,7 @@ public final class TypeCasts {
         return castNumberToNumber(value, wrappedTo);
     }
 
-    private static Character castNumberToChar(Object value, Class<?> to) {
+    private static Character castNumberToChar(Object value) {
         // short has the same size as char
         return (char) ((Number) value).shortValue();
     }
