@@ -42,7 +42,7 @@ public class TranspilerQueryResolver extends QueryResolver<ResolvedView, Resolve
             case SimpleProjection(var source, var target, var sourceProperty, var targetProperty) ->
                 new ResolvedSimpleProjection(resolvePattern(source), target, sourceProperty, targetProperty);
             case DerivedProjection derivedProjection -> new ResolvedDerivedProjection(derivedProjection);
-            case null, default -> throw new RuntimeException("Unknown projection type while resolving");
+            default -> throw new RuntimeException("Unknown projection type while resolving");
         };
     }
 
