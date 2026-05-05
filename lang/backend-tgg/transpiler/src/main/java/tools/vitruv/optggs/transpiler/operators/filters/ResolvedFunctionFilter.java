@@ -33,8 +33,8 @@ public class ResolvedFunctionFilter implements ResolvedFilter {
     private ValueExpression determineValueForFunctionParameter(TripleRule rule, String parameter) {
         return switch (function.argument(parameter)) {
             case FunctionInvocation.ConstantArgument(var value) -> new ConstantExpression(value);
-            case FunctionInvocation.ConstrainedArgument(var node1, var attribute) -> rule.allSourcesAsSlice()
-                .findByType(node1).orElseThrow()
+            case FunctionInvocation.ConstrainedArgument(var node, var attribute) -> rule.allSourcesAsSlice()
+                .findByType(node).orElseThrow()
                 .addVariableAttribute(attribute, LogicOperator.Equals);
         };
     }

@@ -9,11 +9,11 @@ import java.util.*;
 
 public class ConstraintSolver {
 
-    private static final String RETURN = "return";
-    private static final String SELF = "self";
+    private static final String RETURN_PARAM_KEYWORD = "return";
+    private static final String SELF_PARAM_KEYWORD = "self";
     private static final String DATA_TYPE_ESTRING = "EString";
 
-    private static final String RESOURCE_PATH_TO_CONSTRAIN = "tools/vitruv/optggs/driver/constraints/%s.java";
+    private static final String RESOURCE_PATH_TO_CONSTRAINT = "tools/vitruv/optggs/driver/constraints/%s.java";
 
     private final String name;
     private final String className;
@@ -74,11 +74,11 @@ public class ConstraintSolver {
         // Alphabetical ordering, but `self` is the first and `result` the last entry.
         // E.g.: (a, c, self, return, b) becomes (self, a, b, c, return)
         return parameters.keySet().stream().sorted((a, b) -> switch (a) {
-            case SELF -> -1;
-            case RETURN -> 1;
+            case SELF_PARAM_KEYWORD -> -1;
+            case RETURN_PARAM_KEYWORD -> 1;
             default -> switch (b) {
-                case SELF -> -1;
-                case RETURN -> 1;
+                case SELF_PARAM_KEYWORD -> -1;
+                case RETURN_PARAM_KEYWORD -> 1;
                 default -> a.compareTo(b);
             };
         }).toList();
@@ -92,15 +92,15 @@ public class ConstraintSolver {
         var solvers = new ArrayList<ConstraintSolver>();
         solvers.add(
             constraintSolverFromClass("concat", "Concat")
-                .parameter(SELF, DATA_TYPE_ESTRING)
+                .parameter(SELF_PARAM_KEYWORD, DATA_TYPE_ESTRING)
                 .parameter("text", DATA_TYPE_ESTRING)
-                .parameter(RETURN, DATA_TYPE_ESTRING)
+                .parameter(RETURN_PARAM_KEYWORD, DATA_TYPE_ESTRING)
                 .supportsBindings(List.of("B B B", "B B F", "B F B", "F B B", "B F F", "F B F", "F F B", "F F F"))
                 .supportsGenBindings(List.of("B B B", "F F F"))
         );
         solvers.add(
             constraintSolverFromClass("startsWith", "StartsWith")
-                .parameter(SELF, DATA_TYPE_ESTRING)
+                .parameter(SELF_PARAM_KEYWORD, DATA_TYPE_ESTRING)
                 .parameter("prefix", DATA_TYPE_ESTRING)
                 .supportsBindings(List.of("B B", "B F", "F B"))
                 .supportsGenBindings(List.of("B B", "F F"))
@@ -110,7 +110,7 @@ public class ConstraintSolver {
 
     private static ConstraintSolver constraintSolverFromClass(String name, String className) {
         var classLoader = ConstraintSolver.class.getClassLoader();
-        return new ConstraintSolver(name, className, classLoader.getResource(RESOURCE_PATH_TO_CONSTRAIN.formatted(className)));
+        return new ConstraintSolver(name, className, classLoader.getResource(RESOURCE_PATH_TO_CONSTRAINT.formatted(className)));
     }
 }
 
