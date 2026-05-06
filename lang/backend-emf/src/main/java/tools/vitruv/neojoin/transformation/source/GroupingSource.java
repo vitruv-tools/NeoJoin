@@ -53,9 +53,7 @@ public class GroupingSource {
 
         for (var tuple : tuples) {
             Utils.forEachIndexed(
-                tuple.stream().iterator(), (obj, index) -> {
-                    result.get(index).add(obj);
-                }
+                tuple.stream().iterator(), (obj, index) -> result.get(index).add(obj)
             );
         }
 

@@ -4,6 +4,7 @@ import tools.vitruv.optggs.operators.Tuple;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ResolvedUnion {
 
@@ -19,10 +20,12 @@ public class ResolvedUnion {
 
     @Override
     public String toString() {
-        return String.join(" UNION ", branches.stream().map((branch) -> {
-            var source = branch.first();
-            var target = branch.last();
-            return source + " => " + target;
-        }).toList());
+        return branches.stream()
+            .map(branch -> {
+                var source = branch.first();
+                var target = branch.last();
+                return source + " => " + target;
+            })
+            .collect(Collectors.joining(" UNION "));
     }
 }

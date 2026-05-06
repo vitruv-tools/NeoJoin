@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class FunctionInvocation {
-    public interface Argument {
+    public sealed interface Argument {
         String print();
     }
 

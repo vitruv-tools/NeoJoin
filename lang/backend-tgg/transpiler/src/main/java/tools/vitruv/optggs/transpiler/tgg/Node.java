@@ -9,6 +9,7 @@ import tools.vitruv.optggs.operators.expressions.VariableExpression;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class Node {
     private final String id;
@@ -123,8 +124,8 @@ public class Node {
 
     @Override
     public String toString() {
-        var links = String.join(",", links().stream().map(Objects::toString).toList());
-        var attrbutes = String.join(",", attributes().stream().map(Objects::toString).toList());
-        return "<" + (green ? "++" : "") + id + ": " + type.fqn() + ";" + links + ";" + attrbutes + ">";
+        var links = links().stream().map(Objects::toString).collect(Collectors.joining(","));
+        var attributes = attributes().stream().map(Objects::toString).collect(Collectors.joining(","));
+        return "<" + (green ? "++" : "") + id + ": " + type.fqn() + ";" + links + ";" + attributes + ">";
     }
 }

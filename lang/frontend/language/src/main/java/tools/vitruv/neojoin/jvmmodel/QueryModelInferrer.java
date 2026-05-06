@@ -1,8 +1,6 @@
 package tools.vitruv.neojoin.jvmmodel;
 
 import org.eclipse.emf.ecore.EClass;
-import org.eclipse.emf.ecore.EDataType;
-import org.eclipse.emf.ecore.EEnum;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.xtext.common.types.JvmGenericType;
 import org.eclipse.xtext.common.types.JvmOperation;
@@ -89,19 +87,17 @@ public class QueryModelInferrer {
 
         if (mainQuery.getSource() != null) {
             Utils.forEachIndexed(
-                mainQuery.getSource().getJoins(), (join, joinIndex) -> {
+                mainQuery.getSource().getJoins(), (join, joinIndex) ->
                     Utils.forEachIndexed(
-                        join.getExpressionConditions(), (condition, conditionIndex) -> {
+                        join.getExpressionConditions(), (condition, conditionIndex) ->
                             addExpression(
                                 join,
                                 "%s_join_%d_condition_%d".formatted(targetName, joinIndex, conditionIndex),
                                 "boolean",
                                 condition.getExpression(),
                                 paramsForSource(mainQuery.getSource(), false, join.getFrom())
-                            );
-                        }
-                    );
-                }
+                            )
+                    )
             );
 
             if (mainQuery.getSource().getCondition() != null) {
@@ -115,15 +111,14 @@ public class QueryModelInferrer {
             }
 
             Utils.forEachIndexed(
-                mainQuery.getSource().getGroupingExpressions(), (condition, index) -> {
+                mainQuery.getSource().getGroupingExpressions(), (condition, index) ->
                     addExpression(
                         mainQuery.getSource(),
                         targetName + "_grouping_" + index,
                         "java.lang.Object", // grouping expression can be anything
                         condition,
                         paramsForSource(mainQuery.getSource(), false, null)
-                    );
-                }
+                    )
             );
         }
 
@@ -199,7 +194,7 @@ public class QueryModelInferrer {
     ) {
         check(root != null);
         root.getMembers().add(types.toMethod(
-            source, name, typeReferences.typeRef(type), (op) -> {
+            source, name, typeReferences.typeRef(type), op -> {
                 op.setStatic(true);
                 addParams.accept(op);
                 types.setBody(op, expression);
@@ -217,7 +212,8 @@ public class QueryModelInferrer {
      */
     private Consumer<JvmOperation> paramsForSource(@Nullable Source source, boolean isGrouping, @Nullable From limit) {
         if (source == null) {
-            return op -> {};
+            return op -> {
+            };
         } else {
             return op -> {
                 if (AstUtils.getAllFroms(source).count() <= 1) {
@@ -252,9 +248,8 @@ public class QueryModelInferrer {
      * @return lambda that creates the parameter
      */
     private Consumer<JvmOperation> paramsForClass(EClass clazz, EObject source) {
-        return op -> {
+        return op ->
             addParam(op, source, Constants.ExpressionSelfReference, sourceTypes.getClass(clazz), false);
-        };
     }
 
     /**

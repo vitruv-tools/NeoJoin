@@ -27,7 +27,7 @@ public class Union {
 
     public ResolvedUnion resolve(Set<Mapping> mappings, Resolver resolver) {
         return new ResolvedUnion(
-                branches.stream().map((source) -> resolveBranch(source, mappings, resolver).orElseThrow()).toList()
+                branches.stream().map(source -> resolveBranch(source, mappings, resolver).orElseThrow()).toList()
         );
     }
 
@@ -41,11 +41,11 @@ public class Union {
     }
 
     public boolean anyEquals(Pattern pattern) {
-        return branches.stream().anyMatch((branch) -> branch.equals(pattern));
+        return branches.stream().anyMatch(branch -> branch.equals(pattern));
     }
 
     public boolean anyStartWith(Pattern pattern) {
-        return branches.stream().anyMatch((branch) -> branch.startsWith(pattern));
+        return branches.stream().anyMatch(branch -> branch.startsWith(pattern));
     }
 
 

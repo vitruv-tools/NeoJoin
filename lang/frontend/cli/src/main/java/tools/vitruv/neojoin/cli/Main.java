@@ -186,9 +186,9 @@ public class Main implements Callable<Integer> {
             return;
         }
 
-        rootDiagnostic.getChildren().forEach(d -> {
-            System.err.printf("[%s] %s%n", EMFUtils.diagnosticSeverityText(d), d.getMessage());
-        });
+        rootDiagnostic.getChildren().forEach(d ->
+            System.err.printf("[%s] %s%n", EMFUtils.diagnosticSeverityText(d), d.getMessage())
+        );
     }
 
     /**

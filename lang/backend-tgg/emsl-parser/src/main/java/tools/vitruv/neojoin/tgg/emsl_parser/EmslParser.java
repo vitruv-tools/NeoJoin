@@ -12,7 +12,10 @@ import org.emoflon.neo.emsl.EMSLStandaloneSetup;
 
 import java.util.List;
 
-public class EmslParser {
+public final class EmslParser {
+
+    private EmslParser() {}
+
     public static void initialize() {
         new EMSLStandaloneSetup().createInjectorAndDoEMFRegistration();
     }

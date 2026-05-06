@@ -8,6 +8,7 @@ import org.jspecify.annotations.Nullable;
  *
  * @param <T> type of the return value if successful
  */
+@SuppressWarnings("unused") // suppress unused generic T since it is needed
 public sealed interface Result<T extends @Nullable Object> {
 
     record Success<T>(

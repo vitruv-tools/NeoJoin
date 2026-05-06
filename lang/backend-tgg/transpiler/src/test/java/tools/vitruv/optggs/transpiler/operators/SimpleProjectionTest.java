@@ -89,8 +89,8 @@ class SimpleProjectionTest {
         var projection = new SimpleProjection(Pattern.from(pkg("A")).ref(pkg("B"), "b"), t("A'"), "id", "id");
         view.addQuery(Query.from(pkg("A")).create(t("A'")).build().project(projection).contains(pkg("C"), "c"));
         view.addQuery(Query.from(pkg("C")).create(t("C'")).build().project(projection));
-        assertTrue(view.mappings().stream().noneMatch((mapping) -> mapping.source().equals(pkg("B"))));
-        assertFalse(view.mappings().stream().noneMatch((mapping) -> mapping.source().equals(pkg("C"))));
+        assertTrue(view.mappings().stream().noneMatch(mapping -> mapping.source().equals(pkg("B"))));
+        assertFalse(view.mappings().stream().noneMatch(mapping -> mapping.source().equals(pkg("C"))));
     }
 
 }

@@ -17,6 +17,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static tools.vitruv.neojoin.ide.visualization.PlantUMLBuilder.Empty;
 import static tools.vitruv.neojoin.utils.Assertions.check;
@@ -36,20 +37,23 @@ public class VisualizationGenerator {
         /**
          * Show all classes of the target meta-model and all classes of the source meta-models.
          */
-        record Full() implements Mode {}
+        record Full() implements Mode {
+        }
 
         /**
          * Show all classes of the target meta-model and the corresponding classes of the source meta-model
          * which are used to generate these target classes, i.e. are directly copied over or are
          * referenced in the target class' query.
          */
-        record Referenced() implements Mode {}
+        record Referenced() implements Mode {
+        }
 
         /**
          * Show the given selected classes of the target meta-model and corresponding classes of the source
          * meta-models (see {@link Mode.Referenced Referenced}).
          */
-        record Selected(List<EClass> selectedClasses) implements Mode {}
+        record Selected(List<EClass> selectedClasses) implements Mode {
+        }
 
     }
 
@@ -117,48 +121,34 @@ public class VisualizationGenerator {
             header();
             packages(); // generate empty package stubs
 
-            // Classifiers are sorted in the following sections to ensure a deterministic output, because otherwise
-            // elements can jump around for example when reformatting the source file or adding spaces.
-
             if (mode instanceof Mode.Full) {
-                // show all source classes
-                aqr.imports().forEach(imp -> {
-                    EMFUtils.getAllEClassifiers(imp.pack())
-                        .sorted(Comparator.comparing(EClassifier::getName))
-                        .forEach(classifier -> {
-                            if (classifier instanceof EClass clazz) {
-                                // class might have already been generated as super class of another class
-                                clazzIfNew(clazz);
-                            } else if (classifier instanceof EEnum eEnum) {
-                                // enum might have already been generated from a class attribute
-                                enumerationIfNew(eEnum);
-                            }
-                        });
-                });
-            }
-
-            if (mode instanceof Mode.Selected selected) {
-                // show selected target classes
-                selected.selectedClasses.stream()
-                    .sorted(Comparator.comparing(EClassifier::getName))
-                    .forEach(this::targetClazz);
-            } else {
-                // show all target classes
-                targetMetaModel.pack().getEClassifiers().stream()
-                    .sorted(Comparator.comparing(EClassifier::getName))
-                    .forEach(classifier -> {
-                        if (classifier instanceof EClass clazz) {
-                            targetClazz(clazz);
-                        } else if (classifier instanceof EEnum eEnum) {
-                            // enum might have already been generated from a class attribute
-                            enumerationIfNew(eEnum);
-                        }
-                    });
+                showClasses(getAllSourceClasses());
+                showClasses(getAllTargetClasses());
+            } else if (mode instanceof Mode.Selected selected) {
+                showClasses(selected.selectedClasses.stream());
+            } else if (mode instanceof Mode.Referenced) {
+                showClasses(getAllTargetClasses());
             }
         });
 
         return out.build();
     }
+
+    private void showClasses(Stream<? extends EClassifier> classifiers) {
+        classifiers
+            // Classifiers are sorted in the following sections to ensure a deterministic output, because otherwise
+            // elements can jump around for example when reformatting the source file or adding spaces.
+            .sorted(Comparator.comparing(EClassifier::getName))
+            .forEach(classifier -> {
+                if (classifier instanceof EClass clazz) {
+                    targetClazz(clazz);
+                } else if (classifier instanceof EEnum eEnum) {
+                    // enum might have already been generated from a class attribute
+                    enumerationIfNew(eEnum);
+                }
+            });
+    }
+
 
     private void header() {
         out.appendln("""
@@ -228,24 +218,20 @@ public class VisualizationGenerator {
 
         // class with attributes
         out.clazz(
-            qualifiedName, () -> {
-                clazz.getEAttributes().forEach(attr -> {
-                    var type = getQualifiedName(attr.getEType());
-                    out.attribute(attr.getName(), type);
-                });
-            }
+            qualifiedName, () -> clazz.getEAttributes().forEach(attr -> {
+                var type = getQualifiedName(attr.getEType());
+                out.attribute(attr.getName(), type);
+            })
         );
 
         // references
-        clazz.getEReferences().forEach(ref -> {
-            out.reference(
-                qualifiedName,
-                ref.isContainment() ? PlantUMLBuilder.ReferenceContainment : PlantUMLBuilder.ReferenceNormal,
-                getQualifiedName(ref.getEType()),
-                ref.getName(),
-                new Pair<>(ref.getLowerBound(), ref.getUpperBound())
-            );
-        });
+        clazz.getEReferences().forEach(ref -> out.reference(
+            qualifiedName,
+            ref.isContainment() ? PlantUMLBuilder.ReferenceContainment : PlantUMLBuilder.ReferenceNormal,
+            getQualifiedName(ref.getEType()),
+            ref.getName(),
+            new Pair<>(ref.getLowerBound(), ref.getUpperBound())
+        ));
 
         // super types
         for (var superType : clazz.getESuperTypes()) {
@@ -277,11 +263,7 @@ public class VisualizationGenerator {
         var qualifiedName = getQualifiedName(eEnum);
 
         out.enumeration(
-            qualifiedName, () -> {
-                eEnum.getELiterals().forEach(literal -> {
-                    out.literal(literal.getName());
-                });
-            }
+            qualifiedName, () -> eEnum.getELiterals().forEach(literal -> out.literal(literal.getName()))
         );
 
         var sourceEnum = targetMetaModel.trace().targetToSourceEnums().get(eEnum);
@@ -296,4 +278,11 @@ public class VisualizationGenerator {
         }
     }
 
+    private Stream<EClassifier> getAllSourceClasses() {
+        return aqr.imports().stream().flatMap(imp -> EMFUtils.getAllEClassifiers(imp.pack()));
+    }
+
+    private Stream<EClassifier> getAllTargetClasses() {
+        return targetMetaModel.pack().getEClassifiers().stream();
+    }
 }

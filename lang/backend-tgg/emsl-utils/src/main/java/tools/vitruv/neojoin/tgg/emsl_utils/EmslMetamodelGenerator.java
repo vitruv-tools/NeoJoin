@@ -11,8 +11,10 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
-public class EmslMetamodelGenerator {
+public final class EmslMetamodelGenerator {
     private static final String EMSL_METAMODEL_COLLECTION_TEMPLATE = "EmslMetamodelCollection.jte";
+
+    private EmslMetamodelGenerator() {}
 
     public static void generateMetamodels(ResourceSet resourceSet, Path output) {
         TemplateEngine engine = TemplateEngine.createPrecompiled(ContentType.Plain);

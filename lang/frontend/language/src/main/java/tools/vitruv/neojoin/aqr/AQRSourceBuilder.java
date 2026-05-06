@@ -23,6 +23,8 @@ import static tools.vitruv.neojoin.aqr.AQRInvariantViolatedException.invariant;
  */
 public class AQRSourceBuilder {
 
+    private AQRSourceBuilder() {}
+
     /**
      * Creates a source for the given AST source.
      */

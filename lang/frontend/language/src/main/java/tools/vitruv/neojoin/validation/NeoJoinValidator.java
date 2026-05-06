@@ -44,15 +44,15 @@ public class NeoJoinValidator extends AbstractNeoJoinValidator {
         if (hasImplicitRoot) {
             var conflicts = groupedTargets.get(Constants.DefaultRootClassName);
             if (conflicts != null) {
-                conflicts.forEach(query -> {
+                conflicts.forEach(query ->
                     error(
                         ("Target class name '%s' collides with name of the implicit root class. " +
                             "Either choose a different name for this class or explicitly create a root class with a different name.")
                             .formatted(Constants.DefaultRootClassName),
                         query,
                         query.getName() != null ? AstPackage.Literals.QUERY__NAME : null
-                    );
-                });
+                    )
+                );
             }
         }
     }

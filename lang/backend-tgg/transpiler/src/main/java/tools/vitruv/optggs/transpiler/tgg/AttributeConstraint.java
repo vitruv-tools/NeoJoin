@@ -7,6 +7,7 @@ import tools.vitruv.optggs.operators.expressions.VariableExpression;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class AttributeConstraint {
     public final String name;
@@ -58,7 +59,7 @@ public class AttributeConstraint {
 
     @Override
     public String toString() {
-        var params = parameters.stream().map((param) -> param.attribute() + ": " + param.value()).toList();
-        return name + "(" + String.join(",", params) + ")";
+        var params = parameters.stream().map(param -> param.attribute() + ": " + param.value()).collect(Collectors.joining(","));
+        return name + "(" + params + ")";
     }
 }
