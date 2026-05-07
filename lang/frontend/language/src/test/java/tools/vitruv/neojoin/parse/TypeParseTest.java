@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import static tools.vitruv.neojoin.parse.ParseAssertions.assertThat;
 
-public class TypeParseTest extends AbstractParseTest {
+class TypeParseTest extends AbstractParseTest {
 
     @Test
     void correctTypeAttribute() {

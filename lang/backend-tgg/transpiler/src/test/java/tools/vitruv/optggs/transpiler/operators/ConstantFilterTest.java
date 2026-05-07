@@ -27,7 +27,7 @@ class ConstantFilterTest {
     }
 
     @Test
-    public void filterToRule() {
+    void filterToRule() {
         var view = new View();
         view.addQuery(Query.from(pkg("A")).create(t("A'")).build().filter(pkg("A"), "id", LogicOperator.Equals, ConstantExpression.String("foo")));
         var queries = resolve(view);
@@ -37,7 +37,7 @@ class ConstantFilterTest {
     }
 
     @Test
-    public void multiNodeFilterToRule() {
+    void multiNodeFilterToRule() {
         var view = new View();
         view.addQuery(Query.from(pkg("A")).ref(pkg("B"), "b").create(t("A'")).build().filter(pkg("A"), "id", LogicOperator.Equals, ConstantExpression.String("foo")));
         var queries = resolve(view);
@@ -47,7 +47,7 @@ class ConstantFilterTest {
     }
 
     @Test
-    public void multiNodeFilterToRuleAlt() {
+    void multiNodeFilterToRuleAlt() {
         var view = new View();
         view.addQuery(Query.from(pkg("A")).ref(pkg("B"), "b").create(t("A'")).build().filter(pkg("B"), "id", LogicOperator.Equals, ConstantExpression.String("foo")));
         var queries = resolve(view);

@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import static tools.vitruv.neojoin.parse.ParseAssertions.assertThat;
 
-public class FeatureParseTest extends AbstractParseTest {
+class FeatureParseTest extends AbstractParseTest {
 
     @Test
     void classAliasMissing() {

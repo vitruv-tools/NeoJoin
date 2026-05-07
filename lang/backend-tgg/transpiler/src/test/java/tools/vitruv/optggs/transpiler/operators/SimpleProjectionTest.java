@@ -27,7 +27,7 @@ class SimpleProjectionTest {
     }
 
     @Test
-    public void simpleProjectionToRule() {
+    void simpleProjectionToRule() {
         var view = new View();
         view.addQuery(Query.from(pkg("A")).create(t("A'")).build().project("id"));
         var queries = resolve(view);
@@ -37,7 +37,7 @@ class SimpleProjectionTest {
     }
 
     @Test
-    public void linkedProjectionToRule() {
+    void linkedProjectionToRule() {
         var view = new View();
         view.addQuery(
                 Query.from(pkg("A")).create(t("A'")).build()
@@ -50,7 +50,7 @@ class SimpleProjectionTest {
     }
 
     @Test
-    public void multiTargetProjectionToRule() {
+    void multiTargetProjectionToRule() {
         var view = new View();
         view.addQuery(
                 Query.from(pkg("A")).create(t("A'")).ref(t("B'"), "b").build()
@@ -63,28 +63,28 @@ class SimpleProjectionTest {
     }
 
     @Test
-    public void checkDirectContainmentInQuery() {
+    void checkDirectContainmentInQuery() {
         var projection = new SimpleProjection(Pattern.from(pkg("A")).ref(pkg("B"), "b"), t("A'"), "id", "id");
         var containment = new Containment(Pattern.from(pkg("A")).ref(pkg("B"), "b"), t("A'"), "b");
         assertTrue(projection.isContained(List.of(containment), projection.source()));
     }
 
     @Test
-    public void checkDirectPartialContainmentInQuery() {
+    void checkDirectPartialContainmentInQuery() {
         var projection = new SimpleProjection(Pattern.from(pkg("A")).ref(pkg("B"), "b"), t("A'"), "id", "id");
         var containment = new Containment(Pattern.from(pkg("A")).ref(pkg("B"), "b").ref(pkg("C"), "c"), t("A'"), "c");
         assertTrue(projection.isContained(List.of(containment), projection.source()));
     }
 
     @Test
-    public void checkNoDirectContainmentInQuery() {
+    void checkNoDirectContainmentInQuery() {
         var projection = new SimpleProjection(Pattern.from(pkg("A")).ref(pkg("B"), "b"), t("A'"), "id", "id");
         var containment = new Containment(Pattern.from(pkg("A")).ref(pkg("C"), "c"), t("A'"), "c");
         assertFalse(projection.isContained(List.of(containment), projection.source()));
     }
 
     @Test
-    public void checkNoSelectionEver() {
+    void checkNoSelectionEver() {
         var view = new View();
         var projection = new SimpleProjection(Pattern.from(pkg("A")).ref(pkg("B"), "b"), t("A'"), "id", "id");
         view.addQuery(Query.from(pkg("A")).create(t("A'")).build().project(projection).contains(pkg("C"), "c"));

@@ -25,7 +25,7 @@ class ResolvedLinkTest {
     }
 
     @Test
-    public void extendRule() {
+    void extendRule() {
         var source = resolve(Pattern.from(pkg("A")).ref(pkg("B"), "b"));
         var target = resolve(Pattern.from(t("A'")).ref(t("B'"), "b"));
         var link = new ResolvedLink(source, target, List.of());
@@ -39,7 +39,7 @@ class ResolvedLinkTest {
     }
 
     @Test
-    public void extendComplexRule() {
+    void extendComplexRule() {
         var source = resolve(Pattern.from(pkg("A")).ref(pkg("B"), "b").ref(pkg("C"), "c"));
         var target = resolve(Pattern.from(t("A'")).ref(t("B'"), "b"));
         var link = new ResolvedLink(source, target, List.of());

@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import static tools.vitruv.neojoin.parse.ParseAssertions.assertThat;
 
-public class RootParseTest extends AbstractParseTest {
+class RootParseTest extends AbstractParseTest {
 
     @Test
     void simple() {

@@ -6,7 +6,7 @@ import tools.vitruv.neojoin.Constants;
 import static tools.vitruv.neojoin.aqr.AQRAssertions.assertThat;
 import static tools.vitruv.neojoin.aqr.AQRTargetClassAssertions.assertThat;
 
-public class RootAQRTest extends AbstractAQRTest {
+class RootAQRTest extends AbstractAQRTest {
 
     @Test
     void implicit() {
@@ -64,7 +64,7 @@ public class RootAQRTest extends AbstractAQRTest {
     void rootReferences() {
         var aqr = parse("""
             from Restaurant create Restauranty
-            
+
             create root Rooty {
                 test := 5
             }

@@ -26,7 +26,7 @@ class DerivedProjectionTest {
     }
 
     @Test
-    public void deriveProjectionToRule() {
+    void deriveProjectionToRule() {
         var function = new FunctionInvocation("capitalize").setConstrainedArgument("self", pkg("A"), "name");
         var query = Query.from(pkg("A")).create(t("A'")).build().project(function, "name");
         assertEquals("σ(pkg.A => t.A')π(t.A'::name=pkg.A::name->capitalize())", query.toString());
@@ -36,7 +36,7 @@ class DerivedProjectionTest {
     }
 
     @Test
-    public void deriveComplexProjectionToRule() {
+    void deriveComplexProjectionToRule() {
         var function = new FunctionInvocation("concatWith")
                 .setConstrainedArgument("self", pkg("A"), "name")
                 .setConstrainedArgument("text", pkg("B"), "index");

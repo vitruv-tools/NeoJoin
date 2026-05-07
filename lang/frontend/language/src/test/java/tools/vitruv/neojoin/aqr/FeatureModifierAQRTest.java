@@ -8,7 +8,7 @@ import static tools.vitruv.neojoin.aqr.AQRAssertions.assertThat;
 import static tools.vitruv.neojoin.aqr.AQRFeatureOptionsAssertions.assertThat;
 import static tools.vitruv.neojoin.aqr.AQRTargetClassAssertions.assertThat;
 
-public class FeatureModifierAQRTest extends AbstractAQRTest {
+class FeatureModifierAQRTest extends AbstractAQRTest {
 
     private static final int Unbounded = ETypedElement.UNBOUNDED_MULTIPLICITY;
 

@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import static tools.vitruv.neojoin.aqr.AQRAssertions.assertThat;
 import static tools.vitruv.neojoin.aqr.AQRTargetClassAssertions.assertThat;
 
-public class JoinAQRTest extends AbstractAQRTest {
+class JoinAQRTest extends AbstractAQRTest {
 
     @Test
     void basicJoinWithAttributes() {

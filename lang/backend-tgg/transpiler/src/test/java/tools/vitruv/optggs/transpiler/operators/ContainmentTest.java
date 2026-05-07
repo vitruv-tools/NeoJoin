@@ -28,7 +28,7 @@ class ContainmentTest {
     }
 
     @Test
-    public void filteredContainment() {
+    void filteredContainment() {
         var containment = new Containment(Pattern.from(pkg("A")).ref(pkg("B"), "b"), t("A'"), "b")
                 .filter("id", ConstantExpression.String("foo"));
         assertEquals("κ(pkg.A-[b]->pkg.B => t.A'-[b]->? | φ(pkg.B::id==\"foo\"))", containment.toString());
