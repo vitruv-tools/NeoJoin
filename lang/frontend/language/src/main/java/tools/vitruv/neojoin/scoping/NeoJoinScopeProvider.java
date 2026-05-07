@@ -102,7 +102,7 @@ public class NeoJoinScopeProvider extends AbstractNeoJoinScopeProvider {
      */
     private IScope createImportedClassifiersScope(ViewTypeDefinition viewType) {
         var imports = AstUtils.getImportedPackagesByAlias(viewType);
-        return createImportedClassifierScope(imports, c -> c instanceof EClass);
+        return createImportedClassifierScope(imports, EClass.class::isInstance);
     }
 
     /**
@@ -143,7 +143,7 @@ public class NeoJoinScopeProvider extends AbstractNeoJoinScopeProvider {
     private IScope createFeatureTypeScope(ViewTypeDefinition viewType) {
         var imports = AstUtils.getImportedPackagesByAlias(viewType);
         imports.put(Constants.EcoreAlias, EcorePackage.eINSTANCE); // ecore is always available
-        var dataTypeScope = createImportedClassifierScope(imports, c -> c instanceof EDataType);
+        var dataTypeScope = createImportedClassifierScope(imports, EDataType.class::isInstance);
 
         var queryCandidates = AstUtils.getAllQueries(viewType)
             .map(query -> EObjectDescription.create(AstUtils.getTargetName(query, expressionHelper), query))

@@ -42,9 +42,8 @@ public class MetaModelGenerator {
         this.aqr = input;
 
         // ecore data types are not copied and thereby mapped to themselves
-        EMFUtils.getAllEDataTypes(EcorePackage.eINSTANCE).forEach(dataType -> {
-            dataTypeSourceMap.put(dataType, dataType);
-        });
+        EMFUtils.getAllEDataTypes(EcorePackage.eINSTANCE)
+            .forEach(dataType -> dataTypeSourceMap.put(dataType, dataType));
     }
 
     /**

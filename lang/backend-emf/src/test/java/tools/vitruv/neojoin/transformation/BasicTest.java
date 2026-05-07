@@ -55,18 +55,16 @@ public class BasicTest extends DefaultTransformationTest {
 
         assertThat(result)
             .hasInstance(
-                "Restaurant", named("Pizzeria Toni"), rest -> {
+                "Restaurant", named("Pizzeria Toni"), rest ->
                     assertThat(rest)
                         .hasAttribute("name", "Pizzeria Toni")
-                        .hasAttribute("len", 13);
-                }
+                        .hasAttribute("len", 13)
             )
             .hasInstance(
-                "Restaurant", named("Brauhaus"), rest -> {
+                "Restaurant", named("Brauhaus"), rest ->
                     assertThat(rest)
                         .hasAttribute("name", "Brauhaus")
-                        .hasAttribute("len", 8);
-                }
+                        .hasAttribute("len", 8)
             )
             .hasNoMoreInstances();
     }
@@ -107,18 +105,15 @@ public class BasicTest extends DefaultTransformationTest {
 
         assertThat(result)
             .hasInstance(
-                "Restaurant", named("Pizzeria Toni"), rest -> {
+                "Restaurant", named("Pizzeria Toni"), rest ->
                     assertThat(rest)
                         .hasManyReference(
                             "sells", named("Pizza Margherita"), named("Fanta")
-                        );
-                }
+                        )
             )
             .hasInstance(
-                "Restaurant", named("Brauhaus"), rest -> {
-                    assertThat(rest)
-                        .hasManyReference("sells", named("Maultaschen"), named("Fanta"));
-                }
+                "Restaurant", named("Brauhaus"), rest ->
+                    assertThat(rest).hasManyReference("sells", named("Maultaschen"), named("Fanta"))
             )
             .hasInstance("Food", named("Pizza Margherita"))
             .hasInstance("Food", named("Maultaschen"))
@@ -150,30 +145,30 @@ public class BasicTest extends DefaultTransformationTest {
 
     @Test
     void missingTarget() {
-        assertThatThrownBy(() -> {
+        assertThatThrownBy(() ->
             transform("""
                 from Restaurant create
 
                 from Food f
                 where false
                 create TastyFood {}
-                """);
-        }).hasMessage(
+                """)
+        ).hasMessage(
             "Failed to transform models: no target instance of class 'TastyFood' found for source instance of class 'Food'"
         );
     }
 
     @Test
     void ambiguousTarget() {
-        assertThatThrownBy(() -> {
+        assertThatThrownBy(() ->
             transform("""
                 from Restaurant create
 
                 from Food f
                 join Food f2
                 create TastyFood {}
-                """);
-        }).hasMessage(
+                """)
+        ).hasMessage(
             "Failed to transform models: multiple target instances of class 'TastyFood' found for source instance of class 'Food'"
         );
     }
@@ -209,18 +204,16 @@ public class BasicTest extends DefaultTransformationTest {
 
         assertThat(result)
             .hasInstance(
-                "Result", named("Pizzeria Toni"), rest -> {
+                "Result", named("Pizzeria Toni"), rest ->
                     assertThat(rest)
                         .hasAttribute("name", "Pizzeria Toni")
-                        .hasReference("self", other -> other == rest);
-                }
+                        .hasReference("self", other -> other == rest)
             )
             .hasInstance(
-                "Result", named("Brauhaus"), rest -> {
+                "Result", named("Brauhaus"), rest ->
                     assertThat(rest)
                         .hasAttribute("name", "Brauhaus")
-                        .hasReference("self", other -> other == rest);
-                }
+                        .hasReference("self", other -> other == rest)
             )
             .hasNoMoreInstances();
     }
@@ -237,16 +230,14 @@ public class BasicTest extends DefaultTransformationTest {
 
         assertThat(result)
             .hasInstance(
-                "Result", named("Pizzeria Toni"), rest -> {
+                "Result", named("Pizzeria Toni"), rest ->
                     assertThat(rest)
-                        .hasReference("test", other -> other == null);
-                }
+                        .hasReference("test", other -> other == null)
             )
             .hasInstance(
-                "Result", named("Brauhaus"), rest -> {
+                "Result", named("Brauhaus"), rest ->
                     assertThat(rest)
-                        .hasReference("test", other -> other == null);
-                }
+                        .hasReference("test", other -> other == null)
             );
     }
 
@@ -260,10 +251,9 @@ public class BasicTest extends DefaultTransformationTest {
 
         assertThat(result)
             .hasInstance(
-                "Result", any(), res -> {
+                "Result", any(), res ->
                     assertThat(res)
-                        .hasAttribute("test", 12);
-                }
+                        .hasAttribute("test", 12)
             )
             .hasNoMoreInstances();
     }
@@ -278,23 +268,22 @@ public class BasicTest extends DefaultTransformationTest {
 
         assertThat(result)
             .hasInstance(
-                "Test", any(), test -> {
+                "Test", any(), test ->
                     assertThat(test)
-                        .hasAttribute("test", List.of(1, 2));
-                }
+                        .hasAttribute("test", List.of(1, 2))
             )
             .hasNoMoreInstances();
     }
 
     @Test
     void containmentError() {
-        assertThatThrownBy(() -> {
+        assertThatThrownBy(() ->
             transform("""
                 from Restaurant r create {
                     sells [containment] := r.sells
                 }
-                """);
-        }).hasMessage(
+                """)
+        ).hasMessage(
             "Failed to transform models: cannot add target instance of class 'Food' to containment reference 'Restaurant.sells' because it is already contained in another instance of class 'Restaurant'"
         );
     }
@@ -315,11 +304,10 @@ public class BasicTest extends DefaultTransformationTest {
 
         assertThat(result)
             .hasInstance(
-                "Restaurant", named("Pizzeria Toni"), rest -> {
+                "Restaurant", named("Pizzeria Toni"), rest ->
                     assertThat(rest)
                         .hasAttribute("name", "Pizzeria Toni")
-                        .hasManyReference("sells", named("Pizza Margherita"), named("Fanta"));
-                }
+                        .hasManyReference("sells", named("Pizza Margherita"), named("Fanta"))
             )
             .hasInstance("Food", named("Pizza Margherita"))
             .hasInstance("Food", named("Fanta"))
@@ -346,14 +334,13 @@ public class BasicTest extends DefaultTransformationTest {
 
         assertThat(result)
             .hasInstance(
-                "Test", named("basic"), t -> {
+                "Test", named("basic"), t ->
                     assertThat(t)
                         .hasAttribute("p1", (byte) 30000)
                         .hasAttribute("p2", (int) 30000)
                         .hasAttribute("p3", (long) 30000)
                         .hasAttribute("p4", (float) 30000)
-                        .hasAttribute("p5", (double) 30000);
-                }
+                        .hasAttribute("p5", (double) 30000)
             );
     }
 
@@ -376,14 +363,13 @@ public class BasicTest extends DefaultTransformationTest {
 
         assertThat(result)
             .hasInstance(
-                "Test", named("basic"), t -> {
+                "Test", named("basic"), t ->
                     assertThat(t)
                         .hasAttribute("p1", (byte) 30000)
                         .hasAttribute("p2", (int) 30000)
                         .hasAttribute("p3", (long) 30000)
                         .hasAttribute("p4", (float) 30000)
-                        .hasAttribute("p5", (double) 30000);
-                }
+                        .hasAttribute("p5", (double) 30000)
             );
     }
 
