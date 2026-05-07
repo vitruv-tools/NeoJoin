@@ -62,8 +62,8 @@ public class MetaModelGenerator {
             var copy = EcoreUtil.copy(dataType);
             dataTypeSourceMap.put(dataType, copy);
             pack.getEClassifiers().add(copy);
-            if (dataType instanceof EEnum) {
-                trace.targetToSourceEnums().put((EEnum) copy, (EEnum) dataType);
+            if (dataType instanceof EEnum eEnum) {
+                trace.targetToSourceEnums().put((EEnum) copy, eEnum);
             }
         }
 
