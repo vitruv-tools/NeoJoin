@@ -8,6 +8,9 @@ import tools.vitruv.optggs.transpiler.tgg.TripleRule;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 public class ResolvedContainment implements RuleGenerator, Mappable {
     private final ResolvedPattern source;
@@ -54,7 +57,7 @@ public class ResolvedContainment implements RuleGenerator, Mappable {
 
     @Override
     public String toString() {
-        var f = String.join(", ", filters.stream().map(Object::toString).toList());
+        var f = filters.stream().map(Object::toString).collect(Collectors.joining(", "));
         if (!f.isEmpty()) {
             f = " | " + f;
         }

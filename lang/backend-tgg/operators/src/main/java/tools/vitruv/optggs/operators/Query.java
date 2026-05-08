@@ -9,6 +9,7 @@ import tools.vitruv.optggs.operators.traits.Projectable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * A single query consisting of multiple operators
@@ -145,10 +146,10 @@ public record Query(Selection selection,
 
     @Override
     public String toString() {
-        var p = String.join(".", projections.stream().map(Object::toString).toList());
-        var f = String.join(".", filters.stream().map(Object::toString).toList());
-        var c = String.join(".", containments.stream().map(Object::toString).toList());
-        var l = String.join(".", links.stream().map(Object::toString).toList());
+        var p = projections.stream().map(Object::toString).collect(Collectors.joining("."));
+        var f = filters.stream().map(Object::toString).collect(Collectors.joining("."));
+        var c = containments.stream().map(Object::toString).collect(Collectors.joining("."));
+        var l = links.stream().map(Object::toString).collect(Collectors.joining("."));
         return selection + f + p + c + l;
     }
 }

@@ -10,6 +10,7 @@ import tools.vitruv.optggs.transpiler.tgg.Slice;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class ResolvedJoin implements ResolvedPatternLink {
     private final FQN element;
@@ -38,7 +39,7 @@ public class ResolvedJoin implements ResolvedPatternLink {
 
     @Override
     public String toString() {
-        var conditions = String.join(",", constrainedProperties.stream().map(props -> props.first() + "==" + props.last()).toList());
+        var conditions = constrainedProperties.stream().map(props -> props.first() + "==" + props.last()).collect(Collectors.joining(","));
         return " ⨝(" + conditions + ") " + element.fqn();
     }
 

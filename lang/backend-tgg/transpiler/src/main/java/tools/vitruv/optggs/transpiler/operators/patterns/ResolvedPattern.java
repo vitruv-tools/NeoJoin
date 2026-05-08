@@ -9,6 +9,7 @@ import tools.vitruv.optggs.transpiler.tgg.Slice;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class ResolvedPattern {
     private final List<ResolvedPatternLink> links;
@@ -56,7 +57,7 @@ public class ResolvedPattern {
     }
 
     public Tuple<ResolvedPattern, ResolvedPatternLink> popTop() {
-        var first = links.get(0);
+        var first = links.getFirst();
         var remainder = links.subList(1, links.size());
         return new Tuple<>(new ResolvedPattern(remainder), first);
     }
@@ -74,7 +75,7 @@ public class ResolvedPattern {
 
     @Override
     public String toString() {
-        return String.join("", links.stream().map(Object::toString).toList());
+        return links.stream().map(Object::toString).collect(Collectors.joining(""));
     }
 
     @Override

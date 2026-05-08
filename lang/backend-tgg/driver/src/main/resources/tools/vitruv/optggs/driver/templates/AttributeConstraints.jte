@@ -3,7 +3,7 @@
 @param Project p
 
 @for(ConstraintSolver solver : p.constraintSolvers())
-attributeConstraint ${solver.name()}(${String.join(", ", solver.parameters().stream().map(param -> param + ": " + solver.parameterType(param)).toList())}) {
+attributeConstraint ${solver.name()}(${solver.parameters().stream().map(param -> param + ": " + solver.parameterType(param)).collect(Collectors.joining(", "))}) {
     ${String.join(", ", solver.supportedBindings())}
     gen: ${String.join(", ", solver.supportedGenBindings())}
 }
