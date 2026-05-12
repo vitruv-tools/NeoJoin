@@ -32,14 +32,12 @@ import tools.vitruv.neojoin.transformation.TransformatorException;
 import tools.vitruv.neojoin.utils.EMFUtils;
 import tools.vitruv.neojoin.utils.Utils;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.concurrent.Callable;
 
 @NullUnmarked
@@ -91,8 +89,11 @@ public class Main implements Callable<Integer> {
         @Option(names = {"-t", "--transform"}, paramLabel = "OUTPUT", required = true, description = "Transform the input models based on the query and write the result to the given output file or directory.")
         Path output;
 
-        @Option(names = {"-p", "--parameters-path"}, paramLabel = "PARAM-PATH", required = false, description = "Parameters path (see below) to find xmi-file containing a list of parameters.")
-        Path parametersPath;
+        @Option(names = {"-p", "--parameters"}, paramLabel = "PARAMS", split = ",", required = false,
+                description = "Query parameters as comma-separated name=value pairs. " +
+                              "For EClass/EList parameters the value is a path to an XMI file. " +
+                              "Example: -p featureName=Navigation,activeFeatures=config.xmi")
+        Map<String, String> parameters;
 
     }
 
@@ -195,13 +196,8 @@ public class Main implements Callable<Integer> {
             return Map.of();
         }
 
-        if (transform.parametersPath == null) {
-            throw new IllegalArgumentException(
-                "Missing path to parameters file."
-            );
-        }
-        var inputParams = readInputParameters(transform.parametersPath);
-        
+        Map<String, String> inputParams = transform.parameters != null ? transform.parameters : Map.of();
+
         HashMap<String, Object> result = new HashMap<>();
         for (AQRParameter param : aqrParams) {
             if (!inputParams.containsKey(param.alias())) {
@@ -226,17 +222,6 @@ public class Main implements Callable<Integer> {
                 }
                 result.put(param.alias(), typedValue);
             }
-        }
-
-        return result;
-    }
-
-    private Map<String, String> readInputParameters(Path path) throws IOException {
-        Properties p = new Properties();
-        p.load(new FileInputStream(path.toFile()));
-        HashMap<String, String> result = new HashMap<>();
-        for (String name : p.stringPropertyNames()) {
-            result.put(name, p.getProperty(name));
         }
 
         return result;
