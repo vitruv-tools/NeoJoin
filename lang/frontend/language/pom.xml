@@ -17,7 +17,6 @@
     <maven.compiler.release>17</maven.compiler.release>
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
-  <kotlin.version>2.3.10</kotlin.version>
   </properties>
 
   <dependencies>
@@ -96,17 +95,6 @@
       <artifactId>junit-platform-engine</artifactId>
       <scope>test</scope>
     </dependency>
-      <dependency>
-          <groupId>org.jetbrains.kotlin</groupId>
-          <artifactId>kotlin-stdlib-jdk8</artifactId>
-          <version>${kotlin.version}</version>
-      </dependency>
-      <dependency>
-          <groupId>org.jetbrains.kotlin</groupId>
-          <artifactId>kotlin-test</artifactId>
-          <version>${kotlin.version}</version>
-          <scope>test</scope>
-      </dependency>
   </dependencies>
 
   <build>
@@ -141,74 +129,6 @@
           </filesets>
         </configuration>
       </plugin>
-        <plugin>
-            <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-maven-plugin</artifactId>
-            <version>${kotlin.version}</version>
-            <extensions>true</extensions>
-            <executions>
-                <execution>
-                    <id>compile</id>
-                    <phase>compile</phase>
-                    <goals>
-                        <goal>compile</goal>
-                    </goals>
-                    <configuration>
-                        <sourceDirs>
-                            <sourceDir>src/main/java</sourceDir>
-                            <sourceDir>src/main/xtext</sourceDir>
-                            <sourceDir>target/generated-sources/annotations</sourceDir>
-                            <sourceDir>target/generated-sources/xtext-ecore</sourceDir>
-                            <sourceDir>target/generated-sources/xtext-java</sourceDir>
-                        </sourceDirs>
-                    </configuration>
-                </execution>
-                <execution>
-                    <id>test-compile</id>
-                    <phase>test-compile</phase>
-                    <goals>
-                        <goal>test-compile</goal>
-                    </goals>
-                    <configuration>
-                        <sourceDirs>
-                            <sourceDir>src/test/java</sourceDir>
-                            <sourceDir>target/generated-test-sources/test-annotations</sourceDir>
-                        </sourceDirs>
-                    </configuration>
-                </execution>
-            </executions>
-            <configuration>
-                <jvmTarget>${maven.compiler.target}</jvmTarget>
-            </configuration>
-        </plugin>
-        <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-compiler-plugin</artifactId>
-            <executions>
-                <execution>
-                    <id>default-compile</id>
-                    <phase>none</phase>
-                </execution>
-                <execution>
-                    <id>default-testCompile</id>
-                    <phase>none</phase>
-                </execution>
-                <execution>
-                    <id>compile</id>
-                    <phase>compile</phase>
-                    <goals>
-                        <goal>compile</goal>
-                    </goals>
-                </execution>
-                <execution>
-                    <id>testCompile</id>
-                    <phase>test-compile</phase>
-                    <goals>
-                        <goal>testCompile</goal>
-                    </goals>
-                </execution>
-            </executions>
-        </plugin>
     </plugins>
   </build>
 

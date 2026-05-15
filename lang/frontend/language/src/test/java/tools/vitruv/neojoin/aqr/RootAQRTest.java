@@ -76,8 +76,8 @@ class RootAQRTest extends AbstractAQRTest {
                     assertThat(root)
                         .hasNoCondition()
                         .hasCalculatedAttribute("test", "EInt")
-                        .hasGeneratedReference("allRestaurantys", "Restauranty") // explicit
-                        .hasGeneratedReference("allFoods", "Food") // implicit
+                        .hasGeneratedReference("restaurantys", "Restauranty") // explicit
+                        .hasGeneratedReference("foods", "Food") // implicit
                         .hasNoMoreFeatures();
                 }
             )
