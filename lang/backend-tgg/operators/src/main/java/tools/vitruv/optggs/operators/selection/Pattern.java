@@ -5,6 +5,7 @@ import tools.vitruv.optggs.operators.FunctionInvocation;
 import tools.vitruv.optggs.operators.Tuple;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Pattern {
     private final List<PatternLink> links;
@@ -109,7 +110,7 @@ public class Pattern {
 
     @Override
     public String toString() {
-        return String.join("", links.stream().map(Object::toString).toList());
+        return links.stream().map(Object::toString).collect(Collectors.joining());
     }
 
     @Override

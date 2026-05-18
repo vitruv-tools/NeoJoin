@@ -4,6 +4,7 @@ import tools.vitruv.optggs.operators.Tuple;
 import tools.vitruv.optggs.operators.Mapping;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Union {
     private final List<Pattern> branches = new ArrayList<>();
@@ -51,7 +52,7 @@ public class Union {
 
     @Override
     public String toString() {
-        return String.join(" UNION ", branches.stream().map(Object::toString).toList());
+        return branches.stream().map(Object::toString).collect(Collectors.joining( " UNION "));
     }
 
     public interface Resolver {

@@ -6,6 +6,7 @@ import tools.vitruv.optggs.operators.Tuple;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class Join implements PatternLink {
     private final FQN element;
@@ -37,7 +38,7 @@ public class Join implements PatternLink {
 
     @Override
     public String toString() {
-        var conditions = String.join(",", constrainedProperties.stream().map(props -> props.first() + "==" + props.last()).toList());
+        var conditions = constrainedProperties.stream().map(props -> props.first() + "==" + props.last()).collect(Collectors.joining(","));
         return " ⨝(" + conditions + ") " + element.fqn();
     }
 

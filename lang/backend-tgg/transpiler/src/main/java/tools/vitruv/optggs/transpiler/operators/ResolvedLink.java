@@ -6,6 +6,7 @@ import tools.vitruv.optggs.transpiler.tgg.TripleRule;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ResolvedLink implements RuleGenerator {
     private final ResolvedPattern source;
@@ -48,7 +49,7 @@ public class ResolvedLink implements RuleGenerator {
 
     @Override
     public String toString() {
-        var f = String.join(", ", filters.stream().map(Object::toString).toList());
+        var f = filters.stream().map(Object::toString).collect(Collectors.joining( ", "));
         if (!f.isEmpty()) {
             f = " | " + f;
         }

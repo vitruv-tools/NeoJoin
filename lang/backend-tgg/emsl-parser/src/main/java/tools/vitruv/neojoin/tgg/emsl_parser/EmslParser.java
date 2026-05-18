@@ -11,6 +11,7 @@ import org.eclipse.xtext.validation.Issue;
 import org.emoflon.neo.emsl.EMSLStandaloneSetup;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public final class EmslParser {
 
@@ -44,6 +45,6 @@ public final class EmslParser {
     }
 
     private static String generateIssuesMessage(List<Issue> issues) {
-        return String.join(System.lineSeparator(), issues.stream().map(Issue::getMessage).toList());
+        return issues.stream().map(Issue::getMessage).collect(Collectors.joining(System.lineSeparator()));
     }
 }
