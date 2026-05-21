@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import static tools.vitruv.neojoin.aqr.AQRAssertions.assertThat;
 import static tools.vitruv.neojoin.aqr.AQRTargetClassAssertions.assertThat;
 
-public class CustomDataTypeAQRTest extends AbstractAQRTest {
+class CustomDataTypeAQRTest extends AbstractAQRTest {
 
     @Test
     void implicitDataType() {

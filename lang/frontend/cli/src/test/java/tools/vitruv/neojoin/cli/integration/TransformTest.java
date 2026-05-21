@@ -23,12 +23,12 @@ import org.junit.jupiter.params.provider.FieldSource;
 import picocli.CommandLine;
 import tools.vitruv.neojoin.cli.Main;
 
-public class TransformTest {
+class TransformTest {
 
     static List<String> validQueries = List.of("pizza");
 
     @BeforeAll
-    public static void setupRegistry() {
+    static void setupRegistry() {
         if (!Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().containsKey("xmi")) {
             Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().put("xmi", new XMIResourceFactoryImpl());
         }
@@ -39,7 +39,7 @@ public class TransformTest {
      */
     @ParameterizedTest
     @FieldSource("validQueries")
-    public void testTransformInputModels(String queryName, @TempDir Path outputDirectory) throws URISyntaxException, IOException {
+    void testTransformInputModels(String queryName, @TempDir Path outputDirectory) throws URISyntaxException, IOException {
         // GIVEN meta-models, instance models, a valid query and an output path
         var metaModelPath = getResource(Utils.MODELS);
         var instanceModelPath = getResource(Utils.INSTANCES);

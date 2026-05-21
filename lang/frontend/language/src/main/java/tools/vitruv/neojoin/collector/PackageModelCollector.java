@@ -33,14 +33,13 @@ public class PackageModelCollector extends AbstractModelCollector {
 
         var registry = new EPackageRegistryImpl();
 
-        collectResourcesAsStream(new ResourceSetImpl()).forEach(res -> {
+        collectResourcesAsStream(new ResourceSetImpl()).forEach(res ->
             EMFUtils.getAllEPackages(res).forEach(pack -> {
                 var previousValue = registry.put(pack.getNsURI(), pack);
                 if (previousValue != null) {
                     throw new IllegalArgumentException("Found multiple packages with URI '%s'.".formatted(pack.getNsURI()));
-                }
-            });
-        });
+            }
+        }));
 
         return registry;
     }

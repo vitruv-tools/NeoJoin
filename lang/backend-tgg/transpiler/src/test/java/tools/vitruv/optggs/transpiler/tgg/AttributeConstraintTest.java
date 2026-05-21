@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class AttributeConstraintTest {
     @Test
-    public void testOrdering() {
+    void testOrdering() {
         var constraint = new AttributeConstraint("foo");
         constraint.addParameter("a", ConstantExpression.Primitive(""));
         constraint.addParameter("c", ConstantExpression.Primitive(""));

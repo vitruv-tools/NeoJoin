@@ -21,7 +21,7 @@ class ThetaJoinTest {
     }
 
     @Test
-    public void thetaJoinToPattern() {
+    void thetaJoinToPattern() {
         var function = new FunctionInvocation("concatWith")
                 .setConstrainedArgument("return", pkg("A"), "name")
                 .setConstrainedArgument("self", pkg("B"), "prename")
@@ -34,7 +34,7 @@ class ThetaJoinTest {
     }
 
     @Test
-    public void thetaAndNaturalJoinToPattern() {
+    void thetaAndNaturalJoinToPattern() {
         var function = new FunctionInvocation("concatWith")
                 .setConstrainedArgument("return", pkg("A"), "name")
                 .setConstrainedArgument("self", pkg("B"), "prename")

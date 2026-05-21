@@ -19,7 +19,7 @@ import org.junit.jupiter.params.provider.FieldSource;
 import picocli.CommandLine;
 import tools.vitruv.neojoin.cli.Main;
 
-public class GenerateTest {
+class GenerateTest {
 
     static List<String> validQueries = List.of("actor-rating", "books-on-tape", "customer-borrowings", "movies");
 
@@ -28,7 +28,7 @@ public class GenerateTest {
      */
     @ParameterizedTest
     @FieldSource("validQueries")
-    public void testGenerateMetaModel(String queryName, @TempDir Path outputDirectory) throws IOException {
+    void testGenerateMetaModel(String queryName, @TempDir Path outputDirectory) throws IOException {
         // GIVEN meta-models, a valid query and an output path
         var metaModelPath = getResource(Utils.MODELS);
         var query = getResource(Utils.QUERIES.resolve(queryName + ".nj"));

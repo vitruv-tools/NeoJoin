@@ -98,9 +98,9 @@ public class AQRTargetClassAssertions extends AbstractAssert<AQRTargetClassAsser
     private AQRFeature getFeature(String name) {
         var results = actual.features().stream().filter(a -> a.name().equals(name)).toList();
         check(results.size() <= 1);
-        Assertions.assertThat(results.size() == 1)
+        Assertions.assertThat(results)
             .as("Expected a feature named '%s' in '%s', but found none", name, actual.name())
-            .isTrue();
+            .hasSize(1);
         var feature = results.get(0);
         seenFeatures.add(feature);
         return feature;

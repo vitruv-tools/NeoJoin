@@ -27,11 +27,11 @@ public class ResolvedPattern {
     }
 
     public FQN top() {
-        return links.get(0).element();
+        return links.getFirst().element();
     }
 
     public FQN bottom() {
-        return links.get(links.size() - 1).element();
+        return links.getLast().element();
     }
 
     public Pattern topPattern() {
@@ -51,7 +51,7 @@ public class ResolvedPattern {
     }
 
     public Tuple<ResolvedPattern, ResolvedPatternLink> popBottom() {
-        var last = links.get(links.size() - 1);
+        var last = links.getLast();
         var remainder = links.subList(0, links.size() - 1);
         return new Tuple<>(new ResolvedPattern(remainder), last);
     }

@@ -11,7 +11,7 @@ import org.junit.jupiter.params.provider.FieldSource;
 import picocli.CommandLine;
 import tools.vitruv.neojoin.cli.Main;
 
-public class MetaModelPathTest {
+class MetaModelPathTest {
 
     // actor-rating: meta-model in top-level directory
     // devices: meta-model in sub directory
@@ -20,7 +20,7 @@ public class MetaModelPathTest {
 
     @ParameterizedTest
     @FieldSource("validQueries")
-    public void testCheckQuery(String queryName) {
+    void testCheckQuery(String queryName) {
         // GIVEN meta-models and a valid query on them
         var metaModelPath = getResource(Utils.MODELS);
         var query = getResource(Utils.QUERIES.resolve(queryName + ".nj"));
@@ -30,7 +30,7 @@ public class MetaModelPathTest {
 
         // WHEN checking the query
         int exitCode = new CommandLine(new Main()).execute(new String[] { metaModelPathArg, queryArg });
-        
+
         // THEN the query is accepted
         assertEquals(0, exitCode);
     }

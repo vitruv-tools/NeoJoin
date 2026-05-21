@@ -42,9 +42,8 @@ public class MetaModelGenerator {
         this.aqr = input;
 
         // ecore data types are not copied and thereby mapped to themselves
-        EMFUtils.getAllEDataTypes(EcorePackage.eINSTANCE).forEach(dataType -> {
-            dataTypeSourceMap.put(dataType, dataType);
-        });
+        EMFUtils.getAllEDataTypes(EcorePackage.eINSTANCE)
+            .forEach(dataType -> dataTypeSourceMap.put(dataType, dataType));
     }
 
     /**
@@ -63,8 +62,8 @@ public class MetaModelGenerator {
             var copy = EcoreUtil.copy(dataType);
             dataTypeSourceMap.put(dataType, copy);
             pack.getEClassifiers().add(copy);
-            if (dataType instanceof EEnum) {
-                trace.targetToSourceEnums().put((EEnum) copy, (EEnum) dataType);
+            if (dataType instanceof EEnum eEnum) {
+                trace.targetToSourceEnums().put((EEnum) copy, eEnum);
             }
         }
 
