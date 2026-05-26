@@ -11,7 +11,13 @@ public class AbstractParseTest extends AbstractIntegrationTest {
 
     @Override
     protected List<String> getMetaModelPaths() {
-        return List.of("/models/restaurant.ecore", "/models/reviewpage.ecore", "/models/type-casts.ecore", "/models/cyclic.ecore");
+        return List.of(
+            "/models/restaurant.ecore",
+            "/models/reviewpage.ecore",
+            "/models/type-casts.ecore",
+            "/models/cyclic.ecore",
+            "/models/imdb.ecore"
+        );
     }
 
     protected Pair<ViewTypeDefinition, List<Issue>> parse(String query) {

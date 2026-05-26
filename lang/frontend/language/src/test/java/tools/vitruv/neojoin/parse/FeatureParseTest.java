@@ -1,9 +1,21 @@
 package tools.vitruv.neojoin.parse;
 
+import org.eclipse.emf.ecore.EClassifier;
+import org.eclipse.emf.ecore.EcorePackage;
+import org.eclipse.xtext.xbase.XExpression;
 import org.junit.jupiter.api.Test;
+import tools.vitruv.neojoin.ast.Feature;
+import tools.vitruv.neojoin.ast.Query;
+import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
+import tools.vitruv.neojoin.jvmmodel.TypeInfo;
+import tools.vitruv.neojoin.jvmmodel.TypeResolutionException;
 
+import static java.util.Objects.requireNonNull;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 import static tools.vitruv.neojoin.parse.ParseAssertions.assertThat;
 
+@SuppressWarnings("HttpUrlsUsage")
 class FeatureParseTest extends AbstractParseTest {
 
     @Test
@@ -180,4 +192,56 @@ class FeatureParseTest extends AbstractParseTest {
         assertThat(result).hasIssues("Copy feature expression does not reference a feature");
     }
 
+
+    @Test
+    void inferUnboxedType() {
+        var expressionHelper = getInjector().getInstance(ExpressionHelper.class);
+        var result = internalParse("""
+            export package to "http://example.com"
+
+            import "http://example.org/imdb"
+
+            from Film films
+            group by films.year
+            create Summary {
+                year := films.same[ it.year ]
+            }
+            """);
+
+        assertThat(result)
+            .hasNoIssues();
+
+        var query = result.left().getQueries().get(0);
+        var yearFeature = getFeatureOrFail(query, "year");
+        var featureClassifier = inferredClassifierOrFail(expressionHelper, yearFeature.getExpression());
+
+        assertThat(featureClassifier)
+            .isEqualTo(EcorePackage.Literals.EINT);
+    }
+
+    private Feature getFeatureOrFail(Query query, String featureName) {
+        return requireNonNull(
+            query.getBody().getFeatures()
+                .stream().filter(feature -> feature.getName().equals(featureName))
+                .findAny()
+                .orElseGet(() -> fail("No feature with name: '%s' found in query.".formatted(featureName))));
+    }
+
+    private EClassifier inferredClassifierOrFail(ExpressionHelper expressionHelper, XExpression expression) {
+        final String FAILURE_MESSAGE_PREFIX = "Failed to retrieve inferred type of feature:";
+
+        TypeInfo typeInfo;
+        try {
+            typeInfo = expressionHelper.inferEType(expression);
+        } catch (TypeResolutionException e) {
+            typeInfo = fail(FAILURE_MESSAGE_PREFIX, e);
+        }
+
+        EClassifier classifier =
+            typeInfo == null ? fail("%s Type info was null.".formatted(FAILURE_MESSAGE_PREFIX))
+                : typeInfo.classifier();
+
+        return classifier == null ? fail("%s Classifier was null.".formatted(FAILURE_MESSAGE_PREFIX))
+            : classifier;
+    }
 }
