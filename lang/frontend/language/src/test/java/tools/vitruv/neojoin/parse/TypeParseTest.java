@@ -12,6 +12,8 @@ import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
 import tools.vitruv.neojoin.jvmmodel.TypeInfo;
 import tools.vitruv.neojoin.jvmmodel.TypeResolutionException;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Stream;
 
 import static java.util.Objects.requireNonNull;
@@ -344,6 +346,12 @@ class TypeParseTest extends AbstractParseTest {
             new CheckInferredFeatureTypeFixture(
                 "years",
                 "years := films.map[ it.year ]",
+                EcorePackage.Literals.EINTEGER_OBJECT,
+                true
+            ),
+            new CheckInferredFeatureTypeFixture(
+                "years",
+                "years := #[1, 2, 3]",
                 EcorePackage.Literals.EINTEGER_OBJECT,
                 true
             )
