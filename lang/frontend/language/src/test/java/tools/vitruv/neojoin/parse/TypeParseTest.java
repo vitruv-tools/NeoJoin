@@ -4,13 +4,15 @@ import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.xtext.xbase.XExpression;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import tools.vitruv.neojoin.ast.Feature;
 import tools.vitruv.neojoin.ast.Query;
 import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
 import tools.vitruv.neojoin.jvmmodel.TypeInfo;
 import tools.vitruv.neojoin.jvmmodel.TypeResolutionException;
 
-import java.util.List;
+import java.util.stream.Stream;
 
 import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -307,10 +309,8 @@ class TypeParseTest extends AbstractParseTest {
         );
     }
 
-    @Test
-    void inferUnboxedType() {
-        var expressionHelper = getInjector().getInstance(ExpressionHelper.class);
-        var fixtures = List.of(
+    private static Stream<CheckInferredFeatureTypeFixture> inferUnboxedType() {
+        return Stream.of(
             new CheckInferredFeatureTypeFixture(
                 "year",
                 "year := films.same[ it.year ]",
@@ -337,15 +337,10 @@ class TypeParseTest extends AbstractParseTest {
                 EcorePackage.Literals.EBYTE
             )
         );
-
-        for (var fixture : fixtures) {
-            runCheckInferredFeatureTypeTest(fixture);
-        }
     }
 
-    @Test
-    void inferListOfPrimitives() {
-        runCheckInferredFeatureTypeTest(
+    private static Stream<CheckInferredFeatureTypeFixture> inferListOfPrimitives() {
+        return Stream.of(
             new CheckInferredFeatureTypeFixture(
                 "years",
                 "years := films.map[ it.year ]",
@@ -355,9 +350,8 @@ class TypeParseTest extends AbstractParseTest {
         );
     }
 
-    @Test
-    void inferByteArray() {
-        runCheckInferredFeatureTypeTest(
+    private static Stream<CheckInferredFeatureTypeFixture> inferByteArray() {
+        return Stream.of(
             new CheckInferredFeatureTypeFixture(
                 "it",
                 "it := 'foobar'.getBytes()",
@@ -366,17 +360,16 @@ class TypeParseTest extends AbstractParseTest {
         );
     }
 
-    private void runCheckInferredFeatureTypeTest(CheckInferredFeatureTypeFixture fixture) {
-        assertThatNoException()
-            .isThrownBy(super::setUpAIT);
-
+    @ParameterizedTest
+    @MethodSource({"inferUnboxedType", "inferListOfPrimitives", "inferByteArray"})
+    void runCheckInferredFeatureTypeTest(CheckInferredFeatureTypeFixture fixture) {
         var expressionHelper = getInjector().getInstance(ExpressionHelper.class);
         var result = internalParse(
             filmSummeryPerYearQuery(fixture.featureDeclaration)
         );
 
-        assertThat(result)
-            .hasNoIssues();
+        assertThat(result).hasNoIssues();
+        assertThat(result.left()).isNotNull();
 
         var query = result.left().getQueries().get(0);
         var feature = getFeatureOrFail(query, fixture.featureName);
