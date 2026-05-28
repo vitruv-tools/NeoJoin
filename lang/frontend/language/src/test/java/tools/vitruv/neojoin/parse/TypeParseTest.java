@@ -287,8 +287,7 @@ class TypeParseTest extends AbstractParseTest {
         assertThat(result).hasIssues(
             "Type mismatch: cannot convert from EShort (short) to EBoolean (boolean)",
             "Type mismatch: cannot convert from EShort (short) to EString (String)",
-            "Type mismatch: cannot convert from EBoolean (boolean) to EShort (short)",
-            "Type mismatch: cannot convert from EShortObject (Short) to EBoolean (boolean)"
+            "Type mismatch: cannot convert from EBoolean (boolean) to EShort (short)"
         );
     }
 
