@@ -211,34 +211,26 @@ public class QueryModelInferrer {
      * @return lambda that creates parameters
      */
     private Consumer<JvmOperation> paramsForSource(@Nullable Source source, boolean isGrouping, @Nullable From limit) {
-        if (source == null) {
-            return op -> {
-            };
-        } else {
-            return op -> {
-                if (AstUtils.getAllFroms(source).count() <= 1) {
-                    if (source.getFrom().getAlias() == null) {
-                        addParam(
-                            op,
-                            source.getFrom(),
-                            Constants.ExpressionSelfReference,
-                            sourceTypes.getClass(source.getFrom().getClazz()),
-                            isGrouping
-                        );
-                    }
-                }
+        if (source == null) return op -> {};
 
-                Iterable<From> allFroms = () -> AstUtils.getAllFroms(source).iterator();
-                for (var from : allFroms) {
-                    if (from.getAlias() != null) {
-                        addParam(op, from, from.getAlias(), sourceTypes.getClass(from.getClazz()), isGrouping);
-                    }
+        return op -> {
+            if  (AstUtils.getAllFroms(source).count() <= 1 && source.getFrom().getAlias() == null)  {
+                addFromToParameters(op, source.getFrom(), Constants.ExpressionSelfReference, isGrouping);
+            }
 
-                    if (from == limit) {
-                        break;
-                    }
-                }
-            };
+            Iterable<From> allFroms = () -> AstUtils.getAllFroms(source).iterator();
+            for (var from : allFroms) {
+                addFromToParameters(op, from, from.getAlias(), isGrouping);
+
+                if (from == limit) break;
+            }
+        };
+    }
+
+    private void addFromToParameters(JvmOperation operation, From from, @Nullable String fromName, boolean isGrouping) {
+        if (fromName != null) {
+            var fromJvmType = sourceTypes.getClass(from.getClazz());
+            addParam(operation, from, fromName, fromJvmType, isGrouping);
         }
     }
 
