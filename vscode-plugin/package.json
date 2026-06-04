@@ -120,6 +120,6 @@
         "typescript-eslint": "^8.59.4"
     },
     "dependencies": {
-        "vscode-languageclient": "^9.0.1"
+        "vscode-languageclient": "^10.0.0"
     }
 }
