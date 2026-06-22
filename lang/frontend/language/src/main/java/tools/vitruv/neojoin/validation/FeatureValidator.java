@@ -226,15 +226,15 @@ public class FeatureValidator extends ComposableValidator {
     }
 
     private void checkQueryType(Feature feature, Query explicitType, EClassifier inferredClassifier) {
-        if (isValidSourceTypeOfQuery(explicitType, inferredClassifier)) return;
-
-        error(
-            "Type mismatch: cannot convert from %s to %s".formatted(
-                inferredClassifier.getName(), AstUtils.getTargetName(explicitType, expressionHelper)
-            ),
-            feature,
-            AstPackage.Literals.FEATURE__EXPRESSION
-        );
+        if (!isValidSourceTypeOfQuery(explicitType, inferredClassifier)) {
+            error(
+                "Type mismatch: cannot convert from %s to %s".formatted(
+                    inferredClassifier.getName(), AstUtils.getTargetName(explicitType, expressionHelper)
+                ),
+                feature,
+                AstPackage.Literals.FEATURE__EXPRESSION
+            );
+        }
     }
 
     private boolean isValidSourceTypeOfQuery(Query query, EClassifier inferredClassifier) {
