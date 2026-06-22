@@ -215,22 +215,22 @@ public class QueryModelInferrer {
 
         return op -> {
             if  (AstUtils.getAllFroms(source).count() <= 1)  {
-                addFromToParameters(op, source.getFrom(), Constants.ExpressionSelfReference, isGrouping);
+                addFromAliasToParameters(op, source.getFrom(), Constants.ExpressionSelfReference, isGrouping);
             }
 
             Iterable<From> allFroms = () -> AstUtils.getAllFroms(source).iterator();
             for (var from : allFroms) {
-                addFromToParameters(op, from, from.getAlias(), isGrouping);
+                addFromAliasToParameters(op, from, from.getAlias(), isGrouping);
 
                 if (from == limit) break;
             }
         };
     }
 
-    private void addFromToParameters(JvmOperation operation, From from, @Nullable String fromName, boolean isGrouping) {
-        if (fromName != null) {
+    private void addFromAliasToParameters(JvmOperation operation, From from, @Nullable String fromAlias, boolean isGrouping) {
+        if (fromAlias != null) {
             var fromJvmType = sourceTypes.getClass(from.getClazz());
-            addParam(operation, from, fromName, fromJvmType, isGrouping);
+            addParam(operation, from, fromAlias, fromJvmType, isGrouping);
         }
     }
 
