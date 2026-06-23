@@ -61,8 +61,10 @@ public class AttributeConstraint {
 
     @Override
     public String toString() {
-        var params = parameters.stream().map(param -> param.attribute() + ": " + param.value())
-                .collect(Collectors.joining(","));
+        var params = parameters
+            .stream()
+            .map(param -> param.attribute() + ": " + param.value())
+            .collect(Collectors.joining(","));
         return name + "(" + params + ")";
     }
 }
