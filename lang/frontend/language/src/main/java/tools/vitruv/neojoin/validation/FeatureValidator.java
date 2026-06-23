@@ -240,26 +240,26 @@ public class FeatureValidator extends ComposableValidator {
     }
 
     private boolean isValidSourceTypeOfQuery(Query query, EClassifier inferredClassifier) {
+        if (!(inferredClassifier instanceof EClass inferClass)) return false;
+
         if (query instanceof MainQuery mainQuery) {
-            return isValidSourceTypeOfMainQuery(mainQuery, inferredClassifier);
+            return isValidSourceTypeOfMainQuery(mainQuery, inferClass);
         } else {
-            return isValidSourceTypeSubQuery((SubQuery) query, inferredClassifier);
+            return isValidSourceTypeSubQuery((SubQuery) query, inferClass);
         }
     }
 
-    private boolean isValidSourceTypeOfMainQuery(MainQuery mainQuery, EClassifier inferredClassifier) {
-        return mainQuery.getSource() != null && inferredClassifier instanceof EClass inferredClass &&
-            AstUtils.checkSourceType(mainQuery.getSource(), inferredClass);
+    private boolean isValidSourceTypeOfMainQuery(MainQuery mainQuery, EClass inferredClass) {
+        return mainQuery.getSource() != null && AstUtils.checkSourceType(mainQuery.getSource(), inferredClass);
     }
 
-    private boolean isValidSourceTypeSubQuery(SubQuery subQuery, EClassifier inferredClassifier) {
+    private boolean isValidSourceTypeSubQuery(SubQuery subQuery, EClass inferredClass) {
         var subQuerySourceType = AstUtils.inferSubQuerySourceType(subQuery, expressionHelper);
 
         // NOTE: subQuerySourceType == null is ok here, since it will be handled elsewhere.
         if (subQuerySourceType == null) return true;
 
-        return inferredClassifier instanceof EClass inferredClass &&
-            AstUtils.checkSourceType(subQuerySourceType, inferredClass);
+        return AstUtils.checkSourceType(subQuerySourceType, inferredClass);
     }
 
     @Check
