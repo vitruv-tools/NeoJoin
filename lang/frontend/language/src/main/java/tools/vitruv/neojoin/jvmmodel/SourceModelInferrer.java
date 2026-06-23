@@ -45,7 +45,6 @@ public class SourceModelInferrer {
         public static @Nullable EClassifier getOrNull(EObject object) {
             return retrieveOrNull(object, SourceModelInferrer.EcoreSourceHolder.class);
         }
-
     }
 
     /**
