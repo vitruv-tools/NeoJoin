@@ -84,7 +84,7 @@ public class QueryModelInferrer {
         if (mainQuery.getSource() != null) {
             Utils.forEachIndexed(
                 mainQuery.getSource().getJoins(), (join, joinIndex) ->
-                    addJoinExpression(mainQuery, join, joinIndex)
+                    addJoinExpressions(mainQuery, join, joinIndex)
             );
 
             if (mainQuery.getSource().getCondition() != null) {
@@ -267,7 +267,7 @@ public class QueryModelInferrer {
         return typeReferences.typeRef(List.class, typeRef);
     }
 
-    private void addJoinExpression(MainQuery mainQuery, Join join, int joinIndex) {
+    private void addJoinExpressions(MainQuery mainQuery, Join join, int joinIndex) {
         var targetName = AstUtils.getTargetName(mainQuery);
 
         Utils.forEachIndexed(

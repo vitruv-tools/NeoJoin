@@ -373,7 +373,7 @@ class TypeParseTest extends AbstractParseTest {
     void runCheckInferredFeatureTypeTest(CheckInferredFeatureTypeFixture fixture) {
         var expressionHelper = getInjector().getInstance(ExpressionHelper.class);
         var result = internalParse(
-            filmSummeryPerYearQuery(fixture.featureDeclaration)
+            filmSummaryPerYearQuery(fixture.featureDeclaration)
         );
 
         assertThat(result).hasNoIssues();
@@ -395,7 +395,7 @@ class TypeParseTest extends AbstractParseTest {
             .isEqualTo(fixture.expectedClassifier);
     }
 
-    private String filmSummeryPerYearQuery(String summeryBody) {
+    private String filmSummaryPerYearQuery(String summeryBody) {
         return """
             export package to "http://example.com"
 
