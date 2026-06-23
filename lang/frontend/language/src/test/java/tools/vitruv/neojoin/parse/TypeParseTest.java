@@ -413,7 +413,7 @@ class TypeParseTest extends AbstractParseTest {
         String featureName,
         String featureDeclaration,
         EClassifier expectedClassifier,
-        Boolean shouldBeMany
+        boolean shouldBeMany
     ) {
 
         CheckInferredFeatureTypeFixture(
