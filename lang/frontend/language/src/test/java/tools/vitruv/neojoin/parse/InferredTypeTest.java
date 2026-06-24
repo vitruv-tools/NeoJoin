@@ -137,17 +137,10 @@ public class InferredTypeTest extends AbstractParseTest {
 
     @Test
     void nullFeatureWithoutType() {
-        var result = internalParse("""
-            export package to "http://example.com"
-
-            import "http://example.org/restaurant" as rest
-            import "http://example.org/reviewpage"
-
-            from Restaurant r create {
+        var result = parse("""
+            from Film f create {
                 test := null
             }
-
-            from Food create
             """);
 
         assertThat(result).hasIssues("Cannot infer type");
