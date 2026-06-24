@@ -29,9 +29,8 @@ public class AttributeConstraint {
     public Collection<Parameter> parameters() {
         // Order parameters to have a deterministic order
         // This is because eMoflon::neo gives us these parameters based on the index in
-        // the invocation, which
-        // can be different than the index in the definition. And of course, we don't
-        // get the name of the parameter.
+        // the invocation, which can be different from the index in the definition.
+        // And of course, we don't get the name of the parameter.
         // Alphabetical ordering, but `self` is the first and `result` the last entry.
         // E.g.: (a, c, self, return, b) becomes (self, a, b, c, return)
         return parameters.stream().sorted((a, b) -> {
