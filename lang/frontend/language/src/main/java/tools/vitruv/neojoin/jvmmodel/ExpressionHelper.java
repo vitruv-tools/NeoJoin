@@ -142,7 +142,7 @@ public class ExpressionHelper {
      * or {@link Result.Failure} with the thrown exception otherwise
      * @see #createContext(Iterator, Iterator, AQRFrom) creating the context
      */
-    public Result<@Nullable Object> evaluate(XExpression expression, IEvaluationContext context) {
+    public Result<@Nullable Object, Throwable> evaluate(XExpression expression, IEvaluationContext context) {
         IEvaluationResult result = interpreter.evaluate(expression, context, CancelIndicator.NullImpl);
         if (result.getException() != null) {
             return new Result.Failure<>(result.getException());
