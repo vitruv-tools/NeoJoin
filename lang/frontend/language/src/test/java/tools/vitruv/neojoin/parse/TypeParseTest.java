@@ -12,8 +12,6 @@ import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
 import tools.vitruv.neojoin.jvmmodel.TypeInfo;
 import tools.vitruv.neojoin.jvmmodel.TypeResolutionException;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.stream.Stream;
 
 import static java.util.Objects.requireNonNull;
@@ -300,7 +298,6 @@ class TypeParseTest extends AbstractParseTest {
                 p1: EBoolean = it.attrShort
                 p2: EString = it.attrShort
                 p3: EShort := true
-                p4: EBoolean := it.attrShortObj
             }
             """);
 
@@ -308,6 +305,22 @@ class TypeParseTest extends AbstractParseTest {
             "Type mismatch: cannot convert from EShort (short) to EBoolean (boolean)",
             "Type mismatch: cannot convert from EShort (short) to EString (String)",
             "Type mismatch: cannot convert from EBoolean (boolean) to EShort (short)"
+        );
+    }
+
+    @Test
+    void invalidTypeCastsShortObjToEBoolean() {
+        var result = internalParse("""
+            export package to "http://example.com"
+            import "http://vitruv.tools/typecasts"
+
+            from Test create {
+                p: EBoolean := it.attrShortObj
+            }
+            """);
+
+        assertThat(result).hasIssues(
+            "Type mismatch: cannot convert from EShort (short) to EBoolean (boolean)"
         );
     }
 
