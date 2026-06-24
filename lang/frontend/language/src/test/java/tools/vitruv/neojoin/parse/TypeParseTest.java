@@ -322,29 +322,29 @@ class TypeParseTest extends AbstractParseTest {
         );
     }
 
-    private static Stream<CheckInferredFeatureTypeFixture> inferUnboxedType() {
+    private static Stream<CheckInferredFeatureTypeTuple> inferUnboxedType() {
         return Stream.of(
-            new CheckInferredFeatureTypeFixture(
+            new CheckInferredFeatureTypeTuple(
                 "year",
                 "year := films.same[ it.year ]",
                 EcorePackage.Literals.EINT
             ),
-            new CheckInferredFeatureTypeFixture(
+            new CheckInferredFeatureTypeTuple(
                 "n",
                 "n := 42",
                 EcorePackage.Literals.EINT
             ),
-            new CheckInferredFeatureTypeFixture(
+            new CheckInferredFeatureTypeTuple(
                 "isItTheYear",
                 "isItTheYear := true",
                 EcorePackage.Literals.EBOOLEAN
             ),
-            new CheckInferredFeatureTypeFixture(
+            new CheckInferredFeatureTypeTuple(
                 "it",
                 "it := 'helo world'.charAt(0)",
                 EcorePackage.Literals.ECHAR
             ),
-            new CheckInferredFeatureTypeFixture(
+            new CheckInferredFeatureTypeTuple(
                 "it",
                 "it := 'helo world'.getBytes().get(2)",
                 EcorePackage.Literals.EBYTE
@@ -352,15 +352,15 @@ class TypeParseTest extends AbstractParseTest {
         );
     }
 
-    private static Stream<CheckInferredFeatureTypeFixture> inferListOfPrimitives() {
+    private static Stream<CheckInferredFeatureTypeTuple> inferListOfPrimitives() {
         return Stream.of(
-            new CheckInferredFeatureTypeFixture(
+            new CheckInferredFeatureTypeTuple(
                 "years",
                 "years := films.map[ it.year ]",
                 EcorePackage.Literals.EINTEGER_OBJECT,
                 true
             ),
-            new CheckInferredFeatureTypeFixture(
+            new CheckInferredFeatureTypeTuple(
                 "years",
                 "years := #[1, 2, 3]",
                 EcorePackage.Literals.EINTEGER_OBJECT,
@@ -369,9 +369,9 @@ class TypeParseTest extends AbstractParseTest {
         );
     }
 
-    private static Stream<CheckInferredFeatureTypeFixture> inferByteArray() {
+    private static Stream<CheckInferredFeatureTypeTuple> inferByteArray() {
         return Stream.of(
-            new CheckInferredFeatureTypeFixture(
+            new CheckInferredFeatureTypeTuple(
                 "it",
                 "it := 'foobar'.getBytes()",
                 EcorePackage.Literals.EBYTE_ARRAY
@@ -381,7 +381,7 @@ class TypeParseTest extends AbstractParseTest {
 
     @ParameterizedTest
     @MethodSource({"inferUnboxedType", "inferListOfPrimitives", "inferByteArray"})
-    void runCheckInferredFeatureTypeTest(CheckInferredFeatureTypeFixture fixture) {
+    void runCheckInferredFeatureTypeTest(CheckInferredFeatureTypeTuple fixture) {
         var expressionHelper = getInjector().getInstance(ExpressionHelper.class);
         var result = internalParse(
             filmSummaryPerYearQuery(fixture.featureDeclaration)
@@ -420,14 +420,14 @@ class TypeParseTest extends AbstractParseTest {
             """.formatted(summeryBody);
     }
 
-    private record CheckInferredFeatureTypeFixture(
+    private record CheckInferredFeatureTypeTuple(
         String featureName,
         String featureDeclaration,
         EClassifier expectedClassifier,
         boolean shouldBeMany
     ) {
 
-        CheckInferredFeatureTypeFixture(
+        CheckInferredFeatureTypeTuple(
             String featureName,
             String featureDeclaration,
             EClassifier expectedClassifier
