@@ -6,19 +6,17 @@ import org.eclipse.xtext.xbase.XExpression;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import tools.vitruv.neojoin.ast.Feature;
-import tools.vitruv.neojoin.ast.Query;
 import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
 import tools.vitruv.neojoin.jvmmodel.TypeInfo;
 import tools.vitruv.neojoin.jvmmodel.TypeResolutionException;
 
 import java.util.stream.Stream;
 
-import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.*;
 
 import static tools.vitruv.neojoin.parse.ParseAssertions.assertThat;
+import static tools.vitruv.neojoin.parse.testutils.FeatureTestUtils.getFeatureOrFail;
 
 @SuppressWarnings("HttpUrlsUsage")
 class TypeParseTest extends AbstractParseTest {
@@ -436,14 +434,6 @@ class TypeParseTest extends AbstractParseTest {
         ) {
             this(featureName, featureDeclaration, expectedClassifier, false);
         }
-    }
-
-    private Feature getFeatureOrFail(Query query, String featureName) {
-        return requireNonNull(
-            query.getBody().getFeatures()
-                .stream().filter(feature -> feature.getName().equals(featureName))
-                .findAny()
-                .orElseGet(() -> fail("No feature with name: '%s' found in query.".formatted(featureName))));
     }
 
     private EClassifier getClassifierOrFail(TypeInfo typeInfo) {
