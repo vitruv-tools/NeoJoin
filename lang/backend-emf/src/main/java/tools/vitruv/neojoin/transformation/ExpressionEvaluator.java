@@ -68,8 +68,8 @@ public class ExpressionEvaluator {
         public @Nullable Object evaluateExpression(XExpression expression) {
             var result = helper.evaluate(expression, evaluationContext);
             return switch (result) {
-                case Result.Success<?>(var value) -> value;
-                case Result.Failure<?>(var err) -> throw new TransformatorException(
+                case Result.Success<?, ?>(var value) -> value;
+                case Result.Failure<?, ?>(var err) -> throw new TransformatorException(
                     "error during expression evaluation: [%s] %s".formatted(
                         err.getClass().getSimpleName(),
                         err.getMessage()

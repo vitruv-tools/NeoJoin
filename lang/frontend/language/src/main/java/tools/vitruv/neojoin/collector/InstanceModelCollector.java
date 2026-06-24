@@ -43,7 +43,14 @@ public class InstanceModelCollector extends AbstractModelCollector {
         resourceSet.setPackageRegistry(registry);
 
         var map = new HashMap<EPackage, Resource>();
-        collectResourcesAsStream(resourceSet).forEach(res -> {
+        collectResourcesAsStream(resourceSet).forEach(result -> {
+            Resource res;
+            try {
+                res = result.valueUnsafe();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+
             if (res.getContents().isEmpty()) {
                 return;
             }
