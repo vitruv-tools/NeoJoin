@@ -68,7 +68,7 @@ public class QueryModelInferrer {
 
         // prevent name collisions with other open query documents by choosing a unique name for the package
         if (viewType.getExport() != null) {
-            root.setPackageName("%s@[%s]".formatted(viewType.getExport().getPackage(), viewType.getExport().getUri().replace(':', '_')));
+            root.setPackageName(viewType.getExport().getPackage());
         } else {
             root.setPackageName("invalid$%d".formatted(System.identityHashCode(viewType)));
         }
