@@ -82,7 +82,7 @@ public class Transformator {
         this.expressionHelper = expressionHelper;
         this.aqr = aqr;
         this.targetMetaModel = targetMetaModel;
-        this.instanceSourceFactory = new InstanceSourceFactory(sourceInstanceModels);
+        this.instanceSourceFactory = new InstanceSourceFactory(sourceInstanceModels, parameters);
         this.parameters = parameters;
     }
 
