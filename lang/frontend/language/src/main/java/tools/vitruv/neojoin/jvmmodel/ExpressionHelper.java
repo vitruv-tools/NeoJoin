@@ -218,6 +218,11 @@ public class ExpressionHelper {
             return new TypeInfo(null, false);
         }
 
+        var asPrimitive = resolvedType.getPrimitiveIfWrapperType();
+        if (asPrimitive != null) {
+            type = asPrimitive.getType();
+        }
+
         // unwrap list
         var isMany = false;
         var listType = tryGetListType(resolvedType);

@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import static tools.vitruv.neojoin.parse.ParseAssertions.assertThat;
 
+@SuppressWarnings("HttpUrlsUsage")
 class FeatureParseTest extends AbstractParseTest {
 
     @Test
@@ -179,5 +180,4 @@ class FeatureParseTest extends AbstractParseTest {
 
         assertThat(result).hasIssues("Copy feature expression does not reference a feature");
     }
-
 }
