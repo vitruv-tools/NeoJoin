@@ -21,9 +21,11 @@ import static tools.vitruv.neojoin.utils.Assertions.require;
 public class InstanceSourceFactory {
 
     private final Map<EPackage, Resource> sourceInstanceModels;
+    private final Map<String, Object> parameters;
 
-    public InstanceSourceFactory(Map<EPackage, Resource> sourceInstanceModels) {
+    public InstanceSourceFactory(Map<EPackage, Resource> sourceInstanceModels, Map<String, Object> parameters) {
         this.sourceInstanceModels = sourceInstanceModels;
+        this.parameters = parameters;
     }
 
     public InstanceSource create(AQRSource source, ExpressionEvaluator evaluator) {
@@ -61,7 +63,7 @@ public class InstanceSourceFactory {
     }
 
     private InstanceSource createFilter(XExpression condition, InstanceSource source, ExpressionEvaluator evaluator) {
-        return new FilterSource(condition, source, evaluator);
+        return new FilterSource(condition, source, evaluator, parameters);
     }
 
 }

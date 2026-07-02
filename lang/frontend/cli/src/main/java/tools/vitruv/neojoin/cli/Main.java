@@ -201,9 +201,7 @@ public class Main implements Callable<Integer> {
         HashMap<String, Object> result = new HashMap<>();
         for (AQRParameter param : aqrParams) {
             if (!inputParams.containsKey(param.alias())) {
-                throw new IllegalArgumentException(
-                    "Missing value for parameter '%s' of type '%s'.".formatted(param.alias(), param.type().getName())
-                );
+                result.put(param.alias(), null);
             } else {
                 var rawValue = inputParams.get(param.alias());
                 Object typedValue;
