@@ -127,7 +127,11 @@ public class Main implements Callable<Integer> {
      */
     private int execute() throws IOException {
         // collect available meta-models
-        EPackage.Registry registry = new PackageModelCollector(metaModelPath).collect();
+        var collectionResult = new PackageModelCollector(metaModelPath).collect();
+        List<PackageModelCollector.Issue> issues = collectionResult.left();
+        EPackage.Registry registry = collectionResult.right();
+
+        issues.forEach(System.err::println);
 
         // parse query
         var setup = new NeoJoinStandaloneSetup(registry);
