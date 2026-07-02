@@ -13,6 +13,7 @@ import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.xtext.xbase.XExpression;
 import org.jspecify.annotations.Nullable;
 import tools.vitruv.neojoin.Constants;
+import tools.vitruv.neojoin.Formatting;
 import tools.vitruv.neojoin.ast.Body;
 import tools.vitruv.neojoin.ast.Export;
 import tools.vitruv.neojoin.ast.Feature;
@@ -438,7 +439,7 @@ public class AQRBuilder {
                 continue;
             }
 
-            var featureName = Constants.RootReferenceNameFormat.formatted(target.name());
+            var featureName = Formatting.formatRootReferenceName(target.name());
             invariant(
                 root.features().stream().noneMatch(f -> f.name().equals(featureName)),
                 () -> "Duplicated feature name '%s' in root class".formatted(featureName)
