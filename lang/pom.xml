@@ -162,7 +162,7 @@
       <dependency>
         <groupId>org.eclipse.platform</groupId>
         <artifactId>org.eclipse.osgi</artifactId>
-        <version>3.24.100</version>
+        <version>3.24.200</version>
       </dependency>
       <dependency>
         <groupId>org.eclipse.platform</groupId>
@@ -182,7 +182,7 @@
       <dependency>
         <groupId>org.junit</groupId>
         <artifactId>junit-bom</artifactId>
-        <version>6.0.3</version>
+        <version>6.1.0</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
