@@ -194,13 +194,20 @@ We use [SonarQube](https://sonarcloud.io/project/overview?id=vitruv-tools_NeoJoi
 
 ### VSCode Plugin
 
-* Open the `vscode-plugin` folder in VSCode (top-level in a workspace)
+* Open the `vscode-plugin` folder in VSCode (top-level in a workspace or add it to another workspace)
 * Run `npm install` to install dependencies
 * Go to `Run and Debug` > Select launch configuration `Launch Client` > Press `Start Debugging`
     * The language server needs a few seconds to start up, so code completion / analysis will not work right at the start.
     * The plugin requires that the `.jar` files have been generated and are at their default location.
     * If you cannot find the launch configuration `Launch Client`, ensure that you have opened VSCode with the `vscode-plugin` folder as your workspace.
 * If you get the error message `Activating extension 'vitruv-tools.neojoin' failed: Cannot find module` check the build task for potential problems: Bottom Panel > Select tab `Terminal` > Select task `watch` (on the right)
+
+* for manual build do the following:
+    ```bash
+    npm clean-install                                                       # only required the first time
+    cp ../lang/frontend/ide/target/tools.vitruv.neojoin.frontend.ide.jar .  # provide lsp for vscode-plugin (this assumes your in the NeoJoin/vscode-plugin and that the lang folder lies beside it)
+    npx @vscode/vsce package
+    ```
 
 ### Notes
 
