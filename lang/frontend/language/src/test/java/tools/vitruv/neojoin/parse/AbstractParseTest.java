@@ -7,7 +7,7 @@ import tools.vitruv.neojoin.utils.Pair;
 
 import java.util.List;
 
-public class AbstractParseTest extends AbstractIntegrationTest {
+public abstract class AbstractParseTest extends AbstractIntegrationTest {
 
     @Override
     protected List<String> getMetaModelPaths() {
@@ -22,12 +22,12 @@ public class AbstractParseTest extends AbstractIntegrationTest {
 
     protected Pair<ViewTypeDefinition, List<Issue>> parse(String query) {
         return internalParse("""
-            export package to "http://example.com"
+                export package to "http://example.com"
 
-            import "http://example.org/restaurant" as rest
-            import "http://example.org/reviewpage"
+                import "http://example.org/restaurant" as rest
+                import "http://example.org/reviewpage"
 
-            """ + query);
+                """ + query);
     }
 
 }
