@@ -42,6 +42,22 @@ public class InferredTypeTest extends AbstractParseTest {
             """.formatted(summeryBody);
     }
 
+    private record CheckInferredFeatureTypeTuple(
+        String featureName,
+        String featureDeclaration,
+        EClassifier expectedClassifier,
+        boolean shouldBeMany
+    ) {
+
+        CheckInferredFeatureTypeTuple(
+            String featureName,
+            String featureDeclaration,
+            EClassifier expectedClassifier
+        ) {
+            this(featureName, featureDeclaration, expectedClassifier, false);
+        }
+    }
+
     private static Stream<CheckInferredFeatureTypeTuple> inferUnboxedType() {
         return Stream.of(
             new CheckInferredFeatureTypeTuple(
@@ -133,21 +149,5 @@ public class InferredTypeTest extends AbstractParseTest {
             """);
 
         assertThat(result).hasIssues("Cannot infer type");
-    }
-
-    private record CheckInferredFeatureTypeTuple(
-        String featureName,
-        String featureDeclaration,
-        EClassifier expectedClassifier,
-        boolean shouldBeMany
-    ) {
-
-        CheckInferredFeatureTypeTuple(
-            String featureName,
-            String featureDeclaration,
-            EClassifier expectedClassifier
-        ) {
-            this(featureName, featureDeclaration, expectedClassifier, false);
-        }
     }
 }
