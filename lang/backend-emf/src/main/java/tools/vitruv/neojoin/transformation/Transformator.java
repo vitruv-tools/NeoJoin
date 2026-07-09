@@ -9,7 +9,7 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.jspecify.annotations.Nullable;
-import tools.vitruv.neojoin.Constants;
+import tools.vitruv.neojoin.Formatting;
 import tools.vitruv.neojoin.aqr.AQR;
 import tools.vitruv.neojoin.aqr.AQRFeature;
 import tools.vitruv.neojoin.aqr.AQRTargetClass;
@@ -100,7 +100,7 @@ public class Transformator {
             .forEach(target -> {
                 var instances = transformTargetClass(target);
                 var rootRef = root.eClass()
-                    .getEStructuralFeature(Constants.RootReferenceNameFormat.formatted(target.name()));
+                    .getEStructuralFeature(Formatting.formatRootReferenceName(target.name()));
                 root.eSet(rootRef, instances);
             });
 
