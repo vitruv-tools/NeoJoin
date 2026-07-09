@@ -6,7 +6,7 @@ import tools.vitruv.neojoin.ast.Query;
 import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Fail.fail;
 
-public class FeatureTestUtils {
+public final class FeatureTestUtils {
 
     private FeatureTestUtils() {}
 
