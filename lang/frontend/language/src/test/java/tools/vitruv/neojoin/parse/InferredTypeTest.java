@@ -3,28 +3,24 @@ package tools.vitruv.neojoin.parse;
 import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.xtext.validation.Issue;
-import org.eclipse.xtext.xbase.XExpression;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import tools.vitruv.neojoin.ast.ViewTypeDefinition;
 import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
-import tools.vitruv.neojoin.jvmmodel.TypeInfo;
-import tools.vitruv.neojoin.jvmmodel.TypeResolutionException;
 import tools.vitruv.neojoin.utils.Pair;
 
 import java.util.List;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.*;
 
 import static tools.vitruv.neojoin.parse.ParseAssertions.assertThat;
 import static tools.vitruv.neojoin.parse.testutils.FeatureTestUtils.getFeatureOrFail;
+import static tools.vitruv.neojoin.parse.testutils.TypeTestUtils.*;
 
 @SuppressWarnings("HttpUrlsUsage")
 public class InferredTypeTest extends AbstractParseTest {
-    private static final String FAILED_TO_RETRIEVE_TYPE_MESSAGE_PREFIX = "Failed to retrieve inferred type of feature:";
 
     @Override
     protected Pair<ViewTypeDefinition, List<Issue>> parse(String query) {
@@ -128,13 +124,6 @@ public class InferredTypeTest extends AbstractParseTest {
             .isEqualTo(fixture.expectedClassifier);
     }
 
-    private EClassifier getClassifierOrFail(TypeInfo typeInfo) {
-        EClassifier classifier = typeInfo.classifier();
-
-        return classifier == null ? fail("%s Classifier was null.".formatted(FAILED_TO_RETRIEVE_TYPE_MESSAGE_PREFIX))
-            : classifier;
-    }
-
     @Test
     void nullFeatureWithoutType() {
         var result = parse("""
@@ -144,18 +133,6 @@ public class InferredTypeTest extends AbstractParseTest {
             """);
 
         assertThat(result).hasIssues("Cannot infer type");
-    }
-
-    private TypeInfo inferredTypeOrFail(ExpressionHelper expressionHelper, XExpression expression) {
-        TypeInfo typeInfo;
-        try {
-            typeInfo = expressionHelper.inferEType(expression);
-        } catch (TypeResolutionException e) {
-            typeInfo = fail(FAILED_TO_RETRIEVE_TYPE_MESSAGE_PREFIX, e);
-        }
-
-        return typeInfo == null ? fail("%s Type info was null.".formatted(FAILED_TO_RETRIEVE_TYPE_MESSAGE_PREFIX))
-            : typeInfo;
     }
 
     private record CheckInferredFeatureTypeTuple(
