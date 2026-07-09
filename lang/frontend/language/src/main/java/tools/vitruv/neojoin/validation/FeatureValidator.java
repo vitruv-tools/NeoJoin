@@ -13,6 +13,7 @@ import org.eclipse.xtext.xbase.typesystem.IBatchTypeResolver;
 import org.eclipse.xtext.xbase.typesystem.references.LightweightTypeReference;
 import org.jspecify.annotations.Nullable;
 import tools.vitruv.neojoin.Constants;
+import tools.vitruv.neojoin.Formatting;
 import tools.vitruv.neojoin.aqr.AQRFeatureOptionsBuilder;
 import tools.vitruv.neojoin.ast.AstPackage;
 import tools.vitruv.neojoin.ast.Feature;
@@ -27,10 +28,7 @@ import tools.vitruv.neojoin.jvmmodel.TypeResolutionException;
 import tools.vitruv.neojoin.utils.AstUtils;
 import tools.vitruv.neojoin.utils.TypeCasts;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -423,7 +421,7 @@ public class FeatureValidator extends ComposableValidator {
 
         var allNames = AstUtils.getAllQueries(AstUtils.getViewType(mainQuery))
             .map(q -> AstUtils.getTargetName(q, expressionHelper))
-            .map(Constants.RootReferenceNameFormat::formatted)
+            .map(Formatting::formatRootReferenceName)
             .collect(Collectors.toSet());
 
         for (var feature : mainQuery.getBody().getFeatures()) {

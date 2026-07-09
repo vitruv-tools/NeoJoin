@@ -204,13 +204,15 @@ public class QueryModelInferrer {
         } else {
             return op -> {
                 if (AstUtils.getAllFroms(source).count() <= 1) {
-                    addParam(
-                        op,
-                        source.getFrom(),
-                        Constants.ExpressionSelfReference,
-                        sourceTypes.getClass(source.getFrom().getClazz()),
-                        isGrouping
-                    );
+                    if (source.getFrom().getAlias() == null) {
+                        addParam(
+                            op,
+                            source.getFrom(),
+                            Constants.ExpressionSelfReference,
+                            sourceTypes.getClass(source.getFrom().getClazz()),
+                            isGrouping
+                        );
+                    }
                 }
 
                 Iterable<From> allFroms = () -> AstUtils.getAllFroms(source).iterator();

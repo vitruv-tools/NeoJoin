@@ -180,4 +180,13 @@ class FeatureParseTest extends AbstractParseTest {
 
         assertThat(result).hasIssues("Copy feature expression does not reference a feature");
     }
+
+    @Test
+    void doNotAllowItAsFeatureIfExplicitlyDefined() {
+        var result = parse("""
+            from Restaurant r create { it.name }
+            """);
+
+        assertThat(result).hasIssues("The method or field it is undefined");
+    }
 }

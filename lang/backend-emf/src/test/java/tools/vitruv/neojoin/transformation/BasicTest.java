@@ -294,8 +294,8 @@ public class BasicTest extends DefaultTransformationTest {
             from Restaurant r
             where r.name.startsWith("Pizzeria")
             create {
-                it.name
-                it.sells create {
+                r.name
+                r.sells create {
                     it.name
                     it.price
                 }

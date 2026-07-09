@@ -44,7 +44,7 @@ class RootParseTest extends AbstractParseTest {
             from Food create
 
             create root Rooty {
-                allFoods := 5
+                foods := 5
             }
             """);
 
