@@ -111,12 +111,7 @@ class TypeParseTest extends AbstractParseTest {
 
     @Test
     void ambiguousImplicitTargetClass() {
-        var result = internalParse("""
-            export package to "http://example.com"
-
-            import "http://example.org/restaurant" as rest
-            import "http://example.org/reviewpage"
-
+        var result = parse("""
             from Restaurant r create {
                 r.sells
             }
