@@ -40,6 +40,7 @@ create ReviewedRestaurant {
 * Queries can *select*, *join*, *filter* and *group* classes from the source models
 * Features in the view can be *copied* from the source models, *renamed* or *calculated* based on a custom expression
 * Query conditions and feature definition using [Xtend expressions](https://eclipse.dev/Xtext/xtend/documentation/203_xtend_expressions.html)
+* Parameterizable queries with typed parameters passed at transformation time
 * [VSCode](https://code.visualstudio.com/) plugin for syntax highlighting, code completion, and live visualization of the resulting view type
 * Input and output meta-models as `.ecore` and instance-models as `.xmi` files
 
@@ -90,6 +91,11 @@ Generate the meta-model:
 Transform the input models:
   -i, --instance-model-path=MODEL-PATH
                            Model path (see below) to find instance models (.xmi).
+  -p, --parameters=PARAMS[,PARAMS...]
+                           Query parameters as comma-separated name=value
+                             pairs. For EClass/EList parameters the value is a
+                             path to an XMI file. Example: -p
+                             featureName=Navigation,activeFeatures=config.xmi
   -t, --transform=OUTPUT   Transform the input models based on the query and
                              write the result to the given output file or
                              directory.

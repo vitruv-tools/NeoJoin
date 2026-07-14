@@ -8,6 +8,7 @@ import "http://www.eclipse.org/emf/2002/Ecore" as ecore
 ViewTypeDefinition:
     export=Export
     imports+=Import*
+    parameters+=Parameter*
     queries+=MainQuery*;
 
 Export:
@@ -16,6 +17,18 @@ Export:
 Import:
     'import' package=[ecore::EPackage|STRING] ('as' alias=ID)?;
 
+Parameter:
+    'param' alias=ID ':' type=ParamType;
+
+ParamType:
+    CollectionParamType | SimpleParamType;
+
+CollectionParamType:
+    'EList' '<' elementType=[ecore::EClassifier|QualifiedName] '>';
+
+SimpleParamType:
+    elementType=[ecore::EClassifier|QualifiedName];
+    
 MainQuery:
     source=Source?
     'create' root?='root'? name=ID?

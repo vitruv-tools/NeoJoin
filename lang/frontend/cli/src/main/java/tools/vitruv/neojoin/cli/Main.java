@@ -3,9 +3,14 @@ package tools.vitruv.neojoin.cli;
 import org.eclipse.emf.common.util.Diagnostic;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.common.util.WrappedException;
+import org.eclipse.emf.ecore.EClass;
+import org.eclipse.emf.ecore.EDataType;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
+import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.util.Diagnostician;
+import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 import org.eclipse.xtext.validation.Issue;
 import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
@@ -17,6 +22,8 @@ import picocli.CommandLine.Parameters;
 import tools.vitruv.neojoin.NeoJoinStandaloneSetup;
 import tools.vitruv.neojoin.Parser;
 import tools.vitruv.neojoin.SourceLocation;
+import tools.vitruv.neojoin.aqr.AQR;
+import tools.vitruv.neojoin.aqr.AQRParameter;
 import tools.vitruv.neojoin.collector.InstanceModelCollector;
 import tools.vitruv.neojoin.collector.PackageModelCollector;
 import tools.vitruv.neojoin.generation.MetaModelGenerator;
@@ -28,7 +35,9 @@ import tools.vitruv.neojoin.utils.Utils;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 @NullUnmarked
@@ -49,6 +58,8 @@ public class Main implements Callable<Integer> {
 
     @Parameters(index = "0", paramLabel = "QUERY", description = "Path to the query file.")
     Path queryFile;
+
+
 
     @Option(names = {"-m", "--meta-model-path"}, paramLabel = "MODEL-PATH", required = true, description = "Model path (see below) to find referenced meta-models (.ecore).")
     String metaModelPath;
@@ -77,6 +88,12 @@ public class Main implements Callable<Integer> {
 
         @Option(names = {"-t", "--transform"}, paramLabel = "OUTPUT", required = true, description = "Transform the input models based on the query and write the result to the given output file or directory.")
         Path output;
+
+        @Option(names = {"-p", "--parameters"}, paramLabel = "PARAMS", split = ",", required = false,
+                description = "Query parameters as comma-separated name=value pairs. " +
+                              "For EClass/EList parameters the value is a path to an XMI file. " +
+                              "Example: -p featureName=Navigation,activeFeatures=config.xmi")
+        Map<String, String> parameters;
 
     }
 
@@ -161,11 +178,14 @@ public class Main implements Callable<Integer> {
         if (transform != null) {
             // transform instance models
             var inputModels = new InstanceModelCollector(transform.instanceModelPath, registry).collect();
+            Map<String, Object> paramValues = resolveParamValues(aqr, registry);
+
             var targetInstanceModel = new Transformator(
                 setup.getExpressionHelper(),
                 aqr,
-                targetMetaModel.pack(),
-                inputModels
+                targetMetaModel.pack(), 
+                inputModels,
+                paramValues
             ).transform();
             EMFUtils.save(getOutputURI(transform.output, "xmi"), targetInstanceModel);
             validateInstanceModel(targetInstanceModel);
@@ -173,6 +193,110 @@ public class Main implements Callable<Integer> {
 
         return 0;
     }
+
+    private Map<String, Object> resolveParamValues(AQR aqr, EPackage.Registry registry) throws IOException {
+        var aqrParams = aqr.parameters();
+        if (aqrParams.isEmpty()) {
+            return Map.of();
+        }
+
+        Map<String, String> inputParams = transform.parameters != null ? transform.parameters : Map.of();
+
+        HashMap<String, Object> result = new HashMap<>();
+        for (AQRParameter param : aqrParams) {
+            if (!inputParams.containsKey(param.alias())) {
+                result.put(param.alias(), null);
+            } else {
+                var rawValue = inputParams.get(param.alias());
+                Object typedValue;
+                if (param.type() instanceof EDataType dt) {
+                    typedValue = getTypedParameter(rawValue, dt);
+                } else if (param.type() instanceof EClass ec) {
+                    if (param.isList()) {
+                        typedValue = loadEClassListParameter(rawValue, ec, registry);
+                    } else {
+                        typedValue = loadEClassParameter(rawValue, ec, registry);
+                    }
+                } else {
+                    throw new IllegalArgumentException(
+                        "Unsupported parameter type '%s'".formatted(param.type().getName())
+                    );
+                }
+                result.put(param.alias(), typedValue);
+            }
+        }
+
+        return result;
+    }
+
+    private Object getTypedParameter(String raw, EDataType type) {
+        var cls = type.getInstanceClass();
+        if (cls == String.class) return raw;
+        if (cls == int.class || cls == Integer.class) return Integer.parseInt(raw);
+        if (cls == double.class || cls == Double.class) return Double.parseDouble(raw);
+        if (cls == boolean.class || cls == Boolean.class) return Boolean.parseBoolean(raw);
+        if (cls == long.class || cls == Long.class)  return Long.parseLong(raw);
+        if (cls == float.class || cls == Float.class) return Float.parseFloat(raw);
+        throw new IllegalArgumentException(
+            "Unsupported parameter type '%s'".formatted(type.getName())
+        );
+    }
+
+    private EObject loadEClassParameter(String xmiPath, EClass expectedType, EPackage.Registry registry)
+        throws IOException {
+        if (!Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().containsKey("xmi")) {
+            Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap()
+                .put("xmi", new XMIResourceFactoryImpl());
+        }
+
+        var resourceSet = new ResourceSetImpl();
+        resourceSet.setPackageRegistry(registry);
+
+        var resource = resourceSet.getResource(URI.createFileURI(xmiPath), true);
+
+        if (resource.getContents().isEmpty()) {
+            throw new IllegalArgumentException(
+                "XMI file '%s' is empty (expected an instance of '%s')".formatted(
+                    xmiPath, expectedType.getName())
+            );
+        }
+
+        var obj = resource.getContents().get(0);
+        if (!expectedType.isInstance(obj)) {
+            throw new IllegalArgumentException(
+                "XMI file '%s' contains an instance of '%s', expected '%s'".formatted(
+                    xmiPath, obj.eClass().getName(), expectedType.getName())
+            );
+        }
+
+        return obj;
+    }
+
+    private List<EObject> loadEClassListParameter(String xmiPath, EClass expectedType, EPackage.Registry registry)
+        throws IOException {
+        if (!Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().containsKey("xmi")) {
+            Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap()
+                .put("xmi", new XMIResourceFactoryImpl());
+        }
+
+        var resourceSet = new ResourceSetImpl();
+        resourceSet.setPackageRegistry(registry);
+
+        var resource = resourceSet.getResource(URI.createFileURI(xmiPath), true);
+
+        var matches = resource.getContents().stream()
+            .filter(obj -> expectedType.isInstance(obj))
+            .toList();
+
+        if (matches.isEmpty()) {
+            throw new IllegalArgumentException(
+                "XMI file '%s' contains no instances of '%s'".formatted(xmiPath, expectedType.getName())
+            );
+        }
+
+        return matches;
+    }
+
 
     private static void printIssues(List<Issue> issues) {
         for (Issue issue : issues) {

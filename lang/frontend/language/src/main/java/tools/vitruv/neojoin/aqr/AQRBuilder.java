@@ -15,10 +15,12 @@ import org.jspecify.annotations.Nullable;
 import tools.vitruv.neojoin.Constants;
 import tools.vitruv.neojoin.Formatting;
 import tools.vitruv.neojoin.ast.Body;
+import tools.vitruv.neojoin.ast.CollectionParamType;
 import tools.vitruv.neojoin.ast.Export;
 import tools.vitruv.neojoin.ast.Feature;
 import tools.vitruv.neojoin.ast.Import;
 import tools.vitruv.neojoin.ast.MainQuery;
+import tools.vitruv.neojoin.ast.Parameter;
 import tools.vitruv.neojoin.ast.Query;
 import tools.vitruv.neojoin.ast.SubQuery;
 import tools.vitruv.neojoin.ast.ViewTypeDefinition;
@@ -102,6 +104,7 @@ public class AQRBuilder {
         return new AQR(
             createExport(viewTypeDefinition.getExport()),
             viewTypeDefinition.getImports().stream().map(AQRBuilder::createImport).toList(),
+            viewTypeDefinition.getParameters().stream().map(AQRBuilder::createParameter).toList(),
             encounteredDataTypes.stream().filter(dataType -> dataType.getEPackage() != EcorePackage.eINSTANCE).toList(),
             List.copyOf(targetClasses),
             root
@@ -119,6 +122,15 @@ public class AQRBuilder {
         return new AQRImport(
             Objects.requireNonNull(imp.getPackage()),
             Objects.requireNonNull(AstUtils.getImportAlias(imp))
+        );
+    }
+
+    private static AQRParameter createParameter(Parameter parameter) {
+        var paramType = parameter.getType();
+        return new AQRParameter(
+            Objects.requireNonNull(parameter.getAlias()),
+            Objects.requireNonNull(paramType.getElementType()),
+            paramType instanceof CollectionParamType
         );
     }
 

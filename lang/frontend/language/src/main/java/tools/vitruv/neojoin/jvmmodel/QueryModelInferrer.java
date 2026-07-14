@@ -1,6 +1,7 @@
 package tools.vitruv.neojoin.jvmmodel;
 
 import org.eclipse.emf.ecore.EClass;
+import org.eclipse.emf.ecore.EDataType;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.xtext.common.types.JvmGenericType;
 import org.eclipse.xtext.common.types.JvmOperation;
@@ -16,8 +17,10 @@ import org.eclipse.xtext.xbase.jvmmodel.JvmTypesBuilder;
 import org.jspecify.annotations.Nullable;
 import tools.vitruv.neojoin.Constants;
 import tools.vitruv.neojoin.ast.Body;
+import tools.vitruv.neojoin.ast.CollectionParamType;
 import tools.vitruv.neojoin.ast.From;
 import tools.vitruv.neojoin.ast.MainQuery;
+import tools.vitruv.neojoin.ast.Parameter;
 import tools.vitruv.neojoin.ast.Source;
 import tools.vitruv.neojoin.ast.ViewTypeDefinition;
 import tools.vitruv.neojoin.utils.AstUtils;
@@ -238,6 +241,14 @@ public class QueryModelInferrer {
                         break;
                     }
                 }
+                
+                //add declared parameters
+                for (var param : viewType.getParameters()) {
+                    JvmTypeReference typeRef = paramTypeRef(param);
+                    op.getParameters().add(
+                        types.toParameter(param, param.getAlias(), typeRef)
+                    );
+                }
             };
         }
     }
@@ -250,8 +261,32 @@ public class QueryModelInferrer {
      * @return lambda that creates the parameter
      */
     private Consumer<JvmOperation> paramsForClass(EClass clazz, EObject source) {
-        return op ->
+        return op -> {
             addParam(op, source, Constants.ExpressionSelfReference, sourceTypes.getClass(clazz), false);
+
+            //add declared parameters
+            for (var param : viewType.getParameters()) {
+                JvmTypeReference typeRef = paramTypeRef(param);
+                op.getParameters().add(
+                    types.toParameter(param, param.getAlias(), typeRef)
+                );
+            }
+        };
+    }
+
+    private JvmTypeReference paramTypeRef(Parameter param) {
+        var paramType = param.getType();                      // ParamType AST node
+        var classifier = paramType.getElementType();
+        JvmTypeReference base;
+        if (classifier instanceof EDataType dt) {
+            var cls = dt.getInstanceClass();
+            base = (cls != null) ? typeReferences.typeRef(cls) : typeReferences.typeRef("invalid");
+        } else if (classifier instanceof EClass ec) {
+            base = typeRef(sourceTypes.getClass(ec));
+        } else {
+            base = typeReferences.typeRef("invalid");
+        }
+        return paramType instanceof CollectionParamType ? wrapInList(base) : base;
     }
 
     /**
