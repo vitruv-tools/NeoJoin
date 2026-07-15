@@ -149,36 +149,53 @@ public class FeatureValidator extends ComposableValidator {
         if (feature.getType() instanceof Query query) {
             checkQueryType(feature, query, inferredType.classifier());
         } else if (feature.getType() instanceof EEnum eEnum) {
-            if (inferredType.classifier() != feature.getType()) {
-                error(
-                    "Type mismatch: cannot convert from %s to %s".formatted(
-                        inferredType.classifier().getName(), eEnum.getName()
-                    ),
-                    feature,
-                    AstPackage.Literals.FEATURE__EXPRESSION
-                );
-            }
+            checkEnumType(feature, eEnum, inferredType);
         } else if (feature.getType() instanceof EDataType eDataType) {
-            if (inferredType.classifier() instanceof EDataType && !(inferredType.classifier() instanceof EEnum)) {
-                if (!TypeCasts.canCast(inferredType.classifier().getInstanceClass(), eDataType.getInstanceClass())) {
-                    error(
-                        "Type mismatch: cannot convert from %s (%s) to %s (%s)".formatted(
-                            inferredType.classifier().getName(), inferredType.classifier().getInstanceClass().getSimpleName(),
-                            eDataType.getName(), eDataType.getInstanceClass().getSimpleName()
-                        ),
-                        feature,
-                        AstPackage.Literals.FEATURE__EXPRESSION
-                    );
-                }
-            } else {
+            checkEDataType(feature, eDataType, inferredType);
+        }
+    }
+
+    private void checkEnumType(Feature feature, EEnum eEnum, TypeInfo inferredType) {
+        if (inferredType.classifier() != feature.getType()) {
+            error(
+                "Type mismatch: cannot convert from %s to %s".formatted(
+                    inferredType.classifier().getName(), eEnum.getName()
+                ),
+                feature,
+                AstPackage.Literals.FEATURE__EXPRESSION
+            );
+        }
+    }
+
+    /**
+     * Checks whether the inferred type can be applied to the feature.
+     * NOTE: This does not cover enums since they are handled separately
+     *       (see: {@link  FeatureValidator#checkEnumType(Feature feature, EEnum eEnum, TypeInfo inferredType)}).
+     *
+     * @param feature the feature to be checked against.
+     * @param eDataType the type of the feature.
+     * @param inferredType the inferred type for the feature.
+     */
+    private void checkEDataType(Feature feature, EDataType eDataType, TypeInfo inferredType) {
+        if (inferredType.classifier() instanceof EDataType && !(inferredType.classifier() instanceof EEnum)) {
+            if (!TypeCasts.canCast(inferredType.classifier().getInstanceClass(), eDataType.getInstanceClass())) {
                 error(
-                    "Type mismatch: cannot convert from %s to %s".formatted(
-                        inferredType.classifier().getName(), eDataType.getName()
+                    "Type mismatch: cannot convert from %s (%s) to %s (%s)".formatted(
+                        inferredType.classifier().getName(), inferredType.classifier().getInstanceClass().getSimpleName(),
+                        eDataType.getName(), eDataType.getInstanceClass().getSimpleName()
                     ),
                     feature,
                     AstPackage.Literals.FEATURE__EXPRESSION
                 );
             }
+        } else {
+            error(
+                "Type mismatch: cannot convert from %s to %s".formatted(
+                    inferredType.classifier().getName(), eDataType.getName()
+                ),
+                feature,
+                AstPackage.Literals.FEATURE__EXPRESSION
+            );
         }
     }
 
@@ -209,33 +226,38 @@ public class FeatureValidator extends ComposableValidator {
     }
 
     private void checkQueryType(Feature feature, Query explicitType, EClassifier inferredClassifier) {
-        if (explicitType instanceof MainQuery mainQuery) {
-            if (mainQuery.getSource() != null && inferredClassifier instanceof EClass inferredClass) {
-                if (AstUtils.checkSourceType(mainQuery.getSource(), inferredClass)) {
-                    return;
-                }
-            }
-        } else {
-            var subQuery = (SubQuery) explicitType;
-
-            if (inferredClassifier instanceof EClass inferredClass) {
-                var subQuerySourceType = AstUtils.inferSubQuerySourceType(subQuery, expressionHelper);
-                if (subQuerySourceType == null) {
-                    return; // will be handled elsewhere
-                }
-                if (AstUtils.checkSourceType(subQuerySourceType, inferredClass)) {
-                    return;
-                }
-            }
+        if (!isValidSourceTypeOfQuery(explicitType, inferredClassifier)) {
+            error(
+                "Type mismatch: cannot convert from %s to %s".formatted(
+                    inferredClassifier.getName(), AstUtils.getTargetName(explicitType, expressionHelper)
+                ),
+                feature,
+                AstPackage.Literals.FEATURE__EXPRESSION
+            );
         }
+    }
 
-        error(
-            "Type mismatch: cannot convert from %s to %s".formatted(
-                inferredClassifier.getName(), AstUtils.getTargetName(explicitType, expressionHelper)
-            ),
-            feature,
-            AstPackage.Literals.FEATURE__EXPRESSION
-        );
+    private boolean isValidSourceTypeOfQuery(Query query, EClassifier inferredClassifier) {
+        if (!(inferredClassifier instanceof EClass inferClass)) return false;
+
+        if (query instanceof MainQuery mainQuery) {
+            return isValidSourceTypeOfMainQuery(mainQuery, inferClass);
+        } else {
+            return isValidSourceTypeSubQuery((SubQuery) query, inferClass);
+        }
+    }
+
+    private boolean isValidSourceTypeOfMainQuery(MainQuery mainQuery, EClass inferredClass) {
+        return mainQuery.getSource() != null && AstUtils.checkSourceType(mainQuery.getSource(), inferredClass);
+    }
+
+    private boolean isValidSourceTypeSubQuery(SubQuery subQuery, EClass inferredClass) {
+        var subQuerySourceType = AstUtils.inferSubQuerySourceType(subQuery, expressionHelper);
+
+        // NOTE: subQuerySourceType == null is ok here, since it will be handled elsewhere.
+        if (subQuerySourceType == null) return true;
+
+        return AstUtils.checkSourceType(subQuerySourceType, inferredClass);
     }
 
     @Check
