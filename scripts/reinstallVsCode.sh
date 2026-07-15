@@ -1,4 +1,37 @@
 
+### DESCRIPTION ###
+# This scripts will reinstall the vscode plugin from the local repository.
+#
+# There is also a vscode launch script under vscode-plugin/.vscode/launch.json (also see readme.md).
+# This script offers an alternative to the vscode launch script mentioned above that may come in handy for developers using some other IDE then vscode.
+
+## ASSUMPTIONS ##
+#
+## PLACE OF EXECUTION
+# It assumes it is executed in <path to your neojoin project directory>/vscode-plugin.
+# If you have the vscode-plugin directory and the lang directory placed next to each other in the file system, you are also able to run it from the lang or script directory.
+#
+## ACQUIRING THE JAR FOR THE LSP
+# If the lsp jar file is already contained in the vscode-plugin directory it is used to build the plugin.
+# If not it tries to find the lsp in the inside the lang directory.
+# If it can find the lsp there it is copied over and used to build the plugin.
+# If it can not find the lsp it will try to build it using the maven wrapper.
+#
+# For finding the lsp or the lang directory (where the java project for the lsp resides) it requires the lang directory and vscode-plugin directory to be placed next to each other.
+# If you have another set up you can check the environment variables below and set your environment to fit your needs.
+#
+## CLOSING VSCODE
+# In order apply the changes to the plugin vscode needs to be restarted.
+# This script tries to automate that by killing the process.
+# However, note that the name of the process can vary depending on your environment and application version (oss, codeium, original).
+# It tries the following process names: "code-oss", "codeium", "vscodeium", "codeium", "code"
+# If your process name is not among them, you either need to close the application manually or add it.
+# (also see: function close_code())
+#
+## NAME OF VSCODE EXECUTABLE
+# According to https://code.visualstudio.com/docs/configure/command-line the command for vscode is just "code" if that is not the case on your system you need an alias.
+
+
 set -o errexit
 
 error() {
@@ -12,12 +45,6 @@ error() {
         exit 1
     fi
 }
-
-# This scripts will reinstall the vscode plugin from the local repository
-# It assumes it is executed in <path to your neojoin project directory>/vscode-plugin
-#
-# There is also a vscode launch script under vscode-plugin/.vscode/launch.json (also see readme.md).
-# This one is for people who prefer working from the terminal.
 
 if [[ "$(basename "$PWD")" != "vscode-plugin" ]]; then
     # try to navigate to right path if inside of NeoJoin project directory or in the top level scripting directory
@@ -67,8 +94,8 @@ if code --list-extensions | grep -Fq "vitruv-tools.neojoin"; then
 fi
 
 close_code() {
-    # currently this does only support the oss version since it is the one I use. If any one uses a different version just add it to the for loop
-    for process_name in "code-oss"; do
+    # NOTE: The name of the process can vary depending on your environment and application (oss, codeium, original) version.
+    for process_name in "code-oss" "codeium" "vscodeium" "codeium" "code"; do
         killall "$process_name" && echo "closed vscode" && return
     done
 
