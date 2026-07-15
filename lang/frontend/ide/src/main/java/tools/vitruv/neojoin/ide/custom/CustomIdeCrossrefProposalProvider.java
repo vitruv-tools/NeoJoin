@@ -18,10 +18,8 @@ public class CustomIdeCrossrefProposalProvider extends IdeCrossrefProposalProvid
         ContentAssistContext context
     ) {
         var qualifiedName = getQualifiedNameConverter().toString(candidate.getName());
-        if (crossRef.getTerminal() instanceof RuleCall call) {
-            if (call.getRule().getName().equals("STRING")) {
-                qualifiedName = '"' + qualifiedName + '"';
-            }
+        if (crossRef.getTerminal() instanceof RuleCall call && call.getRule().getName().equals("STRING")) {
+            qualifiedName = '"' + qualifiedName + '"';
         }
         return getProposalCreator().createProposal(
             qualifiedName, context, e -> {
