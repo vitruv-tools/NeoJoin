@@ -15,11 +15,7 @@ import org.eclipse.xtext.xbase.jvmmodel.JvmTypeReferenceBuilder;
 import org.eclipse.xtext.xbase.jvmmodel.JvmTypesBuilder;
 import org.jspecify.annotations.Nullable;
 import tools.vitruv.neojoin.Constants;
-import tools.vitruv.neojoin.ast.Body;
-import tools.vitruv.neojoin.ast.From;
-import tools.vitruv.neojoin.ast.MainQuery;
-import tools.vitruv.neojoin.ast.Source;
-import tools.vitruv.neojoin.ast.ViewTypeDefinition;
+import tools.vitruv.neojoin.ast.*;
 import tools.vitruv.neojoin.utils.AstUtils;
 import tools.vitruv.neojoin.utils.Utils;
 
@@ -88,16 +84,7 @@ public class QueryModelInferrer {
         if (mainQuery.getSource() != null) {
             Utils.forEachIndexed(
                 mainQuery.getSource().getJoins(), (join, joinIndex) ->
-                    Utils.forEachIndexed(
-                        join.getExpressionConditions(), (condition, conditionIndex) ->
-                            addExpression(
-                                join,
-                                "%s_join_%d_condition_%d".formatted(targetName, joinIndex, conditionIndex),
-                                "boolean",
-                                condition.getExpression(),
-                                paramsForSource(mainQuery.getSource(), false, join.getFrom())
-                            )
-                    )
+                    addJoinExpressions(mainQuery, join, joinIndex)
             );
 
             if (mainQuery.getSource().getCondition() != null) {
@@ -272,5 +259,20 @@ public class QueryModelInferrer {
 
     private JvmTypeReference wrapInList(JvmTypeReference typeRef) {
         return typeReferences.typeRef(List.class, typeRef);
+    }
+
+    private void addJoinExpressions(MainQuery mainQuery, Join join, int joinIndex) {
+        var targetName = AstUtils.getTargetName(mainQuery);
+
+        Utils.forEachIndexed(
+            join.getExpressionConditions(), (condition, conditionIndex) ->
+                addExpression(
+                    join,
+                    "%s_join_%d_condition_%d".formatted(targetName, joinIndex, conditionIndex),
+                    "boolean",
+                    condition.getExpression(),
+                    paramsForSource(mainQuery.getSource(), false, join.getFrom())
+                )
+        );
     }
 }
