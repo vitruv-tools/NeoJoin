@@ -93,13 +93,15 @@ public class ExpressionHelper {
      * @param fromIterator  iterator of {@link AQRFrom} for variable names
      * @param valueIterator iterator of {@link Object} for variable values
      * @param limit         optional limit
+     * @param parameters    map from parameter name to parameter value
      * @return evaluation context to be used in {@link #evaluate(XExpression, IEvaluationContext) evaluate(..)}
      * @see #createContext() if no variables are required
      */
     public IEvaluationContext createContext(
         Iterator<AQRFrom> fromIterator,
         Iterator<?> valueIterator,
-        @Nullable AQRFrom limit
+        @Nullable AQRFrom limit,
+        Map<String, Object> parameters
     ) {
         IEvaluationContext context = createContext();
 
@@ -127,26 +129,6 @@ public class ExpressionHelper {
         check(limit == null);
         check(!fromIterator.hasNext() && !valueIterator.hasNext());
 
-        return context;
-    }
-
-    /**
-     * Creates an evaluation context taking variable names from the given {@link AQRFrom} iterator and
-     * values from the given value iterator. Optionally takes a limit that makes variables encountered after the limit inaccessible.
-     *
-     * @param fromIterator  iterator of {@link AQRFrom} for variable names
-     * @param valueIterator iterator of {@link Object} for variable values
-     * @param limit         optional limit
-     * @return evaluation context to be used in {@link #evaluate(XExpression, IEvaluationContext) evaluate(..)}
-     * @see #createContext() if no variables are required
-     */
-    public IEvaluationContext createContext(
-        Iterator<AQRFrom> fromIterator,
-        Iterator<?> valueIterator,
-        @Nullable AQRFrom limit,
-        Map<String, Object> parameters
-    ) {
-        var context = createContext(fromIterator, valueIterator, limit);
         for (var entry : parameters.entrySet()) {
             context.newValue(QualifiedName.create(entry.getKey()), entry.getValue());
         }
