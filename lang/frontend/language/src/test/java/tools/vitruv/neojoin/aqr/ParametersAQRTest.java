@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import static tools.vitruv.neojoin.aqr.AQRAssertions.assertThat;
 
-public class AQRParametersTest extends AbstractAQRTest {
+public class ParametersAQRTest extends AbstractAQRTest {
 
     @Test
     void singleEDataTypeParameter() {
