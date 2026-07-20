@@ -42,7 +42,7 @@ public class ExpressionEvaluator {
      * Create an evaluation context with the given values as parameters.
      *
      * @param values values as parameters for the expression
-     * @param limit  see {@link ExpressionHelper#createContext(Iterator, Iterator, AQRFrom)}
+     * @param limit  see {@link ExpressionHelper#createContext(Iterator, Iterator, AQRFrom, Map)}
      */
     public Context createContext(Iterator<?> values, @Nullable AQRFrom limit) {
         var evaluationContext = helper.createContext(source.allFroms().iterator(), values, limit, parameters);
@@ -53,7 +53,7 @@ public class ExpressionEvaluator {
      * Creates an evaluation context with the values from the given instance tuple as parameters.
      *
      * @param instances values as parameters for the expression
-     * @param limit     see {@link ExpressionHelper#createContext(Iterator, Iterator, AQRFrom)}
+     * @param limit     see {@link ExpressionHelper#createContext(Iterator, Iterator, AQRFrom, Map)}
      */
     public Context createContext(InstanceTuple instances, @Nullable AQRFrom limit) {
         return createContext(instances.stream().iterator(), limit);
