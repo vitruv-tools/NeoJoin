@@ -59,11 +59,8 @@ public class Main implements Callable<Integer> {
     @Parameters(index = "0", paramLabel = "QUERY", description = "Path to the query file.")
     Path queryFile;
 
-
-
     @Option(names = {"-m", "--meta-model-path"}, paramLabel = "MODEL-PATH", required = true, description = "Model path (see below) to find referenced meta-models (.ecore).")
     String metaModelPath;
-
 
     @ArgGroup(exclusive = false, heading = "Generate the meta-model:%n")
     @Nullable
@@ -198,7 +195,7 @@ public class Main implements Callable<Integer> {
 
         Map<String, String> inputParams = transform.parameters != null ? transform.parameters : Map.of();
 
-        HashMap<String, Object> result = new HashMap<>();
+        Map<String, Object> result = new HashMap<>();
         for (AQRParameter param : aqrParams) {
             if (!inputParams.containsKey(param.alias())) {
                 result.put(param.alias(), null);

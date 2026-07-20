@@ -52,24 +52,6 @@ public class Transformator {
      * @param aqr                  query representation
      * @param targetMetaModel      target meta-model that corresponds to the given query representation
      * @param sourceInstanceModels map from {@link EPackage package} to the corresponding instance model {@link Resource resource}
-     */
-    public Transformator(
-        ExpressionHelper expressionHelper,
-        AQR aqr,
-        EPackage targetMetaModel,
-        Map<EPackage, Resource> sourceInstanceModels
-    ) {
-        this(expressionHelper, aqr, targetMetaModel, sourceInstanceModels, Map.of());
-    }
-
-    /**
-     * Creates a new transformator for transforming the given source instance models into an instance of the given
-     * target meta-model based on the given query.
-     *
-     * @param expressionHelper     for evaluating feature expressions and conditions
-     * @param aqr                  query representation
-     * @param targetMetaModel      target meta-model that corresponds to the given query representation
-     * @param sourceInstanceModels map from {@link EPackage package} to the corresponding instance model {@link Resource resource}
      * @param parameters           map from parameter name to parameter value
      */
     public Transformator(
