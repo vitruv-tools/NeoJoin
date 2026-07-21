@@ -212,15 +212,10 @@ public class QueryModelInferrer {
 
                 if (from == limit) break;
             }
-
+                
             //add declared parameters
             for (var param : viewType.getParameters()) {
-                var instanceClass = param.getType().getInstanceClass();
-                if (instanceClass != null) {
-                    op.getParameters().add(
-                        types.toParameter(param, param.getAlias(), typeReferences.typeRef(instanceClass))  
-                    );
-                }
+                addParam(op, param, param.getAlias(), paramBaseTypeRef(param), param.getType() instanceof CollectionParamType);
             }
         };
     }
@@ -231,7 +226,6 @@ public class QueryModelInferrer {
             addParam(operation, from, fromAlias, fromJvmType, isGrouping);
         }
     }
-
 
     /**
      * Returns a lambda that creates a single parameter named {@link Constants#ExpressionSelfReference} for the given class.
@@ -245,27 +239,21 @@ public class QueryModelInferrer {
 
             //add declared parameters
             for (var param : viewType.getParameters()) {
-                JvmTypeReference typeRef = paramTypeRef(param);
-                op.getParameters().add(
-                    types.toParameter(param, param.getAlias(), typeRef)
-                );
+                addParam(op, param, param.getAlias(), paramBaseTypeRef(param), param.getType() instanceof CollectionParamType);
             }
         };
     }
 
-    private JvmTypeReference paramTypeRef(Parameter param) {
-        var paramType = param.getType();                      // ParamType AST node
-        var classifier = paramType.getElementType();
-        JvmTypeReference base;
+    private JvmTypeReference paramBaseTypeRef(Parameter param) {
+        var classifier = param.getType().getElementType();
         if (classifier instanceof EDataType dt) {
             var cls = dt.getInstanceClass();
-            base = (cls != null) ? typeReferences.typeRef(cls) : typeReferences.typeRef("invalid");
+            return (cls != null) ? typeReferences.typeRef(cls) : typeReferences.typeRef("invalid");
         } else if (classifier instanceof EClass ec) {
-            base = typeRef(sourceTypes.getClass(ec));
+            return typeRef(sourceTypes.getClass(ec));
         } else {
-            base = typeReferences.typeRef("invalid");
+            return typeReferences.typeRef("invalid");
         }
-        return paramType instanceof CollectionParamType ? wrapInList(base) : base;
     }
 
     /**
@@ -280,8 +268,11 @@ public class QueryModelInferrer {
      * go-to-definition.
      */
     private void addParam(JvmOperation op, EObject source, String name, @Nullable JvmType type, boolean isGrouping) {
-        var typeRef = isGrouping ? wrapInList(typeRef(type)) : typeRef(type);
-        op.getParameters().add(types.toParameter(source, name, typeRef));
+        addParam(op, source, name, typeRef(type), isGrouping);
+    }
+
+    private void addParam(JvmOperation op, EObject source, String name, JvmTypeReference typeRef, boolean isGrouping) {
+        op.getParameters().add(types.toParameter(source, name, isGrouping ? wrapInList(typeRef) : typeRef));
     }
 
     private JvmTypeReference typeRef(@Nullable JvmType type) {
