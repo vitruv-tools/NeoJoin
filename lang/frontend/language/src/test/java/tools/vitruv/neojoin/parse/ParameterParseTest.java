@@ -98,4 +98,40 @@ public class ParameterParseTest extends AbstractParseTest {
             .hasNoIssues();
     }
 
+    @Test
+    void paramUsedInQuery() {
+        var result = parse("""
+            param minEmployees : EInt
+            from Restaurant r
+            where r.numEmployees > minEmployees
+            create { }
+            """);
+
+        assertThat(result)
+            .hasNoIssues();
+    }
+
+    @Test
+    void duplicateParamName() {
+        var result = parse("""
+            param minPrice : EInt
+            param minPrice : EString
+            """);
+
+        assertThat(result)
+            .hasIssues("Duplicate parameter name 'minPrice'");
+    }
+
+    @Test
+    void paramNameConflictsWithFromAlias() {
+        var result = parse("""
+            param r : EInt
+            from Restaurant r
+            create { }
+            """);
+
+        assertThat(result)
+            .hasIssues("Alias 'r' conflicts with a parameter of the same name");
+    }
+
 }
