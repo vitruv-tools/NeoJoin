@@ -57,15 +57,9 @@ public class NeoJoinScopeProvider extends AbstractNeoJoinScopeProvider {
             return createAvailableModelsScope();
         } else if (reference == AstPackage.Literals.FROM__CLAZZ) {
             return createImportedClassifiersScope(AstUtils.getViewType(context));
-        } else if (reference == AstPackage.Literals.PARAMETER__TYPE) {
-            return createParameterTypeScope(context);
         } else if (reference == AstPackage.Literals.PARAM_TYPE__ELEMENT_TYPE) {
-            var imports = AstUtils.getImportedPackagesByAlias(AstUtils.getViewType(context));
-            imports.put(Constants.EcoreAlias, EcorePackage.eINSTANCE);
-            return createImportedClassifierScope(imports,
-                c -> c instanceof EDataType || c instanceof EClass);
-        }
-        else if (reference == AstPackage.Literals.JOIN_FEATURE_CONDITION__OTHER) {
+            return createParamElementTypeScope(AstUtils.getViewType(context));
+        } else if (reference == AstPackage.Literals.JOIN_FEATURE_CONDITION__OTHER) {
             var join = (Join) context.eContainer();
             var source = (Source) join.eContainer();
             var from = join.getFrom();
@@ -114,12 +108,13 @@ public class NeoJoinScopeProvider extends AbstractNeoJoinScopeProvider {
     }
 
     /**
-     * Scope for the types of parameters.
+     * Scope for the element type of a parameter type (both scalar and collection).
      */
-    private IScope createParameterTypeScope(EObject context) {
-        var parameterTypes = AstUtils.getImportedPackagesByAlias(AstUtils.getViewType(context));
-        parameterTypes.put(Constants.EcoreAlias, EcorePackage.eINSTANCE); // ecore is always available
-        return createImportedClassifierScope(parameterTypes, c -> c instanceof EClassifier);
+    private IScope createParamElementTypeScope(ViewTypeDefinition viewType) {
+        var imports = AstUtils.getImportedPackagesByAlias(viewType);
+        imports.put(Constants.EcoreAlias, EcorePackage.eINSTANCE);
+        return createImportedClassifierScope(imports,
+            c -> c instanceof EDataType || c instanceof EClass);
     }
 
     /**
