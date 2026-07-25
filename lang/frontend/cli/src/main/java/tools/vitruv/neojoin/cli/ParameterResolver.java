@@ -124,6 +124,12 @@ class ParameterResolver {
         }
         var resourceSet = new ResourceSetImpl();
         resourceSet.setPackageRegistry(registry);
-        return resourceSet.getResource(URI.createFileURI(xmiPath), true);
+        try {
+            return resourceSet.getResource(URI.createFileURI(xmiPath), true);
+        } catch (RuntimeException e) {
+            throw new ParameterResolutionException(
+                "Parameter value '%s' is not a valid XMI file path: %s".formatted(xmiPath, e.getMessage()), e
+            );
+        }
     }
 }

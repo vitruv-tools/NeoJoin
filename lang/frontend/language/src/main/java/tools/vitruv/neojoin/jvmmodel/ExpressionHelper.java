@@ -105,6 +105,10 @@ public class ExpressionHelper {
     ) {
         IEvaluationContext context = createContext();
 
+        for (var entry : parameters.entrySet()) {
+            context.newValue(QualifiedName.create(entry.getKey()), entry.getValue());
+        }
+
         boolean isFirst = true;
         while (fromIterator.hasNext() && valueIterator.hasNext()) {
             var from = fromIterator.next();
@@ -129,9 +133,6 @@ public class ExpressionHelper {
         check(limit == null);
         check(!fromIterator.hasNext() && !valueIterator.hasNext());
 
-        for (var entry : parameters.entrySet()) {
-            context.newValue(QualifiedName.create(entry.getKey()), entry.getValue());
-        }
         return context;
     }
 

@@ -52,4 +52,44 @@ public class ParametersAQRTest extends AbstractAQRTest {
             .hasParameter("food", "Food", true);
     }
 
+    @Test
+    void parameterUsedInJoinCondition() {
+        var aqr = parse("""
+            param nameFilter : EString
+            from Restaurant rest
+            join ReviewPage rev on rev.name == nameFilter
+            create ReviewedRestaurant {}
+            """);
+
+        assertThat(aqr)
+            .hasParameter("nameFilter", "EString", false);
+    }
+
+    @Test
+    void parameterUsedInGroupBy() {
+        var aqr = parse("""
+            param groupKey : EString
+            from Restaurant r
+            group by groupKey
+            create Test {}
+            """);
+
+        assertThat(aqr)
+            .hasParameter("groupKey", "EString", false);
+    }
+
+    @Test
+    void parameterUsedAsFeatureValue() {
+        var aqr = parse("""
+            param label : EString
+            from Restaurant r
+            create Rest {
+                name := label
+            }
+            """);
+
+        assertThat(aqr)
+            .hasParameter("label", "EString", false);
+    }
+
 }
