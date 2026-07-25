@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="ASCII"?>
 <pizzaMenu:Root xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:pizzaMenu="http://example.org/pizza-menu">
-  <allRestaurants label="Pizzeria" name="Pizza Margherita" price="7.0"/>
+  <restaurants label="Pizzeria" name="Pizza Margherita" price="7.0"/>
 </pizzaMenu:Root>
