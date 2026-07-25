@@ -80,6 +80,8 @@ public class Main implements Callable<Integer> {
 
         @Option(names = {"-p", "--parameters"}, paramLabel = "PARAMS", split = ",", required = false,
                 description = "Query parameters as comma-separated name=value pairs. " +
+                              "Supported Scalar Types: EString, EInt, EDouble, EBoolean, ELong and EFloat. " +
+                              "Strings with spaces have to be quoted. " +
                               "For EClass/EList parameters the value is a path to an XMI file. " +
                               "Example: -p featureName=Navigation,activeFeatures=config.xmi")
         Map<String, String> parameters;

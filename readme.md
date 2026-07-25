@@ -93,9 +93,12 @@ Transform the input models:
                            Model path (see below) to find instance models (.xmi).
   -p, --parameters=PARAMS[,PARAMS...]
                            Query parameters as comma-separated name=value
-                             pairs. For EClass/EList parameters the value is a
-                             path to an XMI file. Example: -p
-                             featureName=Navigation,activeFeatures=config.xmi
+                             pairs. Supported Scalar Types: EString, EInt,
+                             EDouble, EBoolean, ELong and EFloat. Strings with
+                             spaces have to be quoted. For EClass/EList
+                             parameters the value is a path to an XMI file.
+                             Example: -p featureName=Navigation,
+                             activeFeatures=config.xmi
   -t, --transform=OUTPUT   Transform the input models based on the query and
                              write the result to the given output file or
                              directory.
