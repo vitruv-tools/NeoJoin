@@ -215,7 +215,7 @@ public class QueryModelInferrer {
                 
             //add declared parameters
             for (var param : viewType.getParameters()) {
-                addParam(op, param, param.getAlias(), paramBaseTypeRef(param), param.getType() instanceof CollectionParamType);
+                addParam(op, param, param.getAlias(), paramBaseTypeRef(param), param.getType() instanceof CollectionParameterType);
             }
         };
     }
@@ -239,7 +239,7 @@ public class QueryModelInferrer {
 
             //add declared parameters
             for (var param : viewType.getParameters()) {
-                addParam(op, param, param.getAlias(), paramBaseTypeRef(param), param.getType() instanceof CollectionParamType);
+                addParam(op, param, param.getAlias(), paramBaseTypeRef(param), param.getType() instanceof CollectionParameterType);
             }
         };
     }

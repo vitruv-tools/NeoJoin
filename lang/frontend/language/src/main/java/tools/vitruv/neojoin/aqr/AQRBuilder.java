@@ -15,7 +15,7 @@ import org.jspecify.annotations.Nullable;
 import tools.vitruv.neojoin.Constants;
 import tools.vitruv.neojoin.Formatting;
 import tools.vitruv.neojoin.ast.Body;
-import tools.vitruv.neojoin.ast.CollectionParamType;
+import tools.vitruv.neojoin.ast.CollectionParameterType;
 import tools.vitruv.neojoin.ast.Export;
 import tools.vitruv.neojoin.ast.Feature;
 import tools.vitruv.neojoin.ast.Import;
@@ -130,7 +130,7 @@ public class AQRBuilder {
         return new AQRParameter(
             Objects.requireNonNull(parameter.getAlias()),
             Objects.requireNonNull(paramType.getElementType()),
-            paramType instanceof CollectionParamType
+            paramType instanceof CollectionParameterType
         );
     }
 

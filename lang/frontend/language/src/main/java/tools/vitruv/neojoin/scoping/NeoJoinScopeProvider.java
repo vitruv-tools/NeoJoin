@@ -57,7 +57,7 @@ public class NeoJoinScopeProvider extends AbstractNeoJoinScopeProvider {
             return createAvailableModelsScope();
         } else if (reference == AstPackage.Literals.FROM__CLAZZ) {
             return createImportedClassifiersScope(AstUtils.getViewType(context));
-        } else if (reference == AstPackage.Literals.PARAM_TYPE__ELEMENT_TYPE) {
+        } else if (reference == AstPackage.Literals.PARAMETER_TYPE__ELEMENT_TYPE) {
             return createParamElementTypeScope(AstUtils.getViewType(context));
         } else if (reference == AstPackage.Literals.JOIN_FEATURE_CONDITION__OTHER) {
             var join = (Join) context.eContainer();
