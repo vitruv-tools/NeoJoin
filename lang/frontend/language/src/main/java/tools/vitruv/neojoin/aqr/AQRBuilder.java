@@ -101,8 +101,16 @@ public class AQRBuilder {
 
         var root = createRootIfNeededAndInit();
 
+        // get conforms statement from parsed AST
+        var conformsNode = viewTypeDefinition.getConforms();
+        AQRConforms conforms = null;
+        if (conformsNode != null) {
+            conforms = new AQRConforms(conformsNode.getUri());
+        }
+
         return new AQR(
             createExport(viewTypeDefinition.getExport()),
+            conforms,
             viewTypeDefinition.getImports().stream().map(AQRBuilder::createImport).toList(),
             viewTypeDefinition.getParameters().stream().map(AQRBuilder::createParameter).toList(),
             encounteredDataTypes.stream().filter(dataType -> dataType.getEPackage() != EcorePackage.eINSTANCE).toList(),

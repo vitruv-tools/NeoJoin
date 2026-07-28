@@ -1,4 +1,5 @@
 export actorrating to "http://example.org/actorrating"
+conforms to "http://example.org/actor-rating-ref-nonconforming"
 
 import "http://example.org/imdb"
 

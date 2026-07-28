@@ -2,16 +2,25 @@ package tools.vitruv.neojoin.validation;
 
 
 import com.google.inject.Inject;
+import com.google.inject.name.Named;
+
+import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.xtext.validation.Check;
 import org.eclipse.xtext.validation.ComposedChecks;
 import tools.vitruv.neojoin.Constants;
+import tools.vitruv.neojoin.aqr.AQR;
+import tools.vitruv.neojoin.aqr.AQRBuilder;
 import tools.vitruv.neojoin.ast.AstPackage;
 import tools.vitruv.neojoin.ast.MainQuery;
 import tools.vitruv.neojoin.ast.ViewTypeDefinition;
+import tools.vitruv.neojoin.conformancevalidator.ConformanceValidator;
+import tools.vitruv.neojoin.conformancevalidator.Violation;
+import tools.vitruv.neojoin.generation.MetaModelGenerator;
 import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
 import tools.vitruv.neojoin.utils.AstUtils;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -23,6 +32,9 @@ public class NeoJoinValidator extends AbstractNeoJoinValidator {
 
     @Inject
     private ExpressionHelper expressionHelper;
+    @Inject
+    @Named(Constants.ImportPackageRegistry)
+    private EPackage.Registry registry;
 
     @Check
     public void duplicatedParameterAlias(ViewTypeDefinition viewType) {
@@ -87,6 +99,27 @@ public class NeoJoinValidator extends AbstractNeoJoinValidator {
             for (var query : allRoots) {
                 error("Multiple root queries", query, AstPackage.Literals.MAIN_QUERY__ROOT);
             }
+        }
+    }
+
+    @Check
+    public void checkConformance(ViewTypeDefinition viewType) {
+        if (viewType.getConforms() == null) return;
+
+        String uri = viewType.getConforms().getUri();
+        EPackage referencePackage = registry.getEPackage(uri);
+        if (referencePackage == null) {
+            error("Reference metamodel not found: " + uri,
+                AstPackage.Literals.VIEW_TYPE_DEFINITION__CONFORMS);
+            return;
+        }
+        
+        AQR aqr = new AQRBuilder(viewType, expressionHelper).build();
+        EPackage viewTypePackage = new MetaModelGenerator(aqr).generate().pack();
+
+        List<Violation> violations = ConformanceValidator.validatePackages(viewTypePackage, referencePackage);
+        for (Violation v : violations) {
+            error(v.toString(), AstPackage.Literals.VIEW_TYPE_DEFINITION__CONFORMS);
         }
     }
 
