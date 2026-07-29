@@ -5,7 +5,6 @@ package tools.vitruv.neojoin.jvmmodel;
 
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
-import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.ResourceSet;
@@ -13,6 +12,7 @@ import org.eclipse.xtext.xbase.jvmmodel.AbstractModelInferrer;
 import org.eclipse.xtext.xbase.jvmmodel.IJvmDeclaredTypeAcceptor;
 import org.eclipse.xtext.xbase.jvmmodel.JvmTypesBuilder;
 import tools.vitruv.neojoin.Constants;
+import tools.vitruv.neojoin.QueryModelExpressionTypeConfiguration;
 import tools.vitruv.neojoin.ast.ViewTypeDefinition;
 
 /**
@@ -38,13 +38,20 @@ public class NeoJoinJvmModelInferrer extends AbstractModelInferrer {
     @Inject
     private ExpressionHelper expressionHelper;
 
+    @Inject
+    private QueryModelExpressionTypeConfiguration queryModelExpressionTypeConfiguration;
+
+    @Inject
+    private SourceTypeRegistryInitialization sourceTypeRegistryInitialization;
+
     @Override
     public void infer(EObject obj, IJvmDeclaredTypeAcceptor acceptor, boolean preIndexingPhase) {
         if (obj instanceof ViewTypeDefinition viewType) {
-            var typeRegistry = getOrCreateSourceModelTypes(viewType.eResource().getResourceSet());
+            var typeRegistry = getOrCreateSourceModelTypes(viewType);
             new QueryModelInferrer(
                 acceptor,
                 viewType,
+                queryModelExpressionTypeConfiguration,
                 typeRegistry,
                 typesBuilder,
                 _typeReferenceBuilder,
@@ -55,23 +62,15 @@ public class NeoJoinJvmModelInferrer extends AbstractModelInferrer {
         }
     }
 
-    private static final URI SourceTypeRegistryURI = URI.createURI("SourceTypeRegistry");
-
     /**
      * Create source meta-model types only once per resource set and share them between different resources
      * (i.e., different NeoJoin query files opened simultaneously in the IDE). This saves same resources and
      * more importantly prevents collisions that would otherwise occur if the same source class is generated
      * within multiple resources within the same resource set.
      */
-    private TypeRegistry getOrCreateSourceModelTypes(ResourceSet resourceSet) {
-        var typeRegistry = (TypeRegistry) resourceSet.getResource(SourceTypeRegistryURI, false);
-        if (typeRegistry == null) {
-            typeRegistry = new TypeRegistry(SourceTypeRegistryURI);
-            new SourceModelInferrer(typeRegistry, packageRegistry, _typeReferenceBuilder).infer();
-            resourceSet.getResources().add(typeRegistry);
-        }
-
-        return typeRegistry;
+    private TypeRegistry getOrCreateSourceModelTypes(ViewTypeDefinition viewType) {
+        ResourceSet resourceSet = viewType.eResource().getResourceSet();
+        return SourceModel.getOrCreateSourceTypeRegistry(resourceSet,
+            typeRegistry -> sourceTypeRegistryInitialization.initialize(typeRegistry, packageRegistry, _typeReferenceBuilder, resourceSet));
     }
-
 }

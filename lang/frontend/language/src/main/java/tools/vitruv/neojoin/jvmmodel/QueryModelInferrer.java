@@ -6,8 +6,6 @@ import org.eclipse.xtext.common.types.JvmGenericType;
 import org.eclipse.xtext.common.types.JvmOperation;
 import org.eclipse.xtext.common.types.JvmType;
 import org.eclipse.xtext.common.types.JvmTypeReference;
-import org.eclipse.xtext.common.types.JvmVisibility;
-import org.eclipse.xtext.common.types.TypesFactory;
 import org.eclipse.xtext.xbase.XExpression;
 import org.eclipse.xtext.xbase.compiler.DisableCodeGenerationAdapter;
 import org.eclipse.xtext.xbase.jvmmodel.IJvmDeclaredTypeAcceptor;
@@ -15,6 +13,7 @@ import org.eclipse.xtext.xbase.jvmmodel.JvmTypeReferenceBuilder;
 import org.eclipse.xtext.xbase.jvmmodel.JvmTypesBuilder;
 import org.jspecify.annotations.Nullable;
 import tools.vitruv.neojoin.Constants;
+import tools.vitruv.neojoin.QueryModelExpressionTypeConfiguration;
 import tools.vitruv.neojoin.ast.Body;
 import tools.vitruv.neojoin.ast.From;
 import tools.vitruv.neojoin.ast.MainQuery;
@@ -35,6 +34,7 @@ public class QueryModelInferrer {
 
     private final IJvmDeclaredTypeAcceptor acceptor;
     private final ViewTypeDefinition viewType;
+    private final QueryModelExpressionTypeConfiguration configuration;
     private final TypeRegistry sourceTypes;
     private final JvmTypesBuilder types;
     private final JvmTypeReferenceBuilder typeReferences;
@@ -45,6 +45,7 @@ public class QueryModelInferrer {
     public QueryModelInferrer(
         IJvmDeclaredTypeAcceptor acceptor,
         ViewTypeDefinition viewType,
+        QueryModelExpressionTypeConfiguration configuration,
         TypeRegistry sourceTypes,
         JvmTypesBuilder types,
         JvmTypeReferenceBuilder typeReferences,
@@ -52,6 +53,7 @@ public class QueryModelInferrer {
     ) {
         this.acceptor = acceptor;
         this.viewType = viewType;
+        this.configuration = configuration;
         this.sourceTypes = sourceTypes;
         this.types = types;
         this.typeReferences = typeReferences;
@@ -61,17 +63,10 @@ public class QueryModelInferrer {
     public void infer() {
         check(root == null, "already inferred");
 
-        root = TypesFactory.eINSTANCE.createJvmGenericType();
-        root.setSimpleName("AllQueryExpressions");
-        root.setVisibility(JvmVisibility.PRIVATE);
-        DisableCodeGenerationAdapter.disableCodeGeneration(root); // otherwise Xtext generates java files in our working directory
+        root = types.toClass(viewType, "NeoJoinQueryExpressionType");
+        configuration.configure(root, viewType);
 
-        // prevent name collisions with other open query documents by choosing a unique name for the package
-        if (viewType.getExport() != null) {
-            root.setPackageName(viewType.getExport().getPackage());
-        } else {
-            root.setPackageName("invalid$%d".formatted(System.identityHashCode(viewType)));
-        }
+        DisableCodeGenerationAdapter.disableCodeGeneration(root); // otherwise Xtext generates java files in our working directory
 
         viewType.eResource().getContents().add(root); // otherwise type resolution fails
         for (MainQuery q : viewType.getQueries()) {
