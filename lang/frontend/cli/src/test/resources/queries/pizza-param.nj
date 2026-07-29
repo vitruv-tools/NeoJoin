@@ -7,7 +7,7 @@ param minEmployees : EInt
 param selectedFoods : EList<Food>
 
 from Restaurant r
-join Food f on selectedFoods.exists(sf | sf.name == f.name)
+join Food f on selectedFoods.exists(sf | sf.name == f.name) && r.sells.contains(f)
 where r.name.startsWith(namePrefix) && r.numEmployees >= minEmployees
 create {
     label := namePrefix
