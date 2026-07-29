@@ -4,6 +4,8 @@ import org.eclipse.emf.compare.Diff;
 import org.eclipse.emf.compare.DifferenceKind;
 import org.eclipse.emf.compare.ReferenceChange;
 import org.eclipse.emf.ecore.EClass;
+import org.eclipse.emf.ecore.EPackage;
+import org.eclipse.emf.ecore.EReference;
 
 import tools.vitruv.neojoin.conformancevalidator.Violation;
 
@@ -24,12 +26,28 @@ public class RequiredClassDeletedRule extends ConformanceRule {
     @Override
     public List<Violation> check(Diff diff) {
         List<Violation> violations = new ArrayList<>();
+
         if (diff.getKind() == DifferenceKind.DELETE
                 && diff instanceof ReferenceChange rc
-                && rc.getValue() instanceof EClass) {
-            // TODO (R9): check all EReferences in the reference EPackage
-            // whether any of them has this class as eType and lowerBound >= 1.
-            // If yes: violation. If all references are optional (lowerBound = 0): conforming (R10).
+                && rc.getValue() instanceof EClass deletedClass
+                && rc.getMatch().getRight() instanceof EPackage referencePackage) {
+
+            boolean isRequiredSomewhere = referencePackage.getEClassifiers().stream()
+                .filter(EClass.class::isInstance)
+                .map(EClass.class::cast)
+                .flatMap(c -> c.getEAllStructuralFeatures().stream())
+                .filter(EReference.class::isInstance)
+                .map(EReference.class::cast)
+                .anyMatch(ref -> ref.getEType() == deletedClass && ref.getLowerBound() >= 1);
+
+            
+            if (isRequiredSomewhere) {
+                violations.add(violation(
+                    "Class '" + deletedClass.getName() + "' is required by a reference in the "
+                        + "reference metamodel but missing from the view type.",
+                    diff
+                ));
+            }
         }
         return violations;
     }
