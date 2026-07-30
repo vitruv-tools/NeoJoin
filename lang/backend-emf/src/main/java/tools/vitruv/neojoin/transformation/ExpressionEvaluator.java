@@ -10,6 +10,7 @@ import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
 import tools.vitruv.neojoin.utils.Result;
 
 import java.util.Iterator;
+import java.util.Map;
 
 /**
  * Wrapper around an {@link ExpressionHelper} and a {@link AQRSource} to evaluate feature expressions and conditions.
@@ -18,10 +19,16 @@ public class ExpressionEvaluator {
 
     private final ExpressionHelper helper;
     private final AQRSource source;
+    private final Map<String, Object> parameters;
 
     public ExpressionEvaluator(ExpressionHelper helper, AQRSource source) {
+        this(helper, source, Map.of());
+    }
+
+    public ExpressionEvaluator(ExpressionHelper helper, AQRSource source, Map<String, Object> parameters) {
         this.helper = helper;
         this.source = source;
+        this.parameters = parameters;
     }
 
     /**
@@ -35,10 +42,10 @@ public class ExpressionEvaluator {
      * Create an evaluation context with the given values as parameters.
      *
      * @param values values as parameters for the expression
-     * @param limit  see {@link ExpressionHelper#createContext(Iterator, Iterator, AQRFrom)}
+     * @param limit  see {@link ExpressionHelper#createContext(Iterator, Iterator, AQRFrom, Map)}
      */
     public Context createContext(Iterator<?> values, @Nullable AQRFrom limit) {
-        var evaluationContext = helper.createContext(source.allFroms().iterator(), values, limit);
+        var evaluationContext = helper.createContext(source.allFroms().iterator(), values, limit, parameters);
         return new Context(helper, evaluationContext);
     }
 
@@ -46,7 +53,7 @@ public class ExpressionEvaluator {
      * Creates an evaluation context with the values from the given instance tuple as parameters.
      *
      * @param instances values as parameters for the expression
-     * @param limit     see {@link ExpressionHelper#createContext(Iterator, Iterator, AQRFrom)}
+     * @param limit     see {@link ExpressionHelper#createContext(Iterator, Iterator, AQRFrom, Map)}
      */
     public Context createContext(InstanceTuple instances, @Nullable AQRFrom limit) {
         return createContext(instances.stream().iterator(), limit);

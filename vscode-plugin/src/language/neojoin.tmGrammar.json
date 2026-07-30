@@ -1,7 +1,7 @@
 {
   "patterns": [
     {
-      "match": "\\b(as|by|case|catch|containment|create|default|derived|do|else|export|extends|extension|false|finally|for|from|group|id|if|import|inner|instanceof|join|left|new|null|on|ordered|readonly|return|root|static|super|switch|synchronized|throw|to|transient|true|try|typeof|unique|unsettable|using|val|var|volatile|where|while|with)\\b",
+      "match": "\\b(as|by|case|catch|containment|create|default|derived|do|else|export|extends|extension|false|finally|for|from|group|id|if|import|inner|instanceof|join|left|new|null|on|ordered|param|readonly|return|root|static|super|switch|synchronized|throw|to|transient|true|try|typeof|unique|unsettable|using|val|var|volatile|where|while|with)\\b",
       "name": "keyword.control.neojoin"
     },
     {

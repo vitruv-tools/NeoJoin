@@ -57,6 +57,8 @@ public class NeoJoinScopeProvider extends AbstractNeoJoinScopeProvider {
             return createAvailableModelsScope();
         } else if (reference == AstPackage.Literals.FROM__CLAZZ) {
             return createImportedClassifiersScope(AstUtils.getViewType(context));
+        } else if (reference == AstPackage.Literals.PARAMETER_TYPE__ELEMENT_TYPE) {
+            return createParamElementTypeScope(AstUtils.getViewType(context));
         } else if (reference == AstPackage.Literals.JOIN_FEATURE_CONDITION__OTHER) {
             var join = (Join) context.eContainer();
             var source = (Source) join.eContainer();
@@ -103,6 +105,16 @@ public class NeoJoinScopeProvider extends AbstractNeoJoinScopeProvider {
     private IScope createImportedClassifiersScope(ViewTypeDefinition viewType) {
         var imports = AstUtils.getImportedPackagesByAlias(viewType);
         return createImportedClassifierScope(imports, EClass.class::isInstance);
+    }
+
+    /**
+     * Scope for the element type of a parameter type (both scalar and collection).
+     */
+    private IScope createParamElementTypeScope(ViewTypeDefinition viewType) {
+        var imports = AstUtils.getImportedPackagesByAlias(viewType);
+        imports.put(Constants.EcoreAlias, EcorePackage.eINSTANCE);
+        return createImportedClassifierScope(imports,
+            c -> c instanceof EDataType || c instanceof EClass);
     }
 
     /**

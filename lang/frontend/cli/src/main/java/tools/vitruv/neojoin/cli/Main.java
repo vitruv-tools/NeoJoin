@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 @NullUnmarked
@@ -52,7 +53,6 @@ public class Main implements Callable<Integer> {
 
     @Option(names = {"-m", "--meta-model-path"}, paramLabel = "MODEL-PATH", required = true, description = "Model path (see below) to find referenced meta-models (.ecore).")
     String metaModelPath;
-
 
     @ArgGroup(exclusive = false, heading = "Generate the meta-model:%n")
     @Nullable
@@ -78,6 +78,14 @@ public class Main implements Callable<Integer> {
         @Option(names = {"-t", "--transform"}, paramLabel = "OUTPUT", required = true, description = "Transform the input models based on the query and write the result to the given output file or directory.")
         Path output;
 
+        @Option(names = {"-p", "--parameters"}, paramLabel = "PARAMS", split = ",", required = false,
+                description = "Query parameters as comma-separated name=value pairs. " +
+                              "Supported Scalar Types: EString, EInt, EDouble, EBoolean, ELong and EFloat. " +
+                              "Strings with spaces have to be quoted. " +
+                              "For EClass/EList parameters the value is a path to an XMI file. " +
+                              "Example: -p featureName=Navigation,activeFeatures=config.xmi")
+        Map<String, String> parameters;
+
     }
 
     /**
@@ -89,6 +97,8 @@ public class Main implements Callable<Integer> {
     public Integer call() {
         try {
             return execute();
+        } catch (ParameterResolutionException e) {
+            printError(e.getMessage());
         } catch (IllegalArgumentException ex) {
             printError("Invalid meta-model path: %s", ex.getMessage());
         } catch (TransformatorException e) {
@@ -161,11 +171,18 @@ public class Main implements Callable<Integer> {
         if (transform != null) {
             // transform instance models
             var inputModels = new InstanceModelCollector(transform.instanceModelPath, registry).collect();
+            Map<String, Object> paramValues = ParameterResolver.resolve(
+                aqr.parameters(),
+                transform.parameters != null ? transform.parameters : Map.of(),
+                registry
+            );
+
             var targetInstanceModel = new Transformator(
                 setup.getExpressionHelper(),
                 aqr,
-                targetMetaModel.pack(),
-                inputModels
+                targetMetaModel.pack(), 
+                inputModels,
+                paramValues
             ).transform();
             EMFUtils.save(getOutputURI(transform.output, "xmi"), targetInstanceModel);
             validateInstanceModel(targetInstanceModel);

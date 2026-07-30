@@ -38,6 +38,7 @@ public class Transformator {
     private final AQR aqr;
     private final EPackage targetMetaModel;
     private final InstanceSourceFactory instanceSourceFactory;
+    private final Map<String, Object> parameters;
 
     private @Nullable EObject root;
     private final TargetMap targetMap = new TargetMap();
@@ -51,17 +52,20 @@ public class Transformator {
      * @param aqr                  query representation
      * @param targetMetaModel      target meta-model that corresponds to the given query representation
      * @param sourceInstanceModels map from {@link EPackage package} to the corresponding instance model {@link Resource resource}
+     * @param parameters           map from parameter name to parameter value
      */
     public Transformator(
         ExpressionHelper expressionHelper,
         AQR aqr,
         EPackage targetMetaModel,
-        Map<EPackage, Resource> sourceInstanceModels
+        Map<EPackage, Resource> sourceInstanceModels,
+        Map<String, Object> parameters
     ) {
         this.expressionHelper = expressionHelper;
         this.aqr = aqr;
         this.targetMetaModel = targetMetaModel;
         this.instanceSourceFactory = new InstanceSourceFactory(sourceInstanceModels);
+        this.parameters = parameters;
     }
 
     /**
@@ -123,7 +127,7 @@ public class Transformator {
         if (targetClass.source() == null) { // no source -> create a single instance
             return List.of(createTransformedInstance(targetClass, clazz));
         } else {
-            var evaluator = new ExpressionEvaluator(expressionHelper, targetClass.source());
+            var evaluator = new ExpressionEvaluator(expressionHelper, targetClass.source(), parameters);
             var instanceSource = instanceSourceFactory.create(targetClass.source(), evaluator);
 
             if (targetClass.source().groupingExpressions().isEmpty()) { // no grouping
