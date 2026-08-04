@@ -30,9 +30,8 @@ public class LowerBoundChangedRule extends ConformanceRule {
             if (viewtype instanceof ETypedElement leftFeature && reference instanceof ETypedElement rightFeature) {
                 if (rightFeature.getLowerBound() > leftFeature.getLowerBound()) {
                     violations.add(violation(
-                        "lowerBound of '" + leftFeature.getName() +
-                        "' is " + leftFeature.getLowerBound() + " in view type" +
-                        " but " + rightFeature.getLowerBound() + " in reference.",
+                        "The reference requires more values of '" + leftFeature.getName() +
+                        "' than the view type does.",
                         diff
                     ));
                 }

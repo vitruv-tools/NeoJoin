@@ -11,14 +11,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * R6: CHANGE on upperBound.
+ * R7: CHANGE on upperBound.
  * Violation if the reference allows fewer values than the view type produces.
  * upperBound = -1 means unbounded.
  */
 public class UpperBoundChangedRule extends ConformanceRule {
 
     public UpperBoundChangedRule() {
-        super("R6", Violation.Category.BREAKING_RESOLVABLE);
+        super("R7", Violation.Category.BREAKING_RESOLVABLE);
     }
 
     @Override
@@ -34,9 +34,8 @@ public class UpperBoundChangedRule extends ConformanceRule {
                 boolean isViolation = refUpper != -1 && (viewUpper == -1 || viewUpper > refUpper);
                 if (isViolation) {
                     violations.add(violation(
-                        "upperBound of '" + leftFeature.getName() +
-                        "' is " + viewUpper + " in view type" +
-                        " but " + refUpper + " in reference.",
+                        "The view type allows more values of '" + leftFeature.getName() +
+                        "' than the reference does.",
                         diff
                     ));
                 }

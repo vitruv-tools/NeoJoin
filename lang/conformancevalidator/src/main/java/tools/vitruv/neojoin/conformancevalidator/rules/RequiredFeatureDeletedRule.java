@@ -11,9 +11,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * R3/R4: DELETE of EStructuralFeature.
+ * R3: DELETE of EStructuralFeature.
  * The reference has a feature the view type does not.
- * Violation only if the feature is required (lowerBound >= 1).
+ * Violation because the feature is required (lowerBound >= 1).
  */
 public class RequiredFeatureDeletedRule extends ConformanceRule {
 
@@ -26,15 +26,13 @@ public class RequiredFeatureDeletedRule extends ConformanceRule {
         List<Violation> violations = new ArrayList<>();
         if (diff.getKind() == DifferenceKind.DELETE
                 && diff instanceof ReferenceChange rc
-                && rc.getValue() instanceof EStructuralFeature sf) {
-            if (sf.getLowerBound() >= 1) {
-                violations.add(violation(
-                    "Required feature '" + sf.getName() + "' (lowerBound=" + sf.getLowerBound() + ")" +
-                    " is present in the reference but missing from the view type.",
-                    diff
-                ));
-            }
-            // R4: lowerBound = 0 -> not a violation
+                && rc.getValue() instanceof EStructuralFeature sf
+                && sf.getLowerBound() >= 1) {
+            violations.add(violation(
+                "Required feature '" + sf.getName() +
+                "' is present in the reference but missing from the view type.",
+                diff
+            ));
         }
         return violations;
     }

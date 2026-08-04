@@ -14,16 +14,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * R7/R8: CHANGE on eType.
- * Violation if view type and reference type are incompatible (R7).
- * Conforming if the view type's type is a subtype of the reference type (R8).
- * Types may be null for primitives from the Ecore standard package
- * if that package is not registered; those cases are skipped.
+ * R9: CHANGE on eType.
+ * Violation because the view type and reference type are incompatible.
  */
 public class TypeChangedRule extends ConformanceRule {
 
     public TypeChangedRule() {
-        super("R7", Violation.Category.BREAKING_NOT_RESOLVABLE);
+        super("R9", Violation.Category.BREAKING_NOT_RESOLVABLE);
     }
 
     @Override
@@ -52,7 +49,7 @@ public class TypeChangedRule extends ConformanceRule {
     }
 
     /**
-     * R8 helper: checks whether viewTypeClassifier is type-compatible with referenceClassifier.
+     * R10 helper: checks whether viewTypeClassifier is type-compatible with referenceClassifier.
      * Compatible means: same type, or viewType type is a subtype of the reference type.
      */
     static boolean isCompatibleType(EClassifier viewTypeClassifier, EClassifier referenceClassifier) {
@@ -60,7 +57,6 @@ public class TypeChangedRule extends ConformanceRule {
         if (viewTypeClassifier instanceof EClass viewClass && referenceClassifier instanceof EClass refClass) {
             return refClass.isSuperTypeOf(viewClass);
         }
-        // EDataType: no subtype relation, names must match exactly
         return false;
     }
 }

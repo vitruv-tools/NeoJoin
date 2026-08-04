@@ -11,14 +11,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * R11: DELETE of eSuperType.
+ * R13: DELETE of eSuperType.
  * The view type class does not extend a supertype that the reference class does.
  * Violation if the supertype has required features that the view type class now lacks.
  */
 public class SuperTypeDeletedRule extends ConformanceRule {
 
     public SuperTypeDeletedRule() {
-        super("R11", Violation.Category.BREAKING_RESOLVABLE);
+        super("R13", Violation.Category.BREAKING_RESOLVABLE);
     }
 
     @Override

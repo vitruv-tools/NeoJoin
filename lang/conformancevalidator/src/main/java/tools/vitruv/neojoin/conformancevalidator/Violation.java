@@ -15,7 +15,8 @@ public record Violation(String ruleId, String message, Category category, Diff d
 
     public enum Category {
         BREAKING_RESOLVABLE,
-        BREAKING_NOT_RESOLVABLE
+        BREAKING_NOT_RESOLVABLE,
+        NON_BREAKING
     }
 
     public Category getCategory() {

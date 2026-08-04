@@ -5,12 +5,20 @@ import org.eclipse.emf.compare.scope.DefaultComparisonScope;
 import org.eclipse.emf.compare.scope.IComparisonScope;
 import org.eclipse.emf.ecore.EPackage;
 
+import tools.vitruv.neojoin.conformancevalidator.rules.CompatibleTypeChangedRule;
 import tools.vitruv.neojoin.conformancevalidator.rules.ConformanceRule;
+import tools.vitruv.neojoin.conformancevalidator.rules.FeatureAddedRule;
 import tools.vitruv.neojoin.conformancevalidator.rules.LowerBoundChangedRule;
+import tools.vitruv.neojoin.conformancevalidator.rules.OptionalFeatureDeletedRule;
 import tools.vitruv.neojoin.conformancevalidator.rules.RequiredClassDeletedRule;
 import tools.vitruv.neojoin.conformancevalidator.rules.RequiredFeatureDeletedRule;
+import tools.vitruv.neojoin.conformancevalidator.rules.SafeLowerBoundChangedRule;
+import tools.vitruv.neojoin.conformancevalidator.rules.SafeSuperTypeDeletedRule;
+import tools.vitruv.neojoin.conformancevalidator.rules.SafeUpperBoundChangedRule;
+import tools.vitruv.neojoin.conformancevalidator.rules.SuperTypeAddedRule;
 import tools.vitruv.neojoin.conformancevalidator.rules.SuperTypeDeletedRule;
 import tools.vitruv.neojoin.conformancevalidator.rules.TypeChangedRule;
+import tools.vitruv.neojoin.conformancevalidator.rules.UnrequiredClassDeletedRule;
 import tools.vitruv.neojoin.conformancevalidator.rules.UpperBoundChangedRule;
 
 import java.util.ArrayList;
@@ -19,12 +27,20 @@ import java.util.List;
 public class ConformanceValidator {
 
     private static final List<ConformanceRule> ALL_RULES = List.of(
-        new RequiredFeatureDeletedRule(),  // R3/R4
-        new RequiredClassDeletedRule(),    // R9/R10
-        new SuperTypeDeletedRule(),        // R11
-        new LowerBoundChangedRule(),       // R5
-        new UpperBoundChangedRule(),       // R6
-        new TypeChangedRule()              // R7/R8
+        new FeatureAddedRule(),              // R2
+        new RequiredFeatureDeletedRule(),    // R3
+        new OptionalFeatureDeletedRule(),    // R4
+        new LowerBoundChangedRule(),         // R5
+        new SafeLowerBoundChangedRule(),     // R6
+        new UpperBoundChangedRule(),         // R7
+        new SafeUpperBoundChangedRule(),     // R8
+        new TypeChangedRule(),               // R9
+        new CompatibleTypeChangedRule(),     // R10
+        new RequiredClassDeletedRule(),      // R11
+        new UnrequiredClassDeletedRule(),    // R12
+        new SuperTypeDeletedRule(),          // R13
+        new SuperTypeAddedRule(),            // R14
+        new SafeSuperTypeDeletedRule()       // R15
     );
 
     /**

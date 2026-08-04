@@ -13,14 +13,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * R9/R10: DELETE of EClass.
+ * R11: DELETE of EClass.
  * The reference defines a class the view type does not have.
- * Violation only if that class is required somewhere in the reference (lowerBound >= 1).
+ * Violation because that class is required somewhere in the reference (lowerBound >= 1).
  */
 public class RequiredClassDeletedRule extends ConformanceRule {
 
     public RequiredClassDeletedRule() {
-        super("R9", Violation.Category.BREAKING_NOT_RESOLVABLE);
+        super("R11", Violation.Category.BREAKING_NOT_RESOLVABLE);
     }
 
     @Override
@@ -40,11 +40,10 @@ public class RequiredClassDeletedRule extends ConformanceRule {
                 .map(EReference.class::cast)
                 .anyMatch(ref -> ref.getEType() == deletedClass && ref.getLowerBound() >= 1);
 
-            
             if (isRequiredSomewhere) {
                 violations.add(violation(
-                    "Class '" + deletedClass.getName() + "' is required by a reference in the "
-                        + "reference metamodel but missing from the view type.",
+                    "Class '" + deletedClass.getName() + "' is missing from the view type, "
+                        + "but the reference metamodel requires it.",
                     diff
                 ));
             }
