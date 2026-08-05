@@ -5,21 +5,10 @@ import org.eclipse.emf.compare.scope.DefaultComparisonScope;
 import org.eclipse.emf.compare.scope.IComparisonScope;
 import org.eclipse.emf.ecore.EPackage;
 
-import tools.vitruv.neojoin.conformancevalidator.rules.CompatibleTypeChangedRule;
 import tools.vitruv.neojoin.conformancevalidator.rules.ConformanceRule;
-import tools.vitruv.neojoin.conformancevalidator.rules.FeatureAddedRule;
-import tools.vitruv.neojoin.conformancevalidator.rules.LowerBoundChangedRule;
-import tools.vitruv.neojoin.conformancevalidator.rules.OptionalFeatureDeletedRule;
-import tools.vitruv.neojoin.conformancevalidator.rules.RequiredClassDeletedRule;
-import tools.vitruv.neojoin.conformancevalidator.rules.RequiredFeatureDeletedRule;
-import tools.vitruv.neojoin.conformancevalidator.rules.SafeLowerBoundChangedRule;
-import tools.vitruv.neojoin.conformancevalidator.rules.SafeSuperTypeDeletedRule;
-import tools.vitruv.neojoin.conformancevalidator.rules.SafeUpperBoundChangedRule;
-import tools.vitruv.neojoin.conformancevalidator.rules.SuperTypeAddedRule;
-import tools.vitruv.neojoin.conformancevalidator.rules.SuperTypeDeletedRule;
-import tools.vitruv.neojoin.conformancevalidator.rules.TypeChangedRule;
-import tools.vitruv.neojoin.conformancevalidator.rules.UnrequiredClassDeletedRule;
-import tools.vitruv.neojoin.conformancevalidator.rules.UpperBoundChangedRule;
+import tools.vitruv.neojoin.conformancevalidator.rules.breakingnotresolvable.*;
+import tools.vitruv.neojoin.conformancevalidator.rules.breakingresolvable.*;
+import tools.vitruv.neojoin.conformancevalidator.rules.nonbreaking.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,26 +17,27 @@ public class ConformanceValidator {
 
     private static final List<ConformanceRule> ALL_RULES = List.of(
         new FeatureAddedRule(),              // R2
-        new RequiredFeatureDeletedRule(),    // R3
-        new OptionalFeatureDeletedRule(),    // R4
+        new FeatureDeletedRule(),            // R3
+        new SafeFeatureDeletedRule(),        // R4
         new LowerBoundChangedRule(),         // R5
         new SafeLowerBoundChangedRule(),     // R6
         new UpperBoundChangedRule(),         // R7
         new SafeUpperBoundChangedRule(),     // R8
         new TypeChangedRule(),               // R9
-        new CompatibleTypeChangedRule(),     // R10
-        new RequiredClassDeletedRule(),      // R11
-        new UnrequiredClassDeletedRule(),    // R12
+        new SafeTypeChangedRule(),           // R10
+        new ClassDeletedRule(),              // R11
+        new SafeClassDeletedRule(),          // R12
         new SuperTypeDeletedRule(),          // R13
         new SuperTypeAddedRule(),            // R14
         new SafeSuperTypeDeletedRule()       // R15
     );
 
     /**
-     * Phase II: evaluates all diffs by delegating to the operator classes.
+     * Phase II: evaluates all diffs by delegating to the rule classes.
      * Left = view type, Right = reference.
-     * @param diffs
-     * @return list of violation messages; empty means conforming.
+     *
+     * @param diffs the diffs produced by Phase I
+     * @return list of violations
      */
     public static List<Violation> evaluateDiffs(List<Diff> diffs) {
         List<Violation> violations = new ArrayList<>();
@@ -65,7 +55,7 @@ public class ConformanceValidator {
      *
      * @param viewType  the generated view type EPackage (left)
      * @param reference the reference metamodel EPackage (right)
-     * @return list of violation messages; empty means conforming.
+     * @return list of violations
      */
     public static List<Violation> validatePackages(EPackage viewType, EPackage reference) {
         List<Diff> diffs = compare(viewType, reference);
@@ -74,7 +64,7 @@ public class ConformanceValidator {
 
     /**
      * Phase I: Extracts structural differences between view type and reference
-     * using EMF Compare. Left = view type (new), right = reference (old).
+     * using EMF Compare. Left = view type, right = reference.
      *
      * @param viewType  the generated view type EPackage (left)
      * @param reference the reference metamodel EPackage (right)

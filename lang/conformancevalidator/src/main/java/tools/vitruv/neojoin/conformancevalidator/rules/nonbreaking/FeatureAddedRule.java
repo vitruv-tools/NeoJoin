@@ -1,4 +1,4 @@
-package tools.vitruv.neojoin.conformancevalidator.rules;
+package tools.vitruv.neojoin.conformancevalidator.rules.nonbreaking;
 
 import org.eclipse.emf.compare.Diff;
 import org.eclipse.emf.compare.DifferenceKind;
@@ -6,14 +6,14 @@ import org.eclipse.emf.compare.ReferenceChange;
 import org.eclipse.emf.ecore.EStructuralFeature;
 
 import tools.vitruv.neojoin.conformancevalidator.Violation;
+import tools.vitruv.neojoin.conformancevalidator.rules.ConformanceRule;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * R2: ADD of EStructuralFeature.
- * The view type has a feature the reference does not require. Extra structure
- * beyond what the reference demands does not violate conformance.
+ * The view type has a feature the reference does not require.
  */
 public class FeatureAddedRule extends ConformanceRule {
 

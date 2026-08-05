@@ -1,4 +1,4 @@
-package tools.vitruv.neojoin.conformancevalidator.rules;
+package tools.vitruv.neojoin.conformancevalidator.rules.nonbreaking;
 
 import org.eclipse.emf.compare.Diff;
 import org.eclipse.emf.compare.DifferenceKind;
@@ -6,6 +6,7 @@ import org.eclipse.emf.compare.ReferenceChange;
 import org.eclipse.emf.ecore.EClass;
 
 import tools.vitruv.neojoin.conformancevalidator.Violation;
+import tools.vitruv.neojoin.conformancevalidator.rules.ConformanceRule;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +14,6 @@ import java.util.List;
 /**
  * R14: ADD of eSuperType.
  * The view type class extends a supertype that the reference class does not.
- * Extra structure beyond what the reference demands does not violate conformance.
  */
 public class SuperTypeAddedRule extends ConformanceRule {
 

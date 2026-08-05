@@ -1,4 +1,4 @@
-package tools.vitruv.neojoin.conformancevalidator.rules;
+package tools.vitruv.neojoin.conformancevalidator.rules.breakingresolvable;
 
 import org.eclipse.emf.compare.AttributeChange;
 import org.eclipse.emf.compare.Diff;
@@ -6,18 +6,19 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.ETypedElement;
 
 import tools.vitruv.neojoin.conformancevalidator.Violation;
+import tools.vitruv.neojoin.conformancevalidator.rules.ConformanceRule;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * R6: CHANGE on lowerBound.
- * Conforming if the reference requires the same or fewer instances than the view type provides.
+ * R5: CHANGE on lowerBound.
+ * Violation if the reference requires more instances than the view type provides.
  */
-public class SafeLowerBoundChangedRule extends ConformanceRule {
+public class LowerBoundChangedRule extends ConformanceRule {
 
-    public SafeLowerBoundChangedRule() {
-        super("R6", Violation.Category.NON_BREAKING);
+    public LowerBoundChangedRule() {
+        super("R5", Violation.Category.BREAKING_RESOLVABLE);
     }
 
     @Override
@@ -28,9 +29,9 @@ public class SafeLowerBoundChangedRule extends ConformanceRule {
             EObject viewtype  = ac.getMatch().getLeft();
             EObject reference = ac.getMatch().getRight();
             if (viewtype instanceof ETypedElement leftFeature && reference instanceof ETypedElement rightFeature) {
-                if (rightFeature.getLowerBound() <= leftFeature.getLowerBound()) {
+                if (rightFeature.getLowerBound() > leftFeature.getLowerBound()) {
                     violations.add(violation(
-                        "The reference requires the same or fewer values of '" + leftFeature.getName() +
+                        "The reference requires more values of '" + leftFeature.getName() +
                         "' than the view type does.",
                         diff
                     ));

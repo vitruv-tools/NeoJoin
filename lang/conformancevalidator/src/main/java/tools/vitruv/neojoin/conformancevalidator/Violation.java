@@ -6,7 +6,7 @@ import org.eclipse.emf.compare.Diff;
  * Represents a single conformance rule violation from in Phase II.
  *
  * @param ruleId   the identifier of the violated rule
- * @param message  human-readable description of the violation
+ * @param message  description of the violation
  * @param category whether this violation can be resolved by adjusting the NeoJoin query,
  *                 or requires manual intervention
  * @param diff     the EMF Compare diff that triggered this violation

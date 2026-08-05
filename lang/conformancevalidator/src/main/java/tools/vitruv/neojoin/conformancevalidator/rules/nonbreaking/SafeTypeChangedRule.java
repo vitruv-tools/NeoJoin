@@ -1,26 +1,27 @@
-package tools.vitruv.neojoin.conformancevalidator.rules;
+package tools.vitruv.neojoin.conformancevalidator.rules.nonbreaking;
 
 import org.eclipse.emf.compare.Diff;
 import org.eclipse.emf.compare.DifferenceKind;
 import org.eclipse.emf.compare.ReferenceChange;
-import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.ETypedElement;
 
 import tools.vitruv.neojoin.conformancevalidator.Violation;
+import tools.vitruv.neojoin.conformancevalidator.rules.ConformanceRule;
+import tools.vitruv.neojoin.conformancevalidator.rules.breakingnotresolvable.TypeChangedRule;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * R9: CHANGE on eType.
- * Violation because the view type and reference type are incompatible.
+ * R10: CHANGE on eType.
+ * The view type's type differs from the reference's type, but it is a compatible (sub)type.
  */
-public class TypeChangedRule extends ConformanceRule {
+public class SafeTypeChangedRule extends ConformanceRule {
 
-    public TypeChangedRule() {
-        super("R9", Violation.Category.BREAKING_NOT_RESOLVABLE);
+    public SafeTypeChangedRule() {
+        super("R10", Violation.Category.NON_BREAKING);
     }
 
     @Override
@@ -35,28 +36,16 @@ public class TypeChangedRule extends ConformanceRule {
                 EClassifier viewTypeType  = leftFeature.getEType();
                 EClassifier referenceType = rightFeature.getEType();
                 if (viewTypeType != null && referenceType != null
-                        && !isCompatibleType(viewTypeType, referenceType)) {
+                        && TypeChangedRule.isCompatibleType(viewTypeType, referenceType)) {
                     violations.add(violation(
-                        "Type mismatch on '" + leftFeature.getName() +
-                        "': view type has '" + viewTypeType.getName() +
-                        "' but reference expects '" + referenceType.getName() + "'.",
+                        "Type of '" + leftFeature.getName() +
+                        "' changed from '" + referenceType.getName() +
+                        "' to the compatible subtype '" + viewTypeType.getName() + "'.",
                         diff
                     ));
                 }
             }
         }
         return violations;
-    }
-
-    /**
-     * R10 helper: checks whether viewTypeClassifier is type-compatible with referenceClassifier.
-     * Compatible means: same type, or viewType type is a subtype of the reference type.
-     */
-    static boolean isCompatibleType(EClassifier viewTypeClassifier, EClassifier referenceClassifier) {
-        if (viewTypeClassifier.getName().equals(referenceClassifier.getName())) return true;
-        if (viewTypeClassifier instanceof EClass viewClass && referenceClassifier instanceof EClass refClass) {
-            return refClass.isSuperTypeOf(viewClass);
-        }
-        return false;
     }
 }

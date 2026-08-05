@@ -1,4 +1,4 @@
-package tools.vitruv.neojoin.conformancevalidator.rules;
+package tools.vitruv.neojoin.conformancevalidator.rules.nonbreaking;
 
 import org.eclipse.emf.compare.Diff;
 import org.eclipse.emf.compare.DifferenceKind;
@@ -6,19 +6,19 @@ import org.eclipse.emf.compare.ReferenceChange;
 import org.eclipse.emf.ecore.EStructuralFeature;
 
 import tools.vitruv.neojoin.conformancevalidator.Violation;
+import tools.vitruv.neojoin.conformancevalidator.rules.ConformanceRule;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * R3: DELETE of EStructuralFeature.
- * The reference has a feature the view type does not.
- * Violation because the feature is required (lowerBound >= 1).
+ * R4: DELETE of EStructuralFeature.
+ * The reference has a feature the view type does not, but the feature is optional (lowerBound = 0).
  */
-public class RequiredFeatureDeletedRule extends ConformanceRule {
+public class SafeFeatureDeletedRule extends ConformanceRule {
 
-    public RequiredFeatureDeletedRule() {
-        super("R3", Violation.Category.BREAKING_RESOLVABLE);
+    public SafeFeatureDeletedRule() {
+        super("R4", Violation.Category.NON_BREAKING);
     }
 
     @Override
@@ -27,9 +27,9 @@ public class RequiredFeatureDeletedRule extends ConformanceRule {
         if (diff.getKind() == DifferenceKind.DELETE
                 && diff instanceof ReferenceChange rc
                 && rc.getValue() instanceof EStructuralFeature sf
-                && sf.getLowerBound() >= 1) {
+                && sf.getLowerBound() == 0) {
             violations.add(violation(
-                "Required feature '" + sf.getName() +
+                "Optional feature '" + sf.getName() +
                 "' is present in the reference but missing from the view type.",
                 diff
             ));
