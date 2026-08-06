@@ -187,7 +187,11 @@ public class ExpressionHelper {
                 if (receiverType.getType() != null) {
                     var receiverClassifier = getClassifier(expression, receiverType.getType());
                     if (receiverClassifier instanceof EClass receiverClass) {
-                        return receiverClass.getEStructuralFeature(featureCall.getConcreteSyntaxFeatureName());
+                        var featureName = featureCall.getConcreteSyntaxFeatureName();
+                        if (featureName.startsWith("^")) {
+                            featureName = featureName.substring(1);
+                        }
+                        return receiverClass.getEStructuralFeature(featureName);
                     }
                 }
             }
