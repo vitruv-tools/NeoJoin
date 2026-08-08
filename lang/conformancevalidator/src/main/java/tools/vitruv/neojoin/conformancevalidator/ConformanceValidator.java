@@ -6,6 +6,7 @@ import org.eclipse.emf.compare.scope.IComparisonScope;
 import org.eclipse.emf.ecore.EPackage;
 
 import tools.vitruv.neojoin.conformancevalidator.rules.ConformanceRule;
+import tools.vitruv.neojoin.conformancevalidator.rules.Strictness;
 import tools.vitruv.neojoin.conformancevalidator.rules.breakingnotresolvable.*;
 import tools.vitruv.neojoin.conformancevalidator.rules.breakingresolvable.*;
 import tools.vitruv.neojoin.conformancevalidator.rules.nonbreaking.*;
@@ -39,10 +40,13 @@ public class ConformanceValidator {
      * @param diffs the diffs produced by Phase I
      * @return list of violations
      */
-    public static List<Violation> evaluateDiffs(List<Diff> diffs) {
+    private static List<Violation> evaluateDiffs(List<Diff> diffs, Strictness strictness) {
         List<Violation> violations = new ArrayList<>();
+         List<ConformanceRule> activeRules = ALL_RULES.stream()
+            .filter(rule -> strictness.getAllowedCategories().contains(rule.getCategory()))
+            .toList();
         for (Diff diff : diffs) {
-            for (ConformanceRule rule : ALL_RULES) {
+            for (ConformanceRule rule : activeRules) {
                 violations.addAll(rule.check(diff));
             }
         }
@@ -57,9 +61,9 @@ public class ConformanceValidator {
      * @param reference the reference metamodel EPackage (right)
      * @return list of violations
      */
-    public static List<Violation> validatePackages(EPackage viewType, EPackage reference) {
+    public static List<Violation> validatePackages(EPackage viewType, EPackage reference, Strictness strictness) {
         List<Diff> diffs = compare(viewType, reference);
-        return evaluateDiffs(diffs);
+        return evaluateDiffs(diffs, strictness);
     }
 
     /**

@@ -3,7 +3,7 @@ package tools.vitruv.neojoin.conformancevalidator;
 import org.eclipse.emf.compare.Diff;
 
 /**
- * Represents a single conformance rule violation from in Phase II.
+ * This Violation record represents a single conformance rule violation from in Phase II.
  *
  * @param ruleId   the identifier of the violated rule
  * @param message  description of the violation

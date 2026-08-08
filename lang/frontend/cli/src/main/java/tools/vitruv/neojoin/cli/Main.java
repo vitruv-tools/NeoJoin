@@ -19,6 +19,7 @@ import tools.vitruv.neojoin.Parser;
 import tools.vitruv.neojoin.SourceLocation;
 import tools.vitruv.neojoin.collector.InstanceModelCollector;
 import tools.vitruv.neojoin.collector.PackageModelCollector;
+import tools.vitruv.neojoin.conformancevalidator.rules.Strictness;
 import tools.vitruv.neojoin.generation.MetaModelGenerator;
 import tools.vitruv.neojoin.transformation.Transformator;
 import tools.vitruv.neojoin.transformation.TransformatorException;
@@ -53,6 +54,11 @@ public class Main implements Callable<Integer> {
 
     @Option(names = {"-m", "--meta-model-path"}, paramLabel = "MODEL-PATH", required = true, description = "Model path (see below) to find referenced meta-models (.ecore).")
     String metaModelPath;
+
+    @Option(names = {"-s", "--strictness"}, paramLabel = "STRICTNESS", defaultValue = "SUBTYPE",
+        description = "Conformance strictness to check the view type against its reference metamodel: SUBTYPE (view type must fit the reference) or EXACT_MATCH (view type must match the reference exactly). Default: ${DEFAULT-VALUE}.")
+    Strictness strictness;
+
 
     @ArgGroup(exclusive = false, heading = "Generate the meta-model:%n")
     @Nullable
@@ -144,7 +150,7 @@ public class Main implements Callable<Integer> {
         issues.forEach(System.err::println);
 
         // parse query
-        var setup = new NeoJoinStandaloneSetup(registry);
+        var setup = new NeoJoinStandaloneSetup(registry, strictness);
         var result = setup.getParser().parse(URI.createFileURI(queryFile.toString()));
 
         printIssues(result.issues());

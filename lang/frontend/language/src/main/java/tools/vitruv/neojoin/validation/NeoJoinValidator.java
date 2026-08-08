@@ -15,6 +15,7 @@ import tools.vitruv.neojoin.ast.MainQuery;
 import tools.vitruv.neojoin.ast.ViewTypeDefinition;
 import tools.vitruv.neojoin.conformancevalidator.ConformanceValidator;
 import tools.vitruv.neojoin.conformancevalidator.Violation;
+import tools.vitruv.neojoin.conformancevalidator.rules.Strictness;
 import tools.vitruv.neojoin.generation.MetaModelGenerator;
 import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
 import tools.vitruv.neojoin.utils.AstUtils;
@@ -35,6 +36,8 @@ public class NeoJoinValidator extends AbstractNeoJoinValidator {
     @Inject
     @Named(Constants.ImportPackageRegistry)
     private EPackage.Registry registry;
+    @Inject
+    private Strictness strictness;
 
     @Check
     public void duplicatedParameterAlias(ViewTypeDefinition viewType) {
@@ -117,7 +120,7 @@ public class NeoJoinValidator extends AbstractNeoJoinValidator {
         AQR aqr = new AQRBuilder(viewType, expressionHelper).build();
         EPackage viewTypePackage = new MetaModelGenerator(aqr).generate().pack();
 
-        List<Violation> violations = ConformanceValidator.validatePackages(viewTypePackage, referencePackage);
+        List<Violation> violations = ConformanceValidator.validatePackages(viewTypePackage, referencePackage, strictness);
         for (Violation v : violations) {
             error(v.toString(), AstPackage.Literals.VIEW_TYPE_DEFINITION__CONFORMS);
         }
