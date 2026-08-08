@@ -74,7 +74,7 @@ Provides basic IDE support (syntax highlighting, code-completion, etc.) and a si
 ### Command Line Interface
 
 ```
-Usage: neojoin [-hV] -m=MODEL-PATH [-g=OUTPUT] [-i=MODEL-PATH -t=OUTPUT] QUERY
+Usage: neojoin [-hV] -m=MODEL-PATH [-s=STRICTNESS] [-g=OUTPUT] [-i=MODEL-PATH -t=OUTPUT] QUERY
 
       QUERY                Path to the query file.
 
@@ -82,6 +82,12 @@ Usage: neojoin [-hV] -m=MODEL-PATH [-g=OUTPUT] [-i=MODEL-PATH -t=OUTPUT] QUERY
   -m, --meta-model-path=MODEL-PATH
                            Model path (see below) to find referenced
                              meta-models (.ecore).
+  -s, --strictness=STRICTNESS
+                           Conformance strictness to check the view type
+                             against its reference metamodel: SUBTYPE (view
+                             type must fit the reference) or EXACT_MATCH (view
+                             type must match the reference exactly). Default:
+                             SUBTYPE.
   -V, --version            Print version information and exit.
 
 Generate the meta-model:
