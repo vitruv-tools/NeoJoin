@@ -8,6 +8,7 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.xtext.util.Modules2;
 import org.jspecify.annotations.Nullable;
 import tools.vitruv.neojoin.NeoJoinStandaloneSetup;
+import tools.vitruv.neojoin.conformancevalidator.rules.Strictness;
 
 import static tools.vitruv.neojoin.utils.Assertions.check;
 
@@ -17,9 +18,10 @@ import static tools.vitruv.neojoin.utils.Assertions.check;
 public class NeoJoinIdeSetup extends NeoJoinStandaloneSetup {
 
     public static EPackage.@Nullable Registry Registry = null;
+    public static Strictness ConformanceStrictness = Strictness.SUBTYPE;
 
     public NeoJoinIdeSetup() {
-        super(getPackageRegistry());
+        super(getPackageRegistry(), ConformanceStrictness);
     }
 
     @Override

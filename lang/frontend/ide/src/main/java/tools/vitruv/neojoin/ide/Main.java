@@ -15,6 +15,7 @@ import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import tools.vitruv.neojoin.collector.PackageModelCollector;
+import tools.vitruv.neojoin.conformancevalidator.rules.Strictness;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -33,6 +34,10 @@ public class Main implements Runnable {
 
     @Option(names = {"-m", "--meta-model-path"}, paramLabel = "MODEL-PATH", required = true, description = "Path specification to find referenced meta-models.")
     String metaModelPath;
+
+    @Option(names = {"-s", "--strictness"}, paramLabel = "STRICTNESS", defaultValue = "SUBTYPE",
+        description = "Conformance strictness to check view types against their reference metamodel: SUBTYPE (view type must fit the reference) or EXACT_MATCH (view type must match the reference exactly). Default: ${DEFAULT-VALUE}.")
+    Strictness strictness;
 
     @ArgGroup(exclusive = false)
     Logging logging;
@@ -70,6 +75,7 @@ public class Main implements Runnable {
             errorMessages.add(errorMessage);
             System.err.printf("[ERROR] %s%n  > full meta-model path: %s%n", errorMessage, metaModelPath);
         }
+        NeoJoinIdeSetup.ConformanceStrictness = strictness;
 
         System.out.println("Starting NeoJoin IDE server...");
 

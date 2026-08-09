@@ -1,4 +1,4 @@
-package tools.vitruv.neojoin.conformancevalidator.rules.breakingresolvable;
+package tools.vitruv.neojoin.conformancevalidator.rules.breakingnotresolvable;
 
 import org.eclipse.emf.compare.Diff;
 import org.eclipse.emf.compare.DifferenceKind;
@@ -19,7 +19,7 @@ import java.util.List;
 public class SuperTypeDeletedRule extends ConformanceRule {
 
     public SuperTypeDeletedRule() {
-        super("R13", Violation.Category.BREAKING_RESOLVABLE);
+        super("R13", Violation.Category.BREAKING_NOT_RESOLVABLE);
     }
 
     @Override

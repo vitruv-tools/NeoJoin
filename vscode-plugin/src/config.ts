@@ -23,6 +23,13 @@ class Config {
     get debug() {
         return this.#get("debug", false);
     }
+
+    /**
+     * Conformance strictness used to check a view type against its reference metamodel.
+     */
+    get strictness() {
+        return this.#get("strictness", "SUBTYPE");
+    }
 }
 
 const instance = new Config();

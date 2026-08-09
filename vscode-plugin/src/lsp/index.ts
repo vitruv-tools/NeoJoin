@@ -87,6 +87,8 @@ export class NeoJoinLanguageClient {
                 resolvePath(this.#extensionDir, EXEC_OPTIONS.jarFile),
                 "--meta-model-path",
                 config.metaModelSearchPath,
+                "--strictness",
+                config.strictness,
                 ...EXEC_OPTIONS.programOpts,
             ],
             options: {
