@@ -8,8 +8,7 @@ import org.eclipse.emf.ecore.ETypedElement;
 import tools.vitruv.neojoin.conformancevalidator.Violation;
 import tools.vitruv.neojoin.conformancevalidator.rules.ConformanceRule;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Optional;
 
 /**
  * R6: CHANGE on lowerBound.
@@ -22,15 +21,14 @@ public class SafeLowerBoundChangedRule extends ConformanceRule {
     }
 
     @Override
-    public List<Violation> check(Diff diff) {
-        List<Violation> violations = new ArrayList<>();
-        if (diff instanceof AttributeChange ac
-                && ac.getAttribute().getName().equals("lowerBound")) {
-            EObject viewtype  = ac.getMatch().getLeft();
-            EObject reference = ac.getMatch().getRight();
+    public Optional<Violation> check(Diff diff) {
+        if (diff instanceof AttributeChange attributeChange
+                && attributeChange.getAttribute().getName().equals("lowerBound")) {
+            EObject viewtype  = attributeChange.getMatch().getLeft();
+            EObject reference = attributeChange.getMatch().getRight();
             if (viewtype instanceof ETypedElement leftFeature && reference instanceof ETypedElement rightFeature) {
                 if (rightFeature.getLowerBound() <= leftFeature.getLowerBound()) {
-                    violations.add(violation(
+                    return Optional.of(violation(
                         "The reference requires the same or fewer values of '" + leftFeature.getName() +
                         "' than the view type does.",
                         diff
@@ -38,6 +36,6 @@ public class SafeLowerBoundChangedRule extends ConformanceRule {
                 }
             }
         }
-        return violations;
+        return Optional.empty();
     }
 }

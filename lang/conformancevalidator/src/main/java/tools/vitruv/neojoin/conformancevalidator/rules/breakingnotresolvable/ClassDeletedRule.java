@@ -10,8 +10,7 @@ import org.eclipse.emf.ecore.EReference;
 import tools.vitruv.neojoin.conformancevalidator.Violation;
 import tools.vitruv.neojoin.conformancevalidator.rules.ConformanceRule;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Optional;
 
 /**
  * R11: DELETE of EClass.
@@ -25,9 +24,7 @@ public class ClassDeletedRule extends ConformanceRule {
     }
 
     @Override
-    public List<Violation> check(Diff diff) {
-        List<Violation> violations = new ArrayList<>();
-
+    public Optional<Violation> check(Diff diff) {
         if (diff.getKind() == DifferenceKind.DELETE
                 && diff instanceof ReferenceChange rc
                 && rc.getValue() instanceof EClass deletedClass
@@ -42,13 +39,13 @@ public class ClassDeletedRule extends ConformanceRule {
                 .anyMatch(ref -> ref.getEType() == deletedClass && ref.getLowerBound() >= 1);
 
             if (isRequiredSomewhere) {
-                violations.add(violation(
+                return Optional.of(violation(
                     "Class '" + deletedClass.getName() + "' is missing from the view type, "
                         + "but the reference metamodel requires it.",
                     diff
                 ));
             }
         }
-        return violations;
+        return Optional.empty();
     }
 }

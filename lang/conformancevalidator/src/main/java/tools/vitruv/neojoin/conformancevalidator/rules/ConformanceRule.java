@@ -1,6 +1,6 @@
 package tools.vitruv.neojoin.conformancevalidator.rules;
 
-import java.util.List;
+import java.util.Optional;
 
 import org.eclipse.emf.compare.Diff;
 
@@ -18,7 +18,7 @@ public abstract class ConformanceRule {
     public String getRuleId() { return ruleId; }
     public Violation.Category getCategory() { return category; }
 
-    public abstract List<Violation> check(Diff diff);
+    public abstract Optional<Violation> check(Diff diff);
 
     protected Violation violation(String message, Diff diff) {
         return new Violation(ruleId, message, category, diff);

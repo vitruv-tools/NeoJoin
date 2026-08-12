@@ -47,7 +47,7 @@ public class ConformanceValidator {
             .toList();
         for (Diff diff : diffs) {
             for (ConformanceRule rule : activeRules) {
-                violations.addAll(rule.check(diff));
+                rule.check(diff).ifPresent(violations::add);
             }
         }
         return violations;

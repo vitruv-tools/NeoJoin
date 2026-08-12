@@ -8,8 +8,7 @@ import org.eclipse.emf.ecore.EClass;
 import tools.vitruv.neojoin.conformancevalidator.Violation;
 import tools.vitruv.neojoin.conformancevalidator.rules.ConformanceRule;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Optional;
 
 /**
  * R15: DELETE of eSuperType.
@@ -23,8 +22,7 @@ public class SafeSuperTypeDeletedRule extends ConformanceRule {
     }
 
     @Override
-    public List<Violation> check(Diff diff) {
-        List<Violation> violations = new ArrayList<>();
+    public Optional<Violation> check(Diff diff) {
         if (diff.getKind() == DifferenceKind.DELETE
                 && diff instanceof ReferenceChange rc
                 && rc.getReference().getName().equals("eSuperTypes")
@@ -32,13 +30,13 @@ public class SafeSuperTypeDeletedRule extends ConformanceRule {
             boolean hasRequiredFeatures = supertype.getEAllStructuralFeatures().stream()
                     .anyMatch(sf -> sf.getLowerBound() >= 1);
             if (!hasRequiredFeatures) {
-                violations.add(violation(
+                return Optional.of(violation(
                     "Supertype '" + supertype.getName() +
                     "' is missing from the view type, but it has no required features in the reference.",
                     diff
                 ));
             }
         }
-        return violations;
+        return Optional.empty();
     }
 }

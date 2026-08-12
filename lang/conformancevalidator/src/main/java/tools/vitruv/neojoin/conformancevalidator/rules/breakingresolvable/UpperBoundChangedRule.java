@@ -8,8 +8,7 @@ import org.eclipse.emf.ecore.ETypedElement;
 import tools.vitruv.neojoin.conformancevalidator.Violation;
 import tools.vitruv.neojoin.conformancevalidator.rules.ConformanceRule;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Optional;
 
 /**
  * R7: CHANGE on upperBound.
@@ -23,18 +22,17 @@ public class UpperBoundChangedRule extends ConformanceRule {
     }
 
     @Override
-    public List<Violation> check(Diff diff) {
-        List<Violation> violations = new ArrayList<>();
-        if (diff instanceof AttributeChange ac
-                && ac.getAttribute().getName().equals("upperBound")) {
-            EObject viewtype  = ac.getMatch().getLeft();
-            EObject reference = ac.getMatch().getRight();
+    public Optional<Violation> check(Diff diff) {
+        if (diff instanceof AttributeChange attributeChange
+                && attributeChange.getAttribute().getName().equals("upperBound")) {
+            EObject viewtype  = attributeChange.getMatch().getLeft();
+            EObject reference = attributeChange.getMatch().getRight();
             if (viewtype instanceof ETypedElement leftFeature && reference instanceof ETypedElement rightFeature) {
                 int viewUpper = leftFeature.getUpperBound();
                 int refUpper  = rightFeature.getUpperBound();
                 boolean isViolation = refUpper != -1 && (viewUpper == -1 || viewUpper > refUpper);
                 if (isViolation) {
-                    violations.add(violation(
+                    return Optional.of(violation(
                         "The view type allows more values of '" + leftFeature.getName() +
                         "' than the reference does.",
                         diff
@@ -42,6 +40,6 @@ public class UpperBoundChangedRule extends ConformanceRule {
                 }
             }
         }
-        return violations;
+        return Optional.empty();
     }
 }

@@ -8,8 +8,7 @@ import org.eclipse.emf.ecore.EStructuralFeature;
 import tools.vitruv.neojoin.conformancevalidator.Violation;
 import tools.vitruv.neojoin.conformancevalidator.rules.ConformanceRule;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Optional;
 
 /**
  * R2: ADD of EStructuralFeature.
@@ -22,16 +21,15 @@ public class FeatureAddedRule extends ConformanceRule {
     }
 
     @Override
-    public List<Violation> check(Diff diff) {
-        List<Violation> violations = new ArrayList<>();
+    public Optional<Violation> check(Diff diff) {
         if (diff.getKind() == DifferenceKind.ADD
-                && diff instanceof ReferenceChange rc
-                && rc.getValue() instanceof EStructuralFeature sf) {
-            violations.add(violation(
-                "Feature '" + sf.getName() + "' is present in the view type but not required by the reference.",
+                && diff instanceof ReferenceChange referenceChange
+                && referenceChange.getValue() instanceof EStructuralFeature structuralFeature) {
+            return Optional.of(violation(
+                "Feature '" + structuralFeature.getName() + "' is present in the view type but not required by the reference.",
                 diff
             ));
         }
-        return violations;
+        return Optional.empty();
     }
 }

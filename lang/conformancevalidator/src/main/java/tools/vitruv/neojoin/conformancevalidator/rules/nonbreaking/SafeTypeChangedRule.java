@@ -11,8 +11,7 @@ import tools.vitruv.neojoin.conformancevalidator.Violation;
 import tools.vitruv.neojoin.conformancevalidator.rules.ConformanceRule;
 import tools.vitruv.neojoin.conformancevalidator.rules.breakingnotresolvable.TypeChangedRule;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Optional;
 
 /**
  * R10: CHANGE on eType.
@@ -25,19 +24,18 @@ public class SafeTypeChangedRule extends ConformanceRule {
     }
 
     @Override
-    public List<Violation> check(Diff diff) {
-        List<Violation> violations = new ArrayList<>();
-        if (diff instanceof ReferenceChange rc
-                && rc.getReference().getName().equals("eType")
+    public Optional<Violation> check(Diff diff) {
+        if (diff instanceof ReferenceChange referenceChange
+                && referenceChange.getReference().getName().equals("eType")
                 && diff.getKind() == DifferenceKind.CHANGE) {
-            EObject viewtype  = rc.getMatch().getLeft();
-            EObject reference = rc.getMatch().getRight();
+            EObject viewtype  = referenceChange.getMatch().getLeft();
+            EObject reference = referenceChange.getMatch().getRight();
             if (viewtype instanceof ETypedElement leftFeature && reference instanceof ETypedElement rightFeature) {
                 EClassifier viewTypeType  = leftFeature.getEType();
                 EClassifier referenceType = rightFeature.getEType();
                 if (viewTypeType != null && referenceType != null
                         && TypeChangedRule.isCompatibleType(viewTypeType, referenceType)) {
-                    violations.add(violation(
+                    return Optional.of(violation(
                         "Type of '" + leftFeature.getName() +
                         "' changed from '" + referenceType.getName() +
                         "' to the compatible subtype '" + viewTypeType.getName() + "'.",
@@ -46,6 +44,6 @@ public class SafeTypeChangedRule extends ConformanceRule {
                 }
             }
         }
-        return violations;
+        return Optional.empty();
     }
 }

@@ -11,8 +11,7 @@ import org.eclipse.emf.ecore.ETypedElement;
 import tools.vitruv.neojoin.conformancevalidator.Violation;
 import tools.vitruv.neojoin.conformancevalidator.rules.ConformanceRule;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Optional;
 
 /**
  * R9: CHANGE on eType.
@@ -26,19 +25,18 @@ public class TypeChangedRule extends ConformanceRule {
     }
 
     @Override
-    public List<Violation> check(Diff diff) {
-        List<Violation> violations = new ArrayList<>();
-        if (diff instanceof ReferenceChange rc
-                && rc.getReference().getName().equals("eType")
+    public Optional<Violation> check(Diff diff) {
+        if (diff instanceof ReferenceChange referenceChange
+                && referenceChange.getReference().getName().equals("eType")
                 && diff.getKind() == DifferenceKind.CHANGE) {
-            EObject viewtype  = rc.getMatch().getLeft();
-            EObject reference = rc.getMatch().getRight();
+            EObject viewtype  = referenceChange.getMatch().getLeft();
+            EObject reference = referenceChange.getMatch().getRight();
             if (viewtype instanceof ETypedElement leftFeature && reference instanceof ETypedElement rightFeature) {
                 EClassifier viewTypeType  = leftFeature.getEType();
                 EClassifier referenceType = rightFeature.getEType();
                 if (viewTypeType != null && referenceType != null
                         && !isCompatibleType(viewTypeType, referenceType)) {
-                    violations.add(violation(
+                    return Optional.of(violation(
                         "Type mismatch on '" + leftFeature.getName() +
                         "': view type has '" + viewTypeType.getName() +
                         "' but reference expects '" + referenceType.getName() + "'.",
@@ -47,7 +45,7 @@ public class TypeChangedRule extends ConformanceRule {
                 }
             }
         }
-        return violations;
+        return Optional.empty();
     }
 
     /**
