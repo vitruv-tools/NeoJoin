@@ -12,7 +12,6 @@ import org.eclipse.xtext.xbase.XMemberFeatureCall;
 import org.eclipse.xtext.xbase.typesystem.IBatchTypeResolver;
 import org.eclipse.xtext.xbase.typesystem.references.LightweightTypeReference;
 import org.jspecify.annotations.Nullable;
-import tools.vitruv.neojoin.Constants;
 import tools.vitruv.neojoin.Formatting;
 import tools.vitruv.neojoin.aqr.AQRFeatureOptionsBuilder;
 import tools.vitruv.neojoin.ast.AstPackage;
