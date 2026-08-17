@@ -55,7 +55,7 @@ public abstract class AbstractModelCollector {
                 } else if (files instanceof Result.Failure<List<URI>, Exception> failure) {
                     return Stream.of(failure.cast());
                 } else {
-                    throw new RuntimeException(); // this should never happen
+                    throw new RuntimeException(); // this should never happen due to sealed interface
                 }
             })
             .map(uriResult -> uriResult.bind(uri -> Result.ofCaught(() -> resourceSet.getResource(uri, true))));

@@ -441,7 +441,7 @@ public class FeatureValidator extends ComposableValidator {
             return;
         }
 
-        var allNames = AstUtils.getAllQueries(AstUtils.getViewType(mainQuery))
+        var allNames = AstUtils.getAllQueries(AstUtils.getViewType(mainQuery).valueUnsafe())
             .map(q -> AstUtils.getTargetName(q, expressionHelper))
             .map(Formatting::formatRootReferenceName)
             .collect(Collectors.toSet());

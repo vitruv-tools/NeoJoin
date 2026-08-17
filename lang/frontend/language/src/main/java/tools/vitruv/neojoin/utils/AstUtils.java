@@ -20,11 +20,11 @@ import tools.vitruv.neojoin.ast.ViewTypeDefinition;
 import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
 import tools.vitruv.neojoin.jvmmodel.TypeResolutionException;
 
+
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.stream.Stream;
-
-import static tools.vitruv.neojoin.utils.Assertions.fail;
 
 /**
  * Various utilities for classes from the {@link tools.vitruv.neojoin.ast ast package}.
@@ -118,18 +118,18 @@ public final class AstUtils {
     }
 
     /**
-     * Get {@link ViewTypeDefinition} from any contained element or throw if not contained.
+     * Get {@link ViewTypeDefinition} from any contained element or returns an {@link NoSuchElementException} if not contained.
      *
      * @param element contained element
      * @return view type that contains the given element
      */
-    public static ViewTypeDefinition getViewType(EObject element) {
+    public static Result<ViewTypeDefinition, NoSuchElementException> getViewType(EObject element) {
         EObject root = EcoreUtil2.getRootContainer(element);
         if (root instanceof ViewTypeDefinition vt) {
-            return vt;
+            return Result.of(vt);
         }
 
-        return fail("Element %s is not contained in a ViewType".formatted(element.toString()));
+        return Result.fail(new NoSuchElementException("Element %s is not contained in a ViewType".formatted(element.toString())));
     }
 
     /**

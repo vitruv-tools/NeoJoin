@@ -37,7 +37,7 @@ public class SourceValidator extends ComposableValidator {
             return;
         }
 
-        Set<String> paramAliases = AstUtils.getViewType(mainQuery).getParameters().stream()
+        Set<String> paramAliases = AstUtils.getViewType(mainQuery).valueUnsafe().getParameters().stream()
             .map(p -> p.getAlias())
             .collect(Collectors.toSet());
 

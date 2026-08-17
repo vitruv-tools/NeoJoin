@@ -56,9 +56,9 @@ public class NeoJoinScopeProvider extends AbstractNeoJoinScopeProvider {
         if (reference == AstPackage.Literals.IMPORT__PACKAGE) {
             return createAvailableModelsScope();
         } else if (reference == AstPackage.Literals.FROM__CLAZZ) {
-            return createImportedClassifiersScope(AstUtils.getViewType(context));
+            return createImportedClassifiersScope(AstUtils.getViewType(context).valueUnsafe());
         } else if (reference == AstPackage.Literals.PARAMETER_TYPE__ELEMENT_TYPE) {
-            return createParamElementTypeScope(AstUtils.getViewType(context));
+            return createParamElementTypeScope(AstUtils.getViewType(context).valueUnsafe());
         } else if (reference == AstPackage.Literals.JOIN_FEATURE_CONDITION__OTHER) {
             var join = (Join) context.eContainer();
             var source = (Source) join.eContainer();
@@ -81,7 +81,7 @@ public class NeoJoinScopeProvider extends AbstractNeoJoinScopeProvider {
                 return createJoinConditionFieldsScope(left, right);
             }
         } else if (reference == AstPackage.Literals.FEATURE__TYPE) {
-            return createFeatureTypeScope(AstUtils.getViewType(context));
+            return createFeatureTypeScope(AstUtils.getViewType(context).valueUnsafe());
         } else {
             return super.getScope(context, reference);
         }
