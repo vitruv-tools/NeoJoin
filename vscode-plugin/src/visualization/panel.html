@@ -362,9 +362,11 @@
                     e.preventDefault();
                     if (e.deltaY < 0) zoom_in();
                     else zoom_out();
+                } else if (e.shiftKey) {
+                    e.preventDefault();
+                    window.scrollBy(e.deltaY, 0);
                 }
             });
-
         </script>
     </body>
 </html>
