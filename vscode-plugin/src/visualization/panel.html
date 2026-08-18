@@ -62,7 +62,7 @@
 
                     color: var(--vscode-editor-foreground);
                 }
-            } 
+            }
 
             #visualization_outer {
                 flex:1 1 auto;
@@ -218,6 +218,70 @@
             );
 
             // handle zoom
+
+            const zoom_config = {
+                default_step_start: 0.4,
+                default_number_of_steps: 11,
+                default_selected: 1.0,
+                // pairs of lower boundary (exclusively) to zoom step
+                steps: [
+                [0.0, 0.05],
+                [0.4, 0.1],
+                [1.0, 0.25],
+                [2.0, 0.5],
+                [3.0, 1.0],
+                ],
+            };
+
+            function zoom_redraw() {
+                function format_factor(x) {
+                return Math.floor(x * 100).toString() + "%";
+                }
+
+                const oldSelect = document.getElementById('zoom');
+                const newSelect = document.createElement('select');
+                newSelect.id = 'zoom';
+
+                var last_factor=zoom_config.default_step_start;
+                var last_step_idx=0; // TODO: set properly
+                while (last_step_idx + 1 < zoom_config.steps.length
+                    && last_factor >= zoom_config.steps[last_step_idx + 1][0]) {
+                    last_step_idx++;
+                }
+
+                newSelect.appendChild(
+                new Option(format_factor(last_factor), last_factor)
+                );
+
+                for (var i = 1; i < zoom_config.default_number_of_steps; i++) {
+                if (last_step_idx + 1 < zoom_config.steps.length
+                    && last_factor >= zoom_config.steps[last_step_idx + 1][0]) {
+                    last_step_idx++;
+                }
+
+                factor = Math.round((last_factor + zoom_config.steps[last_step_idx][1]) * 100)/100;
+                last_factor = factor;
+
+
+                newSelect.appendChild(
+                    new Option(format_factor(factor), factor)
+                );
+                }
+
+                for (const option of newSelect.options) {
+                    console.log(option.value, option.text);
+                    if (option.value == zoom_config.default_selected) {
+                        console.log("set selected", option.value, option.text);
+                        option.selected = true;
+                        break;
+                    }
+                }
+
+                oldSelect.parentNode.replaceChild(newSelect, oldSelect);
+            }
+
+            zoom_redraw();
+
             function set_zoom(factor) {
                 const svg = visualization.querySelector("svg");
                 if (!svg) {
@@ -230,14 +294,16 @@
                 svg.style.width = `${svgSize.width * factor}px`;
                 svg.style.height = `${svgSize.height * factor}px`;
             }
+
             const zoom = document.getElementById("zoom");
             zoom.addEventListener("change", (event) => {
                 const factor = event.target.value;
+                console.log("zoom changed")
                 set_zoom(factor);
             });
 
             function zoom_factor_enforce_bounds(factor) {
-                return factor >= 2.5? 1.5
+                return factor >= 1.5? 1.5
                     : factor >= 1.25? 1.25
                     : factor >= 1 ? 1
                     : factor <= 0.4 ?  0.4
@@ -264,6 +330,41 @@
             }
             const auto_zoom_btn = document.getElementById("auto_zoom_btn")
             auto_zoom_btn.addEventListener("click", (_) => auto_zoom())
+
+            function update_zoom() {
+                const factor = zoom.options[zoom.selectedIndex].value;
+                set_zoom(factor)
+            }
+
+            function zoom_in() {
+                console.log('zoom in');
+                if (zoom.selectedIndex + 1 < zoom.options.length) {
+                    zoom.selectedIndex++;
+                    update_zoom();
+                }
+            }
+
+            function zoom_out() {
+                console.log('zoom out');
+                if (zoom.selectedIndex > 0) {
+                    zoom.selectedIndex--;
+                    update_zoom();
+                }
+            }
+
+            zoom.addEventListener('wheel', (e) => {
+                if (e.deltaY < 0) zoom_in()
+                else zoom_out()
+            });
+
+            window.addEventListener('wheel', (e) => {
+                if (e.ctrlKey) {
+                    e.preventDefault();
+                    if (e.deltaY < 0) zoom_in();
+                    else zoom_out();
+                }
+            });
+
         </script>
     </body>
 </html>
