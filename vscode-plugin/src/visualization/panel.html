@@ -366,7 +366,7 @@
 
             function find_zoom_idx(factor) {
                 let i = 0;
-                while (factor > zoom_levels[i + 1]) {
+                while (factor >= zoom_levels[i + 1]) {
                     i++;
                     if (i + 1 == zoom_levels.length)
                         add_zoom_level();
