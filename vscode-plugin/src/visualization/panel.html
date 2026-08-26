@@ -228,11 +228,11 @@
             const zoom = document.getElementById("zoom");
             const zoom_config = {
                 // default_zoom_level_start_idx/default_zoom_level_end_idx describe which zoom levels are displayed inside the zoom picker by default.
-                default_zoom_level_start_idx: 19,
-                default_zoom_level_end_idx: 19 + 15,
+                default_zoom_level_start_idx: 21,
+                default_zoom_level_end_idx: 21 + 15,
 
-                // under the current configuration zoom_idx == 19 + 12 is equivalent to zoom factor 1.0
-                default_zoom_idx: 19 + 12,
+                // under the current configuration zoom_idx == 21 + 9 is equivalent to zoom factor 1.0
+                default_zoom_idx: 21 + 9,
 
                 // pairs of lower boundary (exclusively) to zoom step
                 steps: [
@@ -363,23 +363,24 @@
                 svg.style.height = `${svgSize.height * factor}px`;
             }
 
+
+            function find_zoom_idx(factor) {
+                let i = 0;
+                while (factor > zoom_levels[i + 1]) {
+                    i++;
+                    if (i + 1 == zoom_levels.length)
+                        add_zoom_level();
+                }
+
+                return i;
+            }
+
             zoom.addEventListener("change", (event) => {
                 const factor = parseFloat(event.target.value);
-                scale_diagram(factor);
+                set_zoom(find_zoom_idx(factor))
             });
 
             function auto_zoom() {
-                function find_zoom_idx(factor) {
-                    let i = 0;
-                    while (factor > zoom_levels[i + 1]) {
-                        i++;
-                        if (i + 1 == zoom_levels.length)
-                            add_zoom_level();
-                    }
-
-                    return i;
-                }
-
                 const svg = visualization.querySelector("svg");
                 const svgSize = svg.getBBox();
                 const outer = document.getElementById("visualization_outer");
@@ -432,7 +433,6 @@
                     }
                 }
             });
-
         </script>
     </body>
 </html>
