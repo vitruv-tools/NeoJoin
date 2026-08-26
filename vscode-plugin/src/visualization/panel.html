@@ -228,19 +228,21 @@
             const zoom = document.getElementById("zoom");
             const zoom_config = {
                 // default_zoom_level_start_idx/default_zoom_level_end_idx describe which zoom levels are displayed inside the zoom picker by default.
-                default_zoom_level_start_idx: 7,
-                default_zoom_level_end_idx: 7 + 10,
+                default_zoom_level_start_idx: 19,
+                default_zoom_level_end_idx: 19 + 15,
 
-                // under the current configuration zoom_idx == 8 + 6 is equivalent to zoom factor 1.0
-                default_zoom_idx: 7 + 6,
+                // under the current configuration zoom_idx == 19 + 12 is equivalent to zoom factor 1.0
+                default_zoom_idx: 19 + 12,
 
                 // pairs of lower boundary (exclusively) to zoom step
                 steps: [
-                    [0.0, 0.05],
-                    [0.4, 0.1],
-                    [1.0, 0.25],
-                    [2.0, 0.5],
-                    [3.0, 1.0],
+                    [0.0, 0.02],
+                    [0.4, 0.05],
+                    [1.2, 0.1],
+                    [1.75, 0.25],
+                    [3.0, 0.5],
+                    [4.0, 1.0],
+                    [5.0, 1.5],
                 ],
             };
 
