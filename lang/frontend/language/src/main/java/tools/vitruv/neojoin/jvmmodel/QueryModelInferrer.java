@@ -64,7 +64,11 @@ public class QueryModelInferrer {
         DisableCodeGenerationAdapter.disableCodeGeneration(root); // otherwise Xtext generates java files in our working directory
 
         // prevent name collisions with other open query documents by choosing a unique name for the package
-        root.setPackageName(createUniquePackageName());
+        if (viewType.getExport() != null) {
+            root.setPackageName("%s@[%s]".formatted(viewType.getExport().getPackage(), viewType.getExport().getUri()));
+        } else {
+            root.setPackageName("invalid$%d".formatted(System.identityHashCode(viewType)));
+        }
 
         viewType.eResource().getContents().add(root); // otherwise type resolution fails
         for (MainQuery q : viewType.getQueries()) {
@@ -73,12 +77,6 @@ public class QueryModelInferrer {
         viewType.eResource().getContents().remove(root);
 
         acceptor.accept(root);
-    }
-
-    private String createUniquePackageName() {
-        return viewType.getExport() != null
-            ? "%s@[%s]".formatted(viewType.getExport().getPackage(), viewType.getExport().getUri())
-            : "invalid$%d".formatted(System.identityHashCode(viewType));
     }
 
     private void inferMainQuery(MainQuery mainQuery) {
@@ -204,7 +202,7 @@ public class QueryModelInferrer {
 
                 if (from == limit) break;
             }
-                
+
             //add declared parameters
             for (var param : viewType.getParameters()) {
                 addParam(op, param, param.getAlias(), paramBaseTypeRef(param), param.getType() instanceof CollectionParameterType);
