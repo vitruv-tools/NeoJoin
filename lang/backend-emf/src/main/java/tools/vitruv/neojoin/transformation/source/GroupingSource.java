@@ -3,8 +3,11 @@ package tools.vitruv.neojoin.transformation.source;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.xtext.xbase.XExpression;
 import org.jspecify.annotations.Nullable;
+
+import static tools.vitruv.neojoin.utils.Enumerated.enumerate;
 import tools.vitruv.neojoin.transformation.ExpressionEvaluator;
 import tools.vitruv.neojoin.transformation.InstanceTuple;
+import tools.vitruv.neojoin.utils.Pair;
 import tools.vitruv.neojoin.utils.Utils;
 
 import java.util.ArrayList;
@@ -52,9 +55,9 @@ public class GroupingSource {
         List<List<@Nullable EObject>> result = createResultList(tupleLength, tuples.size());
 
         for (var tuple : tuples) {
-            Utils.forEachIndexed(
-                tuple.stream().iterator(), (obj, index) -> result.get(index).add(obj)
-            );
+            for (var obj : enumerate(tuple.stream())) {
+                result.get(obj.index()).add(obj.value());
+            }
         }
 
         return result;
