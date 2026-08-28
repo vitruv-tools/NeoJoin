@@ -36,7 +36,7 @@ Source:
     ('group' 'by' groupingExpressions+=XOrExpression (',' groupingExpressions+=XOrExpression)*)?;
 
 From:
-    clazz=[ecore::EClass|QualifiedName] (alias=ID)?;
+    (includeSubClasses?='extends')? clazz=[ecore::EClass|QualifiedName] (alias=ID)?;
 
 Join:
     type=JoinType? 'join' from=From (featureConditions+=JoinFeatureCondition | expressionConditions+=JoinExpressionCondition)*;

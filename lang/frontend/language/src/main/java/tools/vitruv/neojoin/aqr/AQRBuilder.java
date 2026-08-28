@@ -65,6 +65,8 @@ import static tools.vitruv.neojoin.utils.Assertions.fail;
  */
 public class AQRBuilder {
 
+    public static final boolean IMPLICIT_INCLUDE_SUB_CLASSES = true;
+
     private final ViewTypeDefinition viewTypeDefinition;
     private final ExpressionHelper expressionHelper;
 
@@ -183,7 +185,7 @@ public class AQRBuilder {
             createTargetClass(
                 AstUtils.getTargetName(subQuery, sourceType),
                 false,
-                AQRSourceBuilder.createSource(sourceType),
+                AQRSourceBuilder.createSource(sourceType, IMPLICIT_INCLUDE_SUB_CLASSES),
                 subQuery
             );
         } else {
@@ -201,7 +203,7 @@ public class AQRBuilder {
     private AQRTargetClass getOrCreateTargetClass(EClass source) {
         var targets = sourceClassToAQR.get(source);
         if (targets == null) {
-            return createTargetClass(source.getName(), source.isAbstract(), AQRSourceBuilder.createSource(source), null);
+            return createTargetClass(source.getName(), source.isAbstract(), AQRSourceBuilder.createSource(source, IMPLICIT_INCLUDE_SUB_CLASSES), null);
         }
 
         invariant(

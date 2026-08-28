@@ -11,5 +11,6 @@ import org.jspecify.annotations.Nullable;
  */
 public record AQRFrom(
     EClass clazz,
-    @Nullable String alias
+    @Nullable String alias,
+    boolean includeSubClasses
 ) {}

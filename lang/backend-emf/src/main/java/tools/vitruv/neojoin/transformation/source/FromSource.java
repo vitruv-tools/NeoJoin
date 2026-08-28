@@ -15,10 +15,12 @@ public class FromSource implements InstanceSource {
 
     private final EClass clazz;
     private final Resource resource;
+    private final boolean includeSubClasses;
 
-    public FromSource(EClass clazz, Resource resource) {
+    public FromSource(EClass clazz, Resource resource, boolean includeSubClasses) {
         this.clazz = clazz;
         this.resource = resource;
+        this.includeSubClasses = includeSubClasses;
     }
 
     @Override
@@ -27,7 +29,11 @@ public class FromSource implements InstanceSource {
     }
 
     public Stream<EObject> getEObjects() {
-        return EMFUtils.getAllInstances(resource, clazz);
+        if (includeSubClasses) {
+           return EMFUtils.getAllInstances(resource, clazz);
+        } else {
+            return EMFUtils.getAllDirectInstances(resource, clazz);
+        }
     }
 
 }

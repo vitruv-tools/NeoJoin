@@ -45,7 +45,7 @@ public class InstanceSourceFactory {
             () -> "referenced instance model not found for package '%s'".formatted(from.clazz().getEPackage().getName())
         );
 
-        return new FromSource(from.clazz(), referencedInstanceModel);
+        return new FromSource(from.clazz(), referencedInstanceModel, from.includeSubClasses());
     }
 
     public InstanceSource createJoin(

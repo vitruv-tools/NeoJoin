@@ -72,6 +72,13 @@ public final class EMFUtils {
     }
 
     /**
+     * Returns all direct instances of the given class contained in the given resource.
+     */
+    public static Stream<EObject> getAllDirectInstances(Resource resource, EClass clazz) {
+        return Utils.streamOf(resource.getAllContents()).filter(c -> c.eClass().equals(clazz));
+    }
+
+    /**
      * Returns a stream with the given {@link EPackage package} and all recursively contained subpackages.
      *
      * @param pack package to search
