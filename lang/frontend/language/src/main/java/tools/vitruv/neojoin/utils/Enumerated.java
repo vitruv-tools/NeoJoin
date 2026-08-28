@@ -17,7 +17,7 @@ public final class Enumerated<T> implements Iterable<IndexedValue<T>> {
     @Override
     public Iterator<IndexedValue<T>> iterator() {
         return new Iterator<>() {
-            final IntVar counter = IntVar.of(0);
+            int counter = 0;
             final Iterator<T> iter = elements.iterator();
 
             @Override
@@ -27,7 +27,7 @@ public final class Enumerated<T> implements Iterable<IndexedValue<T>> {
 
             @Override
             public IndexedValue<T> next() {
-                return IndexedValue.of(counter.increaseAndGet(), iter.next());
+                return IndexedValue.of(counter++, iter.next());
             }
         };
     }
@@ -55,8 +55,8 @@ public final class Enumerated<T> implements Iterable<IndexedValue<T>> {
      * @param <T> type of elements
      */
     public static <T> Function<T, IndexedValue<T>> enumerated() {
-        final IntVar index = IntVar.of(0);
-        return it -> IndexedValue.of(index.increaseAndGet(), it);
+        final int[] index = {0};
+        return it -> IndexedValue.of(index[0]++, it);
     }
 
 	public record IndexedValue<T> (int index, T value) {
