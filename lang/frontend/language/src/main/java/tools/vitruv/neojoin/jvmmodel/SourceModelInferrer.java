@@ -4,6 +4,7 @@ import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EEnum;
+import org.eclipse.emf.ecore.EEnumLiteral;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
@@ -108,6 +109,8 @@ public class SourceModelInferrer {
         // package URI serves as a unique identifier to prevent name collisions
         type.setPackageName(eEnum.getEPackage().getNsURI());
         type.setVisibility(JvmVisibility.PUBLIC);
+        // provides access to enum features like getName() and getValue() in expressions
+        type.getSuperTypes().add(references.typeRef(EEnumLiteral.class));
 
         for (var literal : eEnum.getELiterals()) {
             var enumLiteral = TypesFactory.eINSTANCE.createJvmEnumerationLiteral();
