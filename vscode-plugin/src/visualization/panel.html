@@ -62,7 +62,7 @@
 
                     color: var(--vscode-editor-foreground);
                 }
-            } 
+            }
 
             #visualization_outer {
                 flex:1 1 auto;
@@ -100,6 +100,20 @@
             .vscode-dark #visualization > svg text[font-style="italic"] {
                 fill: white;
             }
+
+            .zoom-ui {
+                height: 1.4em;
+                /* vertical-align: middle; */
+            }
+
+            .zoom-btn {
+                background-color: transparent;
+                border: none;
+                padding: 0;
+                color: white;
+                font-size: 1.6em;
+                font-weight: bold;
+            }
         </style>
     </head>
     <body>
@@ -135,18 +149,11 @@
             <span id="message">Loading ...</span>
             <span>
                 Zoom:
-                <select id="zoom">
-                    <option value="1.5">150%</option>
-                    <option value="1.25">125%</option>
-                    <option value="1" selected>100%</option>
-                    <option value="0.9">90%</option>
-                    <option value="0.8">80%</option>
-                    <option value="0.7">70%</option>
-                    <option value="0.6">60%</option>
-                    <option value="0.5">50%</option>
-                    <option value="0.4">40%</option>
+                <button onclick="zoom_out()" class="zoom-ui zoom-btn">-</button>
+                <button onclick="zoom_in()" class="zoom-ui zoom-btn">+</button>
+                <select id="zoom" class="zoom-ui">
                 </select>
-                <button id="auto_zoom_btn" type="button">auto</button>
+                <button id="auto_zoom_btn" class="zoom-ui" type="button">auto</button>
             </span>
         </div>
         <div id="visualization_outer">
@@ -218,10 +225,135 @@
             );
 
             // handle zoom
-            function set_zoom(factor) {
+            const zoom = document.getElementById("zoom");
+            const zoom_config = {
+                // default_zoom_level_start_idx/default_zoom_level_end_idx describe which zoom levels are displayed inside the zoom picker by default.
+                default_zoom_level_start_idx: 21,
+                default_zoom_level_end_idx: 21 + 15,
+
+                // under the current configuration zoom_idx == 21 + 9 is equivalent to zoom factor 1.0
+                default_zoom_idx: 21 + 9,
+
+                // pairs of lower boundary (exclusively) to zoom step
+                steps: [
+                    [0.0, 0.02],
+                    [0.4, 0.05],
+                    [1.2, 0.1],
+                    [1.75, 0.25],
+                    [3.0, 0.5],
+                    [4.0, 1.0],
+                    [5.0, 1.5],
+                ],
+            };
+
+            function* generate_zoom_levels() {
+                let step_idx = 0;
+
+                let factor = zoom_config.steps[0][1];
+                do {
+                    yield factor;
+                    let step = zoom_config.steps[step_idx][1];
+                    factor = Math.round((factor + step) * 100)/100;
+
+                    if (step_idx + 1 < zoom_config.steps.length
+                        && factor >= zoom_config.steps[step_idx + 1][0]) {
+                        step_idx++;
+                    }
+                } while (true);
+            }
+
+            let zoom_levels_gen = generate_zoom_levels();
+            let zoom_levels = [];
+            function add_zoom_level() {
+                const { value: factor } = zoom_levels_gen.next();
+                zoom_levels.push(factor);
+            }
+
+            do {
+                add_zoom_level();
+            } while (zoom_levels.length <= Math.max(zoom_config.default_zoom_level_end_idx, zoom_config.default_zoom_idx));
+
+
+            function create_option(factor) {
+                function format_factor(x) {
+                    return Math.floor(x * 100).toString() + "%";
+                }
+
+                return new Option(format_factor(factor), factor);
+            }
+
+            // index into zoom_levels describing the currently selected value.
+            let selected_zoom_idx = zoom_config.default_zoom_idx;
+
+            // initiate zoom selection menu
+            for (let i = zoom_config.default_zoom_level_start_idx; i <= zoom_config.default_zoom_level_end_idx; i++) {
+                zoom.appendChild(create_option(zoom_levels[i]));
+            }
+            zoom.selectedIndex = selected_zoom_idx - zoom_config.default_zoom_level_start_idx;
+
+            function zoom_update_selection() {
+                if (Math.max(zoom.options.length, selected_zoom_idx) > zoom_config.default_zoom_level_end_idx - zoom_config.default_zoom_level_start_idx)  {
+                    function get_factor_at_option_idx(option_idx) {
+                        const value = zoom.options[option_idx].value;
+                        return parseFloat(value);
+                    }
+
+                    function put_at_front(zoom_idx) {
+                        let option = create_option(zoom_levels[zoom_idx]);
+                        if (get_factor_at_option_idx(0) != zoom_levels[zoom_config.default_zoom_level_start_idx]) {
+                            zoom.options[0].replaceWith(option);
+                        } else {
+                            // insert in front
+                            zoom.add(option, 0);
+                        }
+                    }
+
+                    function put_at_back(zoom_idx) {
+                        let option = create_option(zoom_levels[zoom_idx]);
+                        if (get_factor_at_option_idx(zoom.options.length - 1) != zoom_levels[zoom_config.default_zoom_level_end_idx]) {
+                            zoom.options[zoom.options.length - 1].replaceWith(option);
+                        } else {
+                            zoom.appendChild(option);
+                        }
+                    }
+
+                    if (selected_zoom_idx < zoom_config.default_zoom_level_start_idx) {
+                        put_at_front(selected_zoom_idx);
+                    }
+
+                    if (selected_zoom_idx > zoom_config.default_zoom_level_end_idx) {
+                        put_at_back(selected_zoom_idx);
+                    }
+
+                    if (get_factor_at_option_idx(0) != zoom_levels[Math.min(selected_zoom_idx, zoom_config.default_zoom_level_start_idx)]) {
+                        zoom.options[0].remove();
+                    }
+
+                    if (get_factor_at_option_idx(zoom.options.length - 1) != zoom_levels[Math.max(selected_zoom_idx, zoom_config.default_zoom_level_end_idx)]) {
+                        zoom.options[zoom.options.length - 1].remove();
+                    }
+                }
+
+                zoom.selectedIndex = selected_zoom_idx < zoom_config.default_zoom_level_start_idx? 0
+                    : selected_zoom_idx > zoom_config.default_zoom_level_end_idx? zoom.options.length - 1
+                    : selected_zoom_idx - zoom_config.default_zoom_level_start_idx;
+            }
+
+            function set_zoom(zoom_idx) {
+                if (zoom_idx < 0) return;
+
+                while (zoom_idx >= zoom_levels.length) {
+                    add_zoom_level();
+                }
+                selected_zoom_idx = zoom_idx;
+                zoom_update_selection();
+                scale_diagram(zoom_levels[selected_zoom_idx]);
+            }
+
+            function scale_diagram(factor) {
                 const svg = visualization.querySelector("svg");
                 if (!svg) {
-                    requestAnimationFrame(() => set_zoom(factor));
+                    requestAnimationFrame(() => scale_diagram(factor));
                     return;
                 }
 
@@ -230,40 +362,77 @@
                 svg.style.width = `${svgSize.width * factor}px`;
                 svg.style.height = `${svgSize.height * factor}px`;
             }
-            const zoom = document.getElementById("zoom");
-            zoom.addEventListener("change", (event) => {
-                const factor = event.target.value;
-                set_zoom(factor);
-            });
 
-            function zoom_factor_enforce_bounds(factor) {
-                return factor >= 2.5? 1.5
-                    : factor >= 1.25? 1.25
-                    : factor >= 1 ? 1
-                    : factor <= 0.4 ?  0.4
-                    : factor;
+
+            function find_zoom_idx(factor) {
+                let i = 0;
+                while (factor >= zoom_levels[i + 1]) {
+                    i++;
+                    if (i + 1 == zoom_levels.length)
+                        add_zoom_level();
+                }
+
+                return i;
             }
+
+            zoom.addEventListener("change", (event) => {
+                const factor = parseFloat(event.target.value);
+                set_zoom(find_zoom_idx(factor))
+            });
 
             function auto_zoom() {
                 const svg = visualization.querySelector("svg");
                 const svgSize = svg.getBBox();
                 const outer = document.getElementById("visualization_outer");
                 const view_rect = outer.getBoundingClientRect();
-                let factor = zoom_factor_enforce_bounds(
+                let zoom_idx = find_zoom_idx(
                     Math.floor(
                         Math.min(
                             view_rect.width * 10 / svgSize.width,
                             view_rect.height * 10 / svgSize.height,
                         )
                     ) / 10);
-                zoom.value = factor;
-                set_zoom(factor);
 
-                console.log("auto zoom: " + factor);
-                console.log("row zoom: " + (document.documentElement.clientWidth / svgSize.width));
+                set_zoom(zoom_idx);
             }
-            const auto_zoom_btn = document.getElementById("auto_zoom_btn")
-            auto_zoom_btn.addEventListener("click", (_) => auto_zoom())
+            const auto_zoom_btn = document.getElementById("auto_zoom_btn");
+            auto_zoom_btn.addEventListener("click", (_) => auto_zoom());
+
+            function zoom_in() {
+                set_zoom(selected_zoom_idx+1);
+            }
+
+            function zoom_out() {
+                set_zoom(selected_zoom_idx-1)
+            }
+
+            zoom.addEventListener('wheel', (e) => {
+                if (e.deltaY < 0) zoom_in();
+                else zoom_out();
+            });
+
+            window.addEventListener('wheel', (e) => {
+                if (e.ctrlKey) {
+                    e.preventDefault();
+                    if (e.deltaY < 0) zoom_in();
+                    else zoom_out();
+                } else if (e.shiftKey) {
+                    e.preventDefault();
+                    window.scrollBy(e.deltaY, 0);
+                }
+            });
+
+            window.addEventListener('keydown', (e) => {
+                if (!e.ctrlKey && !e.metaKey) {
+                    if (e.key === '+') {
+                        zoom_in();
+                    } else if (e.key === '-') {
+                        zoom_out();
+                    } else if (e.key === '0') {
+                        auto_zoom();
+                    }
+                }
+            });
         </script>
     </body>
 </html>
