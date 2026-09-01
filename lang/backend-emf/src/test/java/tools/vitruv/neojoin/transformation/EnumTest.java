@@ -44,7 +44,7 @@ public class EnumTest extends DefaultTransformationTest {
             from Food f
             create Food {
                 name = f.name
-                typeName := f.type.value
+                typeValue := f.type.value
             }
             """);
 
@@ -52,19 +52,19 @@ public class EnumTest extends DefaultTransformationTest {
             .hasInstance(
                 "Food", named("Fanta"), foods -> {
                     assertThat(foods)
-                        .hasAttribute("typeName", 1);
+                        .hasAttribute("typeValue", 1);
                 }
             )
             .hasInstance(
                 "Food", named("Maultaschen"), foods -> {
                     assertThat(foods)
-                        .hasAttribute("typeName", 0);
+                        .hasAttribute("typeValue", 0);
                 }
             )
             .hasInstance(
                 "Food", named("Pizza Margherita"), foods -> {
                     assertThat(foods)
-                        .hasAttribute("typeName", 0);
+                        .hasAttribute("typeValue", 0);
                 }
             )
             .hasNoMoreInstances();
