@@ -7,7 +7,39 @@ import static tools.vitruv.neojoin.transformation.InstanceModelAssertions.assert
 public class EnumTest extends DefaultTransformationTest {
 
     @Test
-    void enumToString() {
+    void enumLiteral() {
+        var result = transform("""
+            from Food f
+            create Food {
+                name = f.name
+                typeLiteral := f.type.literal
+            }
+            """);
+
+        assertThat(result)
+            .hasInstance(
+                "Food", named("Fanta"), foods -> {
+                    assertThat(foods)
+                        .hasAttribute("typeLiteral", "DRINK");
+                }
+            )
+            .hasInstance(
+                "Food", named("Maultaschen"), foods -> {
+                    assertThat(foods)
+                        .hasAttribute("typeLiteral", "FOOD");
+                }
+            )
+            .hasInstance(
+                "Food", named("Pizza Margherita"), foods -> {
+                    assertThat(foods)
+                        .hasAttribute("typeLiteral", "FOOD");
+                }
+            )
+            .hasNoMoreInstances();
+    }
+    
+    @Test
+    void enumName() {
         var result = transform("""
             from Food f
             create Food {
@@ -39,7 +71,7 @@ public class EnumTest extends DefaultTransformationTest {
     }
 
     @Test
-    void enumToInt() {
+    void enumValue() {
         var result = transform("""
             from Food f
             create Food {
