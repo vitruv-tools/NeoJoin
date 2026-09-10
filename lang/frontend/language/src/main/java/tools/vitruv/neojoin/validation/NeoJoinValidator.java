@@ -38,6 +38,8 @@ public class NeoJoinValidator extends AbstractNeoJoinValidator {
     private EPackage.Registry registry;
     @Inject
     private Strictness strictness;
+    @Inject
+    private ConformanceValidator conformanceValidator;
 
     @Check
     public void duplicatedParameterAlias(ViewTypeDefinition viewType) {
@@ -120,7 +122,7 @@ public class NeoJoinValidator extends AbstractNeoJoinValidator {
         AQR aqr = new AQRBuilder(viewType, expressionHelper).build();
         EPackage viewTypePackage = new MetaModelGenerator(aqr).generate().pack();
 
-        List<Violation> violations = ConformanceValidator.validatePackages(viewTypePackage, referencePackage, strictness);
+        List<Violation> violations = conformanceValidator.validatePackages(viewTypePackage, referencePackage, strictness);
         for (Violation v : violations) {
             error(v.toString(), AstPackage.Literals.VIEW_TYPE_DEFINITION__CONFORMS);
         }

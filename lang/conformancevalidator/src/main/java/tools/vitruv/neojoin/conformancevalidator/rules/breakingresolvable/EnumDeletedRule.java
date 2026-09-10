@@ -1,11 +1,11 @@
-package tools.vitruv.neojoin.conformancevalidator.rules.breakingnotresolvable;
+package tools.vitruv.neojoin.conformancevalidator.rules.breakingresolvable;
 
 import org.eclipse.emf.compare.Diff;
 import org.eclipse.emf.compare.DifferenceKind;
 import org.eclipse.emf.compare.ReferenceChange;
 import org.eclipse.emf.ecore.EClass;
+import org.eclipse.emf.ecore.EEnum;
 import org.eclipse.emf.ecore.EPackage;
-import org.eclipse.emf.ecore.EReference;
 
 import tools.vitruv.neojoin.conformancevalidator.Violation;
 import tools.vitruv.neojoin.conformancevalidator.rules.ConformanceRule;
@@ -13,34 +13,32 @@ import tools.vitruv.neojoin.conformancevalidator.rules.ConformanceRule;
 import java.util.Optional;
 
 /**
- * R11: DELETE of EClass.
- * The reference defines a class the view type does not have.
- * Violation because that class is required somewhere in the reference (lowerBound >= 1).
+ * R16: DELETE of EEnum.
+ * The reference defines an enum the view type does not have.
+ * Violation because a feature in the reference requires that enum (lowerBound >= 1).
  */
-public class ClassDeletedRule extends ConformanceRule {
+public class EnumDeletedRule extends ConformanceRule {
 
-    public ClassDeletedRule() {
-        super("R11", Violation.Category.BREAKING_NOT_RESOLVABLE);
+    public EnumDeletedRule() {
+        super("R16", Violation.Category.BREAKING_RESOLVABLE);
     }
 
     @Override
     public Optional<Violation> check(Diff diff) {
         if (diff.getKind() == DifferenceKind.DELETE
-                && diff instanceof ReferenceChange rc
-                && rc.getValue() instanceof EClass deletedClass
-                && rc.getMatch().getRight() instanceof EPackage referencePackage) {
+                && diff instanceof ReferenceChange referenceChange
+                && referenceChange.getValue() instanceof EEnum deletedEnum
+                && referenceChange.getMatch().getRight() instanceof EPackage referencePackage) {
 
             boolean isRequiredSomewhere = referencePackage.getEClassifiers().stream()
                 .filter(EClass.class::isInstance)
                 .map(EClass.class::cast)
                 .flatMap(c -> c.getEAllStructuralFeatures().stream())
-                .filter(EReference.class::isInstance)
-                .map(EReference.class::cast)
-                .anyMatch(ref -> ref.getEType() == deletedClass && ref.getLowerBound() >= 1);
+                .anyMatch(f -> f.getEType() == deletedEnum && f.getLowerBound() >= 1);
 
             if (isRequiredSomewhere) {
                 return Optional.of(violation(
-                    "Class '" + deletedClass.getName() + "' is missing from the view type, "
+                    "Enum '" + deletedEnum.getName() + "' is missing from the view type, "
                         + "but the reference metamodel requires it.",
                     diff
                 ));

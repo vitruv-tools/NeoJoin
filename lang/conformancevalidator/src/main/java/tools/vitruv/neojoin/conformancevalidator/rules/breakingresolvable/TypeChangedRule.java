@@ -1,4 +1,4 @@
-package tools.vitruv.neojoin.conformancevalidator.rules.breakingnotresolvable;
+package tools.vitruv.neojoin.conformancevalidator.rules.breakingresolvable;
 
 import org.eclipse.emf.compare.Diff;
 import org.eclipse.emf.compare.DifferenceKind;
@@ -21,7 +21,7 @@ import java.util.Optional;
 public class TypeChangedRule extends ConformanceRule {
 
     public TypeChangedRule() {
-        super("R9", Violation.Category.BREAKING_NOT_RESOLVABLE);
+        super("R9", Violation.Category.BREAKING_RESOLVABLE);
     }
 
     @Override

@@ -25,6 +25,11 @@ public record Violation(String ruleId, String message, Category category, Diff d
 
     @Override
     public String toString() {
-        return "[%s] %s".formatted(ruleId, message);
+        return switch (category) {
+            case BREAKING_NOT_RESOLVABLE ->
+                "[%s] %s (cannot be resolved by adjusting the query)".formatted(ruleId, message);
+            default ->
+                "[%s] %s".formatted(ruleId, message);
+        };
     }
 }

@@ -30,7 +30,12 @@ public class ConformanceValidator {
         new SafeClassDeletedRule(),          // R12
         new SuperTypeDeletedRule(),          // R13
         new SuperTypeAddedRule(),            // R14
-        new SafeSuperTypeDeletedRule()       // R15
+        new SafeSuperTypeDeletedRule(),      // R15
+        new EnumDeletedRule(),               // R16
+        new SafeEnumDeletedRule(),           // R17
+        new EnumLiteralAddedRule(),          // R18
+        new EnumLiteralDeletedRule(),        // R19
+        new EnumAddedRule()                  // R28
     );
 
     /**
@@ -40,7 +45,7 @@ public class ConformanceValidator {
      * @param diffs the diffs produced by Phase I
      * @return list of violations
      */
-    private static List<Violation> evaluateDiffs(List<Diff> diffs, Strictness strictness) {
+    private List<Violation> evaluateDiffs(List<Diff> diffs, Strictness strictness) {
         List<Violation> violations = new ArrayList<>();
          List<ConformanceRule> activeRules = ALL_RULES.stream()
             .filter(rule -> strictness.getAllowedCategories().contains(rule.getCategory()))
@@ -61,7 +66,7 @@ public class ConformanceValidator {
      * @param reference the reference metamodel EPackage (right)
      * @return list of violations
      */
-    public static List<Violation> validatePackages(EPackage viewType, EPackage reference, Strictness strictness) {
+    public List<Violation> validatePackages(EPackage viewType, EPackage reference, Strictness strictness) {
         List<Diff> diffs = compare(viewType, reference);
         return evaluateDiffs(diffs, strictness);
     }
@@ -74,7 +79,7 @@ public class ConformanceValidator {
      * @param reference the reference metamodel EPackage (right)
      * @return list of detected differences
      */
-    private static List<Diff> compare(EPackage viewType, EPackage reference) {
+    private List<Diff> compare(EPackage viewType, EPackage reference) {
         IComparisonScope scope = new DefaultComparisonScope(viewType, reference, null);
         Comparison comparison = EMFCompare.builder().build().compare(scope);
         return comparison.getDifferences();

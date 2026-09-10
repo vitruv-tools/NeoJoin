@@ -9,7 +9,7 @@ import org.eclipse.emf.ecore.ETypedElement;
 
 import tools.vitruv.neojoin.conformancevalidator.Violation;
 import tools.vitruv.neojoin.conformancevalidator.rules.ConformanceRule;
-import tools.vitruv.neojoin.conformancevalidator.rules.breakingnotresolvable.TypeChangedRule;
+import tools.vitruv.neojoin.conformancevalidator.rules.breakingresolvable.TypeChangedRule;
 
 import java.util.Optional;
 
