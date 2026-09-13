@@ -2,20 +2,15 @@ package tools.vitruv.neojoin.jvmmodel;
 
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
-import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EEnum;
-import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
-import org.eclipse.xtext.common.types.JvmType;
 import org.eclipse.xtext.common.types.JvmTypeReference;
 import org.eclipse.xtext.common.types.JvmVisibility;
 import org.eclipse.xtext.common.types.TypesFactory;
 import org.eclipse.xtext.xbase.jvmmodel.JvmTypeReferenceBuilder;
-import org.jspecify.annotations.Nullable;
 import tools.vitruv.neojoin.utils.EMFUtils;
-import tools.vitruv.neojoin.utils.EValueHolder;
 
 import java.util.List;
 import java.util.Set;
@@ -28,36 +23,6 @@ import static tools.vitruv.neojoin.utils.Assertions.fail;
  * Generate a jvm model for all available source meta-models to allow Xbase expressions to reference their attributes.
  */
 public class SourceModelInferrer {
-
-    /**
-     * Used to store the represented source {@link EClass} within a generated {@link JvmType}.
-     */
-    private static class EcoreSourceHolder extends EValueHolder<EClassifier> {
-
-        public EcoreSourceHolder(EClassifier value) {
-            super(value);
-        }
-
-        public static void set(EObject object, EClassifier value) {
-            install(object, new SourceModelInferrer.EcoreSourceHolder(value));
-        }
-
-        public static @Nullable EClassifier getOrNull(EObject object) {
-            return retrieveOrNull(object, SourceModelInferrer.EcoreSourceHolder.class);
-        }
-
-    }
-
-    /**
-     * Retrieve the source {@link EClass} that the given {@link JvmType} represents.
-     *
-     * @param type jvm type
-     * @return represented {@link EClass} or {@code null}
-     */
-    public static @Nullable EClassifier getEClassifierOrNull(JvmType type) {
-        return EcoreSourceHolder.getOrNull(type);
-    }
-
     private final TypeRegistry typeRegistry;
 
     private final Set<EPackage> packages;
@@ -73,9 +38,17 @@ public class SourceModelInferrer {
         this.references = references;
     }
 
-    public void infer() {
-        check(typeRegistry.isEmpty(), "type registry is not empty");
+    public SourceModelInferrer(
+        TypeRegistry typeRegistry,
+        Set<EPackage> packages,
+        JvmTypeReferenceBuilder references
+    ) {
+        this.packages = packages;
+        this.typeRegistry = typeRegistry;
+        this.references = references;
+    }
 
+    public void infer() {
         for (var pack : packages) {
             forEachEnumIn(pack, this::createEnum);
             forEachClassIn(pack, this::createClass);
@@ -115,7 +88,6 @@ public class SourceModelInferrer {
             type.getMembers().add(enumLiteral);
         }
 
-        EcoreSourceHolder.set(type, eEnum);
         typeRegistry.addEnum(eEnum, type);
     }
 
@@ -126,7 +98,6 @@ public class SourceModelInferrer {
         type.setPackageName(eClazz.getEPackage().getNsURI());
         type.setVisibility(JvmVisibility.PUBLIC);
 
-        EcoreSourceHolder.set(type, eClazz);
         typeRegistry.addClass(eClazz, type);
     }
 

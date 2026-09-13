@@ -3,6 +3,7 @@ package tools.vitruv.neojoin;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.xtext.Constants;
@@ -66,6 +67,10 @@ public class Parser {
         // load file + parse
         var resource = resourceSet.getResource(file, true);
 
+        return parse(resource);
+    }
+
+    public Result parse(Resource resource) {
         // resolve lazy references (proxies) and validate parser result
         var issues = validator.validate(resource, CheckMode.ALL, CancelIndicator.NullImpl);
         var hasError = issues.stream().anyMatch(issue -> issue.getSeverity() == Severity.ERROR);
@@ -80,5 +85,4 @@ public class Parser {
         var aqr = new AQRBuilder((ViewTypeDefinition) resource.getContents().get(0), expressionHelper).build();
         return new Result.Success(aqr, issues);
     }
-
 }
