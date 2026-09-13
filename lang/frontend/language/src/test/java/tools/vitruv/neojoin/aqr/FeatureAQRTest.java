@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import static tools.vitruv.neojoin.aqr.AQRAssertions.assertThat;
 import static tools.vitruv.neojoin.aqr.AQRTargetClassAssertions.assertThat;
 
-public class FeatureAQRTest extends AbstractAQRTest {
+class FeatureAQRTest extends AbstractAQRTest {
 
     @Test
     void copyWithAttribute() {
@@ -124,7 +124,7 @@ public class FeatureAQRTest extends AbstractAQRTest {
             create Result {
                 test: Food := null
             }
-            
+
             from Food create
             """);
 
@@ -148,7 +148,7 @@ public class FeatureAQRTest extends AbstractAQRTest {
             from Restaurant r create {
                 sells: NotSoTastyFood = r.sells
             }
-            
+
             from Food create TastyFood
             from Food create NotSoTastyFood
             """);

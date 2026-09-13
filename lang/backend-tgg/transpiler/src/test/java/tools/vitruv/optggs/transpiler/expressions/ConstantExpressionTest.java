@@ -7,18 +7,18 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class ConstantExpressionTest {
     @Test
-    public void primitive() {
+    void primitive() {
         assertEquals("5", ConstantExpression.Primitive(5).value());
     }
 
     @Test
-    public void primitiveString() {
+    void primitiveString() {
         assertEquals("5", ConstantExpression.Primitive("5").value());
         assertEquals("Foo", ConstantExpression.Primitive("Foo").value());
     }
 
     @Test
-    public void string() {
+    void string() {
         assertEquals("\"5\"", ConstantExpression.String("5").value());
         assertEquals("\"Foo\"", ConstantExpression.String("Foo").value());
     }

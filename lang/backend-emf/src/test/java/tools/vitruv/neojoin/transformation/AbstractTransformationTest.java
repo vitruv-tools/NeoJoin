@@ -69,7 +69,8 @@ public abstract class AbstractTransformationTest extends AbstractIntegrationTest
             getInjector().getInstance(ExpressionHelper.class),
             aqr,
             targetMetaModel,
-            instanceModelRegistry
+            instanceModelRegistry,
+            Map.of()
         ).transform();
     }
 

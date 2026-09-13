@@ -27,7 +27,7 @@ class FunctionFilterTest {
     }
 
     @Test
-    public void createFunctionFilter() {
+    void createFunctionFilter() {
         var filter = new FunctionFilter("startsWith");
         filter.setConstrainedArgument("self", pkg("A"), "name");
         filter.setConstantArgument("prefix", ConstantExpression.String("foo"));
@@ -35,7 +35,7 @@ class FunctionFilterTest {
     }
 
     @Test
-    public void functionFilterToRule() {
+    void functionFilterToRule() {
         var filter = new FunctionFilter("startsWith");
         filter.setConstrainedArgument("self", pkg("A"), "name");
         filter.setConstantArgument("prefix", ConstantExpression.String("foo"));
@@ -48,7 +48,7 @@ class FunctionFilterTest {
     }
 
     @Test
-    public void multiNodesFunctionFilterToRule() {
+    void multiNodesFunctionFilterToRule() {
         var filter = new FunctionFilter("concatWith");
         filter.setConstrainedArgument("return", pkg("A"), "name");
         filter.setConstrainedArgument("self", pkg("B"), "prename");

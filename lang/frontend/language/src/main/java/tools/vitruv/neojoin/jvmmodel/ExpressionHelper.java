@@ -90,15 +90,21 @@ public class ExpressionHelper {
      * @param fromIterator  iterator of {@link AQRFrom} for variable names
      * @param valueIterator iterator of {@link Object} for variable values
      * @param limit         optional limit
+     * @param parameters    map from parameter name to parameter value
      * @return evaluation context to be used in {@link #evaluate(XExpression, IEvaluationContext) evaluate(..)}
      * @see #createContext() if no variables are required
      */
     public IEvaluationContext createContext(
         Iterator<AQRFrom> fromIterator,
         Iterator<?> valueIterator,
-        @Nullable AQRFrom limit
+        @Nullable AQRFrom limit,
+        Map<String, Object> parameters
     ) {
         IEvaluationContext context = createContext();
+
+        for (var entry : parameters.entrySet()) {
+            context.newValue(QualifiedName.create(entry.getKey()), entry.getValue());
+        }
 
         boolean isFirst = true;
         while (fromIterator.hasNext() && valueIterator.hasNext()) {
@@ -215,6 +221,11 @@ public class ExpressionHelper {
         var type = resolvedType.getType();
         if (type == null) {
             return new TypeInfo(null, false);
+        }
+
+        var asPrimitive = resolvedType.getPrimitiveIfWrapperType();
+        if (asPrimitive != null) {
+            type = asPrimitive.getType();
         }
 
         // unwrap list

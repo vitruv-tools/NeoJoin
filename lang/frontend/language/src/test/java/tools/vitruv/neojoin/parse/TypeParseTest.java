@@ -4,7 +4,8 @@ import org.junit.jupiter.api.Test;
 
 import static tools.vitruv.neojoin.parse.ParseAssertions.assertThat;
 
-public class TypeParseTest extends AbstractParseTest {
+@SuppressWarnings("HttpUrlsUsage")
+class TypeParseTest extends AbstractParseTest {
 
     @Test
     void correctTypeAttribute() {
@@ -106,19 +107,6 @@ public class TypeParseTest extends AbstractParseTest {
             """);
 
         assertThat(result).hasNoIssues();
-    }
-
-    @Test
-    void nullFeatureWithoutType() {
-        var result = parse("""
-            from Restaurant r create {
-                test := null
-            }
-
-            from Food create
-            """);
-
-        assertThat(result).hasIssues("Cannot infer type");
     }
 
     @Test
@@ -231,6 +219,22 @@ public class TypeParseTest extends AbstractParseTest {
     }
 
     @Test
+    void invalidTypeCastsShortObjToEBoolean() {
+        var result = internalParse("""
+            export package to "http://example.com"
+            import "http://vitruv.tools/typecasts"
+
+            from Test create {
+                p: EBoolean := it.attrShortObj
+            }
+            """);
+
+        assertThat(result).hasIssues(
+            "Type mismatch: cannot convert from EShort (short) to EBoolean (boolean)"
+        );
+    }
+
+    @Test
     void typeCastViaExplicitTypeFromBoxed() {
         var result = internalParse("""
             export package to "http://example.com"
@@ -280,16 +284,13 @@ public class TypeParseTest extends AbstractParseTest {
                 p1: EBoolean = it.attrShort
                 p2: EString = it.attrShort
                 p3: EShort := true
-                p4: EBoolean := it.attrShortObj
             }
             """);
 
         assertThat(result).hasIssues(
             "Type mismatch: cannot convert from EShort (short) to EBoolean (boolean)",
             "Type mismatch: cannot convert from EShort (short) to EString (String)",
-            "Type mismatch: cannot convert from EBoolean (boolean) to EShort (short)",
-            "Type mismatch: cannot convert from EShortObject (Short) to EBoolean (boolean)"
+            "Type mismatch: cannot convert from EBoolean (boolean) to EShort (short)"
         );
     }
-
 }

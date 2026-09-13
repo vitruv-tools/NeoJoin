@@ -41,5 +41,9 @@ build/
 ### VS Code ###
 .vscode/
 
+### Metals lsp ###
+.metals/
+.bloop/
+
 ### Mac OS ###
 .DS_Store

@@ -1,0 +1,16 @@
+export pizzaMenu to "http://example.org/pizza-menu"
+
+import "http://example.org/restaurant"
+
+param namePrefix : EString
+param minEmployees : EInt
+param selectedFoods : EList<Food>
+
+from Restaurant r
+join Food f on selectedFoods.exists(sf | sf.name == f.name) && r.sells.contains(f)
+where r.name.startsWith(namePrefix) && r.numEmployees >= minEmployees
+create {
+    label := namePrefix
+    f.name
+    f.price
+}

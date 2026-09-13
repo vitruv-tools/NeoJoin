@@ -14,9 +14,7 @@
                 width: 100%;
                 height: 100%;
                 padding: 0;
-            }
-
-            body {
+                margin: 0;
                 display: flex;
                 flex-direction: column;
                 align-items: stretch;
@@ -64,12 +62,25 @@
 
                     color: var(--vscode-editor-foreground);
                 }
+            } 
+
+            #visualization_outer {
+                flex:1 1 auto;
+                min-height:0;
+                min-width:0;
+                overflow:hidden;
+                display:flex;
+                justify-content:center;
+                align-items:center;
             }
 
             #visualization {
-                flex: 1;
+                width: 100%;
+                height: 100%;
+                flex: 1 1 auto;
                 overflow: auto;
-
+                min-height: 0;
+                min-width: 0;
                 display: flex;
                 justify-content: safe center;
                 align-items: safe center;
@@ -135,9 +146,12 @@
                     <option value="0.5">50%</option>
                     <option value="0.4">40%</option>
                 </select>
+                <button id="auto_zoom_btn" type="button">auto</button>
             </span>
         </div>
-        <div id="visualization"></div>
+        <div id="visualization_outer">
+            <div id="visualization"></div>
+        </div>
         <script>
             const vscode = acquireVsCodeApi();
             const state = {
@@ -182,6 +196,7 @@
 
                 if (data.svg) {
                     visualization.innerHTML = data.svg;
+                    auto_zoom();
                 }
             }
             window.addEventListener("message", (event) => update(event.data));
@@ -202,17 +217,53 @@
                 (input) => input.checked = state.options.orthogonal
             );
 
-            // zoom
-            const zoom = document.getElementById("zoom");
-            zoom.addEventListener("change", (event) => {
+            // handle zoom
+            function set_zoom(factor) {
                 const svg = visualization.querySelector("svg");
-                const factor = event.target.value;
+                if (!svg) {
+                    requestAnimationFrame(() => set_zoom(factor));
+                    return;
+                }
 
                 // use width/height instead of `transform: scale(...)` to avoid issues with scrollbars
                 const svgSize = svg.getBBox();
                 svg.style.width = `${svgSize.width * factor}px`;
                 svg.style.height = `${svgSize.height * factor}px`;
+            }
+            const zoom = document.getElementById("zoom");
+            zoom.addEventListener("change", (event) => {
+                const factor = event.target.value;
+                set_zoom(factor);
             });
+
+            function zoom_factor_enforce_bounds(factor) {
+                return factor >= 2.5? 1.5
+                    : factor >= 1.25? 1.25
+                    : factor >= 1 ? 1
+                    : factor <= 0.4 ?  0.4
+                    : factor;
+            }
+
+            function auto_zoom() {
+                const svg = visualization.querySelector("svg");
+                const svgSize = svg.getBBox();
+                const outer = document.getElementById("visualization_outer");
+                const view_rect = outer.getBoundingClientRect();
+                let factor = zoom_factor_enforce_bounds(
+                    Math.floor(
+                        Math.min(
+                            view_rect.width * 10 / svgSize.width,
+                            view_rect.height * 10 / svgSize.height,
+                        )
+                    ) / 10);
+                zoom.value = factor;
+                set_zoom(factor);
+
+                console.log("auto zoom: " + factor);
+                console.log("row zoom: " + (document.documentElement.clientWidth / svgSize.width));
+            }
+            const auto_zoom_btn = document.getElementById("auto_zoom_btn")
+            auto_zoom_btn.addEventListener("click", (_) => auto_zoom())
         </script>
     </body>
 </html>

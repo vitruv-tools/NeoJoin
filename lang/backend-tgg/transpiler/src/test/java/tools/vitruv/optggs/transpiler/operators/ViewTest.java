@@ -46,7 +46,7 @@ class ViewTest {
     }
 
     @Test
-    public void normalizeSimpleContainment() {
+    void normalizeSimpleContainment() {
         var view = simpleView();
         var resolver = new TranspilerQueryResolver();
         var containers = resolver.findContainers(view);
@@ -56,7 +56,7 @@ class ViewTest {
     }
 
     @Test
-    public void normalizeComplexContainment() {
+    void normalizeComplexContainment() {
         var view = complexContainment();
         var resolver = new TranspilerQueryResolver();
         var containers = resolver.findContainers(view);
@@ -65,7 +65,7 @@ class ViewTest {
     }
 
     @Test
-    public void resolveSimpleContainment() {
+    void resolveSimpleContainment() {
         var view = simpleView();
         var queries = resolve(view).stream().map(Object::toString).toList();
         assertEquals(3, queries.size());
@@ -75,7 +75,7 @@ class ViewTest {
     }
 
     @Test
-    public void resolveComplexContainment() {
+    void resolveComplexContainment() {
         var view = complexContainment();
         var queries = resolve(view).stream().map(Objects::toString).toList();
         assertEquals(2, queries.size());

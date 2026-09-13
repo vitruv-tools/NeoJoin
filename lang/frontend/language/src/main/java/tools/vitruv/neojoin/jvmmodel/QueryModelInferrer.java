@@ -1,6 +1,7 @@
 package tools.vitruv.neojoin.jvmmodel;
 
 import org.eclipse.emf.ecore.EClass;
+import org.eclipse.emf.ecore.EDataType;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.xtext.common.types.JvmGenericType;
 import org.eclipse.xtext.common.types.JvmOperation;
@@ -14,11 +15,7 @@ import org.eclipse.xtext.xbase.jvmmodel.JvmTypesBuilder;
 import org.jspecify.annotations.Nullable;
 import tools.vitruv.neojoin.Constants;
 import tools.vitruv.neojoin.QueryModelExpressionTypeConfiguration;
-import tools.vitruv.neojoin.ast.Body;
-import tools.vitruv.neojoin.ast.From;
-import tools.vitruv.neojoin.ast.MainQuery;
-import tools.vitruv.neojoin.ast.Source;
-import tools.vitruv.neojoin.ast.ViewTypeDefinition;
+import tools.vitruv.neojoin.ast.*;
 import tools.vitruv.neojoin.utils.AstUtils;
 import tools.vitruv.neojoin.utils.Utils;
 
@@ -83,16 +80,7 @@ public class QueryModelInferrer {
         if (mainQuery.getSource() != null) {
             Utils.forEachIndexed(
                 mainQuery.getSource().getJoins(), (join, joinIndex) ->
-                    Utils.forEachIndexed(
-                        join.getExpressionConditions(), (condition, conditionIndex) ->
-                            addExpression(
-                                join,
-                                "%s_join_%d_condition_%d".formatted(targetName, joinIndex, conditionIndex),
-                                "boolean",
-                                condition.getExpression(),
-                                paramsForSource(mainQuery.getSource(), false, join.getFrom())
-                            )
-                    )
+                    addJoinExpressions(mainQuery, join, joinIndex)
             );
 
             if (mainQuery.getSource().getCondition() != null) {
@@ -206,35 +194,33 @@ public class QueryModelInferrer {
      * @return lambda that creates parameters
      */
     private Consumer<JvmOperation> paramsForSource(@Nullable Source source, boolean isGrouping, @Nullable From limit) {
-        if (source == null) {
-            return op -> {
-            };
-        } else {
-            return op -> {
-                if (AstUtils.getAllFroms(source).count() <= 1) {
-                    addParam(
-                        op,
-                        source.getFrom(),
-                        Constants.ExpressionSelfReference,
-                        sourceTypes.getClass(source.getFrom().getClazz()),
-                        isGrouping
-                    );
-                }
+        if (source == null) return op -> {};
 
-                Iterable<From> allFroms = () -> AstUtils.getAllFroms(source).iterator();
-                for (var from : allFroms) {
-                    if (from.getAlias() != null) {
-                        addParam(op, from, from.getAlias(), sourceTypes.getClass(from.getClazz()), isGrouping);
-                    }
+        return op -> {
+            if  (AstUtils.getAllFroms(source).count() <= 1 && source.getFrom().getAlias() == null)  {
+                addFromAliasToParameters(op, source.getFrom(), Constants.ExpressionSelfReference, isGrouping);
+            }
 
-                    if (from == limit) {
-                        break;
-                    }
-                }
-            };
-        }
+            Iterable<From> allFroms = () -> AstUtils.getAllFroms(source).iterator();
+            for (var from : allFroms) {
+                addFromAliasToParameters(op, from, from.getAlias(), isGrouping);
+
+                if (from == limit) break;
+            }
+                
+            //add declared parameters
+            for (var param : viewType.getParameters()) {
+                addParam(op, param, param.getAlias(), paramBaseTypeRef(param), param.getType() instanceof CollectionParameterType);
+            }
+        };
     }
 
+    private void addFromAliasToParameters(JvmOperation operation, From from, @Nullable String fromAlias, boolean isGrouping) {
+        if (fromAlias != null) {
+            var fromJvmType = sourceTypes.getClass(from.getClazz());
+            addParam(operation, from, fromAlias, fromJvmType, isGrouping);
+        }
+    }
 
     /**
      * Returns a lambda that creates a single parameter named {@link Constants#ExpressionSelfReference} for the given class.
@@ -243,8 +229,26 @@ public class QueryModelInferrer {
      * @return lambda that creates the parameter
      */
     private Consumer<JvmOperation> paramsForClass(EClass clazz, EObject source) {
-        return op ->
+        return op -> {
             addParam(op, source, Constants.ExpressionSelfReference, sourceTypes.getClass(clazz), false);
+
+            //add declared parameters
+            for (var param : viewType.getParameters()) {
+                addParam(op, param, param.getAlias(), paramBaseTypeRef(param), param.getType() instanceof CollectionParameterType);
+            }
+        };
+    }
+
+    private JvmTypeReference paramBaseTypeRef(Parameter param) {
+        var classifier = param.getType().getElementType();
+        if (classifier instanceof EDataType dt) {
+            var cls = dt.getInstanceClass();
+            return (cls != null) ? typeReferences.typeRef(cls) : typeReferences.typeRef("invalid");
+        } else if (classifier instanceof EClass ec) {
+            return typeRef(sourceTypes.getClass(ec));
+        } else {
+            return typeReferences.typeRef("invalid");
+        }
     }
 
     /**
@@ -259,8 +263,11 @@ public class QueryModelInferrer {
      * go-to-definition.
      */
     private void addParam(JvmOperation op, EObject source, String name, @Nullable JvmType type, boolean isGrouping) {
-        var typeRef = isGrouping ? wrapInList(typeRef(type)) : typeRef(type);
-        op.getParameters().add(types.toParameter(source, name, typeRef));
+        addParam(op, source, name, typeRef(type), isGrouping);
+    }
+
+    private void addParam(JvmOperation op, EObject source, String name, JvmTypeReference typeRef, boolean isGrouping) {
+        op.getParameters().add(types.toParameter(source, name, isGrouping ? wrapInList(typeRef) : typeRef));
     }
 
     private JvmTypeReference typeRef(@Nullable JvmType type) {
@@ -275,4 +282,18 @@ public class QueryModelInferrer {
         return typeReferences.typeRef(List.class, typeRef);
     }
 
+    private void addJoinExpressions(MainQuery mainQuery, Join join, int joinIndex) {
+        var targetName = AstUtils.getTargetName(mainQuery);
+
+        Utils.forEachIndexed(
+            join.getExpressionConditions(), (condition, conditionIndex) ->
+                addExpression(
+                    join,
+                    "%s_join_%d_condition_%d".formatted(targetName, joinIndex, conditionIndex),
+                    "boolean",
+                    condition.getExpression(),
+                    paramsForSource(mainQuery.getSource(), false, join.getFrom())
+                )
+        );
+    }
 }

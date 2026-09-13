@@ -22,6 +22,7 @@ public class Utils {
 
     public static final Path INSTANCES = Path.of("instances");
     public static final Path MODELS = Path.of("models");
+    public static final Path PARAMS = Path.of("params");
     public static final Path QUERIES = Path.of("queries");
     public static final Path RESULTS = Path.of("results");
 

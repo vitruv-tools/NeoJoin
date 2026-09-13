@@ -10,7 +10,7 @@ import java.util.List;
 
 import static tools.vitruv.neojoin.parse.ParseAssertions.assertThat;
 
-public class ImportParseTest extends AbstractIntegrationTest {
+class ImportParseTest extends AbstractIntegrationTest {
 
     @Override
     protected List<String> getMetaModelPaths() {
@@ -34,7 +34,7 @@ public class ImportParseTest extends AbstractIntegrationTest {
     void importSingle() {
         var result = parse("""
             export something to "http://example.com"
-            
+
             import "http://example.org/restaurant"
             """);
 
@@ -45,7 +45,7 @@ public class ImportParseTest extends AbstractIntegrationTest {
     void importMulti() {
         var result = parse("""
             export something to "http://example.com"
-            
+
             import "http://example.org/restaurant"
             import "http://example.org/reviewpage"
             """);
@@ -57,7 +57,7 @@ public class ImportParseTest extends AbstractIntegrationTest {
     void importAlias() {
         var result = parse("""
             export something to "http://example.com"
-            
+
             import "http://example.org/restaurant" as rest
             """);
 
@@ -68,7 +68,7 @@ public class ImportParseTest extends AbstractIntegrationTest {
     void importMultiAlias() {
         var result = parse("""
             export something to "http://example.com"
-            
+
             import "http://example.org/restaurant" as rest
             import "http://example.org/reviewpage"
             """);
@@ -80,7 +80,7 @@ public class ImportParseTest extends AbstractIntegrationTest {
     void duplicatedUri() {
         var result = parse("""
             export something to "http://example.com"
-            
+
             import "http://example.org/restaurant" as rest
             import "http://example.org/restaurant"
             """);
@@ -92,7 +92,7 @@ public class ImportParseTest extends AbstractIntegrationTest {
     void duplicatedPackage() {
         var result = parse("""
             export something to "http://example.com"
-            
+
             import "http://example.org/restaurant"
             import "http://example.org/reviewpage" as restaurant
             """);
@@ -104,7 +104,7 @@ public class ImportParseTest extends AbstractIntegrationTest {
     void duplicatedPackageAlias() {
         var result = parse("""
             export something to "http://example.com"
-            
+
             import "http://example.org/restaurant" as test
             import "http://example.org/reviewpage" as test
             """);
@@ -116,7 +116,7 @@ public class ImportParseTest extends AbstractIntegrationTest {
     void importAliasEcore() {
         var result = parse("""
             export something to "http://example.com"
-            
+
             import "http://example.org/restaurant" as ecore
             """);
 

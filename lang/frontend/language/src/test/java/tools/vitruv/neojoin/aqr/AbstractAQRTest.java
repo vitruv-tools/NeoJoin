@@ -5,7 +5,7 @@ import tools.vitruv.neojoin.PackageRegistryUtils;
 
 import java.util.List;
 
-public class AbstractAQRTest extends AbstractIntegrationTest implements PackageRegistryUtils {
+public abstract class AbstractAQRTest extends AbstractIntegrationTest implements PackageRegistryUtils {
 
     @Override
     protected List<String> getMetaModelPaths() {
@@ -14,12 +14,12 @@ public class AbstractAQRTest extends AbstractIntegrationTest implements PackageR
 
     protected AQR parse(String query) {
         return internalParseAQR("""
-            export package to "http://example.com"
-            
-            import "http://example.org/restaurant" as rest
-            import "http://example.org/reviewpage"
-            
-            """ + query);
+                export package to "http://example.com"
+
+                import "http://example.org/restaurant" as rest
+                import "http://example.org/reviewpage"
+
+                """ + query);
     }
 
 }

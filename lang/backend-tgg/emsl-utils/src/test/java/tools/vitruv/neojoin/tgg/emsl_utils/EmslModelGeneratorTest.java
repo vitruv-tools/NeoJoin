@@ -32,7 +32,8 @@ import java.nio.file.Path;
 import java.util.List;
 
 class EmslModelGeneratorTest extends AbstractEmslGeneratorTest {
-    @TempDir Path tempDirectory;
+    @TempDir
+    Path tempDirectory;
 
     private static final String ECORE_MODEL_FILENAME = "SimpleCarModel.xmi";
     private static final String METAMODEL_OUTPUT_FILENAME = "metamodel-output.msl";
@@ -47,13 +48,13 @@ class EmslModelGeneratorTest extends AbstractEmslGeneratorTest {
         // Setup ResourceSet
         resourceSet = new ResourceSetImpl();
         resourceSet
-                .getResourceFactoryRegistry()
-                .getExtensionToFactoryMap()
-                .put("ecore", new EcoreResourceFactoryImpl());
+            .getResourceFactoryRegistry()
+            .getExtensionToFactoryMap()
+            .put("ecore", new EcoreResourceFactoryImpl());
         resourceSet
-                .getResourceFactoryRegistry()
-                .getExtensionToFactoryMap()
-                .put("xmi", new XMIResourceFactoryImpl());
+            .getResourceFactoryRegistry()
+            .getExtensionToFactoryMap()
+            .put("xmi", new XMIResourceFactoryImpl());
 
         // Load test model
         final URL modelUrl = getClass().getClassLoader().getResource(ECORE_MODEL_FILENAME);
@@ -75,11 +76,11 @@ class EmslModelGeneratorTest extends AbstractEmslGeneratorTest {
 
         // when
         assertThatCode(() -> EmslModelGenerator.generateModels(resourceSet, outputPath))
-                .doesNotThrowAnyException();
+            .doesNotThrowAnyException();
 
         // We need to add the metamodel to the model file to parse it correctly
         final String metamodelContent =
-                Files.readString(tempDirectory.resolve(METAMODEL_OUTPUT_FILENAME));
+            Files.readString(tempDirectory.resolve(METAMODEL_OUTPUT_FILENAME));
         final String modelContent = Files.readString(outputPath);
         Files.writeString(outputPath, metamodelContent + modelContent);
 
@@ -98,10 +99,10 @@ class EmslModelGeneratorTest extends AbstractEmslGeneratorTest {
         assertThat(emslSpec.getEntities()).hasSize(2);
 
         final EObject firstModelEntity =
-                emslSpec.getEntities().stream()
-                        .filter(Model.class::isInstance)
-                        .findFirst()
-                        .orElseThrow();
+            emslSpec.getEntities().stream()
+                .filter(Model.class::isInstance)
+                .findFirst()
+                .orElseThrow();
         assertThat(firstModelEntity).isInstanceOf(Model.class);
 
         final Model model = (Model) firstModelEntity;
@@ -111,57 +112,59 @@ class EmslModelGeneratorTest extends AbstractEmslGeneratorTest {
 
         // Wheels
         final ModelNodeBlock wheel1001 = findWheelWithId(model.getNodeBlocks(), 1001);
-        assertThat(wheel1001).hasPropertyCount(3);
-        assertThat(wheel1001).hasEqualsProperty("wheelId", getPrimitiveInt(1001));
-        assertThat(wheel1001).hasEqualsProperty("pressure", getPrimitiveDouble(2.2));
-        assertThat(wheel1001).hasEqualsProperty("diameter", getPrimitiveInt(16));
-        assertThat(wheel1001).hasNoRelations();
+        assertThat(wheel1001)
+            .hasPropertyCount(3)
+            .hasEqualsProperty("wheelId", getPrimitiveInt(1001))
+            .hasEqualsProperty("pressure", getPrimitiveDouble(2.2))
+            .hasEqualsProperty("diameter", getPrimitiveInt(16))
+            .hasNoRelations();
 
         final ModelNodeBlock wheel1002 = findWheelWithId(model.getNodeBlocks(), 1002);
-        assertThat(wheel1002).hasPropertyCount(3);
-        assertThat(wheel1002).hasEqualsProperty("wheelId", getPrimitiveInt(1002));
-        assertThat(wheel1002).hasEqualsProperty("pressure", getPrimitiveDouble(2.1));
-        assertThat(wheel1002).hasEqualsProperty("diameter", getPrimitiveInt(10));
-        assertThat(wheel1002).hasNoRelations();
+        assertThat(wheel1002).hasPropertyCount(3)
+            .hasEqualsProperty("wheelId", getPrimitiveInt(1002))
+            .hasEqualsProperty("pressure", getPrimitiveDouble(2.1))
+            .hasEqualsProperty("diameter", getPrimitiveInt(10))
+            .hasNoRelations();
 
         final ModelNodeBlock wheel1003 = findWheelWithId(model.getNodeBlocks(), 1003);
-        assertThat(wheel1003).hasPropertyCount(3);
-        assertThat(wheel1003).hasEqualsProperty("wheelId", getPrimitiveInt(1003));
-        assertThat(wheel1003).hasEqualsProperty("pressure", getPrimitiveDouble(1.83));
-        assertThat(wheel1003).hasEqualsProperty("diameter", getPrimitiveInt(15));
-        assertThat(wheel1003).hasNoRelations();
+        assertThat(wheel1003)
+            .hasPropertyCount(3)
+            .hasEqualsProperty("wheelId", getPrimitiveInt(1003))
+            .hasEqualsProperty("pressure", getPrimitiveDouble(1.83))
+            .hasEqualsProperty("diameter", getPrimitiveInt(15))
+            .hasNoRelations();
 
         final ModelNodeBlock wheel1004 = findWheelWithId(model.getNodeBlocks(), 1004);
-        assertThat(wheel1004).hasPropertyCount(3);
-        assertThat(wheel1004).hasEqualsProperty("wheelId", getPrimitiveInt(1004));
-        assertThat(wheel1004).hasEqualsProperty("pressure", getPrimitiveDouble(2.2));
-        assertThat(wheel1004).hasEqualsProperty("diameter", getPrimitiveInt(16));
-        assertThat(wheel1004).hasNoRelations();
+        assertThat(wheel1004).hasPropertyCount(3)
+            .hasEqualsProperty("wheelId", getPrimitiveInt(1004))
+            .hasEqualsProperty("pressure", getPrimitiveDouble(2.2))
+            .hasEqualsProperty("diameter", getPrimitiveInt(16))
+            .hasNoRelations();
 
         // Axes
         final ModelNodeBlock axis100 = findAxisWithId(model.getNodeBlocks(), 100);
-        assertThat(axis100).hasPropertyCount(2);
-        assertThat(axis100).hasEqualsProperty("axisId", getPrimitiveInt(100));
-        assertThat(axis100).hasEqualsProperty("position", getPrimitiveString("front"));
         assertThat(axis100)
-                .hasRelationCount(2)
-                .hasRelationTargets("wheels", List.of(wheel1001, wheel1002));
+            .hasPropertyCount(2)
+            .hasEqualsProperty("axisId", getPrimitiveInt(100))
+            .hasEqualsProperty("position", getPrimitiveString("front"))
+            .hasRelationCount(2)
+            .hasRelationTargets("wheels", List.of(wheel1001, wheel1002));
 
         final ModelNodeBlock axis101 = findAxisWithId(model.getNodeBlocks(), 101);
-        assertThat(axis101).hasPropertyCount(2);
-        assertThat(axis101).hasEqualsProperty("axisId", getPrimitiveInt(101));
-        assertThat(axis101).hasEqualsProperty("position", getPrimitiveString("rear"));
         assertThat(axis101)
-                .hasRelationCount(2)
-                .hasRelationTargets("wheels", List.of(wheel1003, wheel1004));
+            .hasPropertyCount(2)
+            .hasEqualsProperty("axisId", getPrimitiveInt(101))
+            .hasEqualsProperty("position", getPrimitiveString("rear"))
+            .hasRelationCount(2)
+            .hasRelationTargets("wheels", List.of(wheel1003, wheel1004));
 
         // Car
         final ModelNodeBlock car = findCarWithId(model.getNodeBlocks(), 1);
-        assertThat(car).hasPropertyCount(3);
-        assertThat(car).hasEqualsProperty("carId", getPrimitiveInt(1));
-        assertThat(car).hasEqualsProperty("manufacturer", getPrimitiveString("Toyota"));
-        assertThat(car).hasEqualsProperty("modelName", getPrimitiveString("Corolla"));
-        assertThat(car).hasRelationCount(2).hasRelationTargets("axes", List.of(axis100, axis101));
+        assertThat(car).hasPropertyCount(3)
+            .hasEqualsProperty("carId", getPrimitiveInt(1))
+            .hasEqualsProperty("manufacturer", getPrimitiveString("Toyota"))
+            .hasEqualsProperty("modelName", getPrimitiveString("Corolla"))
+            .hasRelationCount(2).hasRelationTargets("axes", List.of(axis100, axis101));
     }
 
     private PrimitiveInt getPrimitiveInt(int value) {
@@ -184,52 +187,52 @@ class EmslModelGeneratorTest extends AbstractEmslGeneratorTest {
 
     private ModelNodeBlock findWheelWithId(List<ModelNodeBlock> nodes, int wheelId) {
         return nodes.stream()
-                .filter(node -> node.getType().getName().equals("Wheel"))
-                .filter(node -> hasWheelId(node, wheelId))
-                .findFirst()
-                .orElseThrow();
+            .filter(node -> node.getType().getName().equals("Wheel"))
+            .filter(node -> hasWheelId(node, wheelId))
+            .findFirst()
+            .orElseThrow();
     }
 
     private boolean hasWheelId(ModelNodeBlock node, int wheelId) {
         return node.getProperties().stream()
-                .anyMatch(
-                        property ->
-                                property.getType().getName().equals("wheelId")
-                                        && property.getValue() instanceof PrimitiveInt intValue
-                                        && intValue.getLiteral() == wheelId);
+            .anyMatch(
+                property ->
+                    property.getType().getName().equals("wheelId")
+                        && property.getValue() instanceof PrimitiveInt intValue
+                        && intValue.getLiteral() == wheelId);
     }
 
     private ModelNodeBlock findAxisWithId(List<ModelNodeBlock> nodes, int axisId) {
         return nodes.stream()
-                .filter(node -> node.getType().getName().equals("Axis"))
-                .filter(node -> hasAxisId(node, axisId))
-                .findFirst()
-                .orElseThrow();
+            .filter(node -> node.getType().getName().equals("Axis"))
+            .filter(node -> hasAxisId(node, axisId))
+            .findFirst()
+            .orElseThrow();
     }
 
     private boolean hasAxisId(ModelNodeBlock node, int axisId) {
         return node.getProperties().stream()
-                .anyMatch(
-                        property ->
-                                property.getType().getName().equals("axisId")
-                                        && property.getValue() instanceof PrimitiveInt intValue
-                                        && intValue.getLiteral() == axisId);
+            .anyMatch(
+                property ->
+                    property.getType().getName().equals("axisId")
+                        && property.getValue() instanceof PrimitiveInt intValue
+                        && intValue.getLiteral() == axisId);
     }
 
     private ModelNodeBlock findCarWithId(List<ModelNodeBlock> nodes, int carId) {
         return nodes.stream()
-                .filter(node -> node.getType().getName().equals("Car"))
-                .filter(node -> hasCarId(node, carId))
-                .findFirst()
-                .orElseThrow();
+            .filter(node -> node.getType().getName().equals("Car"))
+            .filter(node -> hasCarId(node, carId))
+            .findFirst()
+            .orElseThrow();
     }
 
     private boolean hasCarId(ModelNodeBlock node, int carId) {
         return node.getProperties().stream()
-                .anyMatch(
-                        property ->
-                                property.getType().getName().equals("carId")
-                                        && property.getValue() instanceof PrimitiveInt intValue
-                                        && intValue.getLiteral() == carId);
+            .anyMatch(
+                property ->
+                    property.getType().getName().equals("carId")
+                        && property.getValue() instanceof PrimitiveInt intValue
+                        && intValue.getLiteral() == carId);
     }
 }

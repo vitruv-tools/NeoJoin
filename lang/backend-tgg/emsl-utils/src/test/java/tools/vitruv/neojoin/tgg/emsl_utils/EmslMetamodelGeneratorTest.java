@@ -27,7 +27,8 @@ import java.nio.file.Path;
 import java.util.List;
 
 class EmslMetamodelGeneratorTest {
-    @TempDir Path tempDirectory;
+    @TempDir
+    Path tempDirectory;
 
     private static final String ECORE_METAMODEL_FILENAME = "SimpleCarMetamodel.ecore";
     private static final String METAMODEL_OUTPUT_FILENAME = "test-metamodel-output.msl";
@@ -41,9 +42,9 @@ class EmslMetamodelGeneratorTest {
         // Setup ResourceSet
         resourceSet = new ResourceSetImpl();
         resourceSet
-                .getResourceFactoryRegistry()
-                .getExtensionToFactoryMap()
-                .put("ecore", new EcoreResourceFactoryImpl());
+            .getResourceFactoryRegistry()
+            .getExtensionToFactoryMap()
+            .put("ecore", new EcoreResourceFactoryImpl());
 
         // Load test model
         final URL resourceUrl = getClass().getClassLoader().getResource(ECORE_METAMODEL_FILENAME);
@@ -62,7 +63,7 @@ class EmslMetamodelGeneratorTest {
 
         // when
         assertThatCode(() -> EmslMetamodelGenerator.generateMetamodels(resourceSet, outputPath))
-                .doesNotThrowAnyException();
+            .doesNotThrowAnyException();
 
         // then
         assertThat(outputPath).exists();
@@ -88,53 +89,56 @@ class EmslMetamodelGeneratorTest {
 
         // Wheel
         final MetamodelNodeBlock wheelNodeBlock =
-                metamodel.getNodeBlocks().stream()
-                        .filter(node -> node.getName().equals("Wheel"))
-                        .findFirst()
-                        .orElseThrow();
-        assertThat(wheelNodeBlock).hasName("Wheel").hasPropertyCount(3);
-        assertThat(wheelNodeBlock).hasProperty("wheelId", BuiltInDataTypes.EINT);
-        assertThat(wheelNodeBlock).hasProperty("pressure", BuiltInDataTypes.EDOUBLE);
-        assertThat(wheelNodeBlock).hasProperty("diameter", BuiltInDataTypes.EINT);
-        assertThat(wheelNodeBlock).hasNoRelations();
+            metamodel.getNodeBlocks().stream()
+                .filter(node -> node.getName().equals("Wheel"))
+                .findFirst()
+                .orElseThrow();
+        assertThat(wheelNodeBlock)
+            .hasName("Wheel")
+            .hasPropertyCount(3)
+            .hasProperty("wheelId", BuiltInDataTypes.EINT)
+            .hasProperty("pressure", BuiltInDataTypes.EDOUBLE)
+            .hasProperty("diameter", BuiltInDataTypes.EINT)
+            .hasNoRelations();
 
         // Axis
         final MetamodelNodeBlock axisNodeBlock =
-                metamodel.getNodeBlocks().stream()
-                        .filter(node -> node.getName().equals("Axis"))
-                        .findFirst()
-                        .orElseThrow();
-        assertThat(axisNodeBlock).hasName("Axis").hasPropertyCount(2);
-        assertThat(axisNodeBlock).hasProperty("axisId", BuiltInDataTypes.EINT);
-        assertThat(axisNodeBlock).hasProperty("position", BuiltInDataTypes.ESTRING);
-
-        assertThat(axisNodeBlock).hasRelationCount(1);
+            metamodel.getNodeBlocks().stream()
+                .filter(node -> node.getName().equals("Axis"))
+                .findFirst()
+                .orElseThrow();
         assertThat(axisNodeBlock)
-                .relation("wheels")
-                .hasKind(RelationKind.AGGREGATION)
-                .hasName("wheels")
-                .hasLowerBound("0")
-                .hasUpperBound("*")
-                .hasTarget(wheelNodeBlock);
+            .hasName("Axis").hasPropertyCount(2)
+            .hasProperty("axisId", BuiltInDataTypes.EINT)
+            .hasProperty("position", BuiltInDataTypes.ESTRING);
+
+        assertThat(axisNodeBlock)
+            .hasRelationCount(1)
+            .relation("wheels")
+            .hasKind(RelationKind.AGGREGATION)
+            .hasName("wheels")
+            .hasLowerBound("0")
+            .hasUpperBound("*")
+            .hasTarget(wheelNodeBlock);
 
         // Car
         final MetamodelNodeBlock carNodeBlock =
-                metamodel.getNodeBlocks().stream()
-                        .filter(node -> node.getName().equals("Car"))
-                        .findFirst()
-                        .orElseThrow();
-        assertThat(carNodeBlock).hasName("Car").hasPropertyCount(3);
-        assertThat(carNodeBlock).hasProperty("carId", BuiltInDataTypes.EINT);
-        assertThat(carNodeBlock).hasProperty("manufacturer", BuiltInDataTypes.ESTRING);
-        assertThat(carNodeBlock).hasProperty("modelName", BuiltInDataTypes.ESTRING);
+            metamodel.getNodeBlocks().stream()
+                .filter(node -> node.getName().equals("Car"))
+                .findFirst()
+                .orElseThrow();
+        assertThat(carNodeBlock).hasName("Car").hasPropertyCount(3)
+            .hasProperty("carId", BuiltInDataTypes.EINT)
+            .hasProperty("manufacturer", BuiltInDataTypes.ESTRING)
+            .hasProperty("modelName", BuiltInDataTypes.ESTRING);
 
-        assertThat(carNodeBlock).hasRelationCount(1);
         assertThat(carNodeBlock)
-                .relation("axes")
-                .hasKind(RelationKind.AGGREGATION)
-                .hasName("axes")
-                .hasLowerBound("0")
-                .hasUpperBound("*")
-                .hasTarget(axisNodeBlock);
+            .hasRelationCount(1)
+            .relation("axes")
+            .hasKind(RelationKind.AGGREGATION)
+            .hasName("axes")
+            .hasLowerBound("0")
+            .hasUpperBound("*")
+            .hasTarget(axisNodeBlock);
     }
 }

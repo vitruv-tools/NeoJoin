@@ -11,6 +11,7 @@ import tools.vitruv.neojoin.ast.ViewTypeDefinition;
 import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
 import tools.vitruv.neojoin.utils.AstUtils;
 
+import java.util.HashSet;
 import java.util.stream.Collectors;
 
 /**
@@ -22,6 +23,20 @@ public class NeoJoinValidator extends AbstractNeoJoinValidator {
 
     @Inject
     private ExpressionHelper expressionHelper;
+
+    @Check
+    public void duplicatedParameterAlias(ViewTypeDefinition viewType) {
+        var seen = new HashSet<String>();
+        for (var param : viewType.getParameters()) {
+            if (!seen.add(param.getAlias())) {
+                error(
+                    "Duplicate parameter name '%s'".formatted(param.getAlias()),
+                    param,
+                    AstPackage.Literals.PARAMETER__ALIAS
+                );
+            }
+        }
+    }
 
     @Check
     public void duplicatedTargetClassName(ViewTypeDefinition viewType) {

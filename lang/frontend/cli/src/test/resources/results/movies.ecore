@@ -7,9 +7,9 @@
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="avgRating" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDouble"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Root">
-    <eStructuralFeatures xsi:type="ecore:EReference" name="allMovies" ordered="false"
+    <eStructuralFeatures xsi:type="ecore:EReference" name="movies" ordered="false"
         upperBound="-1" eType="#//Movie" containment="true"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="allActors" ordered="false"
+    <eStructuralFeatures xsi:type="ecore:EReference" name="actors" ordered="false"
         upperBound="-1" eType="#//Actor" containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Actor">

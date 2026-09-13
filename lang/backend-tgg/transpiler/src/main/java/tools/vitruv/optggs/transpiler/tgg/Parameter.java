@@ -22,10 +22,8 @@ public final class Parameter {
     }
 
     public void propagateConstant(VariableExpression variable, ConstantExpression constant) {
-        if (value instanceof VariableExpression v) {
-            if (v == variable) {
-                value = constant;
-            }
+        if (value instanceof VariableExpression v && v == variable) {
+            value = constant;
         }
     }
 

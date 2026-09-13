@@ -26,7 +26,7 @@ class SelectionTest {
     }
 
     @Test
-    public void simpleMapping() {
+    void simpleMapping() {
         var selection = new Selection(Pattern.from(pkg("A")), Pattern.from(t("A'")));
         var mappings = selection.mappings();
         assertEquals(1, mappings.size());
@@ -37,7 +37,7 @@ class SelectionTest {
     }
 
     @Test
-    public void complexMapping() {
+    void complexMapping() {
         var selection = new Selection(
                 Pattern.from(pkg("A")).ref(pkg("B"), "b"),
                 Pattern.from(t("A'")).ref(t("B'"), "b")
@@ -57,7 +57,7 @@ class SelectionTest {
     }
 
     @Test
-    public void veryComplexMapping() {
+    void veryComplexMapping() {
         var selection = new Selection(
                 Pattern.from(pkg("A")).ref(pkg("C"), "c").ref(pkg("B"), "b"),
                 Pattern.from(t("A'")).ref(t("B'"), "b")
@@ -79,7 +79,7 @@ class SelectionTest {
     }
 
     @Test
-    public void simpleMappingToRule() {
+    void simpleMappingToRule() {
         var selection = resolve(new Selection(Pattern.from(pkg("A")), Pattern.from(t("A'"))));
         var rule = new TripleRule();
         selection.extendRule(rule);
@@ -87,7 +87,7 @@ class SelectionTest {
     }
 
     @Test
-    public void complexMappingToPattern() {
+    void complexMappingToPattern() {
         var selection = resolve(new Selection(
                 Pattern.from(pkg("A")).ref(pkg("B"), "b"),
                 Pattern.from(t("A'")).ref(t("B'"), "b")
@@ -98,7 +98,7 @@ class SelectionTest {
     }
 
     @Test
-    public void veryComplexMappingToPattern() {
+    void veryComplexMappingToPattern() {
         var selection = resolve(new Selection(
                 Pattern.from(pkg("A")).ref(pkg("C"), "c").ref(pkg("B"), "b"),
                 Pattern.from(t("A'")).ref(t("B'"), "b")
@@ -109,7 +109,7 @@ class SelectionTest {
     }
 
     @Test
-    public void multiJoinToPattern() {
+    void multiJoinToPattern() {
         var selection = resolve(new Selection(
                 Pattern.from(pkg("A")).join(pkg("B"), "id").join(pkg("C"), "id"),
                 Pattern.from(t("A'"))

@@ -25,7 +25,7 @@ class PatternTest {
     }
 
     @Test
-    public void testFrom() {
+    void testFrom() {
         var pattern = Pattern.from(pkg("A"));
         assertEquals("pkg.A", pattern.toString());
         assertEquals("pkg.A", pattern.top().fqn());
@@ -33,7 +33,7 @@ class PatternTest {
     }
 
     @Test
-    public void testSimpleJoin() {
+    void testSimpleJoin() {
         var pattern = Pattern.from(pkg("A")).join(pkg("B"), "id");
         assertEquals("pkg.A ⨝(id==id) pkg.B", pattern.toString());
         assertEquals("pkg.A", pattern.top().fqn());
@@ -41,7 +41,7 @@ class PatternTest {
     }
 
     @Test
-    public void testMultiJoin() {
+    void testMultiJoin() {
         var pattern = Pattern.from(pkg("A")).join(pkg("B"), List.of(new Tuple<>("id", "id"), new Tuple<>("name", "name")));
         assertEquals("pkg.A ⨝(id==id,name==name) pkg.B", pattern.toString());
         assertEquals("pkg.A", pattern.top().fqn());
@@ -49,7 +49,7 @@ class PatternTest {
     }
 
     @Test
-    public void testRef() {
+    void testRef() {
         var pattern = Pattern.from(pkg("A")).ref(pkg("B"), "child");
         assertEquals("pkg.A-[child]->pkg.B", pattern.toString());
         assertEquals("pkg.A", pattern.top().fqn());
@@ -57,7 +57,7 @@ class PatternTest {
     }
 
     @Test
-    public void testComplex() {
+    void testComplex() {
         var pattern = Pattern.from(pkg("A")).ref(pkg("B"), "child").join(pkg("C"), "id");
         assertEquals("pkg.A-[child]->pkg.B ⨝(id==id) pkg.C", pattern.toString());
         assertEquals("pkg.A", pattern.top().fqn());
@@ -65,7 +65,7 @@ class PatternTest {
     }
 
     @Test
-    public void toRule() {
+    void toRule() {
         var pattern = Pattern.from(pkg("A")).ref(pkg("B"), "child").join(pkg("C"), "id");
         var rule = new TripleRule();
         var slice = rule.addSourceSlice();
@@ -75,7 +75,7 @@ class PatternTest {
     }
 
     @Test
-    public void popTop() {
+    void popTop() {
         var pattern = Pattern.from(pkg("A")).ref(pkg("B"), "child").join(pkg("C"), "id");
         var tuple = pattern.popTop();
         assertEquals(new From(pkg("A")), tuple.last());
@@ -83,7 +83,7 @@ class PatternTest {
     }
 
     @Test
-    public void popBottom() {
+    void popBottom() {
         var pattern = Pattern.from(pkg("A")).ref(pkg("B"), "child").join(pkg("C"), "id");
         var tuple = pattern.popBottom();
         assertEquals(new Join(pkg("C"), "id"), tuple.last());
@@ -91,14 +91,14 @@ class PatternTest {
     }
 
     @Test
-    public void startsWith() {
+    void startsWith() {
         var pattern = Pattern.from(pkg("A")).ref(pkg("B"), "b").ref(pkg("C"), "c");
         var sub = Pattern.from(pkg("A")).ref(pkg("B"), "b");
         assertTrue(pattern.startsWith(sub));
     }
 
     @Test
-    public void startsNotWith() {
+    void startsNotWith() {
         var pattern = Pattern.from(pkg("A")).ref(pkg("B"), "b").ref(pkg("C"), "c");
         var sub = Pattern.from(pkg("A")).ref(pkg("C"), "c");
         assertFalse(pattern.startsWith(sub));
