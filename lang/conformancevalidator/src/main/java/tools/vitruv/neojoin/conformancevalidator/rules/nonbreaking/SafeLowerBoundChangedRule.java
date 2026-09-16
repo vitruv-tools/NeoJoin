@@ -5,21 +5,30 @@ import org.eclipse.emf.compare.Diff;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.ETypedElement;
 
+import tools.vitruv.neojoin.conformancevalidator.Category;
 import tools.vitruv.neojoin.conformancevalidator.Violation;
 import tools.vitruv.neojoin.conformancevalidator.rules.ConformanceRule;
+import tools.vitruv.neojoin.conformancevalidator.rules.RuleUtils;
 
 import java.util.Optional;
 
 /**
- * R6: CHANGE on lowerBound.
- * Conforming if the reference requires the same or fewer instances than the view type provides.
+ * Rule 6: CHANGE on lowerBound.
+ * The view type requires at least as many values as the reference does.
+ * Non-breaking, because every instance of the view type satisfies the lowerbound of the reference.
  */
 public class SafeLowerBoundChangedRule extends ConformanceRule {
 
     public SafeLowerBoundChangedRule() {
-        super("R6", Violation.Category.NON_BREAKING);
+        super("Rule 6", Category.NON_BREAKING);
     }
 
+    /**
+     * Evaluates the given difference against this rule.
+     *
+     * @param diff the difference reported by Phase I
+     * @return the violation if this rule applies to the difference, an empty optional otherwise
+     */
     @Override
     public Optional<Violation> check(Diff diff) {
         if (diff instanceof AttributeChange attributeChange
@@ -29,8 +38,9 @@ public class SafeLowerBoundChangedRule extends ConformanceRule {
             if (viewtype instanceof ETypedElement leftFeature && reference instanceof ETypedElement rightFeature) {
                 if (rightFeature.getLowerBound() <= leftFeature.getLowerBound()) {
                     return Optional.of(violation(
-                        "The reference requires the same or fewer values of '" + leftFeature.getName() +
-                        "' than the view type does.",
+                        "'" + RuleUtils.qualifiedName(leftFeature) + "' has a lower bound of "
+                            + leftFeature.getLowerBound() + " in the view type, where the reference "
+                            + "has " + rightFeature.getLowerBound() + ".",
                         diff
                     ));
                 }

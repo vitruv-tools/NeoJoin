@@ -5,34 +5,47 @@ import org.eclipse.emf.compare.DifferenceKind;
 import org.eclipse.emf.compare.ReferenceChange;
 import org.eclipse.emf.ecore.EClass;
 
+import tools.vitruv.neojoin.conformancevalidator.Category;
 import tools.vitruv.neojoin.conformancevalidator.Violation;
 import tools.vitruv.neojoin.conformancevalidator.rules.ConformanceRule;
+import tools.vitruv.neojoin.conformancevalidator.rules.RuleUtils;
 
 import java.util.Optional;
 
 /**
- * R15: DELETE of eSuperType.
- * The view type class does not extend a supertype that the reference class does,
- * but that supertype has no required features.
+ * Rule 15: DELETE of eSuperType.
+ * The view type class does not extend a supertype that the reference class does, and that
+ * supertype declares no mandatory feature.
+ * Non-breaking, because instances of the view type class carry everything the reference
+ * requires of them.
  */
 public class SafeSuperTypeDeletedRule extends ConformanceRule {
 
     public SafeSuperTypeDeletedRule() {
-        super("R15", Violation.Category.NON_BREAKING);
+        super("Rule 15", Category.NON_BREAKING);
     }
 
+    /**
+     * Evaluates the given difference against this rule.
+     *
+     * @param diff the difference reported by Phase I
+     * @return the violation if this rule applies to the difference, an empty optional otherwise
+     */
     @Override
     public Optional<Violation> check(Diff diff) {
         if (diff.getKind() == DifferenceKind.DELETE
-                && diff instanceof ReferenceChange rc
-                && rc.getReference().getName().equals("eSuperTypes")
-                && rc.getValue() instanceof EClass supertype) {
+                && RuleUtils.existsOnBothSides(diff)
+                && diff instanceof ReferenceChange referenceChange
+                && referenceChange.getReference().getName().equals("eSuperTypes")
+                && referenceChange.getValue() instanceof EClass supertype
+                && referenceChange.getMatch().getLeft() instanceof EClass ownerClass) {
             boolean hasRequiredFeatures = supertype.getEAllStructuralFeatures().stream()
                     .anyMatch(sf -> sf.getLowerBound() >= 1);
             if (!hasRequiredFeatures) {
                 return Optional.of(violation(
-                    "Supertype '" + supertype.getName() +
-                    "' is missing from the view type, but it has no required features in the reference.",
+                    "Class '" + ownerClass.getName() + "' does not extend '" + supertype.getName()
+                        + "' in the view type, and '" + supertype.getName()
+                        + "' declares no mandatory feature.",
                     diff
                 ));
             }

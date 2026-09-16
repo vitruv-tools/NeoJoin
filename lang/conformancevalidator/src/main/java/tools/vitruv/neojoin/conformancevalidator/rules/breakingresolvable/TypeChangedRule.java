@@ -3,27 +3,35 @@ package tools.vitruv.neojoin.conformancevalidator.rules.breakingresolvable;
 import org.eclipse.emf.compare.Diff;
 import org.eclipse.emf.compare.DifferenceKind;
 import org.eclipse.emf.compare.ReferenceChange;
-import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.ETypedElement;
 
+import tools.vitruv.neojoin.conformancevalidator.Category;
 import tools.vitruv.neojoin.conformancevalidator.Violation;
 import tools.vitruv.neojoin.conformancevalidator.rules.ConformanceRule;
+import tools.vitruv.neojoin.conformancevalidator.rules.RuleUtils;
 
 import java.util.Optional;
 
 /**
- * R9: CHANGE on eType.
- * The type of a feature differs between view type and reference.
- * Violation because the view type and reference type are incompatible.
+ * Rule 9: CHANGE on eType.
+ * The type of a feature differs between view type and reference, and the type of the view
+ * type is not a subtype of the type of the reference.
+ * Violation, because the view type can hold a value the reference rejects.
  */
 public class TypeChangedRule extends ConformanceRule {
 
     public TypeChangedRule() {
-        super("R9", Violation.Category.BREAKING_RESOLVABLE);
+        super("Rule 9", Category.BREAKING_RESOLVABLE);
     }
 
+    /**
+     * Evaluates the given difference against this rule.
+     *
+     * @param diff the difference reported by Phase I
+     * @return the violation if this rule applies to the difference, an empty optional otherwise
+     */
     @Override
     public Optional<Violation> check(Diff diff) {
         if (diff instanceof ReferenceChange referenceChange
@@ -35,27 +43,19 @@ public class TypeChangedRule extends ConformanceRule {
                 EClassifier viewTypeType  = leftFeature.getEType();
                 EClassifier referenceType = rightFeature.getEType();
                 if (viewTypeType != null && referenceType != null
-                        && !isCompatibleType(viewTypeType, referenceType)) {
+                        && !RuleUtils.isCompatibleType(viewTypeType, referenceType)) {
                     return Optional.of(violation(
-                        "Type mismatch on '" + leftFeature.getName() +
-                        "': view type has '" + viewTypeType.getName() +
-                        "' but reference expects '" + referenceType.getName() + "'.",
+                        "'" + RuleUtils.qualifiedName(leftFeature) + "' is typed '" + viewTypeType.getName()
+                            + "' in the view type but '" + referenceType.getName()
+                            + "' in the reference, and '" + viewTypeType.getName()
+                            + "' is not a subtype of '" + referenceType.getName()
+                            + "'. Declare the feature with the expected type, as in '"
+                            + leftFeature.getName() + " : " + referenceType.getName() + " := ...'.",
                         diff
                     ));
                 }
             }
         }
         return Optional.empty();
-    }
-
-    /**
-     * Checks whether viewTypeClassifier is type-compatible with referenceClassifier.
-     */
-    public static boolean isCompatibleType(EClassifier viewTypeClassifier, EClassifier referenceClassifier) {
-        if (viewTypeClassifier.getName().equals(referenceClassifier.getName())) return true;
-        if (viewTypeClassifier instanceof EClass viewClass && referenceClassifier instanceof EClass refClass) {
-            return refClass.isSuperTypeOf(viewClass);
-        }
-        return false;
     }
 }

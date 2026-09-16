@@ -3,26 +3,29 @@ package tools.vitruv.neojoin.conformancevalidator;
 import org.eclipse.emf.compare.Diff;
 
 /**
- * This Violation record represents a single conformance rule violation from in Phase II.
+ * A single violation of the conformance relation, reported by one rule for one difference.
  *
- * @param ruleId   the identifier of the violated rule
- * @param message  description of the violation
- * @param category whether this violation can be resolved by adjusting the NeoJoin query,
- *                 or requires manual intervention
- * @param diff     the EMF Compare diff that triggered this violation
+ * @param ruleId the identifier of the rule that reported the violation
+ * @param message the description of the violation
+ * @param category the category of the violation
+ * @param diff the Diff that triggered the violation
  */
 public record Violation(String ruleId, String message, Category category, Diff diff) {
 
-    public enum Category {
-        BREAKING_RESOLVABLE,
-        BREAKING_NOT_RESOLVABLE,
-        NON_BREAKING
-    }
-
+    /**
+     * Returns the category of the rule that reported the violation.
+     *
+     * @return the category of the violation
+     */
     public Category getCategory() {
         return category;
     }
 
+    /**
+     * Puts together a violation message.
+     *
+     * @return the rule id and the message
+     */
     @Override
     public String toString() {
         return switch (category) {
