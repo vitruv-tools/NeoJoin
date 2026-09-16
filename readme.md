@@ -35,6 +35,7 @@ create ReviewedRestaurant {
 ### Features
 
 * *Generation of the view type* (view meta-model) based on a query
+* *Conformance check* of the generated view type against a reference metamodel, reported directly in the editor
 * *Transformation* of models to derive an instance of a view based on a query
 * *Bidirectional and incremental transformations* using the TGG backend
 * Queries can *select*, *join*, *filter* and *group* classes from the source models
@@ -69,6 +70,7 @@ Provides basic IDE support (syntax highlighting, code-completion, etc.) and a si
 
 #### Settings
 * **Meta Model Search Path** - Semicolon separted list of file URLs to search for source meta models.
+* **Strictness** - Requirement used for the `conforms to` clause: `SUBTYPE` or `EXACT_MATCH`.
 * **Debug** - Enable debug logging.
 
 ### Command Line Interface
@@ -118,6 +120,28 @@ Model Path
 ```
 
 *Note: `QUERY` and `OUTPUT`s need to be specified with regular paths, e.g., `/x/y/z` or `./x/y`.*
+
+### Conformance Validation
+
+A view type often has to fit a meta-model that exists outside the query, for example because a tool that consumes the view was written against it. A query can name such a *reference meta-model* with the optional `conforms to` clause:
+
+```
+export food-view to "https://food.example.com/"
+conforms to "https://food-reference.example.com/"
+
+from Pizza create Food { type := "pizza" }
+```
+
+Whenever the clause is present, NeoJoin generates the view type, compares it against the reference with [EMF Compare](https://eclipse.dev/emfcompare/), and evaluates every structural difference against a catalogue of rules. Each rule decides whether the difference it matches leaves the conformance relation intact, breaks it in a way the query can repair, or breaks it in a way that requires a change to the reference meta-model. Violations are reported on the `conforms to` clause, so they appear in the editor while the query is written. Without the clause, nothing changes and no check runs.
+
+Which differences count as a violation depends on the strictness:
+
+| Strictness    | Requirement                                                                            |
+|---------------|----------------------------------------------------------------------------------------|
+| `SUBTYPE`     | The view type has to be usable wherever the reference is expected. Additional structure in the view type is accepted. *(default)* |
+| `EXACT_MATCH` | The view type has to reproduce the reference exactly, so every difference is reported. |
+
+The strictness is selected with `--strictness` on the CLI and with the **Strictness** setting in the VSCode plugin. The rules and their categories are documented in the [conformance validator readme](/lang/conformancevalidator/readme.md).
 
 ### Transformation of Operators to Triple Graph Grammars
 
@@ -181,6 +205,7 @@ steps describe how to execute the forward and sync transformations with an initi
 | backend-tgg/**operators**  | Primary operators for creating TGGs                                                                     |
 | backend-tgg/**transpiler** | The core logic and operators for creating TGGs from operators                                           |
 | **expression-parser**      | Parser for the reference expressions of features *(used by the TGG backend)*                            |
+| **conformancevalidator**   | Rule-based check whether a generated view type conforms to a reference meta-model                       |
 | frontend/**cli**           | CLI interface to execute meta-model generation and instance model transformation *(currently EMF-only)* |
 | frontend/**ide**           | IDE support via language server protocol (LSP)                                                          |
 | frontend/**language**      | Main language implementation and meta-model generator                                                   |
