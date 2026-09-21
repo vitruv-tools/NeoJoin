@@ -149,11 +149,11 @@
             <span id="message">Loading ...</span>
             <span>
                 Zoom:
-                <button onclick="zoom_handler.zoom_out()" class="zoom-ui zoom-btn">-</button>
-                <button onclick="zoom_handler.zoom_in()" class="zoom-ui zoom-btn">+</button>
+                <button onclick="zoomHandler.zoomOut()" class="zoom-ui zoom-btn">-</button>
+                <button onclick="zoomHandler.zoomIn()" class="zoom-ui zoom-btn">+</button>
                 <select id="zoom_dropdown" class="zoom-ui">
                 </select>
-                <button onclick="zoom_handler.auto_zoom()" class="zoom-ui" type="button">auto</button>
+                <button onclick="zoomHandler.autoZoom()" class="zoom-ui" type="button">auto</button>
             </span>
         </div>
         <div id="visualization_outer">
@@ -203,7 +203,7 @@
 
                 if (data.svg) {
                     visualization.innerHTML = data.svg;
-                    zoom_handler.auto_zoom();
+                    zoomHandler.autoZoom();
                 }
             }
             window.addEventListener("message", (event) => update(event.data));
@@ -224,270 +224,331 @@
                 (input) => input.checked = state.options.orthogonal
             );
 
-            class PanelZoomHandler {
-                #zoom_dropdown = document.getElementById('zoom_dropdown')
-                #visualization = document.getElementById("visualization");
-
-                #zoom_config
-
-                // The index into zoom_levels describing the currently selected value.
-                #selected_zoom_idx
-                #zoom_levels
-
-                constructor() {
-                    this.#zoom_config = new ZoomConfig({
-                        // default_zoom_level_start_idx/default_zoom_level_end_idx describe which zoom levels are displayed inside the zoom picker by default.
-                        default_zoom_level_start_idx: 21,
-                        default_zoom_level_end_idx: 21 + 15,
-
-                        // under the current configuration zoom_idx == 21 + 10 is equivalent to zoom factor 1.0
-                        default_zoom_idx: 21 + 10,
-
-                        // pairs of inclusive lower boundary to zoom step
-                        steps: [
-                            [0.0, 0.02],
-                            [0.4, 0.05],
-                            [1.2, 0.1],
-                            [1.75, 0.25],
-                            [3.0, 0.5],
-                            [4.0, 1.0],
-                            [5.0, 1.5],
-                        ],
-                    });
-
-                    this.#zoom_levels = new ZoomLevels(this.#zoom_config)
-
-                    this.#selected_zoom_idx = this.#zoom_config.default_zoom_idx;
-
-                    this.#initiate_zoom_dropdown()
-                }
-
-                #initiate_zoom_dropdown() {
-                    for (let i = this.#zoom_config.default_zoom_level_start_idx; i <= this.#zoom_config.default_zoom_level_end_idx; i++) {
-                        this.#zoom_dropdown.appendChild(create_option(this.#zoom_levels.get(i)));
-                    }
-                    this.#zoom_dropdown.selectedIndex = this.#selected_zoom_idx - this.#zoom_config.default_zoom_level_start_idx;
-                }
-
-                zoom(step) {
-                    this.#set_zoom_by_idx(this.#selected_zoom_idx + step)
-                }
-
-                zoom_in() {
-                    this.zoom(1)
-                }
-
-                zoom_out() {
-                    this.zoom(-1)
-                }
-
-                auto_zoom() {
-                    const svg = this.#visualization.querySelector("svg");
-                    const svgSize = svg.getBBox();
-                    const outer = document.getElementById("visualization_outer");
-                    const view_rect = outer.getBoundingClientRect();
-                    const zoom_idx = this.#zoom_levels.find_zoom_idx(
-                        Math.floor(
-                            Math.min(
-                                view_rect.width * 10 / svgSize.width,
-                                view_rect.height * 10 / svgSize.height,
-                            )
-                        ) / 10);
-
-                    this.#set_zoom_by_idx(zoom_idx);
-                }
-
-                set_zoom(factor) {
-                    this.#set_zoom_by_idx(this.#zoom_levels.find_zoom_idx(factor))
-                }
-
-                #set_zoom_by_idx(zoom_idx) {
-                    this.#selected_zoom_idx = Math.max(0, zoom_idx);
-                    this.#zoom_update_selection();
-                    this.#scale_diagram(this.#zoom_levels.get(this.#selected_zoom_idx));
-                }
-
-                #scale_diagram(factor) {
-                    const svg = this.#visualization.querySelector("svg");
-                    if (!svg) {
-                        requestAnimationFrame(() => this.#scale_diagram(factor));
-                        return;
-                    }
-
-                    // use width/height instead of `transform: scale(...)` to avoid issues with scrollbars
-                    const svgSize = svg.getBBox();
-                    svg.style.width = `${svgSize.width * factor}px`;
-                    svg.style.height = `${svgSize.height * factor}px`;
-                }
-
-                #zoom_update_selection() {
-                    if (Math.max(this.#zoom_dropdown.options.length, this.#selected_zoom_idx) > this.#zoom_config.default_zoom_level_end_idx - this.#zoom_config.default_zoom_level_start_idx) {
-                        const get_factor_at_option_idx = (option_idx) => {
-                            const value = this.#zoom_dropdown.options[option_idx].value;
-                            return parseFloat(value);
-                        }
-
-                        const put_at_front = (zoom_idx) => {
-                            let option = create_option(this.#zoom_levels.get(zoom_idx));
-                            if (get_factor_at_option_idx(0) != this.#zoom_levels.get(this.#zoom_config.default_zoom_level_start_idx)) {
-                                this.#zoom_dropdown.options[0].replaceWith(option);
-                            } else {
-                                // insert in front
-                                this.#zoom_dropdown.add(option, 0);
-                            }
-                        }
-
-                        const put_at_back = (zoom_idx) => {
-                            let option = create_option(this.#zoom_levels.get(zoom_idx));
-                            if (get_factor_at_option_idx(this.#zoom_dropdown.options.length - 1) != this.#zoom_levels.get(this.#zoom_config.default_zoom_level_end_idx)) {
-                                this.#zoom_dropdown.options[this.#zoom_dropdown.options.length - 1].replaceWith(option);
-                            } else {
-                                this.#zoom_dropdown.appendChild(option);
-                            }
-                        }
-
-                        if (this.#selected_zoom_idx < this.#zoom_config.default_zoom_level_start_idx) {
-                            put_at_front(this.#selected_zoom_idx);
-                        }
-
-                        if (this.#selected_zoom_idx > this.#zoom_config.default_zoom_level_end_idx) {
-                            put_at_back(this.#selected_zoom_idx);
-                        }
-
-                        if (get_factor_at_option_idx(0) != this.#zoom_levels.get(Math.min(this.#selected_zoom_idx, this.#zoom_config.default_zoom_level_start_idx))) {
-                            this.#zoom_dropdown.options[0].remove();
-                        }
-
-                        if (get_factor_at_option_idx(this.#zoom_dropdown.options.length - 1) != this.#zoom_levels.get(Math.max(this.#selected_zoom_idx, this.#zoom_config.default_zoom_level_end_idx))) {
-                            this.#zoom_dropdown.options[this.#zoom_dropdown.options.length - 1].remove();
-                        }
-                    }
-
-                    this.#zoom_dropdown.selectedIndex = this.#selected_zoom_idx < this.#zoom_config.default_zoom_level_start_idx ? 0
-                        : this.#selected_zoom_idx > this.#zoom_config.default_zoom_level_end_idx ? this.#zoom_dropdown.options.length - 1
-                        : this.#selected_zoom_idx - this.#zoom_config.default_zoom_level_start_idx;
-                }
+        class Visualization {
+            get #visualization() {
+                return document.getElementById("visualization")
             }
 
-            class ZoomConfig {
-                constructor({ default_zoom_level_start_idx, default_zoom_level_end_idx, default_zoom_idx, steps }) {
-                    this.default_zoom_level_start_idx = default_zoom_level_start_idx
-                    this.default_zoom_level_end_idx = default_zoom_level_end_idx
-                    this.default_zoom_idx = default_zoom_idx
-                    this.steps = steps
-                }
+            get svg() {
+                return this.#visualization.querySelector("svg");
             }
 
-            class ZoomLevels {
-                #zoom_config
-                #zoom_levels = []
-                #zoom_levels_gen
+            get svgBox() {
+                return this.svg.getBBox()
+            }
 
-                constructor(zoom_config) {
-                    this.#zoom_config = zoom_config
-                    this.#zoom_levels_gen = (function*() {
-                        let step_idx = 0
+            get outer() {
+                return document.getElementById("visualization_outer");
+            }
 
-                        let factor = this.#zoom_config.steps[0][1]
-                        do {
-                            yield factor
-                            let step = this.#zoom_config.steps[step_idx][1]
-                            factor = Math.round((factor + step) * 100) / 100
+            get viewRect() {
+                return  this.outer.getBoundingClientRect()
+            }
 
-                            if (step_idx + 1 < this.#zoom_config.steps.length
-                                && factor >= this.#zoom_config.steps[step_idx + 1][0]) {
-                                step_idx++
-                            }
-                        } while (true)
-                    }).call(this)
-
-                    this.#initiate_zoom_levels()
+            scale_svg(factor) {
+                const svg = this.svg
+                if (!svg) {
+                    requestAnimationFrame(() => this.scale_svg(factor));
+                    return;
                 }
 
-                closest_smaller_factor(factor) {
-                    return this.get(this.find_zoom_idx(factor))
-                }
+                // use width/height instead of `transform: scale(...)` to avoid issues with scrollbars
+                const svgSize = svg.getBBox();
+                svg.style.width = `${svgSize.width * factor}px`;
+                svg.style.height = `${svgSize.height * factor}px`;
+            }
 
-                // Return the index of the closes factor that is smaller or equal to the provided factor parameter.
-                find_zoom_idx(factor) {
-                    let i = 0;
-                    while (factor >= this.#zoom_levels[i + 1]) {
-                        i++;
-                        if (i + 1 == this.#zoom_levels.length)
-                            this.#add_zoom_level();
+            set scrollX(x) {
+                this.#visualization.scrollLeft = x
+            }
+
+            get scrollX() {
+                return this.#visualization.scrollLeft
+            }
+
+            set scrollY(y) {
+                this.#visualization.scrollTop = y
+            }
+
+            get scrollY() {
+                return this.#visualization.scrollTop
+            }
+
+            get scrollWidth() {
+                return this.#visualization.scrollWidth
+            }
+
+            get scrollHeight() {
+                return this.#visualization.scrollHeight
+            }
+        }
+
+        class PanelZoomHandler {
+            #zoomDropdown = document.getElementById('zoom_dropdown')
+            #visualization = new Visualization()
+
+            #zoomConfig
+
+            // The index into zoomLevels describing the currently selected value.
+            #selectedZoomIdx
+            #zoomLevels
+
+            constructor() {
+                this.#zoomConfig = new ZoomConfig({
+                    // defaultZoomLevelStartIdx/defaultZoomLevelEndIdx describe which zoom levels are displayed inside the zoom picker by default.
+                    defaultZoomLevelStartIdx: 21,
+                    defaultZoomLevelEndIdx: 21 + 15,
+
+                    // under the current configuration zoomIdx == 21 + 10 is equivalent to zoom factor 1.0
+                    defaultZoomIdx: 21 + 10,
+
+                    // pairs of inclusive lower boundary to zoom step
+                    steps: [
+                        [0.0, 0.02],
+                        [0.4, 0.05],
+                        [1.2, 0.1],
+                        [1.75, 0.25],
+                        [3.0, 0.5],
+                        [4.0, 1.0],
+                        [5.0, 1.5],
+                    ],
+                });
+
+                this.#zoomLevels = new ZoomLevels(this.#zoomConfig)
+
+                this.#selectedZoomIdx = this.#zoomConfig.defaultZoomIdx;
+
+                this.#initiateZoomDropdown()
+            }
+
+            #initiateZoomDropdown() {
+                for (let i = this.#zoomConfig.defaultZoomLevelStartIdx; i <= this.#zoomConfig.defaultZoomLevelEndIdx; i++) {
+                    this.#zoomDropdown.appendChild(create_option(this.#zoomLevels.get(i)));
+                }
+                this.#zoomDropdown.selectedIndex = this.#selectedZoomIdx - this.#zoomConfig.defaultZoomLevelStartIdx;
+            }
+
+            zoom(step) {
+                this.#setZoomByIdx(this.#selectedZoomIdx + step)
+            }
+
+            zoomIn() {
+                this.zoom(1)
+            }
+
+            zoomOut() {
+                this.zoom(-1)
+            }
+
+            autoZoom() {
+                const svgSize =this.#visualization.svgBox
+                const viewRect =this.#visualization.viewRect
+                const zoomIdx = this.#zoomLevels.findZoomIdx(
+                    Math.floor(
+                        Math.min(
+                            viewRect.width * 10 / svgSize.width,
+                            viewRect.height * 10 / svgSize.height,
+                        )
+                    ) / 10);
+
+                this.#setZoomByIdx(zoomIdx);
+            }
+
+            set_zoom(factor) {
+                this.#setZoomByIdx(this.#zoomLevels.findZoomIdx(factor))
+            }
+
+            #setZoomByIdx(zoomIdx) {
+                zoomIdx = Math.max(0, zoomIdx)
+
+                const oldZoom = this.#zoomLevels.get(this.#selectedZoomIdx)
+                const zoom = this.#zoomLevels.get(zoomIdx)
+
+                const oldScrollX = this.#visualization.scrollX
+                const oldScrollY = this.#visualization.scrollY
+
+                const oldCenterX = (this.#visualization.scrollWidth - this.#visualization.viewRect.width)/2
+                const oldCenterY = (this.#visualization.scrollHeight - this.#visualization.viewRect.height)/2
+
+                this.#selectedZoomIdx = zoomIdx
+                this.#zoomUpdateSelection()
+                this.#visualization.scale_svg(this.#zoomLevels.get(this.#selectedZoomIdx))
+
+                const centerX = (this.#visualization.scrollWidth - this.#visualization.viewRect.width)/2
+                const centerY = (this.#visualization.scrollHeight - this.#visualization.viewRect.height)/2
+
+                this.#visualization.scrollX = centerX + (oldCenterX - oldScrollX) * zoom/oldZoom
+                this.#visualization.scrollY = centerY + (oldCenterY - oldScrollY) * zoom/oldZoom
+            }
+
+            #zoomUpdateSelection() {
+                if (Math.max(this.#zoomDropdown.options.length, this.#selectedZoomIdx) > this.#zoomConfig.defaultZoomLevelEndIdx - this.#zoomConfig.defaultZoomLevelStartIdx) {
+                    const get_factor_at_option_idx = (option_idx) => {
+                        const value = this.#zoomDropdown.options[option_idx].value;
+                        return parseFloat(value);
                     }
 
-                    return i;
-                }
-
-                get(idx) {
-                    while (this.#zoom_levels.length <= idx) {
-                        this.#add_zoom_level();
+                    const put_at_front = (zoomIdx) => {
+                        let option = create_option(this.#zoomLevels.get(zoomIdx));
+                        if (get_factor_at_option_idx(0) != this.#zoomLevels.get(this.#zoomConfig.defaultZoomLevelStartIdx)) {
+                            this.#zoomDropdown.options[0].replaceWith(option);
+                        } else {
+                            // insert in front
+                            this.#zoomDropdown.add(option, 0);
+                        }
                     }
 
-                    return this.#zoom_levels[idx]
+                    const put_at_back = (zoomIdx) => {
+                        let option = create_option(this.#zoomLevels.get(zoomIdx));
+                        if (get_factor_at_option_idx(this.#zoomDropdown.options.length - 1) != this.#zoomLevels.get(this.#zoomConfig.defaultZoomLevelEndIdx)) {
+                            this.#zoomDropdown.options[this.#zoomDropdown.options.length - 1].replaceWith(option);
+                        } else {
+                            this.#zoomDropdown.appendChild(option);
+                        }
+                    }
+
+                    if (this.#selectedZoomIdx < this.#zoomConfig.defaultZoomLevelStartIdx) {
+                        put_at_front(this.#selectedZoomIdx);
+                    }
+
+                    if (this.#selectedZoomIdx > this.#zoomConfig.defaultZoomLevelEndIdx) {
+                        put_at_back(this.#selectedZoomIdx);
+                    }
+
+                    if (get_factor_at_option_idx(0) != this.#zoomLevels.get(Math.min(this.#selectedZoomIdx, this.#zoomConfig.defaultZoomLevelStartIdx))) {
+                        this.#zoomDropdown.options[0].remove();
+                    }
+
+                    if (get_factor_at_option_idx(this.#zoomDropdown.options.length - 1) != this.#zoomLevels.get(Math.max(this.#selectedZoomIdx, this.#zoomConfig.defaultZoomLevelEndIdx))) {
+                        this.#zoomDropdown.options[this.#zoomDropdown.options.length - 1].remove();
+                    }
                 }
 
-                #initiate_zoom_levels() {
+                this.#zoomDropdown.selectedIndex = this.#selectedZoomIdx < this.#zoomConfig.defaultZoomLevelStartIdx ? 0
+                    : this.#selectedZoomIdx > this.#zoomConfig.defaultZoomLevelEndIdx ? this.#zoomDropdown.options.length - 1
+                        : this.#selectedZoomIdx - this.#zoomConfig.defaultZoomLevelStartIdx;
+            }
+        }
+
+        class ZoomConfig {
+            constructor({ defaultZoomLevelStartIdx, defaultZoomLevelEndIdx, defaultZoomIdx, steps }) {
+                this.defaultZoomLevelStartIdx = defaultZoomLevelStartIdx
+                this.defaultZoomLevelEndIdx = defaultZoomLevelEndIdx
+                this.defaultZoomIdx = defaultZoomIdx
+                this.steps = steps
+            }
+        }
+
+        class ZoomLevels {
+            #config
+            #levels = []
+            #levelsGen
+
+            constructor(config) {
+                this.#config = config
+                this.#levelsGen = (function*() {
+                    let step_idx = 0
+
+                    let factor = this.#config.steps[0][1]
                     do {
-                        this.#add_zoom_level();
-                    } while (this.#zoom_levels.length <= Math.max(this.#zoom_config.default_zoom_level_end_idx, this.#zoom_config.default_zoom_idx));
-                }
+                        yield factor
+                        let step = this.#config.steps[step_idx][1]
+                        factor = Math.round((factor + step) * 100) / 100
 
-                #add_zoom_level() {
-                    const { value: factor } = this.#zoom_levels_gen.next();
-                    this.#zoom_levels.push(factor);
-                }
+                        if (step_idx + 1 < this.#config.steps.length
+                            && factor >= this.#config.steps[step_idx + 1][0]) {
+                            step_idx++
+                        }
+                    } while (true)
+                }).call(this)
+
+                this.#initiateZoomLevels()
             }
 
-
-            function create_option(factor) {
-                function format_factor(x) {
-                    return Math.floor(x * 100).toString() + "%";
-                }
-
-                return new Option(format_factor(factor), factor);
+            closest_smaller_factor(factor) {
+                return this.get(this.findZoomIdx(factor))
             }
 
-            const zoom_handler = new PanelZoomHandler()
+            // Return the index of the closes factor that is smaller or equal to the provided factor parameter.
+            findZoomIdx(factor) {
+                let i = 0;
+                while (factor >= this.#levels[i + 1]) {
+                    i++;
+                    if (i + 1 == this.#levels.length)
+                        this.#addZoomLevel();
+                }
 
-            const zoom_dropdown = document.getElementById("zoom_dropdown");
+                return i;
+            }
 
-            zoom_dropdown.addEventListener("change", (event) => {
-                const factor = parseFloat(event.target.value);
-                zoom_handler.set_zoom(factor);
-            });
+            get(idx) {
+                while (this.#levels.length <= idx) {
+                    this.#addZoomLevel();
+                }
 
-            zoom_dropdown.addEventListener('wheel', (event) => {
+                return this.#levels[idx]
+            }
+
+            #initiateZoomLevels() {
+                do {
+                    this.#addZoomLevel();
+                } while (this.#levels.length <= Math.max(this.#config.defaultZoomLevelEndIdx, this.#config.defaultZoomIdx));
+            }
+
+            #addZoomLevel() {
+                const { value: factor } = this.#levelsGen.next();
+                this.#levels.push(factor);
+            }
+        }
+
+
+        function create_option(factor) {
+            function format_factor(x) {
+                return Math.floor(x * 100).toString() + "%";
+            }
+
+            return new Option(format_factor(factor), factor);
+        }
+
+        const zoomHandler = new PanelZoomHandler()
+
+        const zoomDropdown = document.getElementById("zoom_dropdown");
+
+        zoomDropdown.addEventListener("change", (event) => {
+            const factor = parseFloat(event.target.value);
+            zoomHandler.set_zoom(factor);
+        });
+
+        zoomDropdown.addEventListener('wheel', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+
+            if (event.deltaY < 0) zoomHandler.zoomIn();
+            else zoomHandler.zoomOut();
+        });
+
+        window.addEventListener('wheel', (event) => {
+            if (event.ctrlKey) {
                 event.preventDefault();
-                event.stopPropagation();
+                if (event.deltaY < 0) zoomHandler.zoomIn();
+                else zoomHandler.zoomOut();
+            } else if (event.shiftKey) {
+                event.preventDefault();
+                window.scrollBy(event.deltaY, 0);
+            }
+        });
 
-                if (event.deltaY < 0) zoom_handler.zoom_in();
-                else zoom_handler.zoom_out();
-            });
-
-            window.addEventListener('wheel', (event) => {
-                if (event.ctrlKey) {
-                    event.preventDefault();
-                    if (event.deltaY < 0) zoom_handler.zoom_in();
-                    else zoom_handler.zoom_out();
-                } else if (event.shiftKey) {
-                    event.preventDefault();
-                    window.scrollBy(event.deltaY, 0);
+        window.addEventListener('keydown', (e) => {
+            if (!e.ctrlKey && !e.metaKey) {
+                if (e.key === '+') {
+                    zoomHandler.zoom(2);
+                } else if (e.key === '-') {
+                    zoomHandler.zoom(-2);
+                } else if (e.key === '0') {
+                    zoomHandler.autoZoom();
                 }
-            });
-
-            window.addEventListener('keydown', (e) => {
-                if (!e.ctrlKey && !e.metaKey) {
-                    if (e.key === '+') {
-                        zoom_handler.zoom(2);
-                    } else if (e.key === '-') {
-                        zoom_handler.zoom(-2);
-                    } else if (e.key === '0') {
-                        zoom_handler.auto_zoom();
-                    }
-                }
-            });
+            }
+        });
         </script>
     </body>
 </html>
