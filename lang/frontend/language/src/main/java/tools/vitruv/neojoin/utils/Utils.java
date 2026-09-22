@@ -22,18 +22,15 @@ public class Utils {
     /**
      * {@link Stream#collect(Collector) Collects} a stream of {@link Map.Entry} into a map.
      *
-     * @param throwOnDuplicate how to handle duplicates
      * @param <K>              key type of the map +entries
      * @param <V>              value type of the map entries
      * @return resulting map
      */
-    public static <K, V> Collector<Map.Entry<K, V>, ?, Map<K, V>> mapCollector(boolean throwOnDuplicate) {
+    public static <K, V> Collector<Map.Entry<K, V>, ?, Map<K, V>> mapCollector() {
         return Collectors.toMap(
             Map.Entry::getKey,
             Map.Entry::getValue,
-            throwOnDuplicate ? (a, b) -> {
-                throw new IllegalStateException("duplicate key");
-            } : (a, b) -> a
+            (a, b) -> a
         );
     }
 
