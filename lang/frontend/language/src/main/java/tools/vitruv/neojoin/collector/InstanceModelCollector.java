@@ -1,13 +1,17 @@
 package tools.vitruv.neojoin.collector;
 
+import java.util.Map;
+import java.util.Optional;
+
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
-import tools.vitruv.neojoin.utils.EMFUtils;
 
-import java.util.HashMap;
-import java.util.Map;
+import tools.vitruv.neojoin.utils.EMFUtils;
+import tools.vitruv.neojoin.utils.Pair;
+import tools.vitruv.neojoin.utils.Result;
+import static tools.vitruv.neojoin.utils.Utils.toMapFailOnDuplicates;
 
 /**
  * Searches for instance-model files with the {@code .xmi} extension and collects them into a map indexed by
@@ -31,7 +35,7 @@ public class InstanceModelCollector extends AbstractModelCollector {
         this.registry = registry;
     }
 
-    public Map<EPackage, Resource> collect() {
+    public Map<EPackage, Resource> collect() throws PackageDuplicationException {
         if (!Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().containsKey(FileExtension)) {
             Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().put(
                 FileExtension, new XMIResourceFactoryImpl());
@@ -42,28 +46,27 @@ public class InstanceModelCollector extends AbstractModelCollector {
         var resourceSet = new ResourceSetImpl();
         resourceSet.setPackageRegistry(registry);
 
-        var map = new HashMap<EPackage, Resource>();
-        collectResourcesAsStream(resourceSet).forEach(res -> {
-            if (res.getContents().isEmpty()) {
-                return;
-            }
+        var mapOrFailure = collectResourcesAsStream(resourceSet)
+            .flatMap(res ->
+                instancedPackageOrNone(res).stream()
+                    .filter(knownPackages::contains)
+                    .map(pkg -> Pair.of(pkg, res))
+            )
+            .collect(toMapFailOnDuplicates((instancedPackage, package1, package2) ->
+                        new PackageDuplicationException(instancedPackage.getName(), package1.getURI(), package2.getURI())));
 
-            var instancedPackage = res.getContents().get(0).eClass().getEPackage();
-            if (!knownPackages.contains(instancedPackage)) {
-                return;
-            }
-
-            var previous = map.put(instancedPackage, res);
-            if (previous != null) {
-                throw new IllegalArgumentException("Found multiple instances for package '%s': %s and %s".formatted(
-                    instancedPackage.getName(),
-                    previous.getURI(),
-                    res.getURI()
-                ));
-            }
-
-        });
-        return map;
+        if (mapOrFailure instanceof Result.Success<Map<EPackage, Resource>> map) {
+            return map.value();
+        } else if  (mapOrFailure instanceof Result.Failure<?> failure) {
+            throw (PackageDuplicationException) failure.throwable();
+        } else {
+            throw new IllegalStateException("Unkown type of sealed interface.");
+        }
     }
 
+
+    private static Optional<EPackage> instancedPackageOrNone(Resource res) {
+        return res.getContents().isEmpty()? Optional.empty()
+            : Optional.of(res.getContents().get(0).eClass().getEPackage());
+    }
 }

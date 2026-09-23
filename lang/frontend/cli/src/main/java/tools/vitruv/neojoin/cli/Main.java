@@ -18,6 +18,7 @@ import tools.vitruv.neojoin.NeoJoinStandaloneSetup;
 import tools.vitruv.neojoin.Parser;
 import tools.vitruv.neojoin.SourceLocation;
 import tools.vitruv.neojoin.collector.InstanceModelCollector;
+import tools.vitruv.neojoin.collector.PackageDuplicationException;
 import tools.vitruv.neojoin.collector.PackageModelCollector;
 import tools.vitruv.neojoin.generation.MetaModelGenerator;
 import tools.vitruv.neojoin.transformation.Transformator;
@@ -97,7 +98,7 @@ public class Main implements Callable<Integer> {
     public Integer call() {
         try {
             return execute();
-        } catch (ParameterResolutionException e) {
+        } catch (ParameterResolutionException|PackageDuplicationException e) {
             printError(e.getMessage());
         } catch (IllegalArgumentException ex) {
             printError("Invalid meta-model path: %s", ex.getMessage());
@@ -135,7 +136,7 @@ public class Main implements Callable<Integer> {
      *
      * @return exit code
      */
-    private int execute() throws IOException, ParameterResolutionException {
+    private int execute() throws IOException, ParameterResolutionException, PackageDuplicationException {
         // collect available meta-models
         var collectionResult = new PackageModelCollector(metaModelPath).collect();
         List<PackageModelCollector.Issue> issues = collectionResult.left();
