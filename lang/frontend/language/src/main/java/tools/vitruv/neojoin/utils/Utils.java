@@ -1,11 +1,16 @@
 package tools.vitruv.neojoin.utils;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.Spliterators;
 import java.util.function.BiConsumer;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -32,6 +37,68 @@ public class Utils {
             Map.Entry::getValue,
             (a, b) -> a
         );
+    }
+
+    /**
+     * {@link Stream#collect(Collector) Collects} a stream of {@link Map.Entry} into a map.
+     * Fail on duplicate keys.
+     *
+     * @param <K>              key type of the map +entries
+     * @param <V>              value type of the map entries
+     * @return resulting map
+     */
+    public static <K, V> Collector<Pair<K, V>, ?, Result<Map<K, V>>> toMapFailOnDuplicates(
+            TriFunction<K, V, V, Throwable> exception
+    ) {
+        return new Collector<Pair<K,V>, ArrayList<Map<K, V>>, Result<Map<K,V>>>() {
+
+			@Override
+			public Supplier<ArrayList<Map<K, V>>> supplier() {
+                return () -> {
+                    final ArrayList<Map<K, V>> resultOrEmpty = new ArrayList<>(1);
+                    resultOrEmpty.add(new HashMap<>());
+                    return resultOrEmpty;
+                };
+			}
+
+			@Override
+			public BiConsumer<ArrayList<Map<K, V>>, Pair<K, V>> accumulator() {
+                return (result, next) -> {
+                    if (result.size() == 1) {
+                        final var previous = result.get(0).put(next.left(), next.right());
+                        if (previous != null) result.add(Map.of(next.left(), previous));
+                    }
+                };
+			}
+
+			@Override
+			public BinaryOperator<ArrayList<Map<K, V>>> combiner() {
+				return (a, b) -> {
+                    throw new UnsupportedOperationException("Unimplemented method 'combiner'");
+                };
+			}
+
+			@Override
+			public Function<ArrayList<Map<K, V>>, Result<Map<K, V>>> finisher() {
+                return (it) -> {
+                    if (it.size() == 1) {
+                        return new Result.Success<>(it.get(0));
+                    } else {
+                        var key = it.get(1).keySet().stream().findAny().get();
+                        var value1 = it.get(1).get(key);
+                        var value2 = it.get(0).get(key);
+
+				        return new Result.Failure<>(exception.apply(key, value1, value2));
+                    }
+                };
+			}
+
+			@Override
+			public Set<Characteristics> characteristics() {
+                return Set.of(Characteristics.UNORDERED);
+			}
+
+        };
     }
 
     public static String removeSuffix(String string, String suffix) {
