@@ -47,10 +47,10 @@ public class Utils {
      * @param <V>              value type of the map entries
      * @return resulting map
      */
-    public static <K, V> Collector<Pair<K, V>, ?, Result<Map<K, V>>> toMapFailOnDuplicates(
-            TriFunction<K, V, V, Throwable> exception
+    public static <K, V, E extends Exception> Collector<Pair<K, V>, ?, Result<Map<K, V>, E>> toMapFailOnDuplicates(
+            TriFunction<K, V, V, E> exception
     ) {
-        return new Collector<Pair<K,V>, ArrayList<Map<K, V>>, Result<Map<K,V>>>() {
+        return new Collector<Pair<K,V>, ArrayList<Map<K, V>>, Result<Map<K,V>, E>>() {
 
 			@Override
 			public Supplier<ArrayList<Map<K, V>>> supplier() {
@@ -79,7 +79,7 @@ public class Utils {
 			}
 
 			@Override
-			public Function<ArrayList<Map<K, V>>, Result<Map<K, V>>> finisher() {
+			public Function<ArrayList<Map<K, V>>, Result<Map<K, V>, E>> finisher() {
                 return (it) -> {
                     if (it.size() == 1) {
                         return new Result.Success<>(it.get(0));

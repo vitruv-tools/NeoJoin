@@ -10,7 +10,6 @@ import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 
 import tools.vitruv.neojoin.utils.EMFUtils;
 import tools.vitruv.neojoin.utils.Pair;
-import tools.vitruv.neojoin.utils.Result;
 import static tools.vitruv.neojoin.utils.Utils.toMapFailOnDuplicates;
 
 /**
@@ -46,24 +45,15 @@ public class InstanceModelCollector extends AbstractModelCollector {
         var resourceSet = new ResourceSetImpl();
         resourceSet.setPackageRegistry(registry);
 
-        var mapOrFailure = collectResourcesAsStream(resourceSet)
+        return collectResourcesAsStream(resourceSet)
             .flatMap(res ->
                 instancedPackageOrNone(res).stream()
                     .filter(knownPackages::contains)
                     .map(pkg -> Pair.of(pkg, res))
             )
-            .collect(toMapFailOnDuplicates((instancedPackage, package1, package2) ->
-                        new PackageDuplicationException(instancedPackage.getName(), package1.getURI(), package2.getURI())));
-
-        if (mapOrFailure instanceof Result.Success<Map<EPackage, Resource>> map) {
-            return map.value();
-        } else if  (mapOrFailure instanceof Result.Failure<?> failure) {
-            throw (PackageDuplicationException) failure.throwable();
-        } else {
-            throw new IllegalStateException("Unkown type of sealed interface.");
-        }
+            .collect(toMapFailOnDuplicates(PackageDuplicationException::new))
+            .valueUnsafe();
     }
-
 
     private static Optional<EPackage> instancedPackageOrNone(Resource res) {
         return res.getContents().isEmpty()? Optional.empty()
