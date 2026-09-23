@@ -135,7 +135,7 @@ public class Main implements Callable<Integer> {
      *
      * @return exit code
      */
-    private int execute() throws IOException {
+    private int execute() throws IOException, ParameterResolutionException {
         // collect available meta-models
         var collectionResult = new PackageModelCollector(metaModelPath).collect();
         List<PackageModelCollector.Issue> issues = collectionResult.left();
@@ -180,7 +180,7 @@ public class Main implements Callable<Integer> {
             var targetInstanceModel = new Transformator(
                 setup.getExpressionHelper(),
                 aqr,
-                targetMetaModel.pack(), 
+                targetMetaModel.pack(),
                 inputModels,
                 paramValues
             ).transform();
