@@ -26,7 +26,7 @@ public class Utils {
      * @param <V>              value type of the map entries
      * @return resulting map
      */
-    public static <K, V> Collector<Map.Entry<K, V>, ?, Map<K, V>> mapCollector() {
+    public static <K, V> Collector<Map.Entry<K, V>, ?, Map<K, V>> toMapIgnoreDuplicates() {
         return Collectors.toMap(
             Map.Entry::getKey,
             Map.Entry::getValue,

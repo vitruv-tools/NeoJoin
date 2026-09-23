@@ -151,7 +151,7 @@ public final class AstUtils {
     public static Map<String, EPackage> getImportedPackagesByAlias(ViewTypeDefinition viewType) {
         return getValidImports(viewType)
             .map(imp -> Map.entry(getImportAlias(imp), imp.getPackage()))
-            .collect(Utils.mapCollector()); // ignore duplicates -> will be handled in validator
+            .collect(Utils.toMapIgnoreDuplicates()); // ignore duplicates -> will be handled in validator
     }
 
     /**
