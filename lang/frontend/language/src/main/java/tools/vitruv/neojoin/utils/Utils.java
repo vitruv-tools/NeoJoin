@@ -101,6 +101,22 @@ public class Utils {
         };
     }
 
+	public static <T, A, E extends Exception, D> Result<D, E> collectOrFailOnFirstFailure(
+            Stream<Result<T, E>> stream,
+            Collector<T, A, D> collector
+    ) {
+        final var sink = collector.supplier().get();
+        final var iter = stream.iterator();
+        final var accumulator = collector.accumulator();
+        while (iter.hasNext()) {
+            final var next = iter.next();
+            if (next instanceof Result.Success<T, ?> success) accumulator.accept(sink, success.value());
+            else if (next instanceof Result.Failure<?, E> failure) return Result.fail(failure.throwable());
+            else throw new IllegalStateException("Unknown type of sealed interface.");
+        }
+
+        return Result.of(collector.finisher().apply(sink));
+    }
     public static String removeSuffix(String string, String suffix) {
         if (string.endsWith(suffix)) {
             return string.substring(0, string.length() - suffix.length());
