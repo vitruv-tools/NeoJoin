@@ -117,6 +117,18 @@ public class Utils {
 
         return Result.of(collector.finisher().apply(sink));
     }
+
+    /**
+     * This function converts a stream into an [Iterable].
+     * This allows to iterate over the stream using a normal for loop.
+     *
+     * @param stream the stream that should be turned into an iterator
+     * @return an iterator for the elements of the stream.
+     */
+    public static <T> Iterable<T> iter(Stream<T> stream) {
+        return () -> stream.iterator();
+    }
+
     public static String removeSuffix(String string, String suffix) {
         if (string.endsWith(suffix)) {
             return string.substring(0, string.length() - suffix.length());
