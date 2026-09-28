@@ -58,7 +58,7 @@ public class GroupingSource {
     private List<?> getGroupingKey(InstanceTuple tuple) throws TransformatorException {
         var context = evaluator.createContext(tuple, null);
         return collectOrFailOnFirstFailure(
-            groupingExpressions.stream().map(context::evaluateExpressionOrFailure),
+            groupingExpressions.stream().map(expression -> TransformatorException.executeCatching(() -> context.evaluateExpression(expression))),
             Collectors.toList()
             ).valueUnsafe();
     }

@@ -75,13 +75,4 @@ public sealed interface Result<T extends @Nullable Object, E extends Throwable> 
     static <T, E extends Throwable> Result<T, E> fail(E exception) {
         return new Failure<T, E>(exception);
     }
-
-    static <T> Result<T, Exception> runCatching(Supplier<T> supplier) {
-        try {
-            return Result.of(supplier.get());
-        } catch (Exception e) {
-            return Result.fail(e);
-        }
-    }
-
 }

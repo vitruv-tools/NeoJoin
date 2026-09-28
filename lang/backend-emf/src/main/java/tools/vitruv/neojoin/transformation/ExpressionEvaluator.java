@@ -69,14 +69,6 @@ public class ExpressionEvaluator {
             this.evaluationContext = evaluationContext;
         }
 
-        public Result<@Nullable Object, TransformatorException> evaluateExpressionOrFailure(XExpression expression) {
-            try {
-                return Result.of(evaluateExpression(expression));
-            } catch (TransformatorException e) {
-                return Result.fail(e);
-            }
-        }
-
         /**
          * Evaluate an expression with this context.
          */

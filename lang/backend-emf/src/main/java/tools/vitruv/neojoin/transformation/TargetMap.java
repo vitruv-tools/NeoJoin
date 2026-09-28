@@ -4,7 +4,6 @@ import org.eclipse.emf.ecore.EObject;
 
 import tools.vitruv.neojoin.aqr.AQRTargetClass;
 import tools.vitruv.neojoin.utils.Pair;
-import tools.vitruv.neojoin.utils.Result;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -67,14 +66,6 @@ public class TargetMap {
             new Pair<>(source, targetClass),
             previous.with(target)
         );
-    }
-
-    public Result<EObject, TransformatorException> getOrFailure(EObject source, AQRTargetClass targetClass) {
-        try {
-            return Result.of(get(source, targetClass));
-        } catch (TransformatorException e) {
-            return Result.fail(e);
-        }
     }
 
     /**

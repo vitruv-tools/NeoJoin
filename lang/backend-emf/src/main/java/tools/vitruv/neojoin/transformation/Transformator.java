@@ -140,11 +140,13 @@ public class Transformator {
 
             if (targetClass.source().groupingExpressions().isEmpty()) { // no grouping
                 return collectOrFailOnFirstFailure(
-                        instanceSource.get().map(tuple ->
-                            createTransformedInstanceOrFailure(targetClass, clazz, tuple, evaluator)
-                            ),
-                        Collectors.toList()
-                        ).valueUnsafe();
+                    instanceSource.get()
+                        .map(tuple ->
+                            TransformatorException.executeCatching(() ->
+                                createTransformedInstance(targetClass, clazz, tuple, evaluator)
+                            )),
+                    Collectors.toList()
+                ).valueUnsafe();
             } else { // with grouping
                 var groupingSource = new GroupingSource(
                     targetClass.source().groupingExpressions(),
@@ -152,11 +154,13 @@ public class Transformator {
                     evaluator
                 );
                 return collectOrFailOnFirstFailure(
-                        groupingSource.get().valueUnsafe().map(tupleOfLists ->
-                            createTransformedInstanceOrFailure(targetClass, clazz, tupleOfLists, evaluator)
-                            ),
-                        Collectors.toList()
-                        ).valueUnsafe();
+                    groupingSource.get()
+                        .valueUnsafe()
+                        .map(tupleOfLists ->
+                            TransformatorException.executeCatching(() ->
+                                createTransformedInstance(targetClass, clazz, tupleOfLists, evaluator))),
+                    Collectors.toList()
+                ).valueUnsafe();
             }
         }
     }
@@ -198,23 +202,7 @@ public class Transformator {
         return createTransformedInstance(targetClass, clazz, null, Stream.of(), context);
     }
 
-
-    private Result<EObject, TransformatorException> createTransformedInstanceOrFailure(
-        AQRTargetClass targetClass,
-        EClass clazz,
-        InstanceTuple instanceTuple,
-        ExpressionEvaluator evaluator
-    ) {
-        try {
-            return Result.of(createTransformedInstance(targetClass, clazz, instanceTuple, evaluator));
-        } catch (TransformatorException e) {
-            return Result.fail(e);
-        }
-
-    }
-
-
-    /**
+   /**
      * Create a transformed instance of the given target class.
      *
      * @param targetClass   AQR target class
@@ -234,19 +222,6 @@ public class Transformator {
         return createTransformedInstance(targetClass, clazz, mainSource, instanceTuple.stream(), context);
     }
 
-
-    private Result<EObject, TransformatorException> createTransformedInstanceOrFailure(
-        AQRTargetClass targetClass,
-        EClass clazz,
-        List<List<EObject>> tupleOfLists,
-        ExpressionEvaluator evaluator
-    ) {
-        try {
-            return Result.of(createTransformedInstance(targetClass, clazz, tupleOfLists, evaluator));
-        } catch (TransformatorException e) {
-            return Result.fail(e);
-        }
-    }
 
     /**
      * Transform target class with the given grouping instance source.
@@ -354,7 +329,7 @@ public class Transformator {
     private Object mapInstances(Object instance, AQRTargetClass target) throws TransformatorException {
         if (instance instanceof List<?> list) {
             return collectOrFailOnFirstFailure(
-                    list.stream().map(i -> targetMap.getOrFailure((EObject) i, target)),
+                    list.stream().map(i -> TransformatorException.executeCatching(() -> targetMap.get((EObject) i, target))),
                     Collectors.toList()
                     ).valueUnsafe();
         } else {
