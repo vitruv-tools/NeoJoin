@@ -2,7 +2,7 @@ package tools.vitruv.neojoin.transformation;
 
 import static tools.vitruv.neojoin.utils.Assertions.check;
 import static tools.vitruv.neojoin.utils.Assertions.fail;
-import static tools.vitruv.neojoin.utils.Utils.collectOrFailOnFirstFailure;
+import static tools.vitruv.neojoin.utils.Utils.collectFailFast;
 import static tools.vitruv.neojoin.utils.Utils.iter;
 
 import java.util.ArrayList;
@@ -29,8 +29,8 @@ import tools.vitruv.neojoin.aqr.AQRTargetClass;
 import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
 import tools.vitruv.neojoin.transformation.source.GroupingSource;
 import tools.vitruv.neojoin.transformation.source.InstanceSourceFactory;
-import tools.vitruv.neojoin.utils.Result;
 import tools.vitruv.neojoin.utils.TypeCasts;
+import tools.vitruv.neojoin.utils.Utils;
 
 /**
  * Transforms the given source instance models based on the given {@link AQR query}.
@@ -139,28 +139,27 @@ public class Transformator {
             var instanceSource = instanceSourceFactory.create(targetClass.source(), evaluator);
 
             if (targetClass.source().groupingExpressions().isEmpty()) { // no grouping
-                return collectOrFailOnFirstFailure(
-                    instanceSource.get()
-                        .map(tuple ->
-                            TransformatorException.executeCatching(() ->
-                                createTransformedInstance(targetClass, clazz, tuple, evaluator)
-                            )),
-                    Collectors.toList()
-                ).valueUnsafe();
+                return instanceSource.get()
+                    .map(tuple ->
+                        TransformatorException.executeCatching(() ->
+                            createTransformedInstance(targetClass, clazz, tuple, evaluator)
+                        ))
+                    .collect(collectFailFast(Collectors.toList()))
+                    .valueUnsafe();
             } else { // with grouping
                 var groupingSource = new GroupingSource(
                     targetClass.source().groupingExpressions(),
                     instanceSource,
                     evaluator
                 );
-                return collectOrFailOnFirstFailure(
+                return
                     groupingSource.get()
                         .valueUnsafe()
                         .map(tupleOfLists ->
                             TransformatorException.executeCatching(() ->
-                                createTransformedInstance(targetClass, clazz, tupleOfLists, evaluator))),
-                    Collectors.toList()
-                ).valueUnsafe();
+                                createTransformedInstance(targetClass, clazz, tupleOfLists, evaluator)))
+                    .collect(collectFailFast(Collectors.toList()))
+                    .valueUnsafe();
             }
         }
     }
@@ -328,10 +327,9 @@ public class Transformator {
 
     private Object mapInstances(Object instance, AQRTargetClass target) throws TransformatorException {
         if (instance instanceof List<?> list) {
-            return collectOrFailOnFirstFailure(
-                    list.stream().map(i -> TransformatorException.executeCatching(() -> targetMap.get((EObject) i, target))),
-                    Collectors.toList()
-                    ).valueUnsafe();
+            return list.stream().map(i -> TransformatorException.executeCatching(() -> targetMap.get((EObject) i, target)))
+                .collect(collectFailFast(Collectors.toList()))
+                .valueUnsafe();
         } else {
             return targetMap.get((EObject) instance, target);
         }

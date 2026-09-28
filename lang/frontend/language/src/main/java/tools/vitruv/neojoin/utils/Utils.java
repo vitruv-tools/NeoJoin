@@ -103,41 +103,36 @@ public class Utils {
     }
 
     public static <K, V, E extends Exception> Collector<Result<Pair<K, V>, E>, ?, Result<Map<K, List<V>>, E>> groupOrFail() {
-        return Collector.<Result<Pair<K, V>, E>, OrFailSink<Map<K, List<V>>, Pair<K, V>, E>, Result<Map<K, List<V>>, E>>of(
-                () -> new OrFailSink<>(
-                                       new HashMap<>(),
-                                       (map, pair) -> map
-                                       .computeIfAbsent(pair.left(), (key) -> new ArrayList<>())
-                                       .add(pair.right())),
-                OrFailSink::insert,
-                (a, b) -> { throw new UnsupportedOperationException("Parallel execution of stream is unsupported."); },
-                OrFailSink::get,
-                Characteristics.UNORDERED
+        return collectFailFast(
+                Collectors.groupingBy(Pair::left, HashMap::new,
+                    Collectors.mapping(Pair::right, Collectors.toList()))
                 );
     }
 
-    /* NOTE: Since the intermediate accumulation type of the [Collector] is often hidden
-     *      as an implementation detail, its is unfortunately necessary to omit for the
-     *      type of the collector argument and thus it is necessary to conduct unchecked type casts.
-     */
+   /* NOTE: Since the intermediate accumulation type of the [Collector] is often hidden
+    *      as an implementation detail, its is unfortunately necessary to omit for the
+    *      type of the collector argument and thus it is necessary to conduct unchecked type casts.
+    */
 	@SuppressWarnings("unchecked")
-	public static <T, E extends Exception, D> Result<D, E> collectOrFailOnFirstFailure(
-            Stream<Result<T, E>> stream,
+    public static <T, D, E extends Exception> Collector<Result<T, E>, ?, Result<D, E>> collectFailFast(
             Collector<T, ?, D> collector
     ) {
-        final var sink = collector.supplier().get();
-        final var iter = stream.iterator();
         final var accumulator = (BiConsumer<Object, T>) collector.accumulator();
         final var finisher = (Function<Object, D>) collector.finisher();
-        while (iter.hasNext()) {
-            final var next = iter.next();
-            if (next instanceof Result.Success<T, ?> success) accumulator.accept(sink, success.value());
-            else if (next instanceof Result.Failure<?, E> failure) return Result.fail(failure.throwable());
-            else throw new IllegalStateException("Unknown type of sealed interface.");
-        }
+        final var characteristics =
+            collector.characteristics().contains(Characteristics.UNORDERED)? new Characteristics[] {Characteristics.UNORDERED}
+            : new Characteristics[] {};
 
-        return Result.of(finisher.apply(sink));
+        return Collector.<Result<T, E>, OrFailSink<Object, T, E>, Result<D, E>>of(
+                () -> new OrFailSink<Object, T, E>(collector.supplier().get(), accumulator),
+                OrFailSink::insert,
+                (a, b) -> { throw new UnsupportedOperationException("Parallel execution of stream is unsupported."); },
+                (sink) -> sink.get().map(finisher),
+                characteristics
+        );
     }
+
+
 
     private static final class OrFailSink<S, V, E extends Throwable> {
         private Result<S, E> result;

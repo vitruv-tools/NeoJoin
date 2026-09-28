@@ -18,7 +18,7 @@ import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
 import static tools.vitruv.neojoin.utils.Assertions.check;
-import static tools.vitruv.neojoin.utils.Utils.collectOrFailOnFirstFailure;
+import static tools.vitruv.neojoin.utils.Utils.collectFailFast;;
 
 /**
  * Mimics the {@link InstanceSource instance source interface} for a {@code group by} clause. However, this class does
@@ -57,10 +57,9 @@ public class GroupingSource {
 
     private List<?> getGroupingKey(InstanceTuple tuple) throws TransformatorException {
         var context = evaluator.createContext(tuple, null);
-        return collectOrFailOnFirstFailure(
-            groupingExpressions.stream().map(expression -> TransformatorException.executeCatching(() -> context.evaluateExpression(expression))),
-            Collectors.toList()
-            ).valueUnsafe();
+        return groupingExpressions.stream().map(expression -> TransformatorException.executeCatching(() -> context.evaluateExpression(expression)))
+            .collect(collectFailFast(Collectors.toList()))
+            .valueUnsafe();
     }
 
     /**
