@@ -4,6 +4,7 @@ import org.eclipse.emf.ecore.EObject;
 import tools.vitruv.neojoin.aqr.AQRJoin;
 import tools.vitruv.neojoin.transformation.ExpressionEvaluator;
 import tools.vitruv.neojoin.transformation.InstanceTuple;
+import tools.vitruv.neojoin.transformation.TransformatorException;
 import tools.vitruv.neojoin.utils.Utils;
 
 import java.util.Objects;
@@ -59,7 +60,14 @@ public abstract class AbstractJoinSource implements InstanceSource {
 
     private boolean evaluateExpressionConditions(InstanceTuple left, EObject right) {
         var context = evaluator.createContext(new InstanceTuple(left, right), join.from());
-        return join.expressionConditions().stream().allMatch(context::evaluateCondition);
+        return join.expressionConditions().stream().allMatch(expression -> {
+            try {
+                return context.evaluateCondition(expression);
+            } catch (TransformatorException e) {
+                // TODO: handle properly
+                throw new RuntimeException(e);
+            }
+        });
     }
 
 }

@@ -16,6 +16,7 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+import java.util.stream.Collector.Characteristics;
 
 /**
  * Various generic java utilities.
@@ -101,13 +102,33 @@ public class Utils {
         };
     }
 
-	public static <T, A, E extends Exception, D> Result<D, E> collectOrFailOnFirstFailure(
+    public static <K, V, E extends Exception> Collector<Result<Pair<K, V>, E>, ?, Result<Map<K, List<V>>, E>> groupOrFail() {
+        return Collector.<Result<Pair<K, V>, E>, OrFailSink<Map<K, List<V>>, Pair<K, V>, E>, Result<Map<K, List<V>>, E>>of(
+                () -> new OrFailSink<>(
+                                       new HashMap<>(),
+                                       (map, pair) -> map
+                                       .computeIfAbsent(pair.left(), (key) -> new ArrayList<>())
+                                       .add(pair.right())),
+                OrFailSink::insert,
+                (a, b) -> { throw new UnsupportedOperationException("Parallel execution of stream is unsupported."); },
+                OrFailSink::get,
+                Characteristics.UNORDERED
+                );
+    }
+
+    /* NOTE: Since the intermediate accumulation type of the [Collector] is often hidden
+     *      as an implementation detail, its is unfortunately necessary to omit for the
+     *      type of the collector argument and thus it is necessary to conduct unchecked type casts.
+     */
+	@SuppressWarnings("unchecked")
+	public static <T, E extends Exception, D> Result<D, E> collectOrFailOnFirstFailure(
             Stream<Result<T, E>> stream,
-            Collector<T, A, D> collector
+            Collector<T, ?, D> collector
     ) {
         final var sink = collector.supplier().get();
         final var iter = stream.iterator();
-        final var accumulator = collector.accumulator();
+        final var accumulator = (BiConsumer<Object, T>) collector.accumulator();
+        final var finisher = (Function<Object, D>) collector.finisher();
         while (iter.hasNext()) {
             final var next = iter.next();
             if (next instanceof Result.Success<T, ?> success) accumulator.accept(sink, success.value());
@@ -115,7 +136,31 @@ public class Utils {
             else throw new IllegalStateException("Unknown type of sealed interface.");
         }
 
-        return Result.of(collector.finisher().apply(sink));
+        return Result.of(finisher.apply(sink));
+    }
+
+    private static final class OrFailSink<S, V, E extends Throwable> {
+        private Result<S, E> result;
+        private BiConsumer<S, V> insert;
+
+        public OrFailSink(S sink, BiConsumer<S, V> insert) {
+            this.result = Result.of(sink);
+            this.insert = insert;
+        }
+
+        public void insert(Result<V, E> element) {
+            if (result instanceof Result.Success<S, E> sink) {
+                if (element instanceof Result.Success<V, E> success) {
+                    insert.accept(sink.value(), success.value());
+                } else if (element instanceof Result.Failure<V, E> failure) {
+                    result = Result.fail(failure.throwable());
+                }
+            }
+        }
+
+        public Result<S, E> get() {
+            return result;
+        }
     }
 
     /**

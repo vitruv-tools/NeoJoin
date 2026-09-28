@@ -136,7 +136,7 @@ public class Main implements Callable<Integer> {
      *
      * @return exit code
      */
-    private int execute() throws IOException, ParameterResolutionException, PackageDuplicationException {
+    private int execute() throws IOException, ParameterResolutionException, PackageDuplicationException, TransformatorException {
         // collect available meta-models
         var collectionResult = new PackageModelCollector(metaModelPath).collect();
         List<PackageModelCollector.Issue> issues = collectionResult.left();

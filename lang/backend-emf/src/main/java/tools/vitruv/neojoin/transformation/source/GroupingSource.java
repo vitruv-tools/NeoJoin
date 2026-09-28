@@ -3,8 +3,12 @@ package tools.vitruv.neojoin.transformation.source;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.xtext.xbase.XExpression;
 import org.jspecify.annotations.Nullable;
+
 import tools.vitruv.neojoin.transformation.ExpressionEvaluator;
 import tools.vitruv.neojoin.transformation.InstanceTuple;
+import tools.vitruv.neojoin.transformation.TransformatorException;
+import tools.vitruv.neojoin.utils.Pair;
+import tools.vitruv.neojoin.utils.Result;
 import tools.vitruv.neojoin.utils.Utils;
 
 import java.util.ArrayList;
@@ -14,6 +18,7 @@ import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
 import static tools.vitruv.neojoin.utils.Assertions.check;
+import static tools.vitruv.neojoin.utils.Utils.collectOrFailOnFirstFailure;
 
 /**
  * Mimics the {@link InstanceSource instance source interface} for a {@code group by} clause. However, this class does
@@ -32,14 +37,30 @@ public class GroupingSource {
         this.evaluator = evaluator;
     }
 
-    public Stream<List<List<EObject>>> get() {
-        var grouped = inner.get().collect(Collectors.groupingBy(this::getGroupingKey));
-        return grouped.values().stream().map(GroupingSource::map);
+    public Result<Stream<List<List<EObject>>>, TransformatorException> get() {
+        var groupedOrFailure = inner.get()
+            .map(this::associateWithGroupingKey)
+            .collect(Utils.groupOrFail());
+
+        return groupedOrFailure
+            .map(grouped -> grouped.values().stream().map(GroupingSource::map));
     }
 
-    private List<?> getGroupingKey(InstanceTuple tuple) {
+    private Result<Pair<List<?>, InstanceTuple>, TransformatorException> associateWithGroupingKey(InstanceTuple tuple) {
+        try {
+            final var key = getGroupingKey(tuple);
+            return Result.of(Pair.of(key, tuple));
+        } catch (TransformatorException e) {
+            return Result.fail(e);
+        }
+    }
+
+    private List<?> getGroupingKey(InstanceTuple tuple) throws TransformatorException {
         var context = evaluator.createContext(tuple, null);
-        return groupingExpressions.stream().map(context::evaluateExpression).toList();
+        return collectOrFailOnFirstFailure(
+            groupingExpressions.stream().map(context::evaluateExpressionOrFailure),
+            Collectors.toList()
+            ).valueUnsafe();
     }
 
     /**

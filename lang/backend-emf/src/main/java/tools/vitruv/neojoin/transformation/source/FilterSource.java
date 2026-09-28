@@ -3,6 +3,7 @@ package tools.vitruv.neojoin.transformation.source;
 import org.eclipse.xtext.xbase.XExpression;
 import tools.vitruv.neojoin.transformation.ExpressionEvaluator;
 import tools.vitruv.neojoin.transformation.InstanceTuple;
+import tools.vitruv.neojoin.transformation.TransformatorException;
 
 import java.util.stream.Stream;
 
@@ -24,7 +25,14 @@ public class FilterSource implements InstanceSource {
     @Override
     public Stream<InstanceTuple> get() {
         return inner.get()
-            .filter(tuple -> evaluator.createContext(tuple, null).evaluateCondition(expression));
+            .filter(tuple -> {
+                try {
+                    return evaluator.createContext(tuple, null).evaluateCondition(expression);
+                } catch (TransformatorException e) {
+                    // TODO: handle properly
+                    throw new RuntimeException(e);
+                }
+            });
     }
 
 }

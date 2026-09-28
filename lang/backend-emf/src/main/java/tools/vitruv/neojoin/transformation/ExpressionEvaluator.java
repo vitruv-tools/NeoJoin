@@ -69,10 +69,18 @@ public class ExpressionEvaluator {
             this.evaluationContext = evaluationContext;
         }
 
+        public Result<@Nullable Object, TransformatorException> evaluateExpressionOrFailure(XExpression expression) {
+            try {
+                return Result.of(evaluateExpression(expression));
+            } catch (TransformatorException e) {
+                return Result.fail(e);
+            }
+        }
+
         /**
          * Evaluate an expression with this context.
          */
-        public @Nullable Object evaluateExpression(XExpression expression) {
+        public @Nullable Object evaluateExpression(XExpression expression) throws TransformatorException {
             var result = helper.evaluate(expression, evaluationContext);
             return switch (result) {
                 case Result.Success<?, ?>(var value) -> value;
@@ -89,7 +97,7 @@ public class ExpressionEvaluator {
         /**
          * Evaluate an expression with this context and check that the result is of type boolean.
          */
-        public boolean evaluateCondition(XExpression condition) {
+        public boolean evaluateCondition(XExpression condition) throws TransformatorException {
             var result = evaluateExpression(condition);
             if (result instanceof Boolean value) {
                 return value;

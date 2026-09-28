@@ -11,7 +11,7 @@ import tools.vitruv.neojoin.SourceLocation;
  *     <li>Reference to an instance that is either missing in the target model or mapped multiple times</li>
  * </ul>
  */
-public class TransformatorException extends RuntimeException {
+public class TransformatorException extends Exception {
 
     private final @Nullable SourceLocation source;
 
