@@ -103,7 +103,7 @@ public class Utils {
     }
 
     public static <K, V, E extends Exception> Collector<Result<Pair<K, V>, E>, ?, Result<Map<K, List<V>>, E>> groupOrFail() {
-        return collectFailFast(
+        return collectFailingFast(
                 Collectors.groupingBy(Pair::left, HashMap::new,
                     Collectors.mapping(Pair::right, Collectors.toList()))
                 );
@@ -114,7 +114,7 @@ public class Utils {
     *      type of the collector argument and thus it is necessary to conduct unchecked type casts.
     */
 	@SuppressWarnings("unchecked")
-    public static <T, D, E extends Exception> Collector<Result<T, E>, ?, Result<D, E>> collectFailFast(
+    public static <T, D, E extends Exception> Collector<Result<T, E>, ?, Result<D, E>> collectFailingFast(
             Collector<T, ?, D> collector
     ) {
         final var supplier = collector.supplier();

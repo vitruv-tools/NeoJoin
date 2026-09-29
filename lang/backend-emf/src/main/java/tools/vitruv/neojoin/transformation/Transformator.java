@@ -2,7 +2,7 @@ package tools.vitruv.neojoin.transformation;
 
 import static tools.vitruv.neojoin.utils.Assertions.check;
 import static tools.vitruv.neojoin.utils.Assertions.fail;
-import static tools.vitruv.neojoin.utils.Utils.collectFailFast;
+import static tools.vitruv.neojoin.utils.Utils.collectFailingFast;
 import static tools.vitruv.neojoin.utils.Utils.iter;
 
 import java.util.ArrayList;
@@ -30,7 +30,6 @@ import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
 import tools.vitruv.neojoin.transformation.source.GroupingSource;
 import tools.vitruv.neojoin.transformation.source.InstanceSourceFactory;
 import tools.vitruv.neojoin.utils.TypeCasts;
-import tools.vitruv.neojoin.utils.Utils;
 
 /**
  * Transforms the given source instance models based on the given {@link AQR query}.
@@ -144,7 +143,7 @@ public class Transformator {
                         TransformatorException.executeCatching(() ->
                             createTransformedInstance(targetClass, clazz, tuple, evaluator)
                         ))
-                    .collect(collectFailFast(Collectors.toList()))
+                    .collect(collectFailingFast(Collectors.toList()))
                     .valueUnsafe();
             } else { // with grouping
                 var groupingSource = new GroupingSource(
@@ -158,7 +157,7 @@ public class Transformator {
                         .map(tupleOfLists ->
                             TransformatorException.executeCatching(() ->
                                 createTransformedInstance(targetClass, clazz, tupleOfLists, evaluator)))
-                    .collect(collectFailFast(Collectors.toList()))
+                    .collect(collectFailingFast(Collectors.toList()))
                     .valueUnsafe();
             }
         }
@@ -328,7 +327,7 @@ public class Transformator {
     private Object mapInstances(Object instance, AQRTargetClass target) throws TransformatorException {
         if (instance instanceof List<?> list) {
             return list.stream().map(i -> TransformatorException.executeCatching(() -> targetMap.get((EObject) i, target)))
-                .collect(collectFailFast(Collectors.toList()))
+                .collect(collectFailingFast(Collectors.toList()))
                 .valueUnsafe();
         } else {
             return targetMap.get((EObject) instance, target);
