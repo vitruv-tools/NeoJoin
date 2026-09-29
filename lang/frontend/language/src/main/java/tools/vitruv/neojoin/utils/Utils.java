@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.Spliterators;
@@ -16,6 +17,7 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+
 import java.util.stream.Collector.Characteristics;
 
 /**
@@ -64,10 +66,10 @@ public class Utils {
 
 			@Override
 			public BiConsumer<ArrayList<Map<K, V>>, Pair<K, V>> accumulator() {
-                return (result, next) -> {
-                    if (result.size() == 1) {
-                        final var previous = result.get(0).put(next.left(), next.right());
-                        if (previous != null) result.add(Map.of(next.left(), previous));
+                return (container, next) -> {
+                    if (!isFailure(container)) {
+                        final var previous = container.get(0).put(next.left(), next.right());
+                        if (previous != null) fail(container, next.left(), previous);
                     }
                 };
 			}
@@ -75,30 +77,60 @@ public class Utils {
 			@Override
 			public BinaryOperator<ArrayList<Map<K, V>>> combiner() {
 				return (a, b) -> {
-                    throw new UnsupportedOperationException("Unimplemented method 'combiner'");
+                    if (isFailure(a)) return a;
+                    else if (isFailure(b)) return b;
+
+                    final var m1 = a.get(0);
+                    final var m2 = b.get(0);
+
+                    for (Map.Entry<K,V> e : m2.entrySet()) {
+                        K k = e.getKey();
+                        V v = Objects.requireNonNull(e.getValue());
+                        V u = m1.putIfAbsent(k, v);
+
+                        if (u != null) {
+                            fail(a, k, v);
+                            break;
+                        }
+                    }
+
+                    return a;
                 };
 			}
 
 			@Override
 			public Function<ArrayList<Map<K, V>>, Result<Map<K, V>, E>> finisher() {
                 return (it) -> {
-                    if (it.size() == 1) {
-                        return new Result.Success<>(it.get(0));
+                    if (isFailure(it)) {
+				        return new Result.Failure<>(getFailure(it, exception));
                     } else {
-                        var key = it.get(1).keySet().stream().findAny().get();
-                        var value1 = it.get(1).get(key);
-                        var value2 = it.get(0).get(key);
-
-				        return new Result.Failure<>(exception.apply(key, value1, value2));
+                        return new Result.Success<>(it.get(0));
                     }
                 };
 			}
 
 			@Override
 			public Set<Characteristics> characteristics() {
-                return Set.of(Characteristics.UNORDERED);
+                return Set.of(Characteristics.UNORDERED, Characteristics.CONCURRENT);
 			}
 
+            private static <K, V, E extends Exception> boolean isFailure(ArrayList<Map<K, V>> container) {
+                return container.size() != 1;
+            }
+
+            private static <K, V, E extends Exception> void fail(ArrayList<Map<K, V>> container, K key, V duplicateValue) {
+                container.add(Map.of(key, duplicateValue));
+            }
+
+            private static <K, V, E extends Exception> E getFailure(ArrayList<Map<K, V>> container, TriFunction<K, V, V, E> exception) {
+                if (isFailure(container)) {
+                    var key = container.get(1).keySet().stream().findAny().get();
+                    var value1 = container.get(1).get(key);
+                    var value2 = container.get(0).get(key);
+                    return exception.apply(key, value1, value2);
+                }
+                return null;
+            }
         };
     }
 
@@ -110,7 +142,7 @@ public class Utils {
     }
 
    /* NOTE: Since the intermediate accumulation type of the [Collector] is often hidden
-    *      as an implementation detail, its is unfortunately necessary to omit for the
+    *      as an implementation detail, it's unfortunately necessary to omit for the
     *      type of the collector argument and thus it is necessary to conduct unchecked type casts.
     */
 	@SuppressWarnings("unchecked")
