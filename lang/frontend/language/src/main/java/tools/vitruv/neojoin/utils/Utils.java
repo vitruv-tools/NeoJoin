@@ -117,45 +117,34 @@ public class Utils {
     public static <T, D, E extends Exception> Collector<Result<T, E>, ?, Result<D, E>> collectFailFast(
             Collector<T, ?, D> collector
     ) {
+        final var supplier = collector.supplier();
         final var accumulator = (BiConsumer<Object, T>) collector.accumulator();
+        final var combiner = (BinaryOperator<Object>) collector.combiner();
         final var finisher = (Function<Object, D>) collector.finisher();
-        final var characteristics =
-            collector.characteristics().contains(Characteristics.UNORDERED)? new Characteristics[] {Characteristics.UNORDERED}
-            : new Characteristics[] {};
+        final var characteristics = collector.characteristics().stream()
+            .filter(it -> it != Characteristics.IDENTITY_FINISH)
+            .toArray(Characteristics[]::new);
 
-        return Collector.<Result<T, E>, OrFailSink<Object, T, E>, Result<D, E>>of(
-                () -> new OrFailSink<Object, T, E>(collector.supplier().get(), accumulator),
-                OrFailSink::insert,
-                (a, b) -> { throw new UnsupportedOperationException("Parallel execution of stream is unsupported."); },
-                (sink) -> sink.get().map(finisher),
-                characteristics
+        return Collector.of(
+            () -> {
+                final ArrayList<Result<Object, E>> container = new ArrayList<>(1);
+                container.add(Result.of(supplier.get()));
+                return container;
+            },
+            (container, next) ->
+                container.get(0).ifSuccess(sink ->
+                    next
+                        .ifSuccess(value -> accumulator.accept(sink, value))
+                        .ifFailure(e -> container.set(0, Result.fail(e)))
+                ),
+            (a, b) -> {
+                a.set(0, a.get(0).bind(valueOfA ->
+                        b.get(0).map(valueOfB -> combiner.apply(valueOfA, valueOfB))));
+                return a;
+            },
+            container -> container.get(0).map(finisher),
+            characteristics
         );
-    }
-
-
-
-    private static final class OrFailSink<S, V, E extends Throwable> {
-        private Result<S, E> result;
-        private BiConsumer<S, V> insert;
-
-        public OrFailSink(S sink, BiConsumer<S, V> insert) {
-            this.result = Result.of(sink);
-            this.insert = insert;
-        }
-
-        public void insert(Result<V, E> element) {
-            if (result instanceof Result.Success<S, E> sink) {
-                if (element instanceof Result.Success<V, E> success) {
-                    insert.accept(sink.value(), success.value());
-                } else if (element instanceof Result.Failure<V, E> failure) {
-                    result = Result.fail(failure.throwable());
-                }
-            }
-        }
-
-        public Result<S, E> get() {
-            return result;
-        }
     }
 
     /**

@@ -1,5 +1,6 @@
 package tools.vitruv.neojoin.utils;
 
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -15,8 +16,13 @@ import org.jspecify.annotations.Nullable;
 public sealed interface Result<T extends @Nullable Object, E extends Throwable> {
 
     <V> Result<V, E> map(Function<T, V> function);
+
     <V> Result<V, E> bind(Function<T, Result<V, E>> function);
     T valueUnsafe() throws E;
+
+    Result<T, E> ifSuccess(Consumer<T> function);
+
+    Result<T, E> ifFailure(Consumer<E> function);
 
     record Success<T, E extends Throwable>(
         T value
@@ -41,6 +47,17 @@ public sealed interface Result<T extends @Nullable Object, E extends Throwable> 
             return value;
         }
 
+		@Override
+		public Result<T, E> ifSuccess(Consumer<T> function) {
+            function.accept(value);
+            return this;
+		}
+
+		@Override
+		public Result<T, E> ifFailure(Consumer<E> function) {
+            // Do nothing since this is not a failure.
+            return this;
+		}
     }
 
     record Failure<T, E extends Throwable>(
@@ -66,6 +83,17 @@ public sealed interface Result<T extends @Nullable Object, E extends Throwable> 
             throw throwable;
         }
 
+		@Override
+		public Result<T, E> ifSuccess(Consumer<T> function) {
+            // Do nothing since this is not a success.
+            return this;
+		}
+
+		@Override
+		public Result<T, E> ifFailure(Consumer<E> function) {
+            function.accept(throwable);
+            return this;
+		}
     }
 
     static <T, E extends Throwable> Result<T, E> of(T value) {
