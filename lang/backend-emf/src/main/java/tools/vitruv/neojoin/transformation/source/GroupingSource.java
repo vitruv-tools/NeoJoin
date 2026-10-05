@@ -39,7 +39,7 @@ public class GroupingSource {
 
     public Result<Stream<List<List<EObject>>>, TransformatorException> get() {
         var groupedOrFailure = inner.get()
-            .map(this::associateWithGroupingKey)
+            .map(it -> it.bind(this::associateWithGroupingKey))
             .collect(Utils.groupOrFail());
 
         return groupedOrFailure

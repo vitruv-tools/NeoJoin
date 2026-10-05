@@ -139,10 +139,10 @@ public class Transformator {
 
             if (targetClass.source().groupingExpressions().isEmpty()) { // no grouping
                 return instanceSource.get()
-                    .map(tuple ->
-                        TransformatorException.executeCatching(() ->
-                            createTransformedInstance(targetClass, clazz, tuple, evaluator)
-                        ))
+                    .map(result ->
+                        result.bind(tuple ->
+                            TransformatorException.executeCatching(() ->
+                                createTransformedInstance(targetClass, clazz, tuple, evaluator))))
                     .collect(collectFailingFast(Collectors.toList()))
                     .valueUnsafe();
             } else { // with grouping

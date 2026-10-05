@@ -1,11 +1,15 @@
 package tools.vitruv.neojoin.transformation.source;
 
+import static tools.vitruv.neojoin.transformation.source.SourceUtil.evaluateAndFilterByCondition;
+
+import java.util.stream.Stream;
+
 import org.eclipse.xtext.xbase.XExpression;
+
 import tools.vitruv.neojoin.transformation.ExpressionEvaluator;
 import tools.vitruv.neojoin.transformation.InstanceTuple;
 import tools.vitruv.neojoin.transformation.TransformatorException;
-
-import java.util.stream.Stream;
+import tools.vitruv.neojoin.utils.Result;
 
 /**
  * Filters objects from the given instance source with the given expression.
@@ -23,16 +27,10 @@ public class FilterSource implements InstanceSource {
     }
 
     @Override
-    public Stream<InstanceTuple> get() {
+    public Stream<Result<InstanceTuple, TransformatorException>> get() {
         return inner.get()
-            .filter(tuple -> {
-                try {
-                    return evaluator.createContext(tuple, null).evaluateCondition(expression);
-                } catch (TransformatorException e) {
-                    // TODO: handle properly
-                    throw new RuntimeException(e);
-                }
-            });
+            .flatMap(evaluateAndFilterByCondition(tuple ->
+                        evaluator.createContext(tuple, null).evaluateCondition(expression)));
     }
 
 }

@@ -12,6 +12,7 @@ import java.util.Spliterators;
 import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -40,6 +41,10 @@ public class Utils {
             Map.Entry::getValue,
             (a, b) -> a
         );
+    }
+
+    public static <T> Collector<T, ?, Boolean> allMatch(Predicate<T> predicate) {
+        return Collectors.mapping(it -> predicate.test(it), Collectors.reducing(true, (a, b) -> a && b));
     }
 
     /**
