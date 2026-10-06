@@ -1,5 +1,6 @@
 package tools.vitruv.neojoin.utils;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -297,6 +298,14 @@ public class Utils {
         var index = new Mutable<>(0);
         //noinspection DataFlowIssue - false positive
         return stream.map(e -> new Pair<>(e, index.value++));
+    }
+
+    public static <T> Result<T, IOException> executeCatchingIOException(ThrowingSupplyer<T, IOException> fn) {
+        try {
+            return Result.of(fn.invoke());
+        } catch (IOException e) {
+            return Result.fail(e);
+        }
     }
 
 }

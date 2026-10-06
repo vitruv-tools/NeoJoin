@@ -20,6 +20,8 @@ public sealed interface Result<T extends @Nullable Object, E extends Throwable> 
     <V> Result<V, E> bind(Function<T, Result<V, E>> function);
     T valueUnsafe() throws E;
 
+    <V> V fold(Function<T, V> success, Function<E, V> error);
+
     Result<T, E> ifSuccess(Consumer<T> function);
 
     Result<T, E> ifFailure(Consumer<E> function);
@@ -58,6 +60,11 @@ public sealed interface Result<T extends @Nullable Object, E extends Throwable> 
             // Do nothing since this is not a failure.
             return this;
 		}
+
+		@Override
+		public <V> V fold(Function<T, V> success, Function<E, V> error) {
+            return success.apply(value());
+		}
     }
 
     record Failure<T, E extends Throwable>(
@@ -93,6 +100,11 @@ public sealed interface Result<T extends @Nullable Object, E extends Throwable> 
 		public Result<T, E> ifFailure(Consumer<E> function) {
             function.accept(throwable);
             return this;
+		}
+
+		@Override
+		public <V> V fold(Function<T, V> success, Function<E, V> error) {
+            return error.apply(throwable());
 		}
     }
 
