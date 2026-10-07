@@ -1,3 +1,5 @@
 .vscode
 *.log
 .idea
+
+codebook.toml
