@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
+import static tools.vitruv.neojoin.utils.Enumerated.enumerate;
 import static tools.vitruv.neojoin.utils.Assertions.check;
 import static tools.vitruv.neojoin.utils.Utils.collectFailingFast;;
 
@@ -72,9 +73,9 @@ public class GroupingSource {
         List<List<@Nullable EObject>> result = createResultList(tupleLength, tuples.size());
 
         for (var tuple : tuples) {
-            Utils.forEachIndexed(
-                tuple.stream().iterator(), (obj, index) -> result.get(index).add(obj)
-            );
+            for (var obj : enumerate(tuple.stream())) {
+                result.get(obj.index()).add(obj.value());
+            }
         }
 
         return result;

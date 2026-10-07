@@ -185,6 +185,14 @@ public class Utils {
         );
     }
 
+    public static <T> Result<T, IOException> executeCatchingIOException(ThrowingSupplyer<T, IOException> fn) {
+        try {
+            return Result.of(fn.invoke());
+        } catch (IOException e) {
+            return Result.fail(e);
+        }
+    }
+
     /**
      * This function converts a stream into an [Iterable].
      * This allows to iterate over the stream using a normal for loop.
@@ -228,18 +236,6 @@ public class Utils {
             throw new IndexOutOfBoundsException("Index: " + index);
         }
         return it.next();
-    }
-
-    public static <T> void forEachIndexed(Iterator<T> it, BiConsumer<T, Integer> consumer) {
-        var index = 0;
-        while (it.hasNext()) {
-            consumer.accept(it.next(), index);
-            index++;
-        }
-    }
-
-    public static <T> void forEachIndexed(Iterable<T> iterable, BiConsumer<T, Integer> consumer) {
-        forEachIndexed(iterable.iterator(), consumer);
     }
 
     /**
@@ -287,25 +283,4 @@ public class Utils {
             false
         );
     }
-
-    /**
-     * Returns a stream of pairs containing each element from the given input stream and its index in the stream.
-     *
-     * @param stream the stream to index
-     * @return stream of pairs containing each element and its index
-     */
-    public static <T> Stream<Pair<T, Integer>> indexed(Stream<T> stream) {
-        var index = new Mutable<>(0);
-        //noinspection DataFlowIssue - false positive
-        return stream.map(e -> new Pair<>(e, index.value++));
-    }
-
-    public static <T> Result<T, IOException> executeCatchingIOException(ThrowingSupplyer<T, IOException> fn) {
-        try {
-            return Result.of(fn.invoke());
-        } catch (IOException e) {
-            return Result.fail(e);
-        }
-    }
-
 }
