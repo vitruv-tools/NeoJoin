@@ -18,12 +18,12 @@ import org.jspecify.annotations.Nullable;
 import tools.vitruv.neojoin.Constants;
 import tools.vitruv.neojoin.ast.*;
 import tools.vitruv.neojoin.utils.AstUtils;
-import tools.vitruv.neojoin.utils.Utils;
 
 import java.util.List;
 import java.util.function.Consumer;
 
 import static tools.vitruv.neojoin.utils.Assertions.check;
+import static tools.vitruv.neojoin.utils.Enumerated.enumerate;
 
 /**
  * Embeds all expression of the given query into methods to define available local variables and the expected return type.
@@ -83,10 +83,9 @@ public class QueryModelInferrer {
         var targetName = AstUtils.getTargetName(mainQuery);
 
         if (mainQuery.getSource() != null) {
-            Utils.forEachIndexed(
-                mainQuery.getSource().getJoins(), (join, joinIndex) ->
-                    addJoinExpressions(mainQuery, join, joinIndex)
-            );
+            for (var join : enumerate(mainQuery.getSource().getJoins())) {
+                addJoinExpressions(mainQuery, join.value(), join.index());
+        }
 
             if (mainQuery.getSource().getCondition() != null) {
                 addExpression(
@@ -98,16 +97,15 @@ public class QueryModelInferrer {
                 );
             }
 
-            Utils.forEachIndexed(
-                mainQuery.getSource().getGroupingExpressions(), (condition, index) ->
-                    addExpression(
-                        mainQuery.getSource(),
-                        targetName + "_grouping_" + index,
-                        "java.lang.Object", // grouping expression can be anything
-                        condition,
-                        paramsForSource(mainQuery.getSource(), false, null)
-                    )
-            );
+            for (var grouping : enumerate(mainQuery.getSource().getGroupingExpressions())) {
+                addExpression(
+                    mainQuery.getSource(),
+                    targetName + "_grouping_" + grouping.index(),
+                    "java.lang.Object", // grouping expression can be anything
+                    grouping.value(),
+                    paramsForSource(mainQuery.getSource(), false, null)
+                );
+            }
         }
 
         if (mainQuery.getBody() != null) {
@@ -120,25 +118,20 @@ public class QueryModelInferrer {
     }
 
     private void inferBody(Body body, String name, Consumer<JvmOperation> addParams) {
-        Utils.forEachIndexed(
-            body.getFeatures(), (feature, index) -> {
-                var exprName = name + "_feature_" + index;
-                // expression type is validated using a custom validator
-                addExpression(feature, exprName, "java.lang.Object", feature.getExpression(), addParams);
+        for (var feature : enumerate(body.getFeatures())) {
+            var exprName = name + "_feature_" + feature.index();
+            // expression type is validated using a custom validator
+            addExpression(feature.value(), exprName, "java.lang.Object", feature.value().getExpression(), addParams);
 
-                if (feature.getSubQuery() != null && feature.getSubQuery().getBody() != null) {
-                    var featureType = inferEClassFromExpressionOrNull(feature.getExpression());
-                    if (featureType != null) {
-                        var subQueryName = AstUtils.getTargetName(feature.getSubQuery(), featureType);
-                        inferBody(
-                            feature.getSubQuery().getBody(),
-                            subQueryName,
-                            paramsForClass(featureType, feature.getSubQuery())
-                        );
-                    }
+            if (feature.value().getSubQuery() != null && feature.value().getSubQuery().getBody() != null) {
+                var featureType = inferEClassFromExpressionOrNull(feature.value().getExpression());
+                if (featureType != null) {
+                    var subQueryName = AstUtils.getTargetName(feature.value().getSubQuery(), featureType);
+                    inferBody(feature.value().getSubQuery().getBody(), subQueryName,
+                            paramsForClass(featureType, feature.value().getSubQuery()));
                 }
             }
-        );
+        }
     }
 
     private @Nullable EClass inferEClassFromExpressionOrNull(XExpression expression) {
@@ -146,16 +139,14 @@ public class QueryModelInferrer {
         // potentially still incomplete at this point if further expressions follow. If we were to trigger type resolution
         // with caching here, the types of all following expressions would never be resolved because there would already
         // exist a cache entry for the current resource.
-        var typeInfo = expressionHelper.<@Nullable TypeInfo>execUncached(
-            expression.eResource(), () -> {
-                try {
-                    return expressionHelper.inferEType(expression);
-                } catch (TypeResolutionException e) {
-                    // ignore: will be handled by type checking
-                    return null;
-                }
+        var typeInfo = expressionHelper.<@Nullable TypeInfo>execUncached(expression.eResource(), () -> {
+            try {
+                return expressionHelper.inferEType(expression);
+            } catch (TypeResolutionException e) {
+                // ignore: will be handled by type checking
+                return null;
             }
-        );
+        });
         if (typeInfo != null && typeInfo.classifier() instanceof EClass clazz) {
             return clazz;
         } else {
@@ -186,8 +177,7 @@ public class QueryModelInferrer {
                 op.setStatic(true);
                 addParams.accept(op);
                 types.setBody(op, expression);
-            }
-        ));
+        }));
     }
 
     /**
@@ -202,7 +192,7 @@ public class QueryModelInferrer {
         if (source == null) return op -> {};
 
         return op -> {
-            if  (AstUtils.getAllFroms(source).count() <= 1 && source.getFrom().getAlias() == null)  {
+            if (AstUtils.getAllFroms(source).count() <= 1 && source.getFrom().getAlias() == null) {
                 addFromAliasToParameters(op, source.getFrom(), Constants.ExpressionSelfReference, isGrouping);
             }
 
@@ -212,7 +202,7 @@ public class QueryModelInferrer {
 
                 if (from == limit) break;
             }
-                
+
             //add declared parameters
             for (var param : viewType.getParameters()) {
                 addParam(op, param, param.getAlias(), paramBaseTypeRef(param), param.getType() instanceof CollectionParameterType);
@@ -220,7 +210,12 @@ public class QueryModelInferrer {
         };
     }
 
-    private void addFromAliasToParameters(JvmOperation operation, From from, @Nullable String fromAlias, boolean isGrouping) {
+    private void addFromAliasToParameters(
+        JvmOperation operation,
+        From from,
+        @Nullable String fromAlias,
+        boolean isGrouping
+    ) {
         if (fromAlias != null) {
             var fromJvmType = sourceTypes.getClass(from.getClazz());
             addParam(operation, from, fromAlias, fromJvmType, isGrouping);
@@ -290,15 +285,11 @@ public class QueryModelInferrer {
     private void addJoinExpressions(MainQuery mainQuery, Join join, int joinIndex) {
         var targetName = AstUtils.getTargetName(mainQuery);
 
-        Utils.forEachIndexed(
-            join.getExpressionConditions(), (condition, conditionIndex) ->
-                addExpression(
-                    join,
-                    "%s_join_%d_condition_%d".formatted(targetName, joinIndex, conditionIndex),
-                    "boolean",
-                    condition.getExpression(),
-                    paramsForSource(mainQuery.getSource(), false, join.getFrom())
-                )
-        );
+        for (var condition : enumerate(join.getExpressionConditions())) {
+            var expressionName = "%s_join_%d_condition_%d".formatted(targetName, joinIndex, condition.index());
+
+            addExpression(join, expressionName, "boolean", condition.value().getExpression(),
+                    paramsForSource(mainQuery.getSource(), false, join.getFrom()));
+        }
     }
 }
