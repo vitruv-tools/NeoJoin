@@ -198,4 +198,46 @@
       </dependency>
     </dependencies>
   </dependencyManagement>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <!-- Xtext 2.43+ requires Java 21, but model, language and ide must stay on Java 17.
+        The parent POM pins 2.43.0, so the Xtext tooling is pinned back to 2.42.0 here. -->
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>exec-maven-plugin</artifactId>
+          <dependencies>
+            <dependency>
+              <groupId>org.eclipse.xtext</groupId>
+              <artifactId>org.eclipse.xtext.common.types</artifactId>
+              <version>2.42.0</version>
+            </dependency>
+            <dependency>
+              <groupId>org.eclipse.xtext</groupId>
+              <artifactId>org.eclipse.xtext.xtext.generator</artifactId>
+              <version>2.42.0</version>
+            </dependency>
+          </dependencies>
+        </plugin>
+        <plugin>
+          <groupId>org.eclipse.xtext</groupId>
+          <artifactId>xtext-maven-plugin</artifactId>
+          <version>2.42.0</version>
+          <dependencies>
+            <dependency>
+              <groupId>org.eclipse.xtext</groupId>
+              <artifactId>org.eclipse.xtend.core</artifactId>
+              <version>2.42.0</version>
+            </dependency>
+          </dependencies>
+        </plugin>
+        <plugin>
+          <groupId>org.eclipse.xtext</groupId>
+          <artifactId>xtend-maven-plugin</artifactId>
+          <version>2.42.0</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
 </project>
