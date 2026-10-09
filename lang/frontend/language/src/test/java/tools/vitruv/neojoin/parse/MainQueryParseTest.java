@@ -48,6 +48,29 @@ class MainQueryParseTest extends AbstractParseTest {
     }
 
     @Test
+    void nonBooleanCondition() {
+        var result = parse("""
+            from Restaurant r
+            where r.name
+            create {}
+            """);
+
+        assertThat(result).hasIssues("Type mismatch: cannot convert from String to boolean");
+    }
+
+    @Test
+    void nonBooleanAdditionalCondition() {
+        var result = parse("""
+            from Restaurant r
+            where r.name.startsWith("Pizzeria")
+            where r.name
+            create {}
+            """);
+
+        assertThat(result).hasIssues("Type mismatch: cannot convert from String to boolean");
+    }
+
+    @Test
     void duplicateTargetName() {
         var result = parse("""
             from Restaurant create Rest {}
