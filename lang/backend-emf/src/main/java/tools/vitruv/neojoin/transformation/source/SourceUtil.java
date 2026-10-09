@@ -25,7 +25,7 @@ public class SourceUtil {
                 case Result.Success(var left) ->
                     rightSource.getEObjects()
                     .map(right ->
-                            TransformatorException.executeCatching(() -> condition.invoke(left, right))
+                            TransformatorException.executeCatching(() -> condition.apply(left, right))
                                 .map(evaluationResult -> Pair.of(right, evaluationResult)))
                     .filter(result ->
                             switch (result) {
@@ -43,7 +43,7 @@ public class SourceUtil {
             ThrowingFunction<T, Boolean, TransformatorException> evaluate
     ) {
         return (result) -> {
-            var evaluationResult = result.bind(it -> TransformatorException.executeCatching(() -> evaluate.invoke(it)));
+            var evaluationResult = result.bind(it -> TransformatorException.executeCatching(() -> evaluate.apply(it)));
 
             return switch (evaluationResult) {
                 case Result.Failure(var failure) -> Stream.of(Result.fail(failure)); // Propagate failure.

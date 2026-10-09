@@ -185,9 +185,9 @@ public class Utils {
         );
     }
 
-    public static <T> Result<T, IOException> executeCatchingIOException(ThrowingSupplyer<T, IOException> fn) {
+    public static <T> Result<T, IOException> executeCatchingIOException(ThrowingSupplier<T, IOException> fn) {
         try {
-            return Result.of(fn.invoke());
+            return Result.of(fn.supply());
         } catch (IOException e) {
             return Result.fail(e);
         }
