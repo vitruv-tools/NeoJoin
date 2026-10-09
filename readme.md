@@ -218,6 +218,18 @@ We use [SonarQube](https://sonarcloud.io/project/overview?id=vitruv-tools_NeoJoi
     npx @vscode/vsce package
     ```
 
+### Integration
+
+To integrate NeoJoin into other projects, such as a custom transpiler, the `NeoJoinStandaloneSetup` serves as a starting point.
+One can create a new setup which extends that setup and then use the `xtext-maven-plugin` to integrate the setup into the build process.
+To customize the behavior, overriding of the injection module is used.
+Overriding the `IGenerator` allows supplying a custom generator.
+A custom implementation of `QueryModelExpressionTypeConfiguration` allows customizing the type of the Java model holding the query expressions.
+By default, NeoJoin creates a Java function per XBase expression in a private `AllQueryExpressions` class.
+A custom implementation of `SourceTypeRegistryInitialization` allows customizing the types used in the source type registry.
+By default, NeoJoin infers the types of the source metamodel using the `SourceModelInferrer` class.
+This means it creates a Java class model for each type in the source metamodel.
+
 ### Notes
 
 * Xtext heavily uses generated classes which means that opening this repository in a Java IDE after cloning will look like a christmas tree. Run `maven compile` to generate all missing classes. To improve compile times afterwards you can skip re-generation of classes by activating the maven profile `skip-workflow`.

@@ -12,6 +12,7 @@ import org.eclipse.emf.ecore.impl.DynamicEObjectImpl;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.xtext.common.types.*;
 import org.eclipse.xtext.common.types.util.TypeReferences;
+import org.eclipse.xtext.conversion.IValueConverterService;
 import org.eclipse.xtext.naming.QualifiedName;
 import org.eclipse.xtext.util.CancelIndicator;
 import org.eclipse.xtext.util.OnChangeEvictingCache;
@@ -175,6 +176,9 @@ public class ExpressionHelper {
         return resolved;
     }
 
+    @Inject
+    private IValueConverterService valueConverterService;
+
     /**
      * If the expression is a field access on an ecore object from a source model, returns the corresponding structural feature, otherwise returns {@code null}.
      *
@@ -193,11 +197,8 @@ public class ExpressionHelper {
                 if (receiverType.getType() != null) {
                     var receiverClassifier = getClassifier(expression, receiverType.getType());
                     if (receiverClassifier instanceof EClass receiverClass) {
-                        var featureName = featureCall.getConcreteSyntaxFeatureName();
-                        if (featureName.startsWith("^")) {
-                            featureName = featureName.substring(1);
-                        }
-                        return receiverClass.getEStructuralFeature(featureName);
+                        var featureName = valueConverterService.toValue(featureCall.getConcreteSyntaxFeatureName(), "ID", null);
+                        return receiverClass.getEStructuralFeature((String) featureName);
                     }
                 }
             }
