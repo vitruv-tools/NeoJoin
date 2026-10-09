@@ -14,11 +14,15 @@ updates:
   commit-message:
     prefix: "Maven"
     include: "scope"
+  ignore:
+  - dependency-name: "org.eclipse.xtext:*" # new updates requires Java 21
   groups:
     ecore:
       patterns:
       - "org.eclipse.emf:org.eclipse.emf.ecore*"
-      - "org.eclipse.xtext:org.eclipse.xtext*"
+    xtext:
+      patterns:
+      - "org.eclipse.xtext:*"
     jte:
       patterns:
       - "gg.jte:*"
@@ -27,10 +31,7 @@ updates:
       - "org.eclipse.lsp4j:*"
     vitruv:
       patterns:
-      - "tools.vitruv:tools.vitruv.change.*"
-    junit:
-      patterns:
-      - "org.junit.jupiter:junit-jupiter-*"
+      - "tools.vitruv:*"
 - package-ecosystem: "npm"
   directory: "/vscode-plugin/"
   schedule:
