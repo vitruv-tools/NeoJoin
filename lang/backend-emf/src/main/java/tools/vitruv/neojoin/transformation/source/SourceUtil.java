@@ -14,7 +14,6 @@ import tools.vitruv.neojoin.utils.ThrowingFunction;
 
 public class SourceUtil {
 
-
     public static Function<Result<InstanceTuple, TransformatorException>, Stream<Result<InstanceTuple, TransformatorException>>> joinAndFilterByCondition(
             FromSource rightSource,
             ThrowingBiFunction<InstanceTuple, EObject, Boolean, TransformatorException> condition
