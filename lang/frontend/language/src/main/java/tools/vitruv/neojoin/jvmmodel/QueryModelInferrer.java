@@ -87,12 +87,12 @@ public class QueryModelInferrer {
                 addJoinExpressions(mainQuery, join.value(), join.index());
         }
 
-            if (mainQuery.getSource().getCondition() != null) {
+            for (var condition : enumerate(mainQuery.getSource().getConditions())) {
                 addExpression(
                     mainQuery.getSource(),
-                    targetName + "_condition",
+                    targetName + "_condition_" + condition.index(),
                     "boolean",
-                    mainQuery.getSource().getCondition(),
+                    condition.value(),
                     paramsForSource(mainQuery.getSource(), false, null)
                 );
             }

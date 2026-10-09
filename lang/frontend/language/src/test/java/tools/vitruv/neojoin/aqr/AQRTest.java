@@ -146,6 +146,25 @@ class AQRTest extends AbstractAQRTest {
     }
 
     @Test
+    void multipleConditions() {
+        var aqr = parse("""
+            from Restaurant r
+            where r.name.startsWith("Pizzeria")
+            where r.name.endsWith("Toni")
+            create Rest {}
+            """);
+
+        assertThat(aqr)
+            .hasTargetClass(
+                "Rest", rest -> {
+                    assertThat(rest)
+                        .hasConditions(2)
+                        .hasNoMoreFeatures();
+                }
+            );
+    }
+
+    @Test
     void grouping() {
         var aqr = parse("""
             from Restaurant r
