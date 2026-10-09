@@ -30,6 +30,7 @@ import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
 import tools.vitruv.neojoin.transformation.source.GroupingSource;
 import tools.vitruv.neojoin.transformation.source.InstanceSourceFactory;
 import tools.vitruv.neojoin.utils.TypeCasts;
+import tools.vitruv.neojoin.utils.ThrowingRunnable;
 
 /**
  * Transforms the given source instance models based on the given {@link AQR query}.
@@ -46,7 +47,7 @@ public class Transformator {
 
     private @Nullable EObject root;
     private final TargetMap targetMap = new TargetMap();
-    private final List<TransformationAction> delayedActions = new ArrayList<>();
+    private final List<ThrowingRunnable<TransformatorException>> delayedActions = new ArrayList<>();
 
     /**
      * Creates a new transformator for transforming the given source instance models into an instance of the given
@@ -75,7 +76,7 @@ public class Transformator {
     /**
      * Register an action to be executed after the instance creation phase.
      */
-    private void later(TransformationAction action) {
+    private void later(ThrowingRunnable<TransformatorException> action) {
         delayedActions.add(action);
     }
 
@@ -370,10 +371,4 @@ public class Transformator {
             return fail();
         }
     }
-
-    @FunctionalInterface
-    interface TransformationAction {
-        void run() throws TransformatorException;
-    }
-
 }
