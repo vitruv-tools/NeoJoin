@@ -2,8 +2,7 @@ package tools.vitruv.neojoin.transformation;
 
 import org.jspecify.annotations.Nullable;
 import tools.vitruv.neojoin.SourceLocation;
-import tools.vitruv.neojoin.utils.Result;
-import tools.vitruv.neojoin.utils.ThrowingSupplier;
+
 
 /**
  * Thrown for user caused errors during transformation. This includes:
@@ -14,14 +13,6 @@ import tools.vitruv.neojoin.utils.ThrowingSupplier;
  * </ul>
  */
 public class TransformatorException extends Exception {
-
-    public static final <T> Result<T, TransformatorException> executeCatching(ThrowingSupplier<T, TransformatorException> fn) {
-        try {
-            return Result.of(fn.supply());
-        } catch (TransformatorException e) {
-            return Result.fail(e);
-        }
-    }
 
     private final @Nullable SourceLocation source;
 
