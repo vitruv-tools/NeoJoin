@@ -1,10 +1,14 @@
 package tools.vitruv.neojoin.transformation.source;
 
+import static tools.vitruv.neojoin.transformation.source.SourceUtil.joinAndFilterByCondition;
+
+import java.util.stream.Stream;
+
 import tools.vitruv.neojoin.aqr.AQRJoin;
 import tools.vitruv.neojoin.transformation.ExpressionEvaluator;
 import tools.vitruv.neojoin.transformation.InstanceTuple;
-
-import java.util.stream.Stream;
+import tools.vitruv.neojoin.transformation.TransformatorException;
+import tools.vitruv.neojoin.utils.Result;
 
 /**
  * Implements an inner join between the given left and right instance sources.
@@ -16,12 +20,9 @@ public class InnerJoinSource extends AbstractJoinSource {
     }
 
     @Override
-    public Stream<InstanceTuple> get() {
-        return leftSource.get().flatMap(left ->
-            rightSource.getEObjects()
-                .filter(right -> evaluateConditions(left, right))
-                .map(right -> new InstanceTuple(left, right))
-        );
+    public Stream<Result<InstanceTuple, TransformatorException>> get() {
+        return leftSource.get()
+            .flatMap(joinAndFilterByCondition(rightSource, this::evaluateConditions));
     }
 
 }

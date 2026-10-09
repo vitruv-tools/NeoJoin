@@ -1,10 +1,9 @@
 package tools.vitruv.neojoin.collector;
 
-import org.eclipse.emf.common.util.URI;
-import org.eclipse.emf.ecore.resource.Resource;
-import org.eclipse.emf.ecore.resource.ResourceSet;
-
 import tools.vitruv.neojoin.utils.Utils;
+import static tools.vitruv.neojoin.utils.Utils.executeCatchingIOException;
+import static tools.vitruv.neojoin.utils.Utils.collectFailingFast;
+import tools.vitruv.neojoin.utils.Result;
 
 import java.io.IOException;
 import java.nio.file.FileSystem;
@@ -12,12 +11,16 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
-import java.nio.file.ProviderNotFoundException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.emf.ecore.resource.ResourceSet;
 
 /**
  * Collects models based on a search paths. Supports both {@link PackageModelCollector meta-models} and
@@ -45,26 +48,37 @@ public abstract class AbstractModelCollector {
 
     protected abstract String fileExtension();
 
-    protected Stream<Resource> collectResourcesAsStream(ResourceSet resourceSet) {
+    protected Stream<Result<Resource, IOException>> collectResourcesAsStream(ResourceSet resourceSet) {
         return paths.stream()
-            .flatMap(path -> getContainedFiles(path).stream())
-            .map(uri -> resourceSet.getResource(uri, true));
+            .<Result<URI, IOException>>flatMap(path ->
+                    executeCatchingIOException(() -> getContainedFiles(path).stream())
+                        .fold(it -> it.map(Result::of), e -> Stream.of(Result.fail(e)))
+                    )
+            .map(result -> result.map(uri -> resourceSet.getResource(uri, true)));
     }
 
-	private List<URI> getContainedFiles(Path fileOrDirectory) {
+	private List<URI> getContainedFiles(Path fileOrDirectory) throws IOException {
 		var extension = fileExtension();
 
 		try (var paths = Files.walk(fileOrDirectory)) {
 			return paths
 				.filter(Files::isRegularFile)
-                .flatMap(file -> isSupportedArchive(file) ? getContainedFilesInArchive(file).stream() : Stream.of(file))
-				.map(path -> URI.createURI(path.toUri().toString()))
-				.filter(uri -> Objects.equals(uri.fileExtension(), extension))
-				.toList();
+                .<Result<Path, IOException>>flatMap(file ->
+                    executeCatchingIOException(() ->
+                            isSupportedArchive(file) ? getContainedFilesInArchive(file).stream() : Stream.of(file))
+                        .fold(it -> it.map(Result::of), e -> Stream.of(Result.fail(e)))
+                )
+                .collect(
+                    collectFailingFast(
+                        Collectors.mapping(
+                            path -> URI.createURI(path.toUri().toString()),
+                            Collectors.filtering(uri -> Objects.equals(uri.fileExtension(), extension), Collectors.toList())
+                        )
+                    )
+                )
+                .valueUnsafe();
 		} catch (NoSuchFileException e) {
-			throw new IllegalArgumentException("File or directory does not exist: " + fileOrDirectory);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
+			throw new NoSuchFileException(fileOrDirectory.toString(), null, e.getMessage());
 		}
 	}
 
@@ -74,19 +88,14 @@ public abstract class AbstractModelCollector {
         return name.endsWith(".jar");
     }
 
-    private static List<Path> getContainedFilesInArchive(Path archive) {
+    private static List<Path> getContainedFilesInArchive(Path archive) throws IOException {
         try (FileSystem archiveFs = FileSystems.newFileSystem(archive, Collections.emptyMap())) {
             return Utils.streamOf(archiveFs.getRootDirectories().iterator())
-                .flatMap(root -> {
-                    try {
-                        return Files.walk(root);
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                })
-                .toList();
-        } catch (IOException | ProviderNotFoundException e) {
-            throw new RuntimeException(e);
+                .<Result<Path, IOException>>flatMap(root ->
+                    executeCatchingIOException(() -> Files.walk(root))
+                        .fold(it -> it.map(Result::of), e -> Stream.of(Result.fail(e))))
+                .collect(collectFailingFast(Collectors.toList()))
+                .valueUnsafe();
         }
     }
 

@@ -1,12 +1,18 @@
 package tools.vitruv.neojoin.transformation.source;
 
+import static tools.vitruv.neojoin.utils.Utils.allMatch;
+import static tools.vitruv.neojoin.utils.Utils.collectFailingFast;
+import static tools.vitruv.neojoin.transformation.ExceptionUtil.executeCatchingTransformatorException;
+
+import java.util.Objects;
+
 import org.eclipse.emf.ecore.EObject;
+
 import tools.vitruv.neojoin.aqr.AQRJoin;
 import tools.vitruv.neojoin.transformation.ExpressionEvaluator;
 import tools.vitruv.neojoin.transformation.InstanceTuple;
+import tools.vitruv.neojoin.transformation.TransformatorException;
 import tools.vitruv.neojoin.utils.Utils;
-
-import java.util.Objects;
 
 /**
  * Abstract base class for join sources that provides functionality for evaluating join conditions.
@@ -27,7 +33,7 @@ public abstract class AbstractJoinSource implements InstanceSource {
         this.evaluator = evaluator;
     }
 
-    protected boolean evaluateConditions(InstanceTuple left, EObject right) {
+    protected boolean evaluateConditions(InstanceTuple left, EObject right) throws TransformatorException {
         return evaluateFeatureConditions(left, right) && evaluateExpressionConditions(left, right);
     }
 
@@ -57,9 +63,12 @@ public abstract class AbstractJoinSource implements InstanceSource {
         return true;
     }
 
-    private boolean evaluateExpressionConditions(InstanceTuple left, EObject right) {
+    private boolean evaluateExpressionConditions(InstanceTuple left, EObject right) throws TransformatorException {
         var context = evaluator.createContext(new InstanceTuple(left, right), join.from());
-        return join.expressionConditions().stream().allMatch(context::evaluateCondition);
+        return join.expressionConditions().stream()
+            .map(expression -> executeCatchingTransformatorException(() -> context.evaluateCondition(expression)))
+            .collect(collectFailingFast(allMatch(it -> it)))
+            .valueUnsafe();
     }
 
 }

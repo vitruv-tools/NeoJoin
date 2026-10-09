@@ -65,13 +65,17 @@ public abstract class AbstractTransformationTest extends AbstractIntegrationTest
     protected EObject internalTransform(String query) {
         var aqr = internalParseAQR(query);
         var targetMetaModel = new MetaModelGenerator(aqr).generate().pack();
-        return new Transformator(
-            getInjector().getInstance(ExpressionHelper.class),
-            aqr,
-            targetMetaModel,
-            instanceModelRegistry,
-            Map.of()
-        ).transform();
+        try {
+            return new Transformator(
+                getInjector().getInstance(ExpressionHelper.class),
+                aqr,
+                targetMetaModel,
+                instanceModelRegistry,
+                Map.of()
+            ).transform();
+        } catch (TransformatorException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
     }
 
 }

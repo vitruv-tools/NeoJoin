@@ -4,7 +4,9 @@ import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import tools.vitruv.neojoin.transformation.InstanceTuple;
+import tools.vitruv.neojoin.transformation.TransformatorException;
 import tools.vitruv.neojoin.utils.EMFUtils;
+import tools.vitruv.neojoin.utils.Result;
 
 import java.util.stream.Stream;
 
@@ -22,8 +24,8 @@ public class FromSource implements InstanceSource {
     }
 
     @Override
-    public Stream<InstanceTuple> get() {
-        return getEObjects().map(InstanceTuple::new);
+    public Stream<Result<InstanceTuple, TransformatorException>> get() {
+        return getEObjects().map(it -> Result.of(new InstanceTuple(it)));
     }
 
     public Stream<EObject> getEObjects() {

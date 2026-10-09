@@ -1,6 +1,7 @@
 package tools.vitruv.neojoin.transformation;
 
 import org.eclipse.emf.ecore.EObject;
+
 import tools.vitruv.neojoin.aqr.AQRTargetClass;
 import tools.vitruv.neojoin.utils.Pair;
 
@@ -72,7 +73,7 @@ public class TargetMap {
      *
      * @throws TransformatorException if none or multiple target instances are mapped to the given source instance and target class
      */
-    public EObject get(EObject source, AQRTargetClass targetClass) {
+    public EObject get(EObject source, AQRTargetClass targetClass) throws TransformatorException {
         return switch (getMapping(source, targetClass)) {
             case One(var value) -> value;
             case None ignored -> throw new TransformatorException(

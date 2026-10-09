@@ -1,5 +1,18 @@
 package tools.vitruv.neojoin.transformation;
 
+import static tools.vitruv.neojoin.utils.Assertions.check;
+import static tools.vitruv.neojoin.utils.Assertions.fail;
+import static tools.vitruv.neojoin.utils.Utils.collectFailingFast;
+import static tools.vitruv.neojoin.utils.Utils.iter;
+import static tools.vitruv.neojoin.transformation.ExceptionUtil.executeCatchingTransformatorException;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EEnum;
@@ -9,6 +22,7 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.jspecify.annotations.Nullable;
+
 import tools.vitruv.neojoin.Formatting;
 import tools.vitruv.neojoin.aqr.AQR;
 import tools.vitruv.neojoin.aqr.AQRFeature;
@@ -17,15 +31,7 @@ import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
 import tools.vitruv.neojoin.transformation.source.GroupingSource;
 import tools.vitruv.neojoin.transformation.source.InstanceSourceFactory;
 import tools.vitruv.neojoin.utils.TypeCasts;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Stream;
-
-import static tools.vitruv.neojoin.utils.Assertions.check;
-import static tools.vitruv.neojoin.utils.Assertions.fail;
+import tools.vitruv.neojoin.utils.ThrowingRunnable;
 
 /**
  * Transforms the given source instance models based on the given {@link AQR query}.
@@ -42,7 +48,7 @@ public class Transformator {
 
     private @Nullable EObject root;
     private final TargetMap targetMap = new TargetMap();
-    private final List<Runnable> delayedActions = new ArrayList<>();
+    private final List<ThrowingRunnable<TransformatorException>> delayedActions = new ArrayList<>();
 
     /**
      * Creates a new transformator for transforming the given source instance models into an instance of the given
@@ -71,7 +77,7 @@ public class Transformator {
     /**
      * Register an action to be executed after the instance creation phase.
      */
-    private void later(Runnable action) {
+    private void later(ThrowingRunnable<TransformatorException> action) {
         delayedActions.add(action);
     }
 
@@ -99,17 +105,20 @@ public class Transformator {
         root = roots.getFirst();
 
         // create other instances
-        aqr.classes().stream()
-            .filter(target -> target != aqr.root())
-            .forEach(target -> {
-                var instances = transformTargetClass(target);
-                var rootRef = root.eClass()
-                    .getEStructuralFeature(Formatting.formatRootReferenceName(target.name()));
-                root.eSet(rootRef, instances);
-            });
+        var targets = aqr.classes().stream()
+            .filter(target -> target != aqr.root());
+
+        for (var target : iter(targets)) {
+            var instances = transformTargetClass(target);
+            var rootRef = root.eClass()
+                .getEStructuralFeature(Formatting.formatRootReferenceName(target.name()));
+            root.eSet(rootRef, instances);
+        }
 
         // phase 2: populate instances
-        delayedActions.forEach(Runnable::run);
+        for (var action : delayedActions) {
+            action.run();
+        }
         delayedActions.clear();
 
         return root;
@@ -121,7 +130,7 @@ public class Transformator {
         return (EClass) clazz;
     }
 
-    private List<EObject> transformTargetClass(AQRTargetClass targetClass) {
+    private List<EObject> transformTargetClass(AQRTargetClass targetClass) throws TransformatorException {
         var clazz = getTargetClass(targetClass.name());
 
         if (targetClass.source() == null) { // no source -> create a single instance
@@ -132,17 +141,26 @@ public class Transformator {
 
             if (targetClass.source().groupingExpressions().isEmpty()) { // no grouping
                 return instanceSource.get()
-                    .map(tuple -> createTransformedInstance(targetClass, clazz, tuple, evaluator))
-                    .toList();
+                    .map(result ->
+                        result.bind(tuple ->
+                            executeCatchingTransformatorException(() ->
+                                createTransformedInstance(targetClass, clazz, tuple, evaluator))))
+                    .collect(collectFailingFast(Collectors.toList()))
+                    .valueUnsafe();
             } else { // with grouping
                 var groupingSource = new GroupingSource(
                     targetClass.source().groupingExpressions(),
                     instanceSource,
                     evaluator
                 );
-                return groupingSource.get()
-                    .map(tupleOfLists -> createTransformedInstance(targetClass, clazz, tupleOfLists, evaluator))
-                    .toList();
+                return
+                    groupingSource.get()
+                        .valueUnsafe()
+                        .map(tupleOfLists ->
+                            executeCatchingTransformatorException(() ->
+                                createTransformedInstance(targetClass, clazz, tupleOfLists, evaluator)))
+                    .collect(collectFailingFast(Collectors.toList()))
+                    .valueUnsafe();
             }
         }
     }
@@ -163,7 +181,7 @@ public class Transformator {
         @Nullable EObject mainSource,
         Stream<@Nullable EObject> allSources,
         ExpressionEvaluator.Context context
-    ) {
+    ) throws TransformatorException {
         check(clazz.getEPackage() == targetMetaModel);
         var targetInstance = targetMetaModel.getEFactoryInstance().create(clazz);
         registerTargetInstance(targetInstance, targetClass, allSources);
@@ -178,13 +196,13 @@ public class Transformator {
      * @param clazz       EClass of the target class
      * @return transformed instance
      */
-    private EObject createTransformedInstance(AQRTargetClass targetClass, EClass clazz) {
+    private EObject createTransformedInstance(AQRTargetClass targetClass, EClass clazz) throws TransformatorException {
         check(targetClass.source() == null);
         var context = ExpressionEvaluator.createContext(expressionHelper);
         return createTransformedInstance(targetClass, clazz, null, Stream.of(), context);
     }
 
-    /**
+   /**
      * Create a transformed instance of the given target class.
      *
      * @param targetClass   AQR target class
@@ -198,11 +216,12 @@ public class Transformator {
         EClass clazz,
         InstanceTuple instanceTuple,
         ExpressionEvaluator evaluator
-    ) {
+    ) throws TransformatorException {
         var mainSource = instanceTuple.stream().findFirst().orElseThrow();
         var context = evaluator.createContext(instanceTuple, null);
         return createTransformedInstance(targetClass, clazz, mainSource, instanceTuple.stream(), context);
     }
+
 
     /**
      * Transform target class with the given grouping instance source.
@@ -212,13 +231,14 @@ public class Transformator {
      * @param tupleOfLists tuple of instance lists
      * @param evaluator    expression evaluator
      * @return list of transformed instances
+     * @throws TransformatorException
      */
     private EObject createTransformedInstance(
         AQRTargetClass targetClass,
         EClass clazz,
         List<List<EObject>> tupleOfLists,
         ExpressionEvaluator evaluator
-    ) {
+    ) throws TransformatorException {
         var context = evaluator.createContext(tupleOfLists.iterator(), null);
         return createTransformedInstance(
             targetClass,
@@ -242,7 +262,7 @@ public class Transformator {
         EObject target,
         @Nullable EObject source,
         ExpressionEvaluator.Context context
-    ) {
+    ) throws TransformatorException {
         for (var feature : targetClass.features()) {
             if (feature.kind() instanceof AQRFeature.Kind.Generate) {
                 continue; // generated features are populated elsewhere
@@ -261,7 +281,7 @@ public class Transformator {
         EObject target,
         @Nullable EObject source,
         ExpressionEvaluator.Context context
-    ) {
+    ) throws TransformatorException {
         var feature = target.eClass().getEStructuralFeature(attribute.name());
         var value = evaluateFeature(attribute.kind(), source, context);
         if (value instanceof EEnumLiteral enumLiteral) {
@@ -297,7 +317,7 @@ public class Transformator {
         EObject target,
         @Nullable EObject source,
         ExpressionEvaluator.Context context
-    ) {
+    ) throws TransformatorException {
         var value = evaluateFeature(ref.kind(), source, context);
         var mappedValue = value != null ? mapInstances(value, ref.type()) : null;
         if (mappedValue != null && ref.options().isContainment()) {
@@ -306,23 +326,27 @@ public class Transformator {
         target.eSet(target.eClass().getEStructuralFeature(ref.name()), mappedValue);
     }
 
-    private Object mapInstances(Object instance, AQRTargetClass target) {
+    private Object mapInstances(Object instance, AQRTargetClass target) throws TransformatorException {
         if (instance instanceof List<?> list) {
-            return list.stream().map(i -> targetMap.get((EObject) i, target)).toList();
+            return list.stream().map(i -> executeCatchingTransformatorException(() -> targetMap.get((EObject) i, target)))
+                .collect(collectFailingFast(Collectors.toList()))
+                .valueUnsafe();
         } else {
             return targetMap.get((EObject) instance, target);
         }
     }
 
-    private void checkNotAlreadyContained(Object value, EObject target, AQRFeature.Reference ref) {
+    private void checkNotAlreadyContained(Object value, EObject target, AQRFeature.Reference ref) throws TransformatorException {
         if (value instanceof List<?> list) {
-            list.forEach(v -> checkNotAlreadyContained((EObject) v, target, ref));
+            for (var v : list) {
+                checkNotAlreadyContained((EObject) v, target, ref);
+            }
         } else {
             checkNotAlreadyContained((EObject) value, target, ref);
         }
     }
 
-    private void checkNotAlreadyContained(EObject value, EObject target, AQRFeature.Reference ref) {
+    private void checkNotAlreadyContained(EObject value, EObject target, AQRFeature.Reference ref) throws TransformatorException {
         if (value.eContainer() != null && value.eContainer() != root) {
             throw new TransformatorException(
                 "cannot add target instance of class '%s' to containment reference '%s.%s' because it is already contained in another instance of class '%s'".formatted(
@@ -338,7 +362,7 @@ public class Transformator {
         AQRFeature.Kind featureKind,
         @Nullable EObject source,
         ExpressionEvaluator.Context context
-    ) {
+    ) throws TransformatorException {
         if (featureKind.expression() != null) {
             return context.evaluateExpression(Objects.requireNonNull(featureKind.expression()));
         } else if (featureKind instanceof AQRFeature.Kind.Copy.Implicit(EStructuralFeature feature)) {
@@ -348,5 +372,4 @@ public class Transformator {
             return fail();
         }
     }
-
 }

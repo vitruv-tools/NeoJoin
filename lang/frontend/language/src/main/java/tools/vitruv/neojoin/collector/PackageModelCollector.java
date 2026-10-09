@@ -8,6 +8,9 @@ import org.eclipse.emf.ecore.xmi.impl.EcoreResourceFactoryImpl;
 import tools.vitruv.neojoin.utils.EMFUtils;
 import tools.vitruv.neojoin.utils.Pair;
 
+import static tools.vitruv.neojoin.utils.Utils.iter;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,7 +32,7 @@ public class PackageModelCollector extends AbstractModelCollector {
         super(searchPathString);
     }
 
-    public Pair<List<Issue>, EPackage.Registry> collect() {
+    public Pair<List<Issue>, EPackage.Registry> collect() throws IOException {
         if (!Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().containsKey(FileExtension)) {
             Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().put(
                 FileExtension, new EcoreResourceFactoryImpl());
@@ -38,15 +41,15 @@ public class PackageModelCollector extends AbstractModelCollector {
         var registry = new EPackageRegistryImpl();
         List<Issue> issues = new ArrayList<>();
 
-        collectResourcesAsStream(new ResourceSetImpl()).forEach(res ->
-            EMFUtils.getAllEPackages(res).forEach(pack -> {
+        for (var res : iter(collectResourcesAsStream(new ResourceSetImpl()))) {
+            EMFUtils.getAllEPackages(res.valueUnsafe()).forEach(pack -> {
                 if (registry.containsKey(pack.getNsURI())) {
                     issues.add(new Issue.PackageURIDuplication(pack.getNsURI()));
                 } else {
                     registry.put(pack.getNsURI(), pack);
                 }
-            })
-        );
+            });
+        }
 
         return new Pair<>(issues, registry);
     }
