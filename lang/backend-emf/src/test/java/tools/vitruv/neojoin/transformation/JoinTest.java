@@ -184,6 +184,80 @@ public class JoinTest extends DefaultTransformationTest {
     }
 
     @Test
+    void joinWithMultipleConditions() {
+        var result = transform("""
+            from Restaurant rest
+            join ReviewPage rev
+                using name
+            where rest.name.startsWith("Pizzeria")
+            where rev.name.endsWith("Toni")
+            create ReviewedRestaurant {
+                ^left = rest.name
+                ^right = rev.name
+            }
+            """);
+
+        assertThat(result)
+            .hasInstance(
+                "ReviewedRestaurant",
+                and(attribute("left", "Pizzeria Toni"), attribute("right", "Pizzeria Toni"))
+            )
+            .hasNoMoreInstances();
+    }
+
+    @Test
+    void multiJoinWithMultipleConditions() {
+        var result = transform("""
+            from Restaurant rest
+            join ReviewPage rev
+                with rest using name
+            join Food f
+                on rest.sells.contains(f)
+            where f.name == "Fanta"
+            where rest.name == "Brauhaus"
+            create FoodWithRestaurant {
+                restaurantName = rest.name
+                reviewPageName = rev.name
+                foodName = f.name
+            }
+            """);
+
+        assertThat(result)
+            .hasInstance(
+                "FoodWithRestaurant",
+                and(
+                    attribute("restaurantName", "Brauhaus"),
+                    attribute("reviewPageName", "Brauhaus"),
+                    attribute("foodName", "Fanta")
+                )
+            )
+            .hasNoMoreInstances();
+    }
+
+    @Test
+    void conditionsAreAppliedAfterLeftJoin() {
+        var result = transform("""
+            from Restaurant rest
+            left join ReviewPage rev
+                using name
+                on rev.name.startsWith("Pizzeria")
+            where rev === null
+            where rest.name.startsWith("B")
+            create ReviewedRestaurant {
+                ^left = rest.name
+                ^right = rev?.name
+            }
+            """);
+
+        assertThat(result)
+            .hasInstance(
+                "ReviewedRestaurant",
+                and(attribute("left", "Brauhaus"), attribute("right", null))
+            )
+            .hasNoMoreInstances();
+    }
+
+    @Test
     void joinOnNullObject() {
         var result = transform("""
             from Restaurant r1

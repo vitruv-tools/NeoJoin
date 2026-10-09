@@ -25,6 +25,29 @@ class MainQueryParseTest extends AbstractParseTest {
     }
 
     @Test
+    void condition() {
+        var result = parse("""
+            from Restaurant r
+            where r.name.startsWith("Pizzeria")
+            create {}
+            """);
+
+        assertThat(result).hasNoIssues();
+    }
+    
+    @Test
+    void multipleConditions() {
+        var result = parse("""
+            from Restaurant r
+            where r.name.startsWith("Pizzeria")
+            where r.name.endsWith("Toni")
+            create {}
+            """);
+
+        assertThat(result).hasNoIssues();
+    }
+
+    @Test
     void duplicateTargetName() {
         var result = parse("""
             from Restaurant create Rest {}

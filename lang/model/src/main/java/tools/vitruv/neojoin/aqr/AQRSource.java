@@ -1,7 +1,6 @@
 package tools.vitruv.neojoin.aqr;
 
 import org.eclipse.xtext.xbase.XExpression;
-import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -11,13 +10,13 @@ import java.util.stream.Stream;
  *
  * @param from                the main source (e.g. {@code from Class c})
  * @param joins               joins
- * @param condition           Xtend expression conditions (e.g. {@code where a + 5 == b})
+ * @param conditions          Xtend expression conditions, all of which must hold (e.g. {@code where a + 5 == b})
  * @param groupingExpressions Xtend expressions to group by (e.g. {@code group by a.name, b.id})
  */
 public record AQRSource(
     AQRFrom from,
     List<AQRJoin> joins,
-    @Nullable XExpression condition,
+    List<XExpression> conditions,
     List<XExpression> groupingExpressions
 ) {
 
