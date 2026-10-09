@@ -6,7 +6,6 @@ import org.eclipse.emf.ecore.resource.Resource;
 
 public final class PackageDuplicationException extends Exception {
 
-
     public PackageDuplicationException(EPackage pkg, Resource resource1, Resource resource2) {
         this(pkg.getName(), resource1.getURI(), resource2.getURI());
     }
