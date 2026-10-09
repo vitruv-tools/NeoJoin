@@ -75,22 +75,34 @@ public class AQRTargetClassAssertions extends AbstractAssert<AQRTargetClassAsser
     public AQRTargetClassAssertions hasCondition() {
         hasSource();
         check(actual.source() != null);
-        Assertions.assertThat(actual.source().condition()).as(
+        Assertions.assertThat(actual.source().conditions()).as(
                 "Expected a condition in %s, but found none",
                 actual.name()
             )
-            .isNotNull();
+            .isNotEmpty();
+        return this;
+    }
+
+    public AQRTargetClassAssertions hasConditions(int count) {
+        hasSource();
+        check(actual.source() != null);
+        Assertions.assertThat(actual.source().conditions()).as(
+                "Expected %d conditions in %s",
+                count,
+                actual.name()
+            )
+            .hasSize(count);
         return this;
     }
 
     public AQRTargetClassAssertions hasNoCondition() {
         isNotNull();
         if (actual.source() != null) {
-            Assertions.assertThat(actual.source().condition()).as(
-                    "Expected no condition in '%s', but found one",
+            Assertions.assertThat(actual.source().conditions()).as(
+                    "Expected no condition in '%s', but found some",
                     actual.name()
                 )
-                .isNull();
+                .isEmpty();
         }
         return this;
     }

@@ -35,6 +35,33 @@ class JoinAQRTest extends AbstractAQRTest {
     }
 
     @Test
+    void joinWithMultipleConditions() {
+        var aqr = parse("""
+            from Restaurant rest
+            join ReviewPage rev
+            where rest.name.startsWith("Pizzeria")
+            where rev.name.endsWith("Toni")
+            create ReviewedRestaurant {
+                label = rev.name
+            }
+            """);
+
+        assertThat(aqr)
+            .hasTargetClass(
+                "ReviewedRestaurant", rest -> {
+                    assertThat(rest)
+                        .sourceIs(lookup("restaurant", "Restaurant"), "rest")
+                        .hasJoin(lookup("reviewpage", "ReviewPage"), "rev", AQRJoin.Type.Inner)
+                        .hasNoMoreJoins()
+                        .hasConditions(2)
+                        .hasCopiedAttribute("label", lookup("reviewpage", "ReviewPage", "name"))
+                        .hasNoMoreFeatures();
+                }
+            )
+            .hasNoMoreTargetClasses();
+    }
+
+    @Test
     void basicJoinWithReference() {
         var aqr = parse("""
             from Restaurant rest
