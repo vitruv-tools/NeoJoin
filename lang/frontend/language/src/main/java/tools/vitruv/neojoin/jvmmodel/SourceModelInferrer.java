@@ -1,5 +1,6 @@
 package tools.vitruv.neojoin.jvmmodel;
 
+import org.eclipse.emf.common.util.Enumerator;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
@@ -108,6 +109,8 @@ public class SourceModelInferrer {
         // package URI serves as a unique identifier to prevent name collisions
         type.setPackageName(eEnum.getEPackage().getNsURI());
         type.setVisibility(JvmVisibility.PUBLIC);
+        // provides access to enum features like literal, name, and value in expressions
+        type.getSuperTypes().add(references.typeRef(Enumerator.class));
 
         for (var literal : eEnum.getELiterals()) {
             var enumLiteral = TypesFactory.eINSTANCE.createJvmEnumerationLiteral();

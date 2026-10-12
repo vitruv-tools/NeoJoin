@@ -37,7 +37,7 @@ MainQuery:
 Source:
     'from' from=From
     joins+=Join*
-    ('where' condition=XOrExpression)?
+    ('where' conditions+=XOrExpression)*
     ('group' 'by' groupingExpressions+=XOrExpression (',' groupingExpressions+=XOrExpression)*)?;
 
 From:

@@ -45,6 +45,33 @@ public class BasicTest extends DefaultTransformationTest {
     }
 
     @Test
+    void multipleConditions() {
+        var result = transform("""
+            from Restaurant r
+            where r.name.startsWith("Pizzeria")
+            where r.name.endsWith("Toni")
+            create { r.name }
+            """);
+
+        assertThat(result)
+            .hasInstance("Restaurant", named("Pizzeria Toni"))
+            .hasNoMoreInstances();
+    }
+
+    @Test
+    void multipleConditionsAreConjunctive() {
+        var result = transform("""
+            from Restaurant r
+            where r.name.startsWith("Pizzeria")
+            where r.name.startsWith("Brau")
+            create { r.name }
+            """);
+
+        assertThat(result)
+            .hasNoMoreInstances();
+    }
+
+    @Test
     void expression() {
         var result = transform("""
             from Restaurant r create {
