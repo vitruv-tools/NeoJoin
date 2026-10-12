@@ -65,6 +65,11 @@ public sealed interface Result<T extends @Nullable Object, E extends Throwable> 
 		public <V> V fold(Function<T, V> success, Function<E, V> error) {
             return success.apply(value());
 		}
+
+		@Override
+        public boolean equals(Object other) {
+            return other instanceof Result.Success success && success.value().equals(this.value());
+        }
     }
 
     record Failure<T, E extends Throwable>(
@@ -106,6 +111,11 @@ public sealed interface Result<T extends @Nullable Object, E extends Throwable> 
 		public <V> V fold(Function<T, V> success, Function<E, V> error) {
             return error.apply(throwable());
 		}
+
+		@Override
+        public boolean equals(Object other) {
+            return other instanceof Result.Failure failure && failure.throwable().equals(this.throwable());
+        }
     }
 
     static <T, E extends Throwable> Result<T, E> of(T value) {
