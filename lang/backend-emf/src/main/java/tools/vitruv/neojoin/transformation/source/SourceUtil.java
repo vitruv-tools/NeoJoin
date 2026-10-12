@@ -11,7 +11,6 @@ import org.eclipse.emf.ecore.EObject;
 import tools.vitruv.neojoin.transformation.InstanceTuple;
 import tools.vitruv.neojoin.transformation.TransformatorException;
 import tools.vitruv.neojoin.utils.Result;
-import tools.vitruv.neojoin.utils.Pair;
 import tools.vitruv.neojoin.utils.ThrowingBiFunction;
 import tools.vitruv.neojoin.utils.ThrowingFunction;
 
@@ -20,25 +19,21 @@ public class SourceUtil {
     public static Function<Result<InstanceTuple, TransformatorException>, Stream<Result<InstanceTuple, TransformatorException>>> joinAndFilterByCondition(
             FromSource rightSource,
             ThrowingBiFunction<InstanceTuple, EObject, Boolean, TransformatorException> condition
-        ) {
-        return (leftResult) ->
-            switch (leftResult) {
-                case Result.Failure<?, TransformatorException> failure -> Stream.of(failure.cast());
-                case Result.Success(var left) ->
-                    rightSource.getEObjects()
-                    .map(right ->
-                            executeCatchingTransformatorException(() -> condition.apply(left, right))
-                                .map(evaluationResult -> Pair.of(right, evaluationResult)))
-                    .filter(result ->
-                            switch (result) {
-                                case Result.Failure(var failure) -> true; // Do not filter out, in order to propagate failure.
-                                case Result.Success(Pair(var ignored, var evaluationResult))  -> (boolean) evaluationResult;
-                            })
-                    .map(result -> result.map(it ->
-                            switch (it) {
-                                case Pair(var right, var ignored) -> new InstanceTuple(left, right);
-                            }));
-            };
+    ) {
+        return leftResult -> leftResult.fold(
+            left -> rightSource.getEObjects().flatMap(right -> {
+                try {
+                    var evaluated = condition.apply(left, right);
+                    var tuple = new InstanceTuple(left, right);
+                    return Stream.of(tuple)
+                            .filter(ignored -> evaluated)
+                            .map(Result::of);
+                } catch (TransformatorException e) {
+                    return Stream.of(Result.fail(e));
+                }
+            }),
+            e -> Stream.of(Result.fail(e))
+        );
     }
 
     public static <T> Function<Result<T, TransformatorException>, Stream<Result<T, TransformatorException>>> evaluateAndFilterByCondition(
