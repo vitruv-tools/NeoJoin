@@ -51,6 +51,13 @@ public class PackageModelCollector extends AbstractModelCollector {
             });
         }
 
+        // Remove packages with duplicated URI, since it is impossible to determine which one is intended.
+        for (var issue : issues) {
+            if (issue instanceof Issue.PackageURIDuplication pkgDupplicationIssue) {
+                registry.remove(pkgDupplicationIssue.packageUri);
+            }
+        }
+
         return new Pair<>(issues, registry);
     }
 
