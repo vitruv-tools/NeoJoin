@@ -71,18 +71,6 @@ public class Utils {
         return it.next();
     }
 
-    public static <T> void forEachIndexed(Iterator<T> it, BiConsumer<T, Integer> consumer) {
-        var index = 0;
-        while (it.hasNext()) {
-            consumer.accept(it.next(), index);
-            index++;
-        }
-    }
-
-    public static <T> void forEachIndexed(Iterable<T> iterable, BiConsumer<T, Integer> consumer) {
-        forEachIndexed(iterable.iterator(), consumer);
-    }
-
     /**
      * Returns a stream which contains all elements from the given stream if there are any. If the given stream is empty,
      * returns a stream with a single value retrieved from the given default value supplier.
@@ -128,17 +116,4 @@ public class Utils {
             false
         );
     }
-
-    /**
-     * Returns a stream of pairs containing each element from the given input stream and its index in the stream.
-     *
-     * @param stream the stream to index
-     * @return stream of pairs containing each element and its index
-     */
-    public static <T> Stream<Pair<T, Integer>> indexed(Stream<T> stream) {
-        var index = new Mutable<>(0);
-        //noinspection DataFlowIssue - false positive
-        return stream.map(e -> new Pair<>(e, index.value++));
-    }
-
 }

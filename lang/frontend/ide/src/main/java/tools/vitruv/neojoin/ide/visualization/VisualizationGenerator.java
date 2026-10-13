@@ -10,8 +10,9 @@ import tools.vitruv.neojoin.aqr.AQR;
 import tools.vitruv.neojoin.aqr.AQRImport;
 import tools.vitruv.neojoin.generation.ModelInfo;
 import tools.vitruv.neojoin.utils.EMFUtils;
+
+import static tools.vitruv.neojoin.utils.Enumerated.enumerated;
 import tools.vitruv.neojoin.utils.Pair;
-import tools.vitruv.neojoin.utils.Utils;
 
 import java.util.Comparator;
 import java.util.HashSet;
@@ -91,14 +92,14 @@ public class VisualizationGenerator {
                 () -> "No import for package: %s (%s)".formatted(rootPack.getName(), rootPack.getNsURI())
             );
 
-            return Utils.indexed(EMFUtils.getFullyQualifiedNameAsStream(pack))
+            return EMFUtils.getFullyQualifiedNameAsStream(pack)
+                .map(enumerated())
                 .map(part -> {
-                    //noinspection DataFlowIssue - false positive
-                    if (part.right() == 0) {
+                    if (part.index() == 0) {
                         // first part is the root package, use import alias
                         return imp.alias();
                     } else {
-                        return part.left();
+                        return part.value();
                     }
                 })
                 .collect(Collectors.joining("."));

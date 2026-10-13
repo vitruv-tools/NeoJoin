@@ -31,8 +31,8 @@ public class InstanceSourceFactory {
         for (var join : source.joins()) {
             result = createJoin(join, result, createFrom(join.from()), evaluator);
         }
-        if (source.condition() != null) {
-            result = createFilter(source.condition(), result, evaluator);
+        for (var condition : source.conditions()) {
+            result = createFilter(condition, result, evaluator);
         }
         return result;
     }
