@@ -1,7 +1,6 @@
 package tools.vitruv.neojoin.collector;
 
 import tools.vitruv.neojoin.utils.Utils;
-import static tools.vitruv.neojoin.utils.Utils.executeCatchingIOException;
 import static tools.vitruv.neojoin.utils.Utils.collectFailingFast;
 import tools.vitruv.neojoin.utils.Result;
 
@@ -51,7 +50,7 @@ public abstract class AbstractModelCollector {
     protected Stream<Result<Resource, IOException>> collectResourcesAsStream(ResourceSet resourceSet) {
         return paths.stream()
             .<Result<URI, IOException>>flatMap(path ->
-                    executeCatchingIOException(() -> getContainedFiles(path).stream())
+                    Result.executeCatching(IOException.class, () -> getContainedFiles(path).stream())
                         .fold(it -> it.map(Result::of), e -> Stream.of(Result.fail(e)))
                     )
             .map(result -> result.map(uri -> resourceSet.getResource(uri, true)));
@@ -64,7 +63,7 @@ public abstract class AbstractModelCollector {
 			return paths
 				.filter(Files::isRegularFile)
                 .<Result<Path, IOException>>flatMap(file ->
-                    executeCatchingIOException(() ->
+                    Result.executeCatching(IOException.class, () ->
                             isSupportedArchive(file) ? getContainedFilesInArchive(file).stream() : Stream.of(file))
                         .fold(it -> it.map(Result::of), e -> Stream.of(Result.fail(e)))
                 )
@@ -92,7 +91,7 @@ public abstract class AbstractModelCollector {
         try (FileSystem archiveFs = FileSystems.newFileSystem(archive, Collections.emptyMap())) {
             return Utils.streamOf(archiveFs.getRootDirectories().iterator())
                 .<Result<Path, IOException>>flatMap(root ->
-                    executeCatchingIOException(() -> Files.walk(root))
+                    Result.executeCatching(IOException.class, () -> Files.walk(root))
                         .fold(it -> it.map(Result::of), e -> Stream.of(Result.fail(e))))
                 .collect(collectFailingFast(Collectors.toList()))
                 .valueUnsafe();

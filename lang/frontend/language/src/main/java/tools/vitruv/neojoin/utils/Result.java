@@ -15,6 +15,28 @@ import org.jspecify.annotations.Nullable;
 @SuppressWarnings("unused") // suppress unused generic T since it is needed
 public sealed interface Result<T extends @Nullable Object, E extends Throwable> {
 
+    public static <T, E extends Exception> Result<T, E>  executeCatching(
+            Class<E> exceptionType,
+            ThrowingSupplier<T, E> f)
+    {
+        try {
+            return Result.of(f.supply());
+        } catch (Exception e) {
+            if (exceptionType.isInstance(e)) {
+                @SuppressWarnings("unchecked")
+                var castedException = (E) e;
+                return Result.fail(castedException);
+            } else if (e instanceof RuntimeException) {
+                throw (RuntimeException) e;
+            } else {
+                /* Due to checked exceptions this case can not occur.
+                 * This is because the only checked exceptions that can be thrown by
+                 * f have to be of type E. */
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
     <V> Result<V, E> map(Function<T, V> function);
 
     <V> Result<V, E> bind(Function<T, Result<V, E>> function);

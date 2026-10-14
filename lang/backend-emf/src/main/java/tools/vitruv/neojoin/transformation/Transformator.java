@@ -4,7 +4,6 @@ import static tools.vitruv.neojoin.utils.Assertions.check;
 import static tools.vitruv.neojoin.utils.Assertions.fail;
 import static tools.vitruv.neojoin.utils.Utils.collectFailingFast;
 import static tools.vitruv.neojoin.utils.Utils.iter;
-import static tools.vitruv.neojoin.transformation.ExceptionUtil.executeCatchingTransformatorException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +31,7 @@ import tools.vitruv.neojoin.transformation.source.GroupingSource;
 import tools.vitruv.neojoin.transformation.source.InstanceSourceFactory;
 import tools.vitruv.neojoin.utils.TypeCasts;
 import tools.vitruv.neojoin.utils.ThrowingRunnable;
+import tools.vitruv.neojoin.utils.Result;
 
 /**
  * Transforms the given source instance models based on the given {@link AQR query}.
@@ -143,7 +143,7 @@ public class Transformator {
                 return instanceSource.get()
                     .map(result ->
                         result.bind(tuple ->
-                            executeCatchingTransformatorException(() ->
+                            Result.executeCatching(TransformatorException.class, () ->
                                 createTransformedInstance(targetClass, clazz, tuple, evaluator))))
                     .collect(collectFailingFast(Collectors.toList()))
                     .valueUnsafe();
@@ -157,7 +157,7 @@ public class Transformator {
                     groupingSource.get()
                         .valueUnsafe()
                         .map(tupleOfLists ->
-                            executeCatchingTransformatorException(() ->
+                            Result.executeCatching(TransformatorException.class, () ->
                                 createTransformedInstance(targetClass, clazz, tupleOfLists, evaluator)))
                     .collect(collectFailingFast(Collectors.toList()))
                     .valueUnsafe();
@@ -328,7 +328,7 @@ public class Transformator {
 
     private Object mapInstances(Object instance, AQRTargetClass target) throws TransformatorException {
         if (instance instanceof List<?> list) {
-            return list.stream().map(i -> executeCatchingTransformatorException(() -> targetMap.get((EObject) i, target)))
+            return list.stream().map(i -> Result.executeCatching(TransformatorException.class, () -> targetMap.get((EObject) i, target)))
                 .collect(collectFailingFast(Collectors.toList()))
                 .valueUnsafe();
         } else {

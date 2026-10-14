@@ -1,8 +1,6 @@
 package tools.vitruv.neojoin.transformation.source;
 
 
-import static tools.vitruv.neojoin.transformation.ExceptionUtil.executeCatchingTransformatorException;
-
 import java.util.function.Function;
 import java.util.stream.Stream;
 

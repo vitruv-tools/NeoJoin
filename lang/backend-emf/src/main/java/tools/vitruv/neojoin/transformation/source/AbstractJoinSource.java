@@ -2,7 +2,6 @@ package tools.vitruv.neojoin.transformation.source;
 
 import static tools.vitruv.neojoin.utils.Utils.allMatch;
 import static tools.vitruv.neojoin.utils.Utils.collectFailingFast;
-import static tools.vitruv.neojoin.transformation.ExceptionUtil.executeCatchingTransformatorException;
 
 import java.util.Objects;
 
@@ -13,6 +12,7 @@ import tools.vitruv.neojoin.transformation.ExpressionEvaluator;
 import tools.vitruv.neojoin.transformation.InstanceTuple;
 import tools.vitruv.neojoin.transformation.TransformatorException;
 import tools.vitruv.neojoin.utils.Utils;
+import tools.vitruv.neojoin.utils.Result;
 
 /**
  * Abstract base class for join sources that provides functionality for evaluating join conditions.
@@ -66,7 +66,7 @@ public abstract class AbstractJoinSource implements InstanceSource {
     private boolean evaluateExpressionConditions(InstanceTuple left, EObject right) throws TransformatorException {
         var context = evaluator.createContext(new InstanceTuple(left, right), join.from());
         return join.expressionConditions().stream()
-            .map(expression -> executeCatchingTransformatorException(() -> context.evaluateCondition(expression)))
+            .map(expression -> Result.executeCatching(TransformatorException.class, () -> context.evaluateCondition(expression)))
             .collect(collectFailingFast(allMatch(it -> it)))
             .valueUnsafe();
     }

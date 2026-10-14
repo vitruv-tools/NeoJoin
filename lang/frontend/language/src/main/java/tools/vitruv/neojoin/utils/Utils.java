@@ -1,6 +1,5 @@
 package tools.vitruv.neojoin.utils;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -103,14 +102,6 @@ public class Utils {
             container -> container.get(0).map(finisher),
             characteristics
         );
-    }
-
-    public static <T> Result<T, IOException> executeCatchingIOException(ThrowingSupplier<T, IOException> fn) {
-        try {
-            return Result.of(fn.supply());
-        } catch (IOException e) {
-            return Result.fail(e);
-        }
     }
 
     /**

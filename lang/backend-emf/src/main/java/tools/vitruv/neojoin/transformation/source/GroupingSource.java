@@ -20,7 +20,6 @@ import java.util.stream.Stream;
 import static tools.vitruv.neojoin.utils.Enumerated.enumerate;
 import static tools.vitruv.neojoin.utils.Assertions.check;
 import static tools.vitruv.neojoin.utils.Utils.collectFailingFast;
-import static tools.vitruv.neojoin.transformation.ExceptionUtil.executeCatchingTransformatorException;
 
 /**
  * Mimics the {@link InstanceSource instance source interface} for a {@code group by} clause. However, this class does
@@ -60,7 +59,7 @@ public class GroupingSource {
     private List<?> getGroupingKey(InstanceTuple tuple) throws TransformatorException {
         var context = evaluator.createContext(tuple, null);
         return groupingExpressions.stream()
-            .map(expression -> executeCatchingTransformatorException(() -> context.evaluateExpression(expression)))
+            .map(expression -> Result.executeCatching(TransformatorException.class, () -> context.evaluateExpression(expression)))
             .collect(collectFailingFast(Collectors.toList()))
             .valueUnsafe();
     }
