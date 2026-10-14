@@ -20,12 +20,12 @@ public class SourceUtil {
             FromSource rightSource,
             ThrowingBiFunction<InstanceTuple, EObject, Boolean, TransformatorException> condition
     ) {
-        return leftResult -> leftResult.fold(
+    return leftResult ->
+        leftResult.fold(
             left -> rightSource.getEObjects().flatMap(right -> {
                 try {
                     var evaluated = condition.apply(left, right);
-                    var tuple = new InstanceTuple(left, right);
-                    return Stream.of(tuple)
+                    return Stream.of(new InstanceTuple(left, right))
                             .filter(ignored -> evaluated)
                             .map(Result::of);
                 } catch (TransformatorException e) {
@@ -40,7 +40,7 @@ public class SourceUtil {
             ThrowingFunction<T, Boolean, TransformatorException> evaluate
     ) {
         return (result) -> {
-            var evaluationResult = result.bind(it -> executeCatchingTransformatorException(() -> evaluate.apply(it)));
+            var evaluationResult = result.bind(it -> Result.executeCatching(TransformatorException.class, () -> evaluate.apply(it)));
 
             return switch (evaluationResult) {
                 case Result.Failure(var failure) -> Stream.of(Result.fail(failure)); // Propagate failure.
