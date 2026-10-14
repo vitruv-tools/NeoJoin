@@ -377,8 +377,8 @@
                 const centerX = (this.#visualization.scrollWidth - this.#visualization.viewRect.width)/2
                 const centerY = (this.#visualization.scrollHeight - this.#visualization.viewRect.height)/2
 
-                this.#visualization.scrollX = centerX + (oldCenterX - oldScrollX) * zoom/oldZoom
-                this.#visualization.scrollY = centerY + (oldCenterY - oldScrollY) * zoom/oldZoom
+                this.#visualization.scrollX = centerX + (oldScrollX - oldCenterX) * zoom/oldZoom
+                this.#visualization.scrollY = centerY + (oldScrollY - oldCenterY) * zoom/oldZoom
             }
 
             #zoomUpdateSelection() {
