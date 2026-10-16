@@ -13,4 +13,9 @@ import org.jspecify.annotations.Nullable;
 public record Pair<L extends @Nullable Object, R extends @Nullable Object>(
     L left,
     R right
-) {}
+) {
+
+    public static <L extends @Nullable Object, R extends @Nullable Object> Pair<L, R> of(L left, R right) {
+        return new Pair<L,R>(left, right);
+    }
+}
