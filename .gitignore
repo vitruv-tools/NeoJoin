@@ -1,4 +1,6 @@
 .vscode
 *.log
 .idea
+
+codebook.toml
 CLAUDE*.md
