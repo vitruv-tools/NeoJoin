@@ -5,25 +5,46 @@ import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.common.util.WrappedException;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
+import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.emf.ecore.resource.ResourceSet;
+import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.util.Diagnostician;
+import org.eclipse.emf.ecore.util.EcoreUtil;
+import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 import org.eclipse.xtext.validation.Issue;
 import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
+
 import picocli.CommandLine;
 import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
+
 import tools.vitruv.neojoin.NeoJoinStandaloneSetup;
 import tools.vitruv.neojoin.Parser;
 import tools.vitruv.neojoin.SourceLocation;
+import tools.vitruv.neojoin.aqr.AQR;
 import tools.vitruv.neojoin.collector.InstanceModelCollector;
 import tools.vitruv.neojoin.collector.PackageModelCollector;
+import tools.vitruv.neojoin.expression_parser.parser.exception.UnsupportedReferenceExpressionException;
+import tools.vitruv.neojoin.expression_parser.parser.strategy.manual_pattern_matching.ManualPatternMatchingStrategy;
 import tools.vitruv.neojoin.generation.MetaModelGenerator;
+import tools.vitruv.neojoin.generation.ModelInfo;
+import tools.vitruv.neojoin.tgg.emsl_utils.EmslMetamodelGenerator;
+import tools.vitruv.neojoin.tgg.emsl_utils.EmslModelGenerator;
+import tools.vitruv.neojoin.tgg.emsl_utils.EmslUtils;
 import tools.vitruv.neojoin.transformation.Transformator;
 import tools.vitruv.neojoin.transformation.TransformatorException;
 import tools.vitruv.neojoin.utils.EMFUtils;
 import tools.vitruv.neojoin.utils.Utils;
+import tools.vitruv.optggs.driver.API;
+import tools.vitruv.optggs.driver.Metamodel;
+import tools.vitruv.optggs.driver.Model;
+import tools.vitruv.optggs.driver.Project;
+import tools.vitruv.optggs.operators.View;
+import tools.vitruv.optggs.operators.ViewExtractor;
+import tools.vitruv.optggs.transpiler.LocalNameResolver;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -46,7 +67,6 @@ import java.util.concurrent.Callable;
         "  - Windows: C:\\path\\to\\directory;C:/path/to/file.ecore",
     })
 public class Main implements Callable<Integer> {
-
     @Parameters(index = "0", paramLabel = "QUERY", description = "Path to the query file.")
     Path queryFile;
 
@@ -80,6 +100,22 @@ public class Main implements Callable<Integer> {
 
     }
 
+    @ArgGroup(exclusive = false, heading = "Generate Triple Graph Grammar (TGG) rules:%n")
+    @Nullable
+    TGGRuleGeneration tggRuleGeneration;
+
+    static class TGGRuleGeneration {
+
+        @Option(names = {"-tgg", "--generate-tgg-rules"}, paramLabel = "GENERATE TGG RULES", required = true, description = "Generate the corresponding TGG rules and write them to the given output directory")
+        Path output;
+
+        @Option(names = {"--source-model-path"}, paramLabel = "SOURCE_MODEL_PATH", description = "Optional: Path to the source model for the TGG transformation")
+        Path sourceModelPath;
+
+        @Option(names = {"--target-model-path"}, paramLabel = "TARGET_MODEL_PATH", description = "Optional: Path to the target model for the TGG transformation")
+        Path targetModelPath;
+    }
+
     /**
      * CLI entry point.
      *
@@ -100,6 +136,8 @@ public class Main implements Callable<Integer> {
             }
         } catch (IOException e) {
             printError("Failed to write output: %s", e.getMessage());
+        } catch (UnsupportedReferenceExpressionException e) {
+            printError("Unsupported expression detected: %s", e.getMessage());
         } catch (WrappedException e) {
             printError("Failed to read input model: %s", e.getMessage());
         }
@@ -125,9 +163,15 @@ public class Main implements Callable<Integer> {
      *
      * @return exit code
      */
-    private int execute() throws IOException {
+    private int execute() throws IOException, UnsupportedReferenceExpressionException {
         // collect available meta-models
         EPackage.Registry registry = new PackageModelCollector(metaModelPath).collect();
+        ResourceSet sourceMetaModelResourceSet = new ResourceSetImpl();
+        registry.values().stream()
+            .filter(EPackage.class::isInstance)
+            .map(EPackage.class::cast)
+            .map(EPackage::eResource)
+            .forEach(sourceMetaModelResourceSet.getResources()::add);
 
         // parse query
         var setup = new NeoJoinStandaloneSetup(registry);
@@ -139,9 +183,9 @@ public class Main implements Callable<Integer> {
             return 1;
         }
 
-        if (generate == null && transform == null) {
+        if (generate == null && transform == null && tggRuleGeneration == null) {
             // neither generation nor transformation requested
-            System.out.println("Query is valid. Use --generate or --transform for further processing.");
+            System.out.println("Query is valid. Use additional commands for further processing.");
             return 0;
         }
 
@@ -151,7 +195,9 @@ public class Main implements Callable<Integer> {
         var targetMetaModel = new MetaModelGenerator(aqr).generate();
         printIssues(targetMetaModel.diagnostic());
         if (generate != null) {
-            EMFUtils.save(getOutputURI(generate.output, "ecore"), targetMetaModel.pack());
+            EPackage targetMetamodelPackage = targetMetaModel.pack();
+            EMFUtils.save(getOutputURI(generate.output, "ecore"), targetMetamodelPackage);
+            registry.put(targetMetamodelPackage.getNsURI(), targetMetamodelPackage);
         }
 
         if (transform != null) {
@@ -165,9 +211,83 @@ public class Main implements Callable<Integer> {
             ).transform();
             EMFUtils.save(getOutputURI(transform.output, "xmi"), targetInstanceModel);
             validateInstanceModel(targetInstanceModel);
+
+        }
+
+        if (tggRuleGeneration != null) {
+            if (generate == null) {
+                printError(
+                        "TGG rule generation requires executing the Metamodel generation (--generate) too");
+                return 1;
+            }
+
+            generateTripleGraphGrammarProject(sourceMetaModelResourceSet, targetMetaModel, aqr, registry);
         }
 
         return 0;
+    }
+
+    private void generateTripleGraphGrammarProject(
+            ResourceSet sourceMetaModelResourceSet,
+            ModelInfo targetMetaModel,
+            AQR aqr,
+            EPackage.Registry registry)
+            throws UnsupportedReferenceExpressionException {
+        if (tggRuleGeneration == null) {
+            return;
+        }
+
+        // Generate metamodel(s) for eMoflon
+        final Path sourceMetamodelPath = Path.of("target/emsl-source-metamodel.msl");
+        EmslMetamodelGenerator.generateMetamodels(sourceMetaModelResourceSet, sourceMetamodelPath);
+
+        final ResourceSet targetMetaModelResourceSet = new ResourceSetImpl();
+        targetMetaModelResourceSet.getResources().add(targetMetaModel.pack().eResource());
+        final Path targetMetamodelPath = Path.of("target/emsl-target-metamodel.msl");
+        EmslMetamodelGenerator.generateMetamodels(targetMetaModelResourceSet, targetMetamodelPath);
+
+        // TODO: How to choose Project name?
+        final Project project = new Project("TestTGGProjectV2");
+        project.addSourceMetamodel(new Metamodel(sourceMetamodelPath));
+        project.addTargetMetamodel(new Metamodel(targetMetamodelPath));
+        final View view = ViewExtractor.viewFromAQR(aqr, new ManualPatternMatchingStrategy());
+
+        if (tggRuleGeneration.sourceModelPath != null) {
+            final Path sourceModelOutputPath = Path.of("target/emsl-source-model.msl");
+            final String sourceModelName =
+                    convertEcoreModelToEmslAndGetModelName(
+                            registry, tggRuleGeneration.sourceModelPath, sourceModelOutputPath);
+
+            project.addSourceModel(new Model(sourceModelName, sourceModelOutputPath));
+        }
+
+        if (tggRuleGeneration.targetModelPath != null) {
+            final Path targetModelOutputPath = Path.of("target/emsl-target-model.msl");
+            final String targetModelName =
+                    convertEcoreModelToEmslAndGetModelName(
+                            registry, tggRuleGeneration.targetModelPath, targetModelOutputPath);
+
+            project.addTargetModel(new Model(targetModelName, targetModelOutputPath));
+        }
+
+        API.generateProjectForView(
+                project, view, tggRuleGeneration.output, new LocalNameResolver());
+    }
+
+    private static String convertEcoreModelToEmslAndGetModelName(
+            EPackage.Registry registry, Path modelPath, Path outputPath) {
+        ResourceSet modelResourceSet = new ResourceSetImpl();
+        modelResourceSet.getPackageRegistry().putAll(registry);
+        modelResourceSet
+                .getResourceFactoryRegistry()
+                .getExtensionToFactoryMap()
+                .put(Resource.Factory.Registry.DEFAULT_EXTENSION, new XMIResourceFactoryImpl());
+        Resource sourceModelResource =
+                modelResourceSet.getResource(URI.createFileURI(modelPath.toString()), true);
+        EcoreUtil.resolveAll(sourceModelResource);
+
+        EmslModelGenerator.generateModels(modelResourceSet, outputPath);
+        return EmslUtils.extractModelName(sourceModelResource.getURI());
     }
 
     private static void printIssues(List<Issue> issues) {

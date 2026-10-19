@@ -1,10 +1,13 @@
 package tools.vitruv.optggs.transpiler;
 
 import tools.vitruv.optggs.operators.FQN;
-import tools.vitruv.optggs.transpiler.tgg.CorrespondenceType;
-import tools.vitruv.optggs.transpiler.tgg.Correspondence;
-import tools.vitruv.optggs.transpiler.tgg.Node;
-import tools.vitruv.optggs.transpiler.tgg.TripleRule;
+import tools.vitruv.optggs.transpiler.graph.pattern.GraphPattern;
+import tools.vitruv.optggs.transpiler.graph.tgg.Correspondence;
+import tools.vitruv.optggs.transpiler.graph.tgg.CorrespondenceType;
+import tools.vitruv.optggs.transpiler.graph.tgg.TGGNode;
+import tools.vitruv.optggs.transpiler.graph.tgg.TripleRule;
+
+import java.util.UUID;
 
 public interface NameResolver {
     String resolveName(FQN fqn);
@@ -18,19 +21,26 @@ public interface NameResolver {
     }
 
     default String resolveRuleName(TripleRule rule) {
-        if (rule.isLinkRule()) {
-            // Link rule
-            var originNodes = rule.allSourcesAsSlice().filterMapNodes(node -> !node.links().isEmpty(), node -> node.type().localName());
-            var destinationNodes = rule.allSourcesAsSlice().filterMapNodes(node -> node.links().isEmpty(), node -> node.type().localName());
-            return "Link" + String.join("And", originNodes) + "To" + String.join("And", destinationNodes);
-        } else {
-            // Select rule
-            var greenSources = rule.allSourcesAsSlice().findNodes(Node::isGreen);
-            var greenTargets = rule.allTargetsAsSlice().findNodes(Node::isGreen);
-            var sources = greenSources.stream().map(node -> node.type().localName()).toList();
-            var targets = greenTargets.stream().map(node -> node.type().localName()).toList();
-            return "Select" + String.join("And", sources)
-                    + "As" + String.join("And", targets);
+        var greenSources = rule.allSourcesAsSlice().findNodes(TGGNode::isGreen);
+        var greenTargets = rule.allTargetsAsSlice().findNodes(TGGNode::isGreen);
+        var sources = greenSources.stream().map(node -> node.getType().localName()).toList();
+        var targets = greenTargets.stream().map(node -> node.getType().localName()).toList();
+        return "Transform"
+                + String.join("And", sources)
+                + "To"
+                + String.join("And", targets)
+                + toAlphanumeric(rule.getId());
+    }
+
+    default String resolvePatternName(GraphPattern pattern) {
+        return "Pattern" + toAlphanumeric(pattern.getId());
         }
+
+    default String resolveConstraintName(GraphPattern pattern) {
+        return "No" + resolvePatternName(pattern);
+    }
+
+    private static String toAlphanumeric(UUID id) {
+        return id.toString().replace("-", "");
     }
 }

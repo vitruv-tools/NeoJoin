@@ -33,7 +33,7 @@ class SimpleProjectionTest {
         var queries = resolve(view);
         assertEquals(1, queries.size());
         var query = queries.get(0);
-        assertEquals("[src: [<++a: pkg.A;;.id==<id>>] tgt: [<++a': t.A';;.id==<id>>] corr: [++a<-->a']]", query.toRules().toString());
+        assertEquals("[src: [<++a: pkg.A;;.id==<id>>] tgt: [<++a': t.A';;.id==<id>>] corr: [++a<-->a']]", query.getGeneratedRules().toString());
     }
 
     @Test
@@ -46,7 +46,7 @@ class SimpleProjectionTest {
         var queries = resolve(view);
         assertEquals(1, queries.size());
         var query = queries.get(0);
-        assertEquals("[src: [<++a: pkg.A;-[b]->b;>, <b: pkg.B;;.id==<id>>] tgt: [<++a': t.A';;.id==<id>>] corr: [++a<-->a']]", query.toRules().toString());
+        assertEquals("[src: [<++a: pkg.A;-[b]->b;>, <b: pkg.B;;.id==<id>>] tgt: [<++a': t.A';;.id==<id>>] corr: [++a<-->a']]", query.getGeneratedRules().toString());
     }
 
     @Test
@@ -59,7 +59,7 @@ class SimpleProjectionTest {
         var queries = resolve(view);
         assertEquals(1, queries.size());
         var query = queries.get(0);
-        assertEquals("[src: [<++a: pkg.A;;.id==<id>>] tgt: [<++a': t.A';++-[b]->b';>, <++b': t.B';;.id==<id>>] corr: [++a<-->a', ++a<-->b']]", query.toRules().toString());
+        assertEquals("[src: [<++a: pkg.A;;.id==<id>>] tgt: [<++a': t.A';++-[b]->b';>, <++b': t.B';;.id==<id>>] corr: [++a<-->a', ++a<-->b']]", query.getGeneratedRules().toString());
     }
 
     @Test

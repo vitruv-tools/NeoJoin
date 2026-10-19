@@ -1,34 +1,21 @@
 package tools.vitruv.optggs.operators;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
+@Getter
+@RequiredArgsConstructor
 public enum LogicOperator {
-    Equals,
-    NotEquals,
-    LessThan,
-    LessEquals,
-    MoreThan,
-    MoreEquals;
+    Equals("=="),
+    NotEquals("!="),
+    LessThan("<"),
+    LessEquals("<="),
+    MoreThan(">"),
+    MoreEquals(">=");
+
+    final String representation;
 
     public String print() {
-        switch (this) {
-            case Equals -> {
-                return "==";
-            }
-            case NotEquals -> {
-                return "!=";
-            }
-            case LessThan -> {
-                return "<";
-            }
-            case LessEquals -> {
-                return "<=";
-            }
-            case MoreThan -> {
-                return ">";
-            }
-            case MoreEquals -> {
-                return ">=";
-            }
-        }
-        return "";
+        return representation;
     }
 }

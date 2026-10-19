@@ -35,6 +35,6 @@ class ContainmentTest {
         var view = new View();
         view.addQuery(Query.from(pkg("A")).create(t("A'")).build().contains(containment));
         view.addQuery(Query.from(pkg("B")).create(t("B'")).build());
-        assertEquals("[src: [<++b: pkg.B;;.id==\"foo\">, <a: pkg.A;++-[b]->b;>] tgt: [<++b': t.B';;>, <a': t.A';++-[b]->b';>] corr: [++b<-->b', a<-->a']]", resolve(view).get(1).toRules().toString());
+        assertEquals("[src: [<++b: pkg.B;;.id==\"foo\">, <a: pkg.A;++-[b]->b;>] tgt: [<++b': t.B';;>, <a': t.A';++-[b]->b';>] corr: [++b<-->b', a<-->a']]", resolve(view).get(1).getGeneratedRules().toString());
     }
 }

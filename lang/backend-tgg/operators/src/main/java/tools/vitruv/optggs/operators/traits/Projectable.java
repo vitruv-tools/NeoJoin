@@ -15,8 +15,8 @@ public interface Projectable<T> {
     T project(Projection projection);
 
     /**
-     * Project sourceProperty to targetProperty for the trailing Metaclasses
-     * π(A::sourceProperty => A'::targetProperty) for σ(A => A') or σ(...->A => ...->A')
+     * Project sourceProperty to targetProperty for the trailing Metaclasses π(A::sourceProperty =>
+     * A'::targetProperty) for σ(A => A') or σ(...->A => ...->A')
      *
      * @return itself
      */
@@ -28,8 +28,8 @@ public interface Projectable<T> {
     }
 
     /**
-     * Project property for the trailing Metaclasses
-     * π(A::property => A'::property) for σ(A => A') or σ(...->A => ...->A')
+     * Project property for the trailing Metaclasses π(A::property => A'::property) for σ(A => A')
+     * or σ(...->A => ...->A')
      *
      * @return itself
      */
@@ -45,13 +45,14 @@ public interface Projectable<T> {
      */
     default T project(FQN element, String sourceProperty, String targetProperty) {
         var target = defaultTargetElement();
-        var projection = new SimpleProjection(Pattern.from(element), target, sourceProperty, targetProperty);
+        var projection =
+                new SimpleProjection(Pattern.from(element), target, sourceProperty, targetProperty);
         return project(projection);
     }
 
     /**
-     * Project property of given element to the trailing target metaclass
-     * π(element::property => A'::property) for σ(...->element-...->A => ...->A')
+     * Project property of given element to the trailing target metaclass π(element::property =>
+     * A'::property) for σ(...->element-...->A => ...->A')
      *
      * @return itself
      */

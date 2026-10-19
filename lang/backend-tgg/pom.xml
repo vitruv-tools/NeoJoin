@@ -20,7 +20,6 @@
     <module>driver</module>
     <module>operators</module>
     <module>transpiler</module>
-    <module>emsl-utils</module>
-    <module>emsl-parser</module>
+    <module>emsl_utils</module>
   </modules>
 </project>

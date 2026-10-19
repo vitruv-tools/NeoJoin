@@ -19,5 +19,8 @@ public record AQR(
     List<AQRImport> imports,
     List<EDataType> dataTypes,
     List<AQRTargetClass> classes,
-    AQRTargetClass root
-) {}
+        AQRTargetClass root) {
+    public List<AQRTargetClass> classesWithoutRoot() {
+        return classes.stream().filter(clazz -> clazz != root).toList();
+    }
+}

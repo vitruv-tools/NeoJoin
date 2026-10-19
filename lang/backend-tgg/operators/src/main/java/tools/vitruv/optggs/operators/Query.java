@@ -1,6 +1,8 @@
 package tools.vitruv.optggs.operators;
 
+import tools.vitruv.neojoin.expression_parser.model.ReferenceOperator;
 import tools.vitruv.optggs.operators.builder.SourceSelectionBuilder;
+import tools.vitruv.optggs.operators.reference_operator.ReferenceOperatorChain;
 import tools.vitruv.optggs.operators.traits.Containable;
 import tools.vitruv.optggs.operators.traits.Filterable;
 import tools.vitruv.optggs.operators.traits.Linkable;
@@ -11,18 +13,21 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * A single query consisting of multiple operators
- * Conceptually, a query is made up of:
+ * A single query consisting of multiple operators Conceptually, a query is made up of:
+ *
  * <pre>
  * SELECTION (FILTER)* (PROJECTION)* (CONTAINMENT)* (LINK)*
  * with SELECTION = FROM-CLAUSE CREATE-CLAUSE
  * </pre>
+ *
  * The FROM-CLAUSE and CREATE-CLAUSE each consist of a selection pattern:
+ *
  * <pre>
  * PATTERN = FROM (JOIN | REF)*
  * </pre>
- * <p>
- * Example:
+ *
+ * <p>Example:
+ *
  * <pre>
  * from A-[b]->B join C on id
  * create A'
@@ -31,14 +36,18 @@ import java.util.Set;
  * contains d := A-[d]->D
  * references e := B-[e]->E
  * </pre>
- * In this example, Metaclasses A and B are joined with C and transformed together to Metaclass A' when A's id is greater than 5.
- * The id, as well as all containments of classes D are retained. All weak references from B to E are transformed to
- * weak references from A' to E' (if E is transformed to E' in a separate query).
- * In operator language, we write:
+ *
+ * In this example, Metaclasses A and B are joined with C and transformed together to Metaclass A'
+ * when A's id is greater than 5. The id, as well as all containments of classes D are retained. All
+ * weak references from B to E are transformed to weak references from A' to E' (if E is transformed
+ * to E' in a separate query). In operator language, we write:
+ *
  * <pre>
  * σ(A-[b]->B ⨝(id) C => A') φ(A::id > 5) π(A::id => A'::id) κ(A-[d]->D => A'->[d]->?) λ(B-[e]->E => A'-[e]->?)
  * </pre>
+ *
  * We can code this example as following:
+ *
  * <pre>
  * Query.from(fqn("A")).ref(fqn("B"), "b").join(fqn("C"), "id")
  *      .create(fqn("A'")).build()
@@ -48,11 +57,14 @@ import java.util.Set;
  *      .references(fqn("E"), "e");
  * </pre>
  */
-public record Query(Selection selection,
+public record Query(
+        Selection selection,
                     List<Projection> projections,
+        List<ReferenceOperatorChain> referenceOperators,
                     List<Filter> filters,
                     List<Containment> containments,
-                    List<Link> links) implements Filterable<Query>, Projectable<Query>, Containable<Query>, Linkable<Query> {
+        List<Link> links)
+        implements Filterable<Query>, Projectable<Query>, Containable<Query>, Linkable<Query> {
 
     /**
      * New Query for a Selection
@@ -60,13 +72,17 @@ public record Query(Selection selection,
      * @param selection Selection clause
      */
     public Query(Selection selection) {
-        this(selection, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
-
+        this(
+                selection,
+                new ArrayList<>(),
+                new ArrayList<>(),
+                new ArrayList<>(),
+                new ArrayList<>(),
+                new ArrayList<>());
     }
 
     /**
-     * New Query for a From clause
-     * σ(element ...)
+     * New Query for a From clause σ(element ...)
      *
      * @return builder for source selection
      */
@@ -76,6 +92,18 @@ public record Query(Selection selection,
 
     public Query project(Projection projection) {
         projections.add(projection);
+        return this;
+    }
+
+    public Query referenceOperator(
+            String sourceNamespace,
+            FQN targetRoot,
+            FQN targetLeaf,
+            String targetField,
+            ReferenceOperator referenceOperator) {
+        referenceOperators.add(
+                new ReferenceOperatorChain(
+                        sourceNamespace, targetRoot, targetLeaf, targetField, referenceOperator));
         return this;
     }
 
@@ -113,8 +141,8 @@ public record Query(Selection selection,
     }
 
     /**
-     * Get all mappings in the selection
-     * e.g. for σ(A-[b]->B-[c]->C => A'-[d]->D') you get mappings {(A,A'), (A,D'), (B, A'), (B, D'), (C, A'), (C, D')}
+     * Get all mappings in the selection e.g. for σ(A-[b]->B-[c]->C => A'-[d]->D') you get mappings
+     * {(A,A'), (A,D'), (B, A'), (B, D'), (C, A'), (C, D')}
      *
      * @return set of Mappings
      */
@@ -123,8 +151,8 @@ public record Query(Selection selection,
     }
 
     /**
-     * Get only outmost mappings in selection
-     * e.g. for σ(A-[b]->B-[c]->C => A'-[d]->D') you get mappings {(A,A'), (A,D'), (C, A'), (C, D')}
+     * Get only outmost mappings in selection e.g. for σ(A-[b]->B-[c]->C => A'-[d]->D') you get
+     * mappings {(A,A'), (A,D'), (C, A'), (C, D')}
      *
      * @return set of mappings
      */
@@ -133,8 +161,8 @@ public record Query(Selection selection,
     }
 
     /**
-     * Get the mapping of the element at the top of the selection pattern
-     * e.g. for σ(A-[b]->B-[c]->C => A'-[d]->D') you get mappings (A,A')
+     * Get the mapping of the element at the top of the selection pattern e.g. for σ(A-[b]->B-[c]->C
+     * => A'-[d]->D') you get mappings (A,A')
      *
      * @return Mapping
      */
@@ -142,13 +170,13 @@ public record Query(Selection selection,
         return selection.topMapping();
     }
 
-
     @Override
     public String toString() {
         var p = String.join(".", projections.stream().map(Object::toString).toList());
+        var r = String.join(".", referenceOperators.stream().map(Object::toString).toList());
         var f = String.join(".", filters.stream().map(Object::toString).toList());
         var c = String.join(".", containments.stream().map(Object::toString).toList());
         var l = String.join(".", links.stream().map(Object::toString).toList());
-        return selection + f + p + c + l;
+        return selection + f + p + r + c + l;
     }
 }

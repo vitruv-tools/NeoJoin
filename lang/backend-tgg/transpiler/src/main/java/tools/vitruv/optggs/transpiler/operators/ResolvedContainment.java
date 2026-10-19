@@ -3,8 +3,8 @@ package tools.vitruv.optggs.transpiler.operators;
 import tools.vitruv.optggs.operators.Mapping;
 import tools.vitruv.optggs.operators.traits.Mappable;
 import tools.vitruv.optggs.transpiler.operators.patterns.ResolvedPattern;
-import tools.vitruv.optggs.transpiler.tgg.Slice;
-import tools.vitruv.optggs.transpiler.tgg.TripleRule;
+import tools.vitruv.optggs.transpiler.graph.tgg.TGGSlice;
+import tools.vitruv.optggs.transpiler.graph.tgg.TripleRule;
 
 import java.util.Collection;
 import java.util.List;
@@ -47,7 +47,7 @@ public class ResolvedContainment implements RuleGenerator, Mappable {
         }
     }
 
-    private void extendSlice(Slice slice, ResolvedPattern pattern) {
+    private void extendSlice(TGGSlice slice, ResolvedPattern pattern) {
         pattern.extendSlice(slice).makeGreen();
         slice.findByType(pattern.top()).orElseThrow().makeBlack();
     }

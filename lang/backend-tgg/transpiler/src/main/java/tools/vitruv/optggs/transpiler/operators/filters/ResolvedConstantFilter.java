@@ -5,7 +5,7 @@ import tools.vitruv.optggs.operators.LogicOperator;
 import tools.vitruv.optggs.operators.expressions.ConstantExpression;
 import tools.vitruv.optggs.operators.filters.ConstantFilter;
 import tools.vitruv.optggs.transpiler.operators.ResolvedFilter;
-import tools.vitruv.optggs.transpiler.tgg.TripleRule;
+import tools.vitruv.optggs.transpiler.graph.tgg.TripleRule;
 
 public class ResolvedConstantFilter implements ResolvedFilter {
     private final FQN element;

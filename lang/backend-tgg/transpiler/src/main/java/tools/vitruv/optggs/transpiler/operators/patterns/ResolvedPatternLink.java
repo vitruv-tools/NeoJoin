@@ -1,10 +1,11 @@
 package tools.vitruv.optggs.transpiler.operators.patterns;
 
 import tools.vitruv.optggs.operators.FQN;
-import tools.vitruv.optggs.transpiler.tgg.Node;
-import tools.vitruv.optggs.transpiler.tgg.Slice;
+import tools.vitruv.optggs.transpiler.graph.tgg.TGGSlice;
+import tools.vitruv.optggs.transpiler.graph.tgg.TGGNode;
 
 public interface ResolvedPatternLink {
     FQN element();
-    Node extendSlice(Slice slice, Node lastNode);
+
+    TGGNode extendSlice(TGGSlice slice, TGGNode lastNode);
 }

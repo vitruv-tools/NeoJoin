@@ -6,7 +6,7 @@ import tools.vitruv.optggs.operators.FunctionInvocation;
 import tools.vitruv.optggs.operators.selection.Pattern;
 import tools.vitruv.optggs.transpiler.TranspilerQueryResolver;
 import tools.vitruv.optggs.transpiler.operators.patterns.ResolvedPattern;
-import tools.vitruv.optggs.transpiler.tgg.TripleRule;
+import tools.vitruv.optggs.transpiler.graph.tgg.TripleRule;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -30,7 +30,7 @@ class ThetaJoinTest {
         assertEquals("pkg.A ⨝(pkg.A::name=pkg.B::prename->concatWith(text: pkg.B::surname)) pkg.B", pattern.toString());
         var rule = new TripleRule();
         resolve(pattern).extendSlice(rule.allSourcesAsSlice());
-        assertEquals("src: [<a: pkg.A;;.name==<name>>, <b: pkg.B;;.surname==<surname>,.prename==<prename>>] tgt: [] corr: [] cs: [concatWith(self: <prename>,text: <surname>,return: <name>)]", rule.toString());
+        assertEquals("src: [<a: pkg.A;;.name==<name>>, <b: pkg.B;;.prename==<prename>,.surname==<surname>>] tgt: [] corr: [] cs: [concatWith(self: <prename>,text: <surname>,return: <name>)]", rule.toString());
     }
 
     @Test
@@ -43,6 +43,6 @@ class ThetaJoinTest {
         assertEquals("pkg.A ⨝(pkg.A::name=pkg.B::prename->concatWith(text: pkg.B::surname)) pkg.B ⨝(surname==surname) pkg.C", pattern.toString());
         var rule = new TripleRule();
         resolve(pattern).extendSlice(rule.allSourcesAsSlice());
-        assertEquals("src: [<a: pkg.A;;.name==<name>>, <b: pkg.B;;.surname==<surname>,.prename==<prename>>, <c: pkg.C;;.surname==<surname>>] tgt: [] corr: [] cs: [concatWith(self: <prename>,text: <surname>,return: <name>)]", rule.toString());
+        assertEquals("src: [<a: pkg.A;;.name==<name>>, <b: pkg.B;;.prename==<prename>,.surname==<surname>>, <c: pkg.C;;.surname==<surname>>] tgt: [] corr: [] cs: [concatWith(self: <prename>,text: <surname>,return: <name>)]", rule.toString());
     }
 }

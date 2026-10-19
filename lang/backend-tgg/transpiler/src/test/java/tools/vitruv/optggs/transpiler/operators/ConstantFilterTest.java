@@ -33,7 +33,7 @@ class ConstantFilterTest {
         var queries = resolve(view);
         assertEquals(1, queries.size());
         var query = queries.get(0);
-        assertEquals("[src: [<++a: pkg.A;;.id==\"foo\">] tgt: [<++a': t.A';;>] corr: [++a<-->a']]", query.toRules().toString());
+        assertEquals("[src: [<++a: pkg.A;;.id==\"foo\">] tgt: [<++a': t.A';;>] corr: [++a<-->a']]", query.getGeneratedRules().toString());
     }
 
     @Test
@@ -43,7 +43,7 @@ class ConstantFilterTest {
         var queries = resolve(view);
         assertEquals(1, queries.size());
         var query = queries.get(0);
-        assertEquals("[src: [<++a: pkg.A;++-[b]->b;.id==\"foo\">, <++b: pkg.B;;>] tgt: [<++a': t.A';;>] corr: [++a<-->a', ++b<-->a']]", query.toRules().toString());
+        assertEquals("[src: [<++a: pkg.A;++-[b]->b;.id==\"foo\">, <++b: pkg.B;;>] tgt: [<++a': t.A';;>] corr: [++a<-->a', ++b<-->a']]", query.getGeneratedRules().toString());
     }
 
     @Test
@@ -53,6 +53,6 @@ class ConstantFilterTest {
         var queries = resolve(view);
         assertEquals(1, queries.size());
         var query = queries.get(0);
-        assertEquals("[src: [<++a: pkg.A;++-[b]->b;>, <++b: pkg.B;;.id==\"foo\">] tgt: [<++a': t.A';;>] corr: [++a<-->a', ++b<-->a']]", query.toRules().toString());
+        assertEquals("[src: [<++a: pkg.A;++-[b]->b;>, <++b: pkg.B;;.id==\"foo\">] tgt: [<++a': t.A';;>] corr: [++a<-->a', ++b<-->a']]", query.getGeneratedRules().toString());
     }
 }

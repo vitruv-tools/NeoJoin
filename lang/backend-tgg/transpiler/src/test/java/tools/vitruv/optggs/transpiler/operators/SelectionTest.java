@@ -6,7 +6,7 @@ import tools.vitruv.optggs.operators.Mapping;
 import tools.vitruv.optggs.operators.Selection;
 import tools.vitruv.optggs.transpiler.TranspilerQueryResolver;
 import tools.vitruv.optggs.operators.selection.Pattern;
-import tools.vitruv.optggs.transpiler.tgg.TripleRule;
+import tools.vitruv.optggs.transpiler.graph.tgg.TripleRule;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;

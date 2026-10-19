@@ -1,0 +1,11 @@
+export TargetCar to "http://example.org/targetcar"
+
+import "http://example.org/SimpleCarMetamodel"
+
+from Car car create CarWithWheels {
+    it.manufacturer
+    wheelTest := car.axes.flatMap[oneAxis | oneAxis.wheels].toList() create TargetWheel {
+        targetWheelId = it.wheelId
+        it.pressure
+    }
+}

@@ -44,7 +44,7 @@ class FunctionFilterTest {
         var queries = resolve(view);
         assertEquals(1, queries.size());
         var query = queries.get(0);
-        assertEquals("[src: [<++a: pkg.A;;.name==<name>>] tgt: [<++a': t.A';;>] corr: [++a<-->a'] cs: [startsWith(prefix: \"foo\",self: <name>)]]", query.toRules().toString());
+        assertEquals("[src: [<++a: pkg.A;;.name==<name>>] tgt: [<++a': t.A';;>] corr: [++a<-->a'] cs: [startsWith(prefix: \"foo\",self: <name>)]]", query.getGeneratedRules().toString());
     }
 
     @Test
@@ -59,6 +59,6 @@ class FunctionFilterTest {
         var queries = resolve(view);
         assertEquals(1, queries.size());
         var query = queries.get(0);
-        assertEquals("[src: [<++a: pkg.A;++-[b]->b;.name==<name>>, <++b: pkg.B;;.surname==<surname>,.prename==<prename>>] tgt: [<++a': t.A';;>] corr: [++a<-->a', ++b<-->a'] cs: [concatWith(self: <prename>,text: <surname>,return: <name>)]]", query.toRules().toString());
+        assertEquals("[src: [<++a: pkg.A;++-[b]->b;.name==<name>>, <++b: pkg.B;;.prename==<prename>,.surname==<surname>>] tgt: [<++a': t.A';;>] corr: [++a<-->a', ++b<-->a'] cs: [concatWith(self: <prename>,text: <surname>,return: <name>)]]", query.getGeneratedRules().toString());
     }
 }
