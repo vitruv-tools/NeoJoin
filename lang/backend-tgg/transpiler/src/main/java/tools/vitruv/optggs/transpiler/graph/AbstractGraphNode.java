@@ -1,10 +1,5 @@
 package tools.vitruv.optggs.transpiler.graph;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.Value;
-import lombok.experimental.NonFinal;
-
 import tools.vitruv.optggs.operators.FQN;
 import tools.vitruv.optggs.operators.LogicOperator;
 import tools.vitruv.optggs.operators.expressions.ConstantExpression;
@@ -17,19 +12,40 @@ import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Optional;
 
-@Value
-@NonFinal
 public abstract class AbstractGraphNode<
         L extends AbstractGraphLink<SELF>, SELF extends AbstractGraphNode<L, SELF>> {
-    protected String id;
-    protected FQN type;
-    protected NameRepository nameRepository;
+    protected final String id;
+    protected final FQN type;
+    protected final NameRepository nameRepository;
 
-    @Getter(AccessLevel.NONE)
-    protected ArrayList<L> links;
+    protected final ArrayList<L> links;
 
-    @Getter(AccessLevel.NONE)
-    protected LinkedHashSet<Attribute> attributes;
+    protected final LinkedHashSet<Attribute> attributes;
+
+    protected AbstractGraphNode(
+            String id,
+            FQN type,
+            NameRepository nameRepository,
+            ArrayList<L> links,
+            LinkedHashSet<Attribute> attributes) {
+        this.id = id;
+        this.type = type;
+        this.nameRepository = nameRepository;
+        this.links = links;
+        this.attributes = attributes;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public FQN getType() {
+        return type;
+    }
+
+    public NameRepository getNameRepository() {
+        return nameRepository;
+    }
 
     public abstract SELF deepCopy(GraphNodeDeepCopyHelper<SELF> copyHelper);
 
@@ -99,6 +115,22 @@ public abstract class AbstractGraphNode<
 
     public void addLink(L link) {
         this.links.add(link);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof AbstractGraphNode<?, ?> other)) return false;
+        return Objects.equals(id, other.id)
+                && Objects.equals(type, other.type)
+                && Objects.equals(nameRepository, other.nameRepository)
+                && Objects.equals(links, other.links)
+                && Objects.equals(attributes, other.attributes);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, type, nameRepository, links, attributes);
     }
 
     @Override

@@ -1,23 +1,59 @@
 package tools.vitruv.optggs.transpiler.graph.pattern;
 
-import lombok.Value;
-
 import tools.vitruv.optggs.operators.FQN;
 import tools.vitruv.optggs.transpiler.graph.NameRepository;
 import tools.vitruv.optggs.transpiler.graph.tgg.GraphPathToNode;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-@Value
 public class GraphPattern {
-    UUID id = UUID.randomUUID();
+    private final UUID id = UUID.randomUUID();
 
-    NameRepository nameRepository;
-    ArrayList<PatternNode> nodes;
+    private final NameRepository nameRepository;
+    private final ArrayList<PatternNode> nodes;
+
+    public GraphPattern(NameRepository nameRepository, ArrayList<PatternNode> nodes) {
+        this.nameRepository = nameRepository;
+        this.nodes = nodes;
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public NameRepository getNameRepository() {
+        return nameRepository;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof GraphPattern other)) return false;
+        return Objects.equals(id, other.id)
+                && Objects.equals(nameRepository, other.nameRepository)
+                && Objects.equals(nodes, other.nodes);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, nameRepository, nodes);
+    }
+
+    @Override
+    public String toString() {
+        return "GraphPattern(id="
+                + id
+                + ", nameRepository="
+                + nameRepository
+                + ", nodes="
+                + nodes
+                + ")";
+    }
 
     public List<PatternNode> getNodes() {
         return nodes.stream().toList();

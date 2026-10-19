@@ -49,6 +49,7 @@
     <module>frontend</module>
     <module>model</module>
     <module>expression-parser</module>
+    <module>emsl-parser</module>
     <module>p2wrappers</module>
   </modules>
 

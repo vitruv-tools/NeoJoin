@@ -1,6 +1,6 @@
 package tools.vitruv.optggs.operators.expressions;
 
-import lombok.EqualsAndHashCode;
+import java.util.Objects;
 
 /**
  * A variable expression
@@ -9,7 +9,6 @@ import lombok.EqualsAndHashCode;
  * var variable = new VariableExpression("x");
  * </pre>
  */
-@EqualsAndHashCode
 public class VariableExpression implements ValueExpression {
     private final String name;
 
@@ -24,6 +23,18 @@ public class VariableExpression implements ValueExpression {
 
     public String name() {
         return name;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof VariableExpression other)) return false;
+        return Objects.equals(name, other.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(name);
     }
 
     @Override

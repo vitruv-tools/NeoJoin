@@ -1,7 +1,5 @@
 package tools.vitruv.optggs.transpiler.graph.tgg;
 
-import lombok.Getter;
-
 import tools.vitruv.optggs.operators.FQN;
 import tools.vitruv.optggs.transpiler.graph.AbstractGraphNode;
 import tools.vitruv.optggs.transpiler.graph.Attribute;
@@ -15,9 +13,12 @@ import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-@Getter
 public class TGGNode extends AbstractGraphNode<TGGLink, TGGNode> {
     private boolean green;
+
+    public boolean isGreen() {
+        return green;
+    }
 
     TGGNode(
             String id,

@@ -1,6 +1,6 @@
 package tools.vitruv.optggs.operators.expressions;
 
-import lombok.EqualsAndHashCode;
+import java.util.Objects;
 
 /**
  * A constant expression
@@ -12,7 +12,6 @@ import lombok.EqualsAndHashCode;
  * constantString.value() == "\"Text\"";
  * </pre>
  */
-@EqualsAndHashCode
 public class ConstantExpression implements ValueExpression {
     private final String value;
 
@@ -30,6 +29,18 @@ public class ConstantExpression implements ValueExpression {
 
     public String value() {
         return value;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ConstantExpression other)) return false;
+        return Objects.equals(value, other.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(value);
     }
 
     @Override

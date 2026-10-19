@@ -1,9 +1,5 @@
 package tools.vitruv.optggs.transpiler.operators;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.Value;
-
 import tools.vitruv.optggs.transpiler.graph.pattern.GraphPattern;
 import tools.vitruv.optggs.transpiler.graph.tgg.TripleRule;
 import tools.vitruv.optggs.transpiler.graph.tgg.TripleRulesBuilder;
@@ -11,23 +7,20 @@ import tools.vitruv.optggs.transpiler.operators.reference_operators.ResolvedRefe
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
-@Value
-@Getter(AccessLevel.NONE)
 public class ResolvedQuery {
-    ResolvedSelection selection;
-    List<ResolvedProjection> projections;
-    List<ResolvedReferenceOperatorChain> referenceOperatorChains;
-    List<ResolvedFilter> filters;
-    Optional<ResolvedContainment> container;
-    List<ResolvedLink> links;
+    private final ResolvedSelection selection;
+    private final List<ResolvedProjection> projections;
+    private final List<ResolvedReferenceOperatorChain> referenceOperatorChains;
+    private final List<ResolvedFilter> filters;
+    private final Optional<ResolvedContainment> container;
+    private final List<ResolvedLink> links;
 
-    @Getter(AccessLevel.PUBLIC)
-    List<TripleRule> generatedRules;
+    private final List<TripleRule> generatedRules;
 
-    @Getter(AccessLevel.PUBLIC)
-    List<GraphPattern> generatedConstraints;
+    private final List<GraphPattern> generatedConstraints;
 
     public ResolvedQuery(
             ResolvedSelection selection,
@@ -56,6 +49,41 @@ public class ResolvedQuery {
 
         this.generatedRules = allGeneratedRules;
         this.generatedConstraints = referenceOperatorRulesAndConstraints.constraints();
+    }
+
+    public List<TripleRule> getGeneratedRules() {
+        return generatedRules;
+    }
+
+    public List<GraphPattern> getGeneratedConstraints() {
+        return generatedConstraints;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ResolvedQuery other)) return false;
+        return Objects.equals(selection, other.selection)
+                && Objects.equals(projections, other.projections)
+                && Objects.equals(referenceOperatorChains, other.referenceOperatorChains)
+                && Objects.equals(filters, other.filters)
+                && Objects.equals(container, other.container)
+                && Objects.equals(links, other.links)
+                && Objects.equals(generatedRules, other.generatedRules)
+                && Objects.equals(generatedConstraints, other.generatedConstraints);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(
+                selection,
+                projections,
+                referenceOperatorChains,
+                filters,
+                container,
+                links,
+                generatedRules,
+                generatedConstraints);
     }
 
     private TripleRule createPrimaryRule() {

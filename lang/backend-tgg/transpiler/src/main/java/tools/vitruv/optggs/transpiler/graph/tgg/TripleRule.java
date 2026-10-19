@@ -1,9 +1,5 @@
 package tools.vitruv.optggs.transpiler.graph.tgg;
 
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-
 import org.jspecify.annotations.NonNull;
 
 import tools.vitruv.optggs.operators.FQN;
@@ -18,7 +14,6 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-@Builder(access = AccessLevel.PACKAGE)
 public class TripleRule {
     public interface RuleExtender {
         TGGNode addNode(FQN type);
@@ -28,12 +23,60 @@ public class TripleRule {
         AttributeConstraint addConstraint(AttributeConstraint constraint);
     }
 
-    @Getter @NonNull private final UUID id = UUID.randomUUID();
+    @NonNull private final UUID id = UUID.randomUUID();
     @NonNull private final NameRepository nameRepository;
     @NonNull private final ArrayList<TGGNode> sourceNodes;
     @NonNull private final ArrayList<TGGNode> targetNodes;
     @NonNull private final ArrayList<Correspondence> correspondences;
     @NonNull private final ArrayList<AttributeConstraint> constraints;
+
+    static TripleRuleBuilder builder() {
+        return new TripleRuleBuilder();
+    }
+
+    static class TripleRuleBuilder {
+        private NameRepository nameRepository;
+        private ArrayList<TGGNode> sourceNodes;
+        private ArrayList<TGGNode> targetNodes;
+        private ArrayList<Correspondence> correspondences;
+        private ArrayList<AttributeConstraint> constraints;
+
+        TripleRuleBuilder() {}
+
+        TripleRuleBuilder nameRepository(NameRepository nameRepository) {
+            this.nameRepository = nameRepository;
+            return this;
+        }
+
+        TripleRuleBuilder sourceNodes(ArrayList<TGGNode> sourceNodes) {
+            this.sourceNodes = sourceNodes;
+            return this;
+        }
+
+        TripleRuleBuilder targetNodes(ArrayList<TGGNode> targetNodes) {
+            this.targetNodes = targetNodes;
+            return this;
+        }
+
+        TripleRuleBuilder correspondences(ArrayList<Correspondence> correspondences) {
+            this.correspondences = correspondences;
+            return this;
+        }
+
+        TripleRuleBuilder constraints(ArrayList<AttributeConstraint> constraints) {
+            this.constraints = constraints;
+            return this;
+        }
+
+        TripleRule build() {
+            return new TripleRule(
+                    nameRepository, sourceNodes, targetNodes, correspondences, constraints);
+        }
+    }
+
+    public UUID getId() {
+        return id;
+    }
 
     public TripleRule() {
         nameRepository = new NameRepository();

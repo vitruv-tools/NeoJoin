@@ -1,15 +1,27 @@
 package tools.vitruv.optggs.transpiler.graph.tgg;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
-@Getter
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class Correspondence {
     private final TGGNode source;
     private final TGGNode target;
     private boolean green;
+
+    private Correspondence(TGGNode source, TGGNode target, boolean green) {
+        this.source = source;
+        this.target = target;
+        this.green = green;
+    }
+
+    public TGGNode getSource() {
+        return source;
+    }
+
+    public TGGNode getTarget() {
+        return target;
+    }
+
+    public boolean isGreen() {
+        return green;
+    }
 
     public static Correspondence Green(TGGNode source, TGGNode target) {
         return new Correspondence(source, target, true);

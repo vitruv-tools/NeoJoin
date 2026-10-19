@@ -1,17 +1,15 @@
 package tools.vitruv.optggs.transpiler.graph.tgg.constraint;
 
-import lombok.Value;
-
 import tools.vitruv.optggs.operators.expressions.ValueExpression;
 import tools.vitruv.optggs.transpiler.graph.tgg.Parameter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
-@Value
 public class ArbitraryAttributeConstraint implements AttributeConstraint {
-    String constraintName;
-    List<Parameter> parameters;
+    private final String constraintName;
+    private final List<Parameter> parameters;
 
     public ArbitraryAttributeConstraint(String constraintName) {
         this(constraintName, new ArrayList<>());
@@ -20,6 +18,24 @@ public class ArbitraryAttributeConstraint implements AttributeConstraint {
     public ArbitraryAttributeConstraint(String constraintName, List<Parameter> parameters) {
         this.constraintName = constraintName;
         this.parameters = parameters;
+    }
+
+    @Override
+    public String getConstraintName() {
+        return constraintName;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ArbitraryAttributeConstraint other)) return false;
+        return Objects.equals(constraintName, other.constraintName)
+                && Objects.equals(parameters, other.parameters);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(constraintName, parameters);
     }
 
     @Override

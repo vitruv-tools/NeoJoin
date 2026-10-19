@@ -1,14 +1,15 @@
 package tools.vitruv.optggs.transpiler.graph.tgg;
 
-import lombok.Getter;
-
 import tools.vitruv.optggs.transpiler.graph.AbstractGraphLink;
 import tools.vitruv.optggs.transpiler.graph.GraphNodeDeepCopyHelper;
 import tools.vitruv.optggs.transpiler.graph.pattern.PatternLink;
 
-@Getter
 public class TGGLink extends AbstractGraphLink<TGGNode> {
     boolean green;
+
+    public boolean isGreen() {
+        return green;
+    }
 
     private TGGLink(String name, TGGNode target, boolean green) {
         super(name, target);

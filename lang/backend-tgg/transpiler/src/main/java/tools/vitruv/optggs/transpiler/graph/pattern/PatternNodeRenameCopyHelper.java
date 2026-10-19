@@ -1,13 +1,14 @@
 package tools.vitruv.optggs.transpiler.graph.pattern;
 
-import lombok.Value;
-
 import java.util.HashMap;
 import java.util.Map;
 
-@Value
 public class PatternNodeRenameCopyHelper {
-    Map<PatternNode, PatternNode> oldToNewNodes = new HashMap<>();
+    private final Map<PatternNode, PatternNode> oldToNewNodes = new HashMap<>();
+
+    public Map<PatternNode, PatternNode> getOldToNewNodes() {
+        return oldToNewNodes;
+    }
 
     public PatternNode getCopiedNode(PatternNode oldNode) {
         if (oldToNewNodes.containsKey(oldNode)) {

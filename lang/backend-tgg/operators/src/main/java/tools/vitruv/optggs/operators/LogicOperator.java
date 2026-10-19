@@ -1,10 +1,5 @@
 package tools.vitruv.optggs.operators;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
-@Getter
-@RequiredArgsConstructor
 public enum LogicOperator {
     Equals("=="),
     NotEquals("!="),
@@ -14,6 +9,14 @@ public enum LogicOperator {
     MoreEquals(">=");
 
     final String representation;
+
+    LogicOperator(String representation) {
+        this.representation = representation;
+    }
+
+    public String getRepresentation() {
+        return representation;
+    }
 
     public String print() {
         return representation;

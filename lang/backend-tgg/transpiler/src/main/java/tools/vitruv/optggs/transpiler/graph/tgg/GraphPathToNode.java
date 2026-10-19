@@ -1,19 +1,29 @@
 package tools.vitruv.optggs.transpiler.graph.tgg;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
 import tools.vitruv.optggs.operators.FQN;
 
 import java.util.ArrayList;
 
-@RequiredArgsConstructor
-@AllArgsConstructor
-@Getter
 public class GraphPathToNode {
     private final FQN root;
     ArrayList<String> linkPath = new ArrayList<>();
+
+    public GraphPathToNode(FQN root) {
+        this.root = root;
+    }
+
+    public GraphPathToNode(FQN root, ArrayList<String> linkPath) {
+        this.root = root;
+        this.linkPath = linkPath;
+    }
+
+    public FQN getRoot() {
+        return root;
+    }
+
+    public ArrayList<String> getLinkPath() {
+        return linkPath;
+    }
 
     public void addLinkToPath(String reference) {
         linkPath.add(reference);
