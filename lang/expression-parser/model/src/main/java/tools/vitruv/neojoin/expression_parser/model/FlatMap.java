@@ -1,10 +1,9 @@
 package tools.vitruv.neojoin.expression_parser.model;
 
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
-
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
+
+import java.util.Objects;
 
 /**
  * A FlatMap represents mapping a parent object to some children along a <b>one-to-many</b>
@@ -18,12 +17,14 @@ import org.jspecify.annotations.Nullable;
  *
  * Here, {@code X.flatMap(a -> a.wheels)} is a FlatMap
  */
-@Data
-@RequiredArgsConstructor
 public class FlatMap implements ReferenceOperator {
     @NonNull final FeatureInformation featureInformation;
 
     @Nullable ReferenceOperator followingOperator;
+
+    public FlatMap(FeatureInformation featureInformation) {
+        this.featureInformation = featureInformation;
+    }
 
     @Override
     public String toString() {
@@ -33,5 +34,34 @@ public class FlatMap implements ReferenceOperator {
         }
 
         return stringRepresentation + "->" + followingOperator;
+    }
+
+    public FeatureInformation getFeatureInformation() {
+        return featureInformation;
+    }
+
+    public @Nullable ReferenceOperator getFollowingOperator() {
+        return followingOperator;
+    }
+
+    public void setFollowingOperator(@Nullable ReferenceOperator followingOperator) {
+        this.followingOperator = followingOperator;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof FlatMap that)) {
+            return false;
+        }
+        return Objects.equals(featureInformation, that.featureInformation) &&
+                Objects.equals(followingOperator, that.followingOperator);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(featureInformation, followingOperator);
     }
 }

@@ -1,9 +1,5 @@
 package tools.vitruv.neojoin.expression_parser.parser.strategy.manual_pattern_matching.utils;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import lombok.Value;
-
 import org.eclipse.xtext.common.types.JvmField;
 import org.eclipse.xtext.common.types.JvmOperation;
 import org.eclipse.xtext.xbase.XAbstractFeatureCall;
@@ -18,10 +14,12 @@ import tools.vitruv.neojoin.expression_parser.model.predicate_expression.Constan
 import tools.vitruv.neojoin.expression_parser.parser.exception.UnsupportedReferenceExpressionException;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class PredicateExpressionUtils {
+    private PredicateExpressionUtils() {}
+
     private static final Map<String, ComparisonOperator> OPERATOR_MAP =
             Map.ofEntries(
                     Map.entry("operator_equals", ComparisonOperator.Equals),
@@ -94,10 +92,57 @@ public class PredicateExpressionUtils {
         return Optional.empty();
     }
 
-    @Value
-    public static class ConstantPredicate {
-        String feature;
-        ComparisonOperator operator;
-        ConstantValue constantValue;
+    public static final class ConstantPredicate {
+        private final String feature;
+        private final ComparisonOperator operator;
+        private final ConstantValue constantValue;
+
+        public ConstantPredicate(
+                String feature, ComparisonOperator operator, ConstantValue constantValue) {
+            this.feature = feature;
+            this.operator = operator;
+            this.constantValue = constantValue;
+        }
+
+        public String getFeature() {
+            return feature;
+        }
+
+        public ComparisonOperator getOperator() {
+            return operator;
+        }
+
+        public ConstantValue getConstantValue() {
+            return constantValue;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof ConstantPredicate that)) {
+                return false;
+            }
+            return Objects.equals(feature, that.feature)
+                    && operator == that.operator
+                    && Objects.equals(constantValue, that.constantValue);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(feature, operator, constantValue);
+        }
+
+        @Override
+        public String toString() {
+            return "PredicateExpressionUtils.ConstantPredicate(feature="
+                    + feature
+                    + ", operator="
+                    + operator
+                    + ", constantValue="
+                    + constantValue
+                    + ")";
+        }
     }
 }
