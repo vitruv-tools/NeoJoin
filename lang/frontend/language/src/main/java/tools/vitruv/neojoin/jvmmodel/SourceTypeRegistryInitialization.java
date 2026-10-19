@@ -10,5 +10,5 @@ import org.eclipse.xtext.xbase.jvmmodel.JvmTypeReferenceBuilder;
  */
 @ImplementedBy(InferringSourceTypeRegistryInitialization.class)
 public interface SourceTypeRegistryInitialization {
-    void initialize(TypeRegistry typeRegistry, EPackage.Registry packageRegistry, JvmTypeReferenceBuilder typeReferenceBuilder, ResourceSet resourceSet);
+    void initialize(TypeRegistry typeRegistry, EPackage.Registry packageRegistry, JvmTypeReferenceBuilder typeReferenceBuilder, ResourceSet resourceSet) throws ModelInferenceException;
 }

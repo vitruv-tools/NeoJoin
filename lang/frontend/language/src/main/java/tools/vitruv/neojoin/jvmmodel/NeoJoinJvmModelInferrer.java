@@ -5,6 +5,8 @@ package tools.vitruv.neojoin.jvmmodel;
 
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
+
+import org.eclipse.emf.common.util.WrappedException;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.ResourceSet;
@@ -14,6 +16,7 @@ import org.eclipse.xtext.xbase.jvmmodel.JvmTypesBuilder;
 import tools.vitruv.neojoin.Constants;
 import tools.vitruv.neojoin.QueryModelExpressionTypeConfiguration;
 import tools.vitruv.neojoin.ast.ViewTypeDefinition;
+import tools.vitruv.neojoin.utils.Result;
 
 /**
  * Xbase expressions within an Xtext language work by defining a jvm model (= a set of classes).
@@ -47,8 +50,14 @@ public class NeoJoinJvmModelInferrer extends AbstractModelInferrer {
     @Override
     public void infer(EObject obj, IJvmDeclaredTypeAcceptor acceptor, boolean preIndexingPhase) {
         if (obj instanceof ViewTypeDefinition viewType) {
-            var typeRegistry = getOrCreateSourceModelTypes(viewType);
-            new QueryModelInferrer(
+            TypeRegistry typeRegistry;
+            try {
+                typeRegistry = getOrCreateSourceModelTypes(viewType);
+            } catch (ModelInferenceException e) {
+                throw new WrappedException(e);
+            }
+
+            var queryModelInferrer = new QueryModelInferrer(
                 acceptor,
                 viewType,
                 queryModelExpressionTypeConfiguration,
@@ -56,7 +65,9 @@ public class NeoJoinJvmModelInferrer extends AbstractModelInferrer {
                 typesBuilder,
                 _typeReferenceBuilder,
                 expressionHelper
-            ).infer();
+            );
+
+            queryModelInferrer.infer();
         } else {
             super.infer(obj, acceptor, preIndexingPhase);
         }
@@ -68,7 +79,7 @@ public class NeoJoinJvmModelInferrer extends AbstractModelInferrer {
      * more importantly prevents collisions that would otherwise occur if the same source class is generated
      * within multiple resources within the same resource set.
      */
-    private TypeRegistry getOrCreateSourceModelTypes(ViewTypeDefinition viewType) {
+    private TypeRegistry getOrCreateSourceModelTypes(ViewTypeDefinition viewType) throws ModelInferenceException {
         ResourceSet resourceSet = viewType.eResource().getResourceSet();
         return SourceModel.getOrCreateSourceTypeRegistry(resourceSet,
             typeRegistry -> sourceTypeRegistryInitialization.initialize(typeRegistry, packageRegistry, _typeReferenceBuilder, resourceSet));
