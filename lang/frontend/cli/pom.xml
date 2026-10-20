@@ -29,26 +29,6 @@
       <artifactId>tools.vitruv.neojoin.model</artifactId>
       <version>${project.version}</version>
     </dependency>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>tools.vitruv.neojoin.expression-parser.model</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>tools.vitruv.neojoin.expression-parser.parser</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>tools.vitruv.neojoin.tgg.driver</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>tools.vitruv.neojoin.tgg.emsl-utils</artifactId>
-      <version>${project.version}</version>
-    </dependency>
 
     <dependency>
       <groupId>info.picocli</groupId>
@@ -76,12 +56,6 @@
     </dependency>
 
     <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>tools.vitruv.neojoin.tgg.emsl-parser</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
       <scope>test</scope>
@@ -92,13 +66,13 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>tools.vitruv</groupId>
-      <artifactId>tools.vitruv.change.p2wrappers.emfcompare</artifactId>
+      <groupId>org.junit.platform</groupId>
+      <artifactId>junit-platform-engine</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.assertj</groupId>
-      <artifactId>assertj-core</artifactId>
+      <groupId>tools.vitruv</groupId>
+      <artifactId>tools.vitruv.change.p2wrappers.emfcompare</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>

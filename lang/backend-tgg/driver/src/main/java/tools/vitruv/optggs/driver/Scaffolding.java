@@ -5,6 +5,7 @@ import gg.jte.ContentType;
 import gg.jte.TemplateEngine;
 import gg.jte.output.FileOutput;
 import gg.jte.resolve.ResourceCodeResolver;
+import tools.vitruv.optggs.transpiler.TripleGraphPrinter;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -19,9 +20,15 @@ public class Scaffolding {
     private static final String DEFAULT_SOURCE_MODEL_NAME = "Source";
     private static final String DEFAULT_TARGET_MODEL_NAME = "Target";
     private final Path targetPath;
+    private final Path templateCacheDirectory;
 
     public Scaffolding(Path targetPath) {
+        this(targetPath, TripleGraphPrinter.DEFAULT_TEMPLATE_CACHE_DIRECTORY);
+    }
+
+    public Scaffolding(Path targetPath, Path templateCacheDirectory) {
         this.targetPath = targetPath;
+        this.templateCacheDirectory = templateCacheDirectory;
     }
 
     public Path transformationFilePath() {
@@ -31,7 +38,7 @@ public class Scaffolding {
     public void create(Project project) {
         var path = this.targetPath;
         CodeResolver codeResolver = new ResourceCodeResolver("tools/vitruv/optggs/driver/templates");
-        TemplateEngine engine = TemplateEngine.create(codeResolver, ContentType.Plain);
+        TemplateEngine engine = TemplateEngine.create(codeResolver, templateCacheDirectory, ContentType.Plain);
         createFile(path.resolve(".project"), "project", project, engine);
         createFile(path.resolve(".classpath"), "classpath", project, engine);
         createFile(path.resolve("build.properties"), "build_properties", project, engine);
