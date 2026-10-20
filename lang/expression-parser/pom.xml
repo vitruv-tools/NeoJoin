@@ -9,7 +9,7 @@
         <version>0.1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>tools.vitruv.neojoin.expression_parser</artifactId>
+    <artifactId>tools.vitruv.neojoin.expression-parser</artifactId>
     <packaging>pom</packaging>
 
     <name>Expression Parser</name>

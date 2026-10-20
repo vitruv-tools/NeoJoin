@@ -31,12 +31,12 @@
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>tools.vitruv.neojoin.expression_parser.model</artifactId>
+      <artifactId>tools.vitruv.neojoin.expression-parser.model</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>tools.vitruv.neojoin.expression_parser.parser</artifactId>
+      <artifactId>tools.vitruv.neojoin.expression-parser.parser</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -46,7 +46,7 @@
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>tools.vitruv.neojoin.tgg.emsl_utils</artifactId>
+      <artifactId>tools.vitruv.neojoin.tgg.emsl-utils</artifactId>
       <version>${project.version}</version>
     </dependency>
 
@@ -77,7 +77,7 @@
 
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>tools.vitruv.neojoin.emsl_parser</artifactId>
+      <artifactId>tools.vitruv.neojoin.emsl-parser</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
