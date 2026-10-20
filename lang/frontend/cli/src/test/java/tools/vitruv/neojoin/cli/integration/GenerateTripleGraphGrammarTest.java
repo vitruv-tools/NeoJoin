@@ -12,7 +12,7 @@ import org.junit.jupiter.api.io.TempDir;
 import picocli.CommandLine;
 
 import tools.vitruv.neojoin.cli.Main;
-import tools.vitruv.neojoin.emsl_parser.EmslParser;
+import tools.vitruv.neojoin.tgg.emsl_parser.EmslParser;
 
 import java.io.IOException;
 import java.nio.file.Files;
