@@ -1,6 +1,5 @@
 package tools.vitruv.optggs.transpiler.operators.reference_operators;
 
-import java.util.Objects;
 import tools.vitruv.optggs.operators.FQN;
 import tools.vitruv.optggs.transpiler.graph.tgg.TripleRule;
 import tools.vitruv.optggs.transpiler.graph.tgg.TripleRulesBuilder;
@@ -18,23 +17,6 @@ public class ResolvedReferenceOperatorChain {
 
     public FQN getTargetRoot() {
         return targetRoot;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof ResolvedReferenceOperatorChain other)) return false;
-        return Objects.equals(referenceOperators, other.referenceOperators) && Objects.equals(targetRoot, other.targetRoot);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(referenceOperators, targetRoot);
-    }
-
-    @Override
-    public String toString() {
-        return "ResolvedReferenceOperatorChain(" + "referenceOperators=" + referenceOperators + ", " + "targetRoot=" + targetRoot + ")";
     }
 
     public TripleRulesBuilder generateRulesAndConstraints() {

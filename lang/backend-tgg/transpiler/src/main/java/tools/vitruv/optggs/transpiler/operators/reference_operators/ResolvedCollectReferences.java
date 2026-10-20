@@ -1,6 +1,5 @@
 package tools.vitruv.optggs.transpiler.operators.reference_operators;
 
-import java.util.Objects;
 import tools.vitruv.optggs.operators.FQN;
 import tools.vitruv.optggs.transpiler.graph.tgg.TGGSlice;
 import tools.vitruv.optggs.transpiler.graph.tgg.TGGNode;
@@ -22,23 +21,6 @@ public class ResolvedCollectReferences implements ResolvedReferenceOperator {
 
     public FQN getTargetRoot() {
         return targetRoot;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof ResolvedCollectReferences other)) return false;
-        return Objects.equals(targetRoot, other.targetRoot) && Objects.equals(targetLeaf, other.targetLeaf) && Objects.equals(targetField, other.targetField);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(targetRoot, targetLeaf, targetField);
-    }
-
-    @Override
-    public String toString() {
-        return "ResolvedCollectReferences(" + "targetRoot=" + targetRoot + ", " + "targetLeaf=" + targetLeaf + ", " + "targetField=" + targetField + ")";
     }
 
     @Override

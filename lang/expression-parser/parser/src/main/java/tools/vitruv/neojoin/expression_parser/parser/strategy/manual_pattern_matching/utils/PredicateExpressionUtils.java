@@ -134,15 +134,5 @@ public class PredicateExpressionUtils {
             return Objects.hash(feature, operator, constantValue);
         }
 
-        @Override
-        public String toString() {
-            return "PredicateExpressionUtils.ConstantPredicate(feature="
-                    + feature
-                    + ", operator="
-                    + operator
-                    + ", constantValue="
-                    + constantValue
-                    + ")";
-        }
     }
 }

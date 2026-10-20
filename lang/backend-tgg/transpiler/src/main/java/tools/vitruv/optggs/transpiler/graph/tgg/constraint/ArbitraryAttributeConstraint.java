@@ -5,7 +5,6 @@ import tools.vitruv.optggs.transpiler.graph.tgg.Parameter;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class ArbitraryAttributeConstraint implements AttributeConstraint {
@@ -24,19 +23,6 @@ public class ArbitraryAttributeConstraint implements AttributeConstraint {
     @Override
     public String getConstraintName() {
         return constraintName;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof ArbitraryAttributeConstraint other)) return false;
-        return Objects.equals(constraintName, other.constraintName)
-                && Objects.equals(parameters, other.parameters);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(constraintName, parameters);
     }
 
     @Override

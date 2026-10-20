@@ -119,22 +119,6 @@ public abstract class AbstractGraphNode<
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof AbstractGraphNode<?, ?> other)) return false;
-        return Objects.equals(id, other.id)
-                && Objects.equals(type, other.type)
-                && Objects.equals(nameRepository, other.nameRepository)
-                && Objects.equals(links, other.links)
-                && Objects.equals(attributes, other.attributes);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, type, nameRepository, links, attributes);
-    }
-
-    @Override
     public String toString() {
         var links = links().stream().map(Objects::toString).collect(Collectors.joining(","));
         var attributes = attributes().stream().map(Objects::toString).collect(Collectors.joining(","));

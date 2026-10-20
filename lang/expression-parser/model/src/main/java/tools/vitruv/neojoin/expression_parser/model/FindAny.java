@@ -45,9 +45,4 @@ public class FindAny implements ReferenceOperator {
     public int hashCode() {
         return Objects.hash(followingOperator);
     }
-
-    @Override
-    public String toString() {
-        return "FindAny(followingOperator=" + followingOperator + ")";
-    }
 }

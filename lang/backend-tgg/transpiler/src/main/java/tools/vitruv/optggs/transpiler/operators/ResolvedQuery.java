@@ -7,7 +7,6 @@ import tools.vitruv.optggs.transpiler.operators.reference_operators.ResolvedRefe
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -58,33 +57,6 @@ public class ResolvedQuery {
 
     public List<GraphPattern> getGeneratedConstraints() {
         return generatedConstraints;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof ResolvedQuery other)) return false;
-        return Objects.equals(selection, other.selection)
-                && Objects.equals(projections, other.projections)
-                && Objects.equals(referenceOperatorChains, other.referenceOperatorChains)
-                && Objects.equals(filters, other.filters)
-                && Objects.equals(container, other.container)
-                && Objects.equals(links, other.links)
-                && Objects.equals(generatedRules, other.generatedRules)
-                && Objects.equals(generatedConstraints, other.generatedConstraints);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(
-                selection,
-                projections,
-                referenceOperatorChains,
-                filters,
-                container,
-                links,
-                generatedRules,
-                generatedConstraints);
     }
 
     private TripleRule createPrimaryRule() {

@@ -1,6 +1,5 @@
 package tools.vitruv.optggs.transpiler.operators.reference_operators;
 
-import java.util.Objects;
 import tools.vitruv.optggs.operators.FQN;
 import tools.vitruv.optggs.transpiler.graph.tgg.GraphPathToNode;
 import tools.vitruv.optggs.transpiler.graph.tgg.TGGLink;
@@ -24,23 +23,6 @@ public class ResolvedCollectionMemberFeatureCall implements ResolvedReferenceOpe
 
     public FQN getFeatureElement() {
         return featureElement;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof ResolvedCollectionMemberFeatureCall other)) return false;
-        return Objects.equals(feature, other.feature) && Objects.equals(featureElement, other.featureElement);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(feature, featureElement);
-    }
-
-    @Override
-    public String toString() {
-        return "ResolvedCollectionMemberFeatureCall(" + "feature=" + feature + ", " + "featureElement=" + featureElement + ")";
     }
 
     @Override

@@ -6,7 +6,6 @@ import tools.vitruv.optggs.transpiler.graph.tgg.GraphPathToNode;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -28,31 +27,6 @@ public class GraphPattern {
 
     public NameRepository getNameRepository() {
         return nameRepository;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof GraphPattern other)) return false;
-        return Objects.equals(id, other.id)
-                && Objects.equals(nameRepository, other.nameRepository)
-                && Objects.equals(nodes, other.nodes);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, nameRepository, nodes);
-    }
-
-    @Override
-    public String toString() {
-        return "GraphPattern(id="
-                + id
-                + ", nameRepository="
-                + nameRepository
-                + ", nodes="
-                + nodes
-                + ")";
     }
 
     public List<PatternNode> getNodes() {

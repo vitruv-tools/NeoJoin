@@ -39,15 +39,4 @@ public final class FeatureInformation {
     public int hashCode() {
         return Objects.hash(featureName, featureClassSimpleName, featureClassIdentifier);
     }
-
-    @Override
-    public String toString() {
-        return "FeatureInformation(featureName="
-                + featureName
-                + ", featureClassSimpleName="
-                + featureClassSimpleName
-                + ", featureClassIdentifier="
-                + featureClassIdentifier
-                + ")";
-    }
 }

@@ -1,6 +1,5 @@
 package tools.vitruv.optggs.transpiler.operators.reference_operators;
 
-import java.util.Objects;
 import tools.vitruv.optggs.operators.LogicOperator;
 import tools.vitruv.optggs.operators.expressions.ConstantExpression;
 import tools.vitruv.optggs.transpiler.graph.tgg.GraphPathToNode;
@@ -25,23 +24,6 @@ public class ResolvedReferenceFilter implements ResolvedReferenceOperator {
 
     public LogicOperator getOperator() {
         return operator;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof ResolvedReferenceFilter other)) return false;
-        return Objects.equals(feature, other.feature) && Objects.equals(operator, other.operator) && Objects.equals(constantExpression, other.constantExpression);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(feature, operator, constantExpression);
-    }
-
-    @Override
-    public String toString() {
-        return "ResolvedReferenceFilter(" + "feature=" + feature + ", " + "operator=" + operator + ", " + "constantExpression=" + constantExpression + ")";
     }
 
     @Override
