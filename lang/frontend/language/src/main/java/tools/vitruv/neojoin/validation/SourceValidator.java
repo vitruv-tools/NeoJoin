@@ -8,6 +8,7 @@ import tools.vitruv.neojoin.ast.MainQuery;
 import tools.vitruv.neojoin.ast.Source;
 import tools.vitruv.neojoin.utils.AstUtils;
 
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class SourceValidator extends ComposableValidator {
@@ -28,6 +29,25 @@ public class SourceValidator extends ComposableValidator {
                     error("Duplicated alias: " + entry.getKey(), from, AstPackage.Literals.FROM__ALIAS);
                 }
             });
+    }
+
+    @Check
+    public void checkFromAliasConflictsWithParameter(MainQuery mainQuery) {
+        if (mainQuery.getSource() == null) {
+            return;
+        }
+
+        Set<String> paramAliases = AstUtils.getViewType(mainQuery).getParameters().stream()
+            .map(p -> p.getAlias())
+            .collect(Collectors.toSet());
+
+        AstUtils.getAllFroms(mainQuery.getSource())
+            .filter(from -> from.getAlias() != null && paramAliases.contains(from.getAlias()))
+            .forEach(from -> error(
+                "Alias '%s' conflicts with a parameter of the same name".formatted(from.getAlias()),
+                from,
+                AstPackage.Literals.FROM__ALIAS
+            ));
     }
 
     @Check

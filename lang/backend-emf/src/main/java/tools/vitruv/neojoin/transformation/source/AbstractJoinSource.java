@@ -20,7 +20,7 @@ public abstract class AbstractJoinSource implements InstanceSource {
     private final AQRJoin join;
     private final ExpressionEvaluator evaluator;
 
-    public AbstractJoinSource(InstanceSource left, FromSource right, AQRJoin join, ExpressionEvaluator evaluator) {
+    protected AbstractJoinSource(InstanceSource left, FromSource right, AQRJoin join, ExpressionEvaluator evaluator) {
         this.leftSource = left;
         this.rightSource = right;
         this.join = join;

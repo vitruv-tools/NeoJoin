@@ -22,6 +22,7 @@ public class NeoJoinIdeModule extends AbstractNeoJoinIdeModule {
         return CustomContentAssistService.class;
     }
 
+    @Override
     public Class<? extends IdeCrossrefProposalProvider> bindIdeCrossrefProposalProvider() {
         return CustomIdeCrossrefProposalProvider.class;
     }

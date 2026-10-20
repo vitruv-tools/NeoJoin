@@ -10,10 +10,9 @@ import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.emf.ecore.impl.DynamicEObjectImpl;
 import org.eclipse.emf.ecore.resource.Resource;
-import org.eclipse.xtext.common.types.JvmField;
-import org.eclipse.xtext.common.types.JvmType;
-import org.eclipse.xtext.common.types.JvmVoid;
+import org.eclipse.xtext.common.types.*;
 import org.eclipse.xtext.common.types.util.TypeReferences;
+import org.eclipse.xtext.conversion.IValueConverterService;
 import org.eclipse.xtext.naming.QualifiedName;
 import org.eclipse.xtext.util.CancelIndicator;
 import org.eclipse.xtext.util.OnChangeEvictingCache;
@@ -71,7 +70,6 @@ public class ExpressionHelper {
             }
             return super.featureCallField(jvmField, receiver);
         }
-
     }
 
     @Inject
@@ -93,15 +91,21 @@ public class ExpressionHelper {
      * @param fromIterator  iterator of {@link AQRFrom} for variable names
      * @param valueIterator iterator of {@link Object} for variable values
      * @param limit         optional limit
+     * @param parameters    map from parameter name to parameter value
      * @return evaluation context to be used in {@link #evaluate(XExpression, IEvaluationContext) evaluate(..)}
      * @see #createContext() if no variables are required
      */
     public IEvaluationContext createContext(
         Iterator<AQRFrom> fromIterator,
         Iterator<?> valueIterator,
-        @Nullable AQRFrom limit
+        @Nullable AQRFrom limit,
+        Map<String, Object> parameters
     ) {
         IEvaluationContext context = createContext();
+
+        for (var entry : parameters.entrySet()) {
+            context.newValue(QualifiedName.create(entry.getKey()), entry.getValue());
+        }
 
         boolean isFirst = true;
         while (fromIterator.hasNext() && valueIterator.hasNext()) {
@@ -172,6 +176,9 @@ public class ExpressionHelper {
         return resolved;
     }
 
+    @Inject
+    private IValueConverterService valueConverterService;
+
     /**
      * If the expression is a field access on an ecore object from a source model, returns the corresponding structural feature, otherwise returns {@code null}.
      *
@@ -185,14 +192,13 @@ public class ExpressionHelper {
                 throw new TypeResolutionException(expression);
             }
 
-            if (featureCall.getFeature() instanceof JvmField field) {
-                check(featureCall.getActualReceiver() != null);
+            if (featureCall.getActualReceiver() != null) {
                 var receiverType = resolve(featureCall.getActualReceiver());
                 if (receiverType.getType() != null) {
-                    var receiverClassifier = SourceModelInferrer.getEClassifierOrNull(receiverType.getType());
-                    if (receiverClassifier instanceof EClass receiverClass) { // includes null check
-                        // might be null for an invalid feature access but that's handled by Xbase type checking
-                        return receiverClass.getEStructuralFeature(field.getSimpleName());
+                    var receiverClassifier = getClassifier(expression, receiverType.getType());
+                    if (receiverClassifier instanceof EClass receiverClass) {
+                        var featureName = valueConverterService.toValue(featureCall.getConcreteSyntaxFeatureName(), "ID", null);
+                        return receiverClass.getEStructuralFeature((String) featureName);
                     }
                 }
             }
@@ -218,6 +224,11 @@ public class ExpressionHelper {
             return new TypeInfo(null, false);
         }
 
+        var asPrimitive = resolvedType.getPrimitiveIfWrapperType();
+        if (asPrimitive != null) {
+            type = asPrimitive.getType();
+        }
+
         // unwrap list
         var isMany = false;
         var listType = tryGetListType(resolvedType);
@@ -226,7 +237,7 @@ public class ExpressionHelper {
             isMany = true;
         }
 
-        var classifier = SourceModelInferrer.getEClassifierOrNull(type);
+        var classifier = getClassifier(expression, type);
         if (classifier != null) {
             return new TypeInfo(classifier, isMany);
         }
@@ -236,6 +247,17 @@ public class ExpressionHelper {
             return new TypeInfo(dataType, isMany);
         }
 
+        return null;
+    }
+
+    private @Nullable EClassifier getClassifier(XExpression expression, JvmType type) {
+        TypeRegistry typeRegistry = SourceModel.getSourceTypeRegistry(expression.eResource().getResourceSet());
+        if (type instanceof JvmGenericType genericType) {
+            return typeRegistry.getClass(genericType);
+        }
+        if (type instanceof JvmEnumerationType enumerationType) {
+            return typeRegistry.getEnum(enumerationType);
+        }
         return null;
     }
 
@@ -271,5 +293,4 @@ public class ExpressionHelper {
     public <T extends @Nullable Object> T execUncached(Resource resource, Supplier<T> fun) {
         return cache.execWithTemporaryCaching(resource, res -> fun.get());
     }
-
 }

@@ -38,11 +38,11 @@ public class FeatureModifierValidator extends ComposableValidator {
             .collect(Collectors.groupingBy(FeatureModifierValidator::getModifierName))
             .values().stream()
             .filter(collisions -> collisions.size() > 1)
-            .forEach(collisions -> {
-                collisions.forEach(collision -> {
-                    error("Duplicated modifier '%s'".formatted(getModifierName(collision)), collision, null);
-                });
-            });
+            .forEach(collisions ->
+                collisions.forEach(collision ->
+                    error("Duplicated modifier '%s'".formatted(getModifierName(collision)), collision, null)
+                )
+            );
     }
 
     private static String getModifierName(Modifier modifier) {

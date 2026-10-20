@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import static tools.vitruv.neojoin.parse.ParseAssertions.assertThat;
 
-public class CustomDataTypeParseTest extends AbstractParseTest {
+class CustomDataTypeParseTest extends AbstractParseTest {
 
     @Test
     void implicitDataType() {

@@ -28,6 +28,8 @@ import org.eclipse.emf.ecore.xmi.XMLResource;
  */
 public final class EMFUtils {
 
+    private EMFUtils() {}
+
     /**
      * Returns a set of all {@link EPackage packages} contained in the given package registry.
      */
@@ -169,10 +171,10 @@ public final class EMFUtils {
      */
     public static void save(URI uri, EObject object) throws IOException {
         ResourceSet resourceSet = new ResourceSetImpl();
-        
+
         Resource resource = resourceSet.createResource(uri);
         resource.getContents().add(object);
-        
+
         Map<String, Object> options = Map.of(XMLResource.OPTION_URI_HANDLER, new RelativeURIResolver(resource));
         resource.save(options);
     }

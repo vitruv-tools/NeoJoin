@@ -56,7 +56,7 @@ public class ViewExtractor {
         }
         final Query query = new Query(new Selection(sourcePattern, Pattern.from(targetRoot)));
 
-        if (targetClass.source() != null && targetClass.source().condition() != null) {
+        if (targetClass.source() != null && !targetClass.source().conditions().isEmpty()) {
             throw new UnsupportedOperationException("Condition expressions are not supported");
         }
 

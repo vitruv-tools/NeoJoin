@@ -40,6 +40,7 @@ create ReviewedRestaurant {
 * Queries can *select*, *join*, *filter* and *group* classes from the source models
 * Features in the view can be *copied* from the source models, *renamed* or *calculated* based on a custom expression
 * Query conditions and feature definition using [Xtend expressions](https://eclipse.dev/Xtext/xtend/documentation/203_xtend_expressions.html)
+* Parameterizable queries with typed parameters passed at transformation time
 * [VSCode](https://code.visualstudio.com/) plugin for syntax highlighting, code completion, and live visualization of the resulting view type
 * Input and output meta-models as `.ecore` and instance-models as `.xmi` files
 
@@ -90,6 +91,14 @@ Generate the meta-model:
 Transform the input models:
   -i, --instance-model-path=MODEL-PATH
                            Model path (see below) to find instance models (.xmi).
+  -p, --parameters=PARAMS[,PARAMS...]
+                           Query parameters as comma-separated name=value
+                             pairs. Supported Scalar Types: EString, EInt,
+                             EDouble, EBoolean, ELong and EFloat. Strings with
+                             spaces have to be quoted. For EClass/EList
+                             parameters the value is a path to an XMI file.
+                             Example: -p featureName=Navigation,
+                             activeFeatures=config.xmi
   -t, --transform=OUTPUT   Transform the input models based on the query and
                              write the result to the given output file or
                              directory.
@@ -195,7 +204,7 @@ We use [SonarQube](https://sonarcloud.io/project/overview?id=vitruv-tools_NeoJoi
 
 ### VSCode Plugin
 
-* Open the `vscode-plugin` folder in VSCode (top-level in a workspace)
+* Open the `vscode-plugin` folder in VSCode (top-level in a workspace or add it to another workspace)
 * Run `npm install` to install dependencies
 * Go to `Run and Debug` > Select launch configuration `Launch Client` > Press `Start Debugging`
     * The language server needs a few seconds to start up, so code completion / analysis will not work right at the start.
@@ -203,9 +212,28 @@ We use [SonarQube](https://sonarcloud.io/project/overview?id=vitruv-tools_NeoJoi
     * If you cannot find the launch configuration `Launch Client`, ensure that you have opened VSCode with the `vscode-plugin` folder as your workspace.
 * If you get the error message `Activating extension 'vitruv-tools.neojoin' failed: Cannot find module` check the build task for potential problems: Bottom Panel > Select tab `Terminal` > Select task `watch` (on the right)
 
+* for manual build do the following:
+    ```bash
+    npm clean-install                                                       # only required the first time
+    cp ../lang/frontend/ide/target/tools.vitruv.neojoin.frontend.ide.jar .  # provide lsp for vscode-plugin (this assumes your in the NeoJoin/vscode-plugin and that the lang folder lies beside it)
+    npx @vscode/vsce package
+    ```
+
+### Integration
+
+To integrate NeoJoin into other projects, such as a custom transpiler, the `NeoJoinStandaloneSetup` serves as a starting point.
+One can create a new setup which extends that setup and then use the `xtext-maven-plugin` to integrate the setup into the build process.
+To customize the behavior, overriding of the injection module is used.
+Overriding the `IGenerator` allows supplying a custom generator.
+A custom implementation of `QueryModelExpressionTypeConfiguration` allows customizing the type of the Java model holding the query expressions.
+By default, NeoJoin creates a Java function per XBase expression in a private `AllQueryExpressions` class.
+A custom implementation of `SourceTypeRegistryInitialization` allows customizing the types used in the source type registry.
+By default, NeoJoin infers the types of the source metamodel using the `SourceModelInferrer` class.
+This means it creates a Java class model for each type in the source metamodel.
+
 ### Notes
 
-* Xtext heavily uses generated classes which means that opening this repository in a Java IDE after cloning will look like a christmas tree. Run `maven compile` to generate all missing classes. To improve compile times afterwards you can skip re-generation of classes by activating the maven profile `skip-workflow`.
+* Xtext heavily uses generated classes which means that opening this repository in a Java IDE after cloning will look like a christmas tree. Run `maven compile` to generate all missing classes. To improve compile times afterwards you can skip re-generation of classes by activating the maven profile `skip-code-generation`.
 
 ## Used Technology
 

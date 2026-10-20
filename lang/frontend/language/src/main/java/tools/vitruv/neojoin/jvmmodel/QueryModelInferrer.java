@@ -2,14 +2,11 @@ package tools.vitruv.neojoin.jvmmodel;
 
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EDataType;
-import org.eclipse.emf.ecore.EEnum;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.xtext.common.types.JvmGenericType;
 import org.eclipse.xtext.common.types.JvmOperation;
 import org.eclipse.xtext.common.types.JvmType;
 import org.eclipse.xtext.common.types.JvmTypeReference;
-import org.eclipse.xtext.common.types.JvmVisibility;
-import org.eclipse.xtext.common.types.TypesFactory;
 import org.eclipse.xtext.xbase.XExpression;
 import org.eclipse.xtext.xbase.compiler.DisableCodeGenerationAdapter;
 import org.eclipse.xtext.xbase.jvmmodel.IJvmDeclaredTypeAcceptor;
@@ -17,18 +14,15 @@ import org.eclipse.xtext.xbase.jvmmodel.JvmTypeReferenceBuilder;
 import org.eclipse.xtext.xbase.jvmmodel.JvmTypesBuilder;
 import org.jspecify.annotations.Nullable;
 import tools.vitruv.neojoin.Constants;
-import tools.vitruv.neojoin.ast.Body;
-import tools.vitruv.neojoin.ast.From;
-import tools.vitruv.neojoin.ast.MainQuery;
-import tools.vitruv.neojoin.ast.Source;
-import tools.vitruv.neojoin.ast.ViewTypeDefinition;
+import tools.vitruv.neojoin.QueryModelExpressionTypeConfiguration;
+import tools.vitruv.neojoin.ast.*;
 import tools.vitruv.neojoin.utils.AstUtils;
-import tools.vitruv.neojoin.utils.Utils;
 
 import java.util.List;
 import java.util.function.Consumer;
 
 import static tools.vitruv.neojoin.utils.Assertions.check;
+import static tools.vitruv.neojoin.utils.Enumerated.enumerate;
 
 /**
  * Embeds all expression of the given query into methods to define available local variables and the expected return type.
@@ -37,6 +31,7 @@ public class QueryModelInferrer {
 
     private final IJvmDeclaredTypeAcceptor acceptor;
     private final ViewTypeDefinition viewType;
+    private final QueryModelExpressionTypeConfiguration configuration;
     private final TypeRegistry sourceTypes;
     private final JvmTypesBuilder types;
     private final JvmTypeReferenceBuilder typeReferences;
@@ -47,6 +42,7 @@ public class QueryModelInferrer {
     public QueryModelInferrer(
         IJvmDeclaredTypeAcceptor acceptor,
         ViewTypeDefinition viewType,
+        QueryModelExpressionTypeConfiguration configuration,
         TypeRegistry sourceTypes,
         JvmTypesBuilder types,
         JvmTypeReferenceBuilder typeReferences,
@@ -54,6 +50,7 @@ public class QueryModelInferrer {
     ) {
         this.acceptor = acceptor;
         this.viewType = viewType;
+        this.configuration = configuration;
         this.sourceTypes = sourceTypes;
         this.types = types;
         this.typeReferences = typeReferences;
@@ -63,17 +60,10 @@ public class QueryModelInferrer {
     public void infer() {
         check(root == null, "already inferred");
 
-        root = TypesFactory.eINSTANCE.createJvmGenericType();
-        root.setSimpleName("AllQueryExpressions");
-        root.setVisibility(JvmVisibility.PRIVATE);
-        DisableCodeGenerationAdapter.disableCodeGeneration(root); // otherwise Xtext generates java files in our working directory
+        root = types.toClass(viewType, "NeoJoinQueryExpressionType");
+        configuration.configure(root, viewType);
 
-        // prevent name collisions with other open query documents by choosing a unique name for the package
-        if (viewType.getExport() != null) {
-            root.setPackageName("%s@[%s]".formatted(viewType.getExport().getPackage(), viewType.getExport().getUri()));
-        } else {
-            root.setPackageName("invalid$%d".formatted(System.identityHashCode(viewType)));
-        }
+        DisableCodeGenerationAdapter.disableCodeGeneration(root); // otherwise Xtext generates java files in our working directory
 
         viewType.eResource().getContents().add(root); // otherwise type resolution fails
         for (MainQuery q : viewType.getQueries()) {
@@ -88,43 +78,29 @@ public class QueryModelInferrer {
         var targetName = AstUtils.getTargetName(mainQuery);
 
         if (mainQuery.getSource() != null) {
-            Utils.forEachIndexed(
-                mainQuery.getSource().getJoins(), (join, joinIndex) -> {
-                    Utils.forEachIndexed(
-                        join.getExpressionConditions(), (condition, conditionIndex) -> {
-                            addExpression(
-                                join,
-                                "%s_join_%d_condition_%d".formatted(targetName, joinIndex, conditionIndex),
-                                "boolean",
-                                condition.getExpression(),
-                                paramsForSource(mainQuery.getSource(), false, join.getFrom())
-                            );
-                        }
-                    );
-                }
-            );
+            for (var join : enumerate(mainQuery.getSource().getJoins())) {
+                addJoinExpressions(mainQuery, join.value(), join.index());
+        }
 
-            if (mainQuery.getSource().getCondition() != null) {
+            for (var condition : enumerate(mainQuery.getSource().getConditions())) {
                 addExpression(
                     mainQuery.getSource(),
-                    targetName + "_condition",
+                    targetName + "_condition_" + condition.index(),
                     "boolean",
-                    mainQuery.getSource().getCondition(),
+                    condition.value(),
                     paramsForSource(mainQuery.getSource(), false, null)
                 );
             }
 
-            Utils.forEachIndexed(
-                mainQuery.getSource().getGroupingExpressions(), (condition, index) -> {
-                    addExpression(
-                        mainQuery.getSource(),
-                        targetName + "_grouping_" + index,
-                        "java.lang.Object", // grouping expression can be anything
-                        condition,
-                        paramsForSource(mainQuery.getSource(), false, null)
-                    );
-                }
-            );
+            for (var grouping : enumerate(mainQuery.getSource().getGroupingExpressions())) {
+                addExpression(
+                    mainQuery.getSource(),
+                    targetName + "_grouping_" + grouping.index(),
+                    "java.lang.Object", // grouping expression can be anything
+                    grouping.value(),
+                    paramsForSource(mainQuery.getSource(), false, null)
+                );
+            }
         }
 
         if (mainQuery.getBody() != null) {
@@ -137,25 +113,20 @@ public class QueryModelInferrer {
     }
 
     private void inferBody(Body body, String name, Consumer<JvmOperation> addParams) {
-        Utils.forEachIndexed(
-            body.getFeatures(), (feature, index) -> {
-                var exprName = name + "_feature_" + index;
-                // expression type is validated using a custom validator
-                addExpression(feature, exprName, "java.lang.Object", feature.getExpression(), addParams);
+        for (var feature : enumerate(body.getFeatures())) {
+            var exprName = name + "_feature_" + feature.index();
+            // expression type is validated using a custom validator
+            addExpression(feature.value(), exprName, "java.lang.Object", feature.value().getExpression(), addParams);
 
-                if (feature.getSubQuery() != null && feature.getSubQuery().getBody() != null) {
-                    var featureType = inferEClassFromExpressionOrNull(feature.getExpression());
-                    if (featureType != null) {
-                        var subQueryName = AstUtils.getTargetName(feature.getSubQuery(), featureType);
-                        inferBody(
-                            feature.getSubQuery().getBody(),
-                            subQueryName,
-                            paramsForClass(featureType, feature.getSubQuery())
-                        );
-                    }
+            if (feature.value().getSubQuery() != null && feature.value().getSubQuery().getBody() != null) {
+                var featureType = inferEClassFromExpressionOrNull(feature.value().getExpression());
+                if (featureType != null) {
+                    var subQueryName = AstUtils.getTargetName(feature.value().getSubQuery(), featureType);
+                    inferBody(feature.value().getSubQuery().getBody(), subQueryName,
+                            paramsForClass(featureType, feature.value().getSubQuery()));
                 }
             }
-        );
+        }
     }
 
     private @Nullable EClass inferEClassFromExpressionOrNull(XExpression expression) {
@@ -163,16 +134,14 @@ public class QueryModelInferrer {
         // potentially still incomplete at this point if further expressions follow. If we were to trigger type resolution
         // with caching here, the types of all following expressions would never be resolved because there would already
         // exist a cache entry for the current resource.
-        var typeInfo = expressionHelper.<@Nullable TypeInfo>execUncached(
-            expression.eResource(), () -> {
-                try {
-                    return expressionHelper.inferEType(expression);
-                } catch (TypeResolutionException e) {
-                    // ignore: will be handled by type checking
-                    return null;
-                }
+        var typeInfo = expressionHelper.<@Nullable TypeInfo>execUncached(expression.eResource(), () -> {
+            try {
+                return expressionHelper.inferEType(expression);
+            } catch (TypeResolutionException e) {
+                // ignore: will be handled by type checking
+                return null;
             }
-        );
+        });
         if (typeInfo != null && typeInfo.classifier() instanceof EClass clazz) {
             return clazz;
         } else {
@@ -199,12 +168,11 @@ public class QueryModelInferrer {
     ) {
         check(root != null);
         root.getMembers().add(types.toMethod(
-            source, name, typeReferences.typeRef(type), (op) -> {
+            source, name, typeReferences.typeRef(type), op -> {
                 op.setStatic(true);
                 addParams.accept(op);
                 types.setBody(op, expression);
-            }
-        ));
+        }));
     }
 
     /**
@@ -216,34 +184,38 @@ public class QueryModelInferrer {
      * @return lambda that creates parameters
      */
     private Consumer<JvmOperation> paramsForSource(@Nullable Source source, boolean isGrouping, @Nullable From limit) {
-        if (source == null) {
-            return op -> {};
-        } else {
-            return op -> {
-                if (AstUtils.getAllFroms(source).count() <= 1) {
-                    addParam(
-                        op,
-                        source.getFrom(),
-                        Constants.ExpressionSelfReference,
-                        sourceTypes.getClass(source.getFrom().getClazz()),
-                        isGrouping
-                    );
-                }
+        if (source == null) return op -> {};
 
-                Iterable<From> allFroms = () -> AstUtils.getAllFroms(source).iterator();
-                for (var from : allFroms) {
-                    if (from.getAlias() != null) {
-                        addParam(op, from, from.getAlias(), sourceTypes.getClass(from.getClazz()), isGrouping);
-                    }
+        return op -> {
+            if (AstUtils.getAllFroms(source).count() <= 1 && source.getFrom().getAlias() == null) {
+                addFromAliasToParameters(op, source.getFrom(), Constants.ExpressionSelfReference, isGrouping);
+            }
 
-                    if (from == limit) {
-                        break;
-                    }
-                }
-            };
-        }
+            Iterable<From> allFroms = () -> AstUtils.getAllFroms(source).iterator();
+            for (var from : allFroms) {
+                addFromAliasToParameters(op, from, from.getAlias(), isGrouping);
+
+                if (from == limit) break;
+            }
+
+            //add declared parameters
+            for (var param : viewType.getParameters()) {
+                addParam(op, param, param.getAlias(), paramBaseTypeRef(param), param.getType() instanceof CollectionParameterType);
+            }
+        };
     }
 
+    private void addFromAliasToParameters(
+        JvmOperation operation,
+        From from,
+        @Nullable String fromAlias,
+        boolean isGrouping
+    ) {
+        if (fromAlias != null) {
+            var fromJvmType = sourceTypes.getClass(from.getClazz());
+            addParam(operation, from, fromAlias, fromJvmType, isGrouping);
+        }
+    }
 
     /**
      * Returns a lambda that creates a single parameter named {@link Constants#ExpressionSelfReference} for the given class.
@@ -254,7 +226,24 @@ public class QueryModelInferrer {
     private Consumer<JvmOperation> paramsForClass(EClass clazz, EObject source) {
         return op -> {
             addParam(op, source, Constants.ExpressionSelfReference, sourceTypes.getClass(clazz), false);
+
+            //add declared parameters
+            for (var param : viewType.getParameters()) {
+                addParam(op, param, param.getAlias(), paramBaseTypeRef(param), param.getType() instanceof CollectionParameterType);
+            }
         };
+    }
+
+    private JvmTypeReference paramBaseTypeRef(Parameter param) {
+        var classifier = param.getType().getElementType();
+        if (classifier instanceof EDataType dt) {
+            var cls = dt.getInstanceClass();
+            return (cls != null) ? typeReferences.typeRef(cls) : typeReferences.typeRef("invalid");
+        } else if (classifier instanceof EClass ec) {
+            return typeRef(sourceTypes.getClass(ec));
+        } else {
+            return typeReferences.typeRef("invalid");
+        }
     }
 
     /**
@@ -269,8 +258,11 @@ public class QueryModelInferrer {
      * go-to-definition.
      */
     private void addParam(JvmOperation op, EObject source, String name, @Nullable JvmType type, boolean isGrouping) {
-        var typeRef = isGrouping ? wrapInList(typeRef(type)) : typeRef(type);
-        op.getParameters().add(types.toParameter(source, name, typeRef));
+        addParam(op, source, name, typeRef(type), isGrouping);
+    }
+
+    private void addParam(JvmOperation op, EObject source, String name, JvmTypeReference typeRef, boolean isGrouping) {
+        op.getParameters().add(types.toParameter(source, name, isGrouping ? wrapInList(typeRef) : typeRef));
     }
 
     private JvmTypeReference typeRef(@Nullable JvmType type) {
@@ -285,4 +277,14 @@ public class QueryModelInferrer {
         return typeReferences.typeRef(List.class, typeRef);
     }
 
+    private void addJoinExpressions(MainQuery mainQuery, Join join, int joinIndex) {
+        var targetName = AstUtils.getTargetName(mainQuery);
+
+        for (var condition : enumerate(join.getExpressionConditions())) {
+            var expressionName = "%s_join_%d_condition_%d".formatted(targetName, joinIndex, condition.index());
+
+            addExpression(join, expressionName, "boolean", condition.value().getExpression(),
+                    paramsForSource(mainQuery.getSource(), false, join.getFrom()));
+        }
+    }
 }

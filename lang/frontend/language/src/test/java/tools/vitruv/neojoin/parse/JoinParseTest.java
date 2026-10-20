@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import static tools.vitruv.neojoin.parse.ParseAssertions.assertThat;
 
-public class JoinParseTest extends AbstractParseTest {
+class JoinParseTest extends AbstractParseTest {
 
     @Test
     void joinWithoutBody() {

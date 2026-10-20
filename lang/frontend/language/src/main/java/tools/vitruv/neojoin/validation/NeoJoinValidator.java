@@ -11,6 +11,7 @@ import tools.vitruv.neojoin.ast.ViewTypeDefinition;
 import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
 import tools.vitruv.neojoin.utils.AstUtils;
 
+import java.util.HashSet;
 import java.util.stream.Collectors;
 
 /**
@@ -22,6 +23,20 @@ public class NeoJoinValidator extends AbstractNeoJoinValidator {
 
     @Inject
     private ExpressionHelper expressionHelper;
+
+    @Check
+    public void duplicatedParameterAlias(ViewTypeDefinition viewType) {
+        var seen = new HashSet<String>();
+        for (var param : viewType.getParameters()) {
+            if (!seen.add(param.getAlias())) {
+                error(
+                    "Duplicate parameter name '%s'".formatted(param.getAlias()),
+                    param,
+                    AstPackage.Literals.PARAMETER__ALIAS
+                );
+            }
+        }
+    }
 
     @Check
     public void duplicatedTargetClassName(ViewTypeDefinition viewType) {
@@ -44,15 +59,15 @@ public class NeoJoinValidator extends AbstractNeoJoinValidator {
         if (hasImplicitRoot) {
             var conflicts = groupedTargets.get(Constants.DefaultRootClassName);
             if (conflicts != null) {
-                conflicts.forEach(query -> {
+                conflicts.forEach(query ->
                     error(
                         ("Target class name '%s' collides with name of the implicit root class. " +
                             "Either choose a different name for this class or explicitly create a root class with a different name.")
                             .formatted(Constants.DefaultRootClassName),
                         query,
                         query.getName() != null ? AstPackage.Literals.QUERY__NAME : null
-                    );
-                });
+                    )
+                );
             }
         }
     }

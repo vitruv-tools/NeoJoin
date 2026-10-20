@@ -27,7 +27,7 @@ class ResolvedContainmentTest {
 
 
     @Test
-    public void toRule() {
+    void toRule() {
         var source = resolve(Pattern.from(pkg("A")).ref(pkg("B"), "b"));
         var target = resolve(Pattern.from(t("A'")).ref(t("B'"), "b"));
         var container = new ResolvedContainment(source, target, List.of());

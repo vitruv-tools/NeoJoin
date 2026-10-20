@@ -5,6 +5,7 @@ import tools.vitruv.optggs.operators.FunctionInvocation;
 import tools.vitruv.optggs.operators.Tuple;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Pattern {
     private final List<PatternLink> links;
@@ -62,11 +63,11 @@ public class Pattern {
     }
 
     public FQN top() {
-        return links.get(0).element();
+        return links.getFirst().element();
     }
 
     public FQN bottom() {
-        return links.get(links.size() - 1).element();
+        return links.getLast().element();
     }
 
     public Pattern topPattern() {
@@ -86,13 +87,13 @@ public class Pattern {
     }
 
     public Tuple<Pattern, PatternLink> popBottom() {
-        var last = links.get(links.size() - 1);
+        var last = links.getLast();
         var remainder = links.subList(0, links.size() - 1);
         return new Tuple<>(new Pattern(remainder), last);
     }
 
     public Tuple<Pattern, PatternLink> popTop() {
-        var first = links.get(0);
+        var first = links.getFirst();
         var remainder = links.subList(1, links.size());
         return new Tuple<>(new Pattern(remainder), first);
     }
@@ -109,7 +110,7 @@ public class Pattern {
 
     @Override
     public String toString() {
-        return String.join("", links.stream().map(Object::toString).toList());
+        return links.stream().map(Object::toString).collect(Collectors.joining());
     }
 
     @Override

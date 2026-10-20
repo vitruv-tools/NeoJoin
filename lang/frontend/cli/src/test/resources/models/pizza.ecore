@@ -11,9 +11,9 @@
         eType="#//Food"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Root">
-    <eStructuralFeatures xsi:type="ecore:EReference" name="allFoods" ordered="false"
+    <eStructuralFeatures xsi:type="ecore:EReference" name="foods" ordered="false"
         upperBound="-1" eType="#//Food" containment="true"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="allRestaurants" ordered="false"
+    <eStructuralFeatures xsi:type="ecore:EReference" name="restaurants" ordered="false"
         upperBound="-1" eType="#//Restaurant" containment="true"/>
   </eClassifiers>
 </ecore:EPackage>

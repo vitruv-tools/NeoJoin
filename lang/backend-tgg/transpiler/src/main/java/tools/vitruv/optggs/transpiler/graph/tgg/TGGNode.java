@@ -100,9 +100,9 @@ public class TGGNode extends AbstractGraphNode<TGGLink, TGGNode> {
 
     @Override
     public String toString() {
-        final String links = String.join(",", links().stream().map(Objects::toString).toList());
+        final String links = links().stream().map(Objects::toString).collect(Collectors.joining(","));
         final String attributes =
-                String.join(",", attributes().stream().map(Objects::toString).toList());
+                attributes().stream().map(Objects::toString).collect(Collectors.joining(","));
         return "<"
                 + (green ? "++" : "")
                 + id

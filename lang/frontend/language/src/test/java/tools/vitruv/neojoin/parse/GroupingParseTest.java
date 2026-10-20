@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import static tools.vitruv.neojoin.parse.ParseAssertions.assertThat;
 
-public class GroupingParseTest extends AbstractParseTest {
+class GroupingParseTest extends AbstractParseTest {
 
     @Test
     void queryWithSingleAggregation() {

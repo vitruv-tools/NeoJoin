@@ -12,12 +12,14 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.HashMap;
 
-public class TripleGraphPrinter {
+public final class TripleGraphPrinter {
     /**
      * The directory in which the template engine caches the compiled templates, if no other
      * directory is given. It is relative to the working directory.
      */
     public static final Path DEFAULT_TEMPLATE_CACHE_DIRECTORY = Path.of("jte-classes");
+
+    private TripleGraphPrinter() {}
 
     public static void print(TripleGrammar grammar, Path file, NameResolver nameResolver) {
         print(grammar, file, nameResolver, DEFAULT_TEMPLATE_CACHE_DIRECTORY);

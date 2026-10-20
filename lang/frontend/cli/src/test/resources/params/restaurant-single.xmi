@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<restaurant:Restaurant
+    xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:restaurant="http://example.org/restaurant"
+    name="Pizzeria Toni"
+    numEmployees="3"/>

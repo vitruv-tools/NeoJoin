@@ -54,12 +54,9 @@ public class AQRTargetClassAssertions extends AbstractAssert<AQRTargetClassAsser
         var results = actual.source().joins().stream()
             .filter(join -> join.from().clazz() == source && Objects.equals(join.from().alias(), alias))
             .toList();
-        Assertions.assertThat(results.size() == 1).as(
-            "Expected a join with source class %s and alias %s, but found %d",
-            source.getName(),
-            alias,
-            results.size()
-        ).isTrue();
+        Assertions.assertThat(results.size())
+            .as("Expected a join with source class %s and alias %s, but found %d", source.getName(), alias, results.size())
+            .isSameAs(1);
         var join = results.get(0);
         Assertions.assertThat(join.type()).isSameAs(type);
         seenJoins.add(join);
@@ -78,22 +75,34 @@ public class AQRTargetClassAssertions extends AbstractAssert<AQRTargetClassAsser
     public AQRTargetClassAssertions hasCondition() {
         hasSource();
         check(actual.source() != null);
-        Assertions.assertThat(actual.source().condition()).as(
+        Assertions.assertThat(actual.source().conditions()).as(
                 "Expected a condition in %s, but found none",
                 actual.name()
             )
-            .isNotNull();
+            .isNotEmpty();
+        return this;
+    }
+
+    public AQRTargetClassAssertions hasConditions(int count) {
+        hasSource();
+        check(actual.source() != null);
+        Assertions.assertThat(actual.source().conditions()).as(
+                "Expected %d conditions in %s",
+                count,
+                actual.name()
+            )
+            .hasSize(count);
         return this;
     }
 
     public AQRTargetClassAssertions hasNoCondition() {
         isNotNull();
         if (actual.source() != null) {
-            Assertions.assertThat(actual.source().condition()).as(
-                    "Expected no condition in '%s', but found one",
+            Assertions.assertThat(actual.source().conditions()).as(
+                    "Expected no condition in '%s', but found some",
                     actual.name()
                 )
-                .isNull();
+                .isEmpty();
         }
         return this;
     }
@@ -101,9 +110,9 @@ public class AQRTargetClassAssertions extends AbstractAssert<AQRTargetClassAsser
     private AQRFeature getFeature(String name) {
         var results = actual.features().stream().filter(a -> a.name().equals(name)).toList();
         check(results.size() <= 1);
-        Assertions.assertThat(results.size() == 1)
+        Assertions.assertThat(results)
             .as("Expected a feature named '%s' in '%s', but found none", name, actual.name())
-            .isTrue();
+            .hasSize(1);
         var feature = results.get(0);
         seenFeatures.add(feature);
         return feature;

@@ -28,11 +28,13 @@ public class ResolvedThetaJoin implements ResolvedPatternLink {
         var constraint = new ArbitraryAttributeConstraint(function.name());
         for (var parameter : function.parameters()) {
             var argument = function.argument(parameter);
-            if (argument instanceof FunctionInvocation.ConstantArgument c) {
-                constraint.addParameter(parameter, new ConstantExpression(c.value()));
-            } else if (argument instanceof FunctionInvocation.ConstrainedArgument arg) {
-                final TGGNode refNode = slice.findByType(arg.node()).orElseThrow();
-                constraint.addParameter(parameter, refNode.addVariableAttribute(arg.attribute(), LogicOperator.Equals));
+            switch (argument) {
+                case FunctionInvocation.ConstantArgument(var value) ->
+                    constraint.addParameter(parameter, new ConstantExpression(value));
+                case FunctionInvocation.ConstrainedArgument(var node1, var attribute) -> {
+                    TGGNode refNode = slice.findByType(node1).orElseThrow();
+                    constraint.addParameter(parameter, refNode.addVariableAttribute(attribute, LogicOperator.Equals));
+                }
             }
         }
         slice.addConstraint(constraint);

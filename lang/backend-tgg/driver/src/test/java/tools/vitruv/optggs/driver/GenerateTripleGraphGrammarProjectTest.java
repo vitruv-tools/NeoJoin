@@ -51,7 +51,7 @@ class GenerateTripleGraphGrammarProjectTest {
         Files.copy(resource("models/car.ecore"), metaModelDirectory.resolve("car.ecore"));
         final Path query = resource("queries/car.nj");
         final EPackage.Registry registry =
-                new PackageModelCollector(metaModelDirectory.toString()).collect();
+                new PackageModelCollector(metaModelDirectory.toString()).collect().right();
 
         // WHEN generating the Triple Graph Grammar project
         final ResourceSet sourceMetaModelResourceSet = new ResourceSetImpl();

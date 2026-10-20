@@ -23,6 +23,8 @@ import static tools.vitruv.neojoin.aqr.AQRInvariantViolatedException.invariant;
  */
 public class AQRSourceBuilder {
 
+    private AQRSourceBuilder() {}
+
     /**
      * Creates a source for the given AST source.
      */
@@ -30,7 +32,7 @@ public class AQRSourceBuilder {
         return new AQRSource(
             createFrom(source.getFrom()),
             source.getJoins().stream().map(AQRSourceBuilder::createJoin).toList(),
-            source.getCondition() != null ? source.getCondition() : null,
+            List.copyOf(source.getConditions()),
             source.getGroupingExpressions()
         );
     }
@@ -39,7 +41,7 @@ public class AQRSourceBuilder {
      * Creates a source for the given class.
      */
     public static AQRSource createSource(EClass source) {
-        return new AQRSource(createFrom(source), List.of(), null, List.of());
+        return new AQRSource(createFrom(source), List.of(), List.of(), List.of());
     }
 
     /**

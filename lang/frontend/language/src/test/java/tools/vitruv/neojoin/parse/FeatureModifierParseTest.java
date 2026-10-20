@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import static tools.vitruv.neojoin.parse.ParseAssertions.assertThat;
 
-public class FeatureModifierParseTest extends AbstractParseTest {
+class FeatureModifierParseTest extends AbstractParseTest {
 
     @Test
     void noModifiers() {

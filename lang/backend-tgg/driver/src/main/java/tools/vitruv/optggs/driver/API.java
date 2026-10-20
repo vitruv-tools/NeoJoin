@@ -5,7 +5,9 @@ import tools.vitruv.optggs.operators.View;
 
 import java.nio.file.Path;
 
-public class API {
+public final class API {
+
+    private API() {}
 
     public static void generateProjectForView(Project project, View view, Path location, NameResolver nameResolver) {
         generateProjectForView(project, view, location, nameResolver, TripleGraphPrinter.DEFAULT_TEMPLATE_CACHE_DIRECTORY);

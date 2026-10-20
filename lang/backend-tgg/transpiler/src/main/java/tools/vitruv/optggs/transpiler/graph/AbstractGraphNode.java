@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public abstract class AbstractGraphNode<
         L extends AbstractGraphLink<SELF>, SELF extends AbstractGraphNode<L, SELF>> {
@@ -135,8 +136,8 @@ public abstract class AbstractGraphNode<
 
     @Override
     public String toString() {
-        var links = String.join(",", links().stream().map(Objects::toString).toList());
-        var attributes = String.join(",", attributes().stream().map(Objects::toString).toList());
+        var links = links().stream().map(Objects::toString).collect(Collectors.joining(","));
+        var attributes = attributes().stream().map(Objects::toString).collect(Collectors.joining(","));
         return "<" + id + ": " + type.fqn() + ";" + links + ";" + attributes + ">";
     }
 }

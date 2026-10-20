@@ -6,6 +6,7 @@ import tools.vitruv.optggs.transpiler.graph.tgg.Parameter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class ArbitraryAttributeConstraint implements AttributeConstraint {
     private final String constraintName;
@@ -82,8 +83,8 @@ public class ArbitraryAttributeConstraint implements AttributeConstraint {
     public String toString() {
         var params =
                 parameters.stream()
-                        .map((param) -> param.attribute() + ": " + param.value())
-                        .toList();
-        return constraintName + "(" + String.join(",", params) + ")";
+                        .map(param -> param.attribute() + ": " + param.value())
+                        .collect(Collectors.joining(","));
+        return constraintName + "(" + params + ")";
     }
 }

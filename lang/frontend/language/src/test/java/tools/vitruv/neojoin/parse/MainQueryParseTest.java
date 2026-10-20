@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import static tools.vitruv.neojoin.parse.ParseAssertions.assertThat;
 
-public class MainQueryParseTest extends AbstractParseTest {
+class MainQueryParseTest extends AbstractParseTest {
 
     @Test
     void withoutTargetName() {
@@ -22,6 +22,52 @@ public class MainQueryParseTest extends AbstractParseTest {
             """);
 
         assertThat(result).hasNoIssues();
+    }
+
+    @Test
+    void condition() {
+        var result = parse("""
+            from Restaurant r
+            where r.name.startsWith("Pizzeria")
+            create {}
+            """);
+
+        assertThat(result).hasNoIssues();
+    }
+    
+    @Test
+    void multipleConditions() {
+        var result = parse("""
+            from Restaurant r
+            where r.name.startsWith("Pizzeria")
+            where r.name.endsWith("Toni")
+            create {}
+            """);
+
+        assertThat(result).hasNoIssues();
+    }
+
+    @Test
+    void nonBooleanCondition() {
+        var result = parse("""
+            from Restaurant r
+            where r.name
+            create {}
+            """);
+
+        assertThat(result).hasIssues("Type mismatch: cannot convert from String to boolean");
+    }
+
+    @Test
+    void nonBooleanAdditionalCondition() {
+        var result = parse("""
+            from Restaurant r
+            where r.name.startsWith("Pizzeria")
+            where r.name
+            create {}
+            """);
+
+        assertThat(result).hasIssues("Type mismatch: cannot convert from String to boolean");
     }
 
     @Test
@@ -70,7 +116,7 @@ public class MainQueryParseTest extends AbstractParseTest {
                 test := 5 + 7
                 test2: Food := null
             }
-            
+
             from Food create
             """);
 
@@ -104,7 +150,7 @@ public class MainQueryParseTest extends AbstractParseTest {
             from Restaurant r create {
                 test: Result := r
             }
-            
+
             create Result {}
             """);
 

@@ -21,7 +21,7 @@ public abstract class QueryResolver<V, Q, S, P, RO, F, C extends Mappable, L, PA
         var containers = findContainers(view);
         var resolvedQueries = new ArrayList<Q>();
         for (var query : view.queries()) {
-            var resolvedLinks = query.links().stream().map((link) -> resolveLink(link, mappings)).flatMap(Collection::stream).toList();
+            var resolvedLinks = query.links().stream().map(link -> resolveLink(link, mappings)).flatMap(Collection::stream).toList();
             if (containers.containsKey(query.topMapping())) {
                 // contained queries
                 var container = containers.get(query.topMapping());
@@ -142,7 +142,7 @@ public abstract class QueryResolver<V, Q, S, P, RO, F, C extends Mappable, L, PA
             public Pattern map(Mapping mapping) {
                 return Pattern.from(targetParentElement).ref(mapping.target(), targetLink);
             }
-        }).branches().stream().map((branch) -> createContainment(resolvePattern(branch.first()), resolvePattern(branch.last()), filters)).toList();
+        }).branches().stream().map(branch -> createContainment(resolvePattern(branch.first()), resolvePattern(branch.last()), filters)).toList();
     }
 
     /**
@@ -195,7 +195,7 @@ public abstract class QueryResolver<V, Q, S, P, RO, F, C extends Mappable, L, PA
                 return targetParent.ref(mapping.target(), targetLink);
             }
         });
-        return resolvedUnion.branches().stream().map((branch) -> createLink(resolvePattern(branch.first()), resolvePattern(branch.last()), filters)).toList();
+        return resolvedUnion.branches().stream().map(branch -> createLink(resolvePattern(branch.first()), resolvePattern(branch.last()), filters)).toList();
     }
 
     abstract C createContainment(PA source, PA target, List<F> filters);

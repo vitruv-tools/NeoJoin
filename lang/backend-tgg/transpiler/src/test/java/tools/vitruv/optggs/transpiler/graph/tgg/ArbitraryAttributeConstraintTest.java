@@ -9,7 +9,7 @@ import tools.vitruv.optggs.transpiler.graph.tgg.constraint.ArbitraryAttributeCon
 
 class ArbitraryAttributeConstraintTest {
     @Test
-    public void testOrdering() {
+    void testOrdering() {
         var constraint = new ArbitraryAttributeConstraint("foo");
         constraint.addParameter("a", ConstantExpression.Primitive(""));
         constraint.addParameter("c", ConstantExpression.Primitive(""));

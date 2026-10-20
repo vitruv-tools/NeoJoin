@@ -3,11 +3,11 @@ package tools.vitruv.optggs.transpiler.operators.filters;
 import tools.vitruv.optggs.operators.FunctionInvocation;
 import tools.vitruv.optggs.operators.LogicOperator;
 import tools.vitruv.optggs.operators.expressions.ConstantExpression;
+import tools.vitruv.optggs.operators.expressions.ValueExpression;
 import tools.vitruv.optggs.operators.filters.FunctionFilter;
 import tools.vitruv.optggs.transpiler.operators.ResolvedFilter;
-import tools.vitruv.optggs.transpiler.graph.tgg.constraint.ArbitraryAttributeConstraint;
-import tools.vitruv.optggs.transpiler.graph.tgg.TGGNode;
 import tools.vitruv.optggs.transpiler.graph.tgg.TripleRule;
+import tools.vitruv.optggs.transpiler.graph.tgg.constraint.ArbitraryAttributeConstraint;
 
 public class ResolvedFunctionFilter implements ResolvedFilter {
     private final FunctionInvocation function;
@@ -24,20 +24,22 @@ public class ResolvedFunctionFilter implements ResolvedFilter {
     public void extendRule(TripleRule rule) {
         var constraint = new ArbitraryAttributeConstraint(function.name());
         for (var parameter : function.parameters()) {
-            var argument = function.argument(parameter);
-            if (argument instanceof FunctionInvocation.ConstantArgument c) {
-                constraint.addParameter(parameter, new ConstantExpression(c.value()));
-            } else if (argument instanceof FunctionInvocation.ConstrainedArgument arg) {
-                TGGNode node = rule.allSourcesAsSlice().findByType(arg.node()).orElseThrow();
-                constraint.addParameter(parameter, node.addVariableAttribute(arg.attribute(), LogicOperator.Equals));
-            }
+            var value = determineValueForFunctionParameter(rule, parameter);
+            constraint.addParameter(parameter, value);
         }
         rule.addConstraintRule(constraint);
     }
 
-    @Override
+    private ValueExpression determineValueForFunctionParameter(TripleRule rule, String parameter) {
+        return switch (function.argument(parameter)) {
+            case FunctionInvocation.ConstantArgument(var value) -> new ConstantExpression(value);
+            case FunctionInvocation.ConstrainedArgument(var node, var attribute) -> rule.allSourcesAsSlice()
+                .findByType(node).orElseThrow()
+                .addVariableAttribute(attribute, LogicOperator.Equals);
+        };
+    }
+
     public String toString() {
         return "Φ(" + function + ")";
     }
-
 }

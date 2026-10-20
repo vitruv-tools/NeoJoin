@@ -23,6 +23,8 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 @NullUnmarked
@@ -54,12 +56,18 @@ public class Main implements Runnable {
     public void run() {
         var ioConfig = redirectIo();
 
-        String errorMessage = null;
+        List<String> errorMessages = new ArrayList<>();
         try {
-            NeoJoinIdeSetup.Registry = new PackageModelCollector(metaModelPath).collect();
+            var collectionResult = new PackageModelCollector(metaModelPath).collect();
+            NeoJoinIdeSetup.Registry = collectionResult.right();
+
+            collectionResult.left().forEach(issue ->
+                errorMessages.add(issue.toString())
+            );
         } catch (Exception ex) {
             NeoJoinIdeSetup.Registry = new EPackageRegistryImpl();
-            errorMessage = "Invalid meta-model path: " + ex.getMessage();
+            var errorMessage = "Invalid meta-model path: " + ex.getMessage();
+            errorMessages.add(errorMessage);
             System.err.printf("[ERROR] %s%n  > full meta-model path: %s%n", errorMessage, metaModelPath);
         }
 
@@ -71,9 +79,9 @@ public class Main implements Runnable {
             ioConfig.in(), ioConfig.out(),
             true, ioConfig.trace()
         );
-        if (errorMessage != null) {
-            launcher.getRemoteProxy().showMessage(new MessageParams(MessageType.Error, errorMessage));
-        }
+
+        showErrorMessages(launcher, errorMessages);
+
         languageServer.connect(launcher.getRemoteProxy());
         var future = launcher.startListening();
 
@@ -83,6 +91,12 @@ public class Main implements Runnable {
             future.get(); // wait until the language server is stopped
         } catch (InterruptedException | ExecutionException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private void showErrorMessages(Launcher<LanguageClient> launcher, Iterable<String> errorMessages) {
+        for (var errorMessage : errorMessages) {
+            launcher.getRemoteProxy().showMessage(new MessageParams(MessageType.Error, errorMessage));
         }
     }
 
@@ -142,5 +156,4 @@ public class Main implements Runnable {
     public static void main(String[] args) {
         System.exit(new CommandLine(new Main()).execute(args));
     }
-
 }
