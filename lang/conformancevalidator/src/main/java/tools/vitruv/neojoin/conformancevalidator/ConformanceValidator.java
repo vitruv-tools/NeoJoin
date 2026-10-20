@@ -92,7 +92,7 @@ public class ConformanceValidator {
      */
     private List<Violation> evaluateDiffs(List<Diff> diffs, Strictness strictness) {
         List<Violation> violations = new ArrayList<>();
-         List<ConformanceRule> activeRules = ALL_RULES.stream()
+        List<ConformanceRule> activeRules = ALL_RULES.stream()
             .filter(rule -> strictness.getAllowedCategories().contains(rule.getCategory()))
             .toList();
         for (Diff diff : diffs) {
