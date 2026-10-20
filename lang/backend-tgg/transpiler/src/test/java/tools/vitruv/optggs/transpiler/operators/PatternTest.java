@@ -8,7 +8,7 @@ import tools.vitruv.optggs.transpiler.operators.patterns.ResolvedPattern;
 import tools.vitruv.optggs.operators.selection.Pattern;
 import tools.vitruv.optggs.operators.selection.From;
 import tools.vitruv.optggs.operators.selection.Join;
-import tools.vitruv.optggs.transpiler.tgg.TripleRule;
+import tools.vitruv.optggs.transpiler.graph.tgg.TripleRule;
 
 import java.util.List;
 

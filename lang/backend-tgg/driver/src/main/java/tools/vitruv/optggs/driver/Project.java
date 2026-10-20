@@ -11,7 +11,6 @@ public final class Project {
     private final List<Metamodel> targetMetamodels = new ArrayList<>();
     private final List<Model> sourceModels = new ArrayList<>();
     private final List<Model> targetModels = new ArrayList<>();
-    private final List<Model> syncModels = new ArrayList<>();
     private final Collection<ConstraintSolver> constraintSolvers = new ArrayList<>();
 
     public Project(String name) {
@@ -43,10 +42,6 @@ public final class Project {
         this.targetModels.add(model);
     }
 
-    public void addSyncModels(Model combinedModel) {
-        this.syncModels.add(combinedModel);
-    }
-
     public void addConstraintSolver(ConstraintSolver solver) {
         this.constraintSolvers.add(solver);
     }
@@ -65,10 +60,6 @@ public final class Project {
 
     public Collection<Model> targetModels() {
         return targetModels;
-    }
-
-    public Collection<Model> syncModels() {
-        return syncModels;
     }
 
     public Collection<ConstraintSolver> constraintSolvers() {

@@ -22,4 +22,8 @@ public record AQR(
     List<EDataType> dataTypes,
     List<AQRTargetClass> classes,
     AQRTargetClass root
-) {}
+) {
+    public List<AQRTargetClass> classesWithoutRoot() {
+        return classes.stream().filter(clazz -> clazz != root).toList();
+    }
+}

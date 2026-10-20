@@ -1,6 +1,7 @@
 package tools.vitruv.optggs.transpiler;
 
 import tools.vitruv.optggs.operators.*;
+import tools.vitruv.optggs.operators.reference_operator.ReferenceOperatorChain;
 import tools.vitruv.optggs.operators.selection.Pattern;
 import tools.vitruv.optggs.operators.selection.PatternLink;
 import tools.vitruv.optggs.operators.selection.Union;
@@ -8,7 +9,7 @@ import tools.vitruv.optggs.operators.traits.Mappable;
 
 import java.util.*;
 
-public abstract class QueryResolver<V, Q, S, P, F, C extends Mappable, L, PA, PL> {
+public abstract class QueryResolver<V, Q, S, P, RO, F, C extends Mappable, L, PA, PL> {
     public V resolveView(View view) {
         return createView(resolveQueries(view));
     }
@@ -88,6 +89,8 @@ public abstract class QueryResolver<V, Q, S, P, F, C extends Mappable, L, PA, PL
 
     abstract P resolveProjection(Projection projection);
 
+    abstract RO resolveReferenceOperatorChain(ReferenceOperatorChain referenceOperator);
+
     abstract F resolveFilter(Filter filter);
 
     /**
@@ -109,7 +112,7 @@ public abstract class QueryResolver<V, Q, S, P, F, C extends Mappable, L, PA, PL
      * <h2>Unions</h2>
      * A union source is expanded into separate resolved containments. E.g.
      * <pre>
-     * κ(A-[b]->B' UNION A-[b]->C" => A'-[b]->?)
+     * κ(A-[b]->B' UNION A-[b]->B" => A'-[b]->?)
      * </pre>
      * together with
      * <pre>

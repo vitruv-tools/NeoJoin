@@ -48,6 +48,7 @@
     <module>backend-tgg</module>
     <module>frontend</module>
     <module>model</module>
+    <module>expression-parser</module>
     <module>p2wrappers</module>
   </modules>
 

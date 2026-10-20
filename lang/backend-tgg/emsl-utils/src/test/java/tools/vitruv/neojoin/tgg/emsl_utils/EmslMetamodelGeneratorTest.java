@@ -31,14 +31,11 @@ class EmslMetamodelGeneratorTest {
     Path tempDirectory;
 
     private static final String ECORE_METAMODEL_FILENAME = "SimpleCarMetamodel.ecore";
-    private static final String METAMODEL_OUTPUT_FILENAME = "test-metamodel-output.msl";
 
     private ResourceSet resourceSet;
 
     @BeforeEach
     void setup() {
-        EmslParser.initialize();
-
         // Setup ResourceSet
         resourceSet = new ResourceSetImpl();
         resourceSet
@@ -59,7 +56,7 @@ class EmslMetamodelGeneratorTest {
     @Test
     void generateMetamodels() {
         // given
-        final Path outputPath = tempDirectory.resolve(METAMODEL_OUTPUT_FILENAME);
+        final Path outputPath = tempDirectory.resolve("test-metamodel-output.msl");
 
         // when
         assertThatCode(() -> EmslMetamodelGenerator.generateMetamodels(resourceSet, outputPath))

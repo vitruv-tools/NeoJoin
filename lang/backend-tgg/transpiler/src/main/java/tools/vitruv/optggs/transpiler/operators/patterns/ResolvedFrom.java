@@ -1,8 +1,8 @@
 package tools.vitruv.optggs.transpiler.operators.patterns;
 
 import tools.vitruv.optggs.operators.FQN;
-import tools.vitruv.optggs.transpiler.tgg.Node;
-import tools.vitruv.optggs.transpiler.tgg.Slice;
+import tools.vitruv.optggs.transpiler.graph.tgg.TGGSlice;
+import tools.vitruv.optggs.transpiler.graph.tgg.TGGNode;
 
 import java.util.Objects;
 
@@ -19,7 +19,7 @@ public class ResolvedFrom implements ResolvedPatternLink {
     }
 
     @Override
-    public Node extendSlice(Slice slice, Node lastNode) {
+    public TGGNode extendSlice(TGGSlice slice, TGGNode lastNode) {
         var node = slice.findByType(element);
         return node.orElseGet(() -> slice.addNode(element));
     }

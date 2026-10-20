@@ -5,6 +5,7 @@ import gg.jte.ContentType;
 import gg.jte.TemplateEngine;
 import gg.jte.output.FileOutput;
 import gg.jte.resolve.ResourceCodeResolver;
+import tools.vitruv.optggs.transpiler.TripleGraphPrinter;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -16,10 +17,18 @@ import java.util.Map;
 import java.util.Scanner;
 
 public class Scaffolding {
+    private static final String DEFAULT_SOURCE_MODEL_NAME = "Source";
+    private static final String DEFAULT_TARGET_MODEL_NAME = "Target";
     private final Path targetPath;
+    private final Path templateCacheDirectory;
 
     public Scaffolding(Path targetPath) {
+        this(targetPath, TripleGraphPrinter.DEFAULT_TEMPLATE_CACHE_DIRECTORY);
+    }
+
+    public Scaffolding(Path targetPath, Path templateCacheDirectory) {
         this.targetPath = targetPath;
+        this.templateCacheDirectory = templateCacheDirectory;
     }
 
     public Path transformationFilePath() {
@@ -29,13 +38,14 @@ public class Scaffolding {
     public void create(Project project) {
         var path = this.targetPath;
         CodeResolver codeResolver = new ResourceCodeResolver("tools/vitruv/optggs/driver/templates");
-        TemplateEngine engine = TemplateEngine.create(codeResolver, ContentType.Plain);
+        TemplateEngine engine = TemplateEngine.create(codeResolver, templateCacheDirectory, ContentType.Plain);
         createFile(path.resolve(".project"), "project", project, engine);
         createFile(path.resolve(".classpath"), "classpath", project, engine);
         createFile(path.resolve("build.properties"), "build_properties", project, engine);
         createFile(path.resolve("META-INF/MANIFEST.MF"), "manifest", project, engine);
         try {
             Files.createDirectories(path.resolve("src"));
+            Files.createDirectories(path.resolve("xtend-gen"));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -44,11 +54,22 @@ public class Scaffolding {
 
         for (var sourceModel : project.sourceModels()) {
             System.out.println("Generate source model " + sourceModel.name());
-            var params = new HashMap<String, Object>();
-            params.put("project", project);
-            params.put("source", sourceModel.name());
-            copyModel(path.resolve("src/Source" + sourceModel.name() + ".msl"), sourceModel, project);
-            createFile(path.resolve("src/" + project.name() + sourceModel.name() + "ForwardRunner.java"), "ScopedForwardRunner", params, engine);
+
+            final Path sourceModelPath = path.resolve("src/Source" + sourceModel.name() + ".msl");
+            copyModel(sourceModelPath, sourceModel, project);
+
+            final Map<String, Object> forwardRunnerParams = new HashMap<>();
+            forwardRunnerParams.put("project", project);
+            forwardRunnerParams.put("source", sourceModel.name());
+            forwardRunnerParams.put("defaultTargetModelName", DEFAULT_TARGET_MODEL_NAME);
+            final Path forwardRunnerPath = path.resolve("src/" + project.name() + sourceModel.name() + "ForwardRunner.java");
+            createFile(forwardRunnerPath, "ScopedForwardRunner", forwardRunnerParams, engine);
+
+            final Map<String, Object> syncRunnerParams = new HashMap<>();
+            syncRunnerParams.put("project", project);
+            syncRunnerParams.put("source", sourceModel.name());
+            syncRunnerParams.put("defaultTargetModelName", DEFAULT_TARGET_MODEL_NAME);
+            createFile(path.resolve("src/" + project.name() + sourceModel.name() + "SyncRunner.java"), "ScopedSyncRunner", syncRunnerParams, engine);
         }
 
         for (var targetModel : project.targetModels()) {
@@ -56,18 +77,9 @@ public class Scaffolding {
             var params = new HashMap<String, Object>();
             params.put("project", project);
             params.put("target", targetModel.name());
+            params.put("defaultSourceModelName", DEFAULT_SOURCE_MODEL_NAME);
             copyModel(path.resolve("src/Target" + targetModel.name() + ".msl"), targetModel, project);
             createFile(path.resolve("src/" + project.name() + targetModel.name() + "BackwardRunner.java"), "ScopedBackwardRunner", params, engine);
-        }
-
-        for (var syncModel : project.syncModels()) {
-            var params = new HashMap<String, Object>();
-            params.put("project", project);
-            params.put("name", syncModel.name());
-            params.put("source", syncModel.name() + "_Source");
-            params.put("target", syncModel.name() + "_Target");
-            copyModel(path.resolve("src/Sync" + syncModel.name() + ".msl"), syncModel, project);
-            createFile(path.resolve("src/" + project.name() + syncModel.name() + "SyncRunner.java"), "ScopedSyncRunner", params, engine);
         }
 
         createFile(path.resolve("src/" + project.name() + "ForwardRunner.java"), "ForwardRunner", project, engine);

@@ -6,8 +6,8 @@ import tools.vitruv.optggs.operators.expressions.ConstantExpression;
 import tools.vitruv.optggs.operators.expressions.ValueExpression;
 import tools.vitruv.optggs.operators.filters.FunctionFilter;
 import tools.vitruv.optggs.transpiler.operators.ResolvedFilter;
-import tools.vitruv.optggs.transpiler.tgg.AttributeConstraint;
-import tools.vitruv.optggs.transpiler.tgg.TripleRule;
+import tools.vitruv.optggs.transpiler.graph.tgg.TripleRule;
+import tools.vitruv.optggs.transpiler.graph.tgg.constraint.ArbitraryAttributeConstraint;
 
 public class ResolvedFunctionFilter implements ResolvedFilter {
     private final FunctionInvocation function;
@@ -22,7 +22,7 @@ public class ResolvedFunctionFilter implements ResolvedFilter {
 
     @Override
     public void extendRule(TripleRule rule) {
-        var constraint = new AttributeConstraint(function.name());
+        var constraint = new ArbitraryAttributeConstraint(function.name());
         for (var parameter : function.parameters()) {
             var value = determineValueForFunctionParameter(rule, parameter);
             constraint.addParameter(parameter, value);

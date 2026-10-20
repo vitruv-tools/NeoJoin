@@ -17,7 +17,7 @@ public final class EmslParser {
 
     private EmslParser() {}
 
-    public static void initialize() {
+    static {
         new EMSLStandaloneSetup().createInjectorAndDoEMFRegistration();
     }
 

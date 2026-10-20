@@ -4,9 +4,9 @@ import tools.vitruv.optggs.operators.FQN;
 import tools.vitruv.optggs.operators.FunctionInvocation;
 import tools.vitruv.optggs.operators.LogicOperator;
 import tools.vitruv.optggs.operators.expressions.ConstantExpression;
-import tools.vitruv.optggs.transpiler.tgg.AttributeConstraint;
-import tools.vitruv.optggs.transpiler.tgg.Node;
-import tools.vitruv.optggs.transpiler.tgg.Slice;
+import tools.vitruv.optggs.transpiler.graph.tgg.constraint.ArbitraryAttributeConstraint;
+import tools.vitruv.optggs.transpiler.graph.tgg.TGGNode;
+import tools.vitruv.optggs.transpiler.graph.tgg.TGGSlice;
 
 public class ResolvedThetaJoin implements ResolvedPatternLink {
     private final FQN element;
@@ -23,16 +23,16 @@ public class ResolvedThetaJoin implements ResolvedPatternLink {
     }
 
     @Override
-    public Node extendSlice(Slice slice, Node lastNode) {
-        var node = slice.findByType(element).orElseGet(() -> slice.addNode(element));
-        var constraint = new AttributeConstraint(function.name());
+    public TGGNode extendSlice(TGGSlice slice, TGGNode lastNode) {
+        final TGGNode node = slice.findByType(element).orElseGet(() -> slice.addNode(element));
+        var constraint = new ArbitraryAttributeConstraint(function.name());
         for (var parameter : function.parameters()) {
             var argument = function.argument(parameter);
             switch (argument) {
                 case FunctionInvocation.ConstantArgument(var value) ->
                     constraint.addParameter(parameter, new ConstantExpression(value));
                 case FunctionInvocation.ConstrainedArgument(var node1, var attribute) -> {
-                    Node refNode = slice.findByType(node1).orElseThrow();
+                    TGGNode refNode = slice.findByType(node1).orElseThrow();
                     constraint.addParameter(parameter, refNode.addVariableAttribute(attribute, LogicOperator.Equals));
                 }
             }
