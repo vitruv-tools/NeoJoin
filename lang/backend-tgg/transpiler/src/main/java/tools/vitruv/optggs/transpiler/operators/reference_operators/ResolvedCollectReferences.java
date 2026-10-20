@@ -24,14 +24,6 @@ public class ResolvedCollectReferences implements ResolvedReferenceOperator {
         return targetRoot;
     }
 
-    public FQN getTargetLeaf() {
-        return targetLeaf;
-    }
-
-    public String getTargetField() {
-        return targetField;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

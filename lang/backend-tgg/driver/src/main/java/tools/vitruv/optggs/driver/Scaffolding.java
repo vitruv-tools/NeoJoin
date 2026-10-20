@@ -17,7 +17,7 @@ import java.util.Scanner;
 
 public class Scaffolding {
     private static final String DEFAULT_SOURCE_MODEL_NAME = "Source";
-    private static final String DEFAULT_Target_MODEL_NAME = "Target";
+    private static final String DEFAULT_TARGET_MODEL_NAME = "Target";
     private final Path targetPath;
 
     public Scaffolding(Path targetPath) {
@@ -30,8 +30,7 @@ public class Scaffolding {
 
     public void create(Project project) {
         var path = this.targetPath;
-        CodeResolver codeResolver =
-                new ResourceCodeResolver("tools/vitruv/optggs/driver/templates");
+        CodeResolver codeResolver = new ResourceCodeResolver("tools/vitruv/optggs/driver/templates");
         TemplateEngine engine = TemplateEngine.create(codeResolver, ContentType.Plain);
         createFile(path.resolve(".project"), "project", project, engine);
         createFile(path.resolve(".classpath"), "classpath", project, engine);
@@ -43,12 +42,8 @@ public class Scaffolding {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        mergeFiles(
-                path.resolve("src/SourceMetamodel.msl"),
-                project.sourceMetamodels().stream().map(Metamodel::path).toList());
-        mergeFiles(
-                path.resolve("src/TargetMetamodel.msl"),
-                project.targetMetamodels().stream().map(Metamodel::path).toList());
+        mergeFiles(path.resolve("src/SourceMetamodel.msl"), project.sourceMetamodels().stream().map(Metamodel::path).toList());
+        mergeFiles(path.resolve("src/TargetMetamodel.msl"), project.targetMetamodels().stream().map(Metamodel::path).toList());
 
         for (var sourceModel : project.sourceModels()) {
             System.out.println("Generate source model " + sourceModel.name());
@@ -59,21 +54,15 @@ public class Scaffolding {
             final Map<String, Object> forwardRunnerParams = new HashMap<>();
             forwardRunnerParams.put("project", project);
             forwardRunnerParams.put("source", sourceModel.name());
-            forwardRunnerParams.put("defaultTargetModelName", DEFAULT_Target_MODEL_NAME);
-            final Path forwardRunnerPath =
-                    path.resolve(
-                            "src/" + project.name() + sourceModel.name() + "ForwardRunner.java");
+            forwardRunnerParams.put("defaultTargetModelName", DEFAULT_TARGET_MODEL_NAME);
+            final Path forwardRunnerPath = path.resolve("src/" + project.name() + sourceModel.name() + "ForwardRunner.java");
             createFile(forwardRunnerPath, "ScopedForwardRunner", forwardRunnerParams, engine);
 
             final Map<String, Object> syncRunnerParams = new HashMap<>();
             syncRunnerParams.put("project", project);
             syncRunnerParams.put("source", sourceModel.name());
-            syncRunnerParams.put("defaultTargetModelName", DEFAULT_Target_MODEL_NAME);
-            createFile(
-                    path.resolve("src/" + project.name() + sourceModel.name() + "SyncRunner.java"),
-                    "ScopedSyncRunner",
-                    syncRunnerParams,
-                    engine);
+            syncRunnerParams.put("defaultTargetModelName", DEFAULT_TARGET_MODEL_NAME);
+            createFile(path.resolve("src/" + project.name() + sourceModel.name() + "SyncRunner.java"), "ScopedSyncRunner", syncRunnerParams, engine);
         }
 
         for (var targetModel : project.targetModels()) {
@@ -82,41 +71,15 @@ public class Scaffolding {
             params.put("project", project);
             params.put("target", targetModel.name());
             params.put("defaultSourceModelName", DEFAULT_SOURCE_MODEL_NAME);
-            copyModel(
-                    path.resolve("src/Target" + targetModel.name() + ".msl"), targetModel, project);
-            createFile(
-                    path.resolve(
-                            "src/" + project.name() + targetModel.name() + "BackwardRunner.java"),
-                    "ScopedBackwardRunner",
-                    params,
-                    engine);
+            copyModel(path.resolve("src/Target" + targetModel.name() + ".msl"), targetModel, project);
+            createFile(path.resolve("src/" + project.name() + targetModel.name() + "BackwardRunner.java"), "ScopedBackwardRunner", params, engine);
         }
 
-        createFile(
-                path.resolve("src/" + project.name() + "ForwardRunner.java"),
-                "ForwardRunner",
-                project,
-                engine);
-        createFile(
-                path.resolve("src/" + project.name() + "BackwardRunner.java"),
-                "BackwardRunner",
-                project,
-                engine);
-        createFile(
-                path.resolve("src/" + project.name() + "SyncRunner.java"),
-                "SyncRunner",
-                project,
-                engine);
-        createFile(
-                path.resolve("src/RegisterAttributeConstraints.java"),
-                "RegisterAttributeConstraints",
-                project,
-                engine);
-        createFile(
-                path.resolve("src/AttributeConstraints.msl"),
-                "AttributeConstraints",
-                project,
-                engine);
+        createFile(path.resolve("src/" + project.name() + "ForwardRunner.java"), "ForwardRunner", project, engine);
+        createFile(path.resolve("src/" + project.name() + "BackwardRunner.java"), "BackwardRunner", project, engine);
+        createFile(path.resolve("src/" + project.name() + "SyncRunner.java"), "SyncRunner", project, engine);
+        createFile(path.resolve("src/RegisterAttributeConstraints.java"), "RegisterAttributeConstraints", project, engine);
+        createFile(path.resolve("src/AttributeConstraints.msl"), "AttributeConstraints", project, engine);
         for (var solver : project.constraintSolvers()) {
             try {
                 solver.copyFile(path.resolve("src"));
@@ -134,8 +97,7 @@ public class Scaffolding {
         }
     }
 
-    private void createFile(
-            Path path, String template, Map<String, Object> params, TemplateEngine engine) {
+    private void createFile(Path path, String template, Map<String, Object> params, TemplateEngine engine) {
         try (FileOutput out = new FileOutput(path)) {
             engine.render(template + ".jte", params, out);
         } catch (IOException e) {
@@ -164,14 +126,8 @@ public class Scaffolding {
 
     private static void copyModel(Path targetFile, Model model, Project project) {
         try (FileWriter writer = new FileWriter(targetFile.toFile())) {
-            writer.write(
-                    "import \"platform:/resource/"
-                            + project.name()
-                            + "/src/SourceMetamodel.msl\"\n");
-            writer.write(
-                    "import \"platform:/resource/"
-                            + project.name()
-                            + "/src/TargetMetamodel.msl\"\n");
+            writer.write("import \"platform:/resource/" + project.name() + "/src/SourceMetamodel.msl\"\n");
+            writer.write("import \"platform:/resource/" + project.name() + "/src/TargetMetamodel.msl\"\n");
             try (Scanner reader = new Scanner(model.path().toFile())) {
                 while (reader.hasNextLine()) {
                     writer.write(reader.nextLine());

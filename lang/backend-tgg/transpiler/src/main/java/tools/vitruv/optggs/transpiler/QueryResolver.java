@@ -21,11 +21,7 @@ public abstract class QueryResolver<V, Q, S, P, RO, F, C extends Mappable, L, PA
         var containers = findContainers(view);
         var resolvedQueries = new ArrayList<Q>();
         for (var query : view.queries()) {
-            var resolvedLinks =
-                    query.links().stream()
-                            .map((link) -> resolveLink(link, mappings))
-                            .flatMap(Collection::stream)
-                            .toList();
+            var resolvedLinks = query.links().stream().map((link) -> resolveLink(link, mappings)).flatMap(Collection::stream).toList();
             if (containers.containsKey(query.topMapping())) {
                 // contained queries
                 var container = containers.get(query.topMapping());
@@ -34,13 +30,14 @@ public abstract class QueryResolver<V, Q, S, P, RO, F, C extends Mappable, L, PA
                 // freestanding queries
                 resolvedQueries.add(resolveQuery(query, Optional.empty(), resolvedLinks));
             }
+
         }
         return resolvedQueries;
     }
 
     /**
-     * Find all containments and resolve them to containers Example:
-     *
+     * Find all containments and resolve them to containers
+     * Example:
      * <pre>
      * {
      *     σ(A => A') κ(A-[b]->B => A'-[b]->?) κ(A-[c]-C-[d]->D => A'-[d]->?)
@@ -48,19 +45,14 @@ public abstract class QueryResolver<V, Q, S, P, RO, F, C extends Mappable, L, PA
      *     σ(D => D'),
      * }
      * </pre>
-     *
      * will yield the following map:
-     *
      * <pre>
      * {
      *     (B,B') => Κ(A-[b]->B => A'-[b]->B'),
      *     (D,D') => Κ(A-[c]->C-[d]->D => A'-[d]->D'),
      * }
      * </pre>
-     *
-     * However, no element can be contained in multiple containers. Therefore, this cannot be
-     * resolved and will throw an exception:
-     *
+     * However, no element can be contained in multiple containers. Therefore, this cannot be resolved and will throw an exception:
      * <pre>
      * {
      *     σ(A => A') κ(A-[b]->B => A'-[b]->?),
@@ -102,41 +94,31 @@ public abstract class QueryResolver<V, Q, S, P, RO, F, C extends Mappable, L, PA
     abstract F resolveFilter(Filter filter);
 
     /**
-     * Resolve to resolved containments using the given mappings <br>
-     * Example: We have this containment:
-     *
+     * Resolve to resolved containments using the given mappings
+     * <br />
+     * Example:
+     * We have this containment:
      * <pre>
      * κ(A-[b]->B => A'-[b]->?)
      * </pre>
-     *
      * and the mappings
-     *
      * <pre>
      * { (A,A'), (B,B') }
      * </pre>
-     *
      * This is resolved to
-     *
      * <pre>
      * Κ(A-[b]->B => A'-[b]->B')
      * </pre>
-     *
      * <h2>Unions</h2>
-     *
      * A union source is expanded into separate resolved containments. E.g.
-     *
      * <pre>
      * κ(A-[b]->B' UNION A-[b]->B" => A'-[b]->?)
      * </pre>
-     *
      * together with
-     *
      * <pre>
      * { (A,A'), (B',C'), (B",C") }
      * </pre>
-     *
      * will yield
-     *
      * <pre>
      * {
      *     Κ(A-[b]->B' => A'-[b]->C'),
@@ -150,11 +132,7 @@ public abstract class QueryResolver<V, Q, S, P, RO, F, C extends Mappable, L, PA
         var targetParentElement = containment.targetParentElement();
         var targetLink = containment.targetLink();
         var filters = containment.filters().stream().map(this::resolveFilter).toList();
-        return containment
-                .sources()
-                .resolve(
-                        mappings,
-                        new Union.Resolver() {
+        return containment.sources().resolve(mappings, new Union.Resolver() {
             @Override
             public boolean matches(Mapping mapping, Pattern source) {
                 return mapping.source().equals(source.bottom());
@@ -162,57 +140,37 @@ public abstract class QueryResolver<V, Q, S, P, RO, F, C extends Mappable, L, PA
 
             @Override
             public Pattern map(Mapping mapping) {
-                                return Pattern.from(targetParentElement)
-                                        .ref(mapping.target(), targetLink);
+                return Pattern.from(targetParentElement).ref(mapping.target(), targetLink);
             }
-                        })
-                .branches()
-                .stream()
-                .map(
-                        (branch) ->
-                                createContainment(
-                                        resolvePattern(branch.first()),
-                                        resolvePattern(branch.last()),
-                                        filters))
-                .toList();
+        }).branches().stream().map((branch) -> createContainment(resolvePattern(branch.first()), resolvePattern(branch.last()), filters)).toList();
     }
 
     /**
-     * Resolve to a ResolvedLink with the given mappings <br>
-     * Example: We have this link reference:
-     *
+     * Resolve to a ResolvedLink with the given mappings
+     * <br />
+     * Example:
+     * We have this link reference:
      * <pre>
      * λ(A-[b]->B => A'-[b]->?)
      * </pre>
-     *
      * and the mappings
-     *
      * <pre>
      * { (A,A'), (B,B') }
      * </pre>
-     *
      * This is resolved to
-     *
      * <pre>
      * Λ(A-[b]->B => A'-[b]->B')
      * </pre>
-     *
      * <h2>Unions</h2>
-     *
      * A union source is expanded into separate resolved links. E.g.
-     *
      * <pre>
      * λ(A-[b]->B' UNION A-[b]->C" => A'-[b]->?)
      * </pre>
-     *
      * together with
-     *
      * <pre>
      * { (A,A'), (B',C'), (B",C") }
      * </pre>
-     *
      * will yield
-     *
      * <pre>
      * {
      *     Λ(A-[b]->B' => A'-[b]->C'),
@@ -226,11 +184,7 @@ public abstract class QueryResolver<V, Q, S, P, RO, F, C extends Mappable, L, PA
         var targetParent = link.targetParent();
         var targetLink = link.targetLink();
         var filters = link.filters().stream().map(this::resolveFilter).toList();
-        var resolvedUnion =
-                link.source()
-                        .resolve(
-                                mappings,
-                                new Union.Resolver() {
+        var resolvedUnion = link.source().resolve(mappings, new Union.Resolver() {
             @Override
             public boolean matches(Mapping mapping, Pattern source) {
                 return mapping.source().equals(source.bottom());
@@ -241,14 +195,7 @@ public abstract class QueryResolver<V, Q, S, P, RO, F, C extends Mappable, L, PA
                 return targetParent.ref(mapping.target(), targetLink);
             }
         });
-        return resolvedUnion.branches().stream()
-                .map(
-                        (branch) ->
-                                createLink(
-                                        resolvePattern(branch.first()),
-                                        resolvePattern(branch.last()),
-                                        filters))
-                .toList();
+        return resolvedUnion.branches().stream().map((branch) -> createLink(resolvePattern(branch.first()), resolvePattern(branch.last()), filters)).toList();
     }
 
     abstract C createContainment(PA source, PA target, List<F> filters);

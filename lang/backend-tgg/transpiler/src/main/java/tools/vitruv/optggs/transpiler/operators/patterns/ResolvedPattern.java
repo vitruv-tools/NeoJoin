@@ -3,8 +3,8 @@ package tools.vitruv.optggs.transpiler.operators.patterns;
 import tools.vitruv.optggs.operators.FQN;
 import tools.vitruv.optggs.operators.Tuple;
 import tools.vitruv.optggs.operators.selection.Pattern;
-import tools.vitruv.optggs.transpiler.graph.tgg.TGGSlice;
 import tools.vitruv.optggs.transpiler.graph.tgg.TGGNode;
+import tools.vitruv.optggs.transpiler.graph.tgg.TGGSlice;
 
 import java.util.Collection;
 import java.util.List;
@@ -70,6 +70,7 @@ public class ResolvedPattern {
         }
         return true;
     }
+
 
     @Override
     public String toString() {

@@ -4,9 +4,9 @@ import tools.vitruv.optggs.operators.FQN;
 import tools.vitruv.optggs.operators.FunctionInvocation;
 import tools.vitruv.optggs.operators.LogicOperator;
 import tools.vitruv.optggs.operators.expressions.ConstantExpression;
-import tools.vitruv.optggs.transpiler.graph.tgg.TGGSlice;
-import tools.vitruv.optggs.transpiler.graph.tgg.TGGNode;
 import tools.vitruv.optggs.transpiler.graph.tgg.constraint.ArbitraryAttributeConstraint;
+import tools.vitruv.optggs.transpiler.graph.tgg.TGGNode;
+import tools.vitruv.optggs.transpiler.graph.tgg.TGGSlice;
 
 public class ResolvedThetaJoin implements ResolvedPatternLink {
     private final FQN element;
@@ -32,9 +32,7 @@ public class ResolvedThetaJoin implements ResolvedPatternLink {
                 constraint.addParameter(parameter, new ConstantExpression(c.value()));
             } else if (argument instanceof FunctionInvocation.ConstrainedArgument arg) {
                 final TGGNode refNode = slice.findByType(arg.node()).orElseThrow();
-                constraint.addParameter(
-                        parameter,
-                        refNode.addVariableAttribute(arg.attribute(), LogicOperator.Equals));
+                constraint.addParameter(parameter, refNode.addVariableAttribute(arg.attribute(), LogicOperator.Equals));
             }
         }
         slice.addConstraint(constraint);

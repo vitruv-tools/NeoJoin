@@ -22,10 +22,6 @@ public final class FeatureInformation {
         return featureClassSimpleName;
     }
 
-    public String getFeatureClassIdentifier() {
-        return featureClassIdentifier;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {

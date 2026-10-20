@@ -74,7 +74,7 @@ public class TargetMap {
      */
     public EObject get(EObject source, AQRTargetClass targetClass) {
         return switch (getMapping(source, targetClass)) {
-            case One one -> one.value();
+            case One(var value) -> value;
             case None ignored -> throw new TransformatorException(
                 "no target instance of class '%s' found for source instance of class '%s'".formatted(
                     targetClass.name(), source.eClass().getName()

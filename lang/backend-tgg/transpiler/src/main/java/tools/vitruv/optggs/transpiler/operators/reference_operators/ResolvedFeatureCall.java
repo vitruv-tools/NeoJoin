@@ -15,10 +15,6 @@ public class ResolvedFeatureCall implements ResolvedReferenceOperator {
         this.element = element;
     }
 
-    public FQN getElement() {
-        return element;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

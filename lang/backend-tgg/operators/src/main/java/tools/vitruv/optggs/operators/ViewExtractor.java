@@ -111,7 +111,7 @@ public class ViewExtractor {
                                 String.format(
                                         "Calculate expressions are not supported: %s", feature));
                 case AQRFeature.Reference reference
-                        when reference.kind() instanceof AQRFeature.Kind.Copy copy ->
+                        when reference.kind() instanceof AQRFeature.Kind.Copy ->
                         // We could "mock" a ReferenceOperator FeatureCall + MemberFeatureCall here
                         // to support this
                         throw new UnsupportedProjectionException(

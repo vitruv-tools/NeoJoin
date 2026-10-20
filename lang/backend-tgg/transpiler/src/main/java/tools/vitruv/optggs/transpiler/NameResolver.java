@@ -25,16 +25,14 @@ public interface NameResolver {
         var greenTargets = rule.allTargetsAsSlice().findNodes(TGGNode::isGreen);
         var sources = greenSources.stream().map(node -> node.getType().localName()).toList();
         var targets = greenTargets.stream().map(node -> node.getType().localName()).toList();
-        return "Transform"
-                + String.join("And", sources)
-                + "To"
-                + String.join("And", targets)
+        return "Transform" + String.join("And", sources)
+                + "To" + String.join("And", targets)
                 + toAlphanumeric(rule.getId());
     }
 
     default String resolvePatternName(GraphPattern pattern) {
         return "Pattern" + toAlphanumeric(pattern.getId());
-        }
+    }
 
     default String resolveConstraintName(GraphPattern pattern) {
         return "No" + resolvePatternName(pattern);

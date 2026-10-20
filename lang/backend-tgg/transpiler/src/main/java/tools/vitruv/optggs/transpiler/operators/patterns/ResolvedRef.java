@@ -1,9 +1,9 @@
 package tools.vitruv.optggs.transpiler.operators.patterns;
 
 import tools.vitruv.optggs.operators.FQN;
-import tools.vitruv.optggs.transpiler.graph.tgg.TGGSlice;
-import tools.vitruv.optggs.transpiler.graph.tgg.TGGNode;
 import tools.vitruv.optggs.transpiler.graph.tgg.TGGLink;
+import tools.vitruv.optggs.transpiler.graph.tgg.TGGNode;
+import tools.vitruv.optggs.transpiler.graph.tgg.TGGSlice;
 
 import java.util.Objects;
 

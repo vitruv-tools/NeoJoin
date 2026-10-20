@@ -4,9 +4,9 @@ import tools.vitruv.optggs.operators.FunctionInvocation;
 import tools.vitruv.optggs.operators.LogicOperator;
 import tools.vitruv.optggs.operators.expressions.ConstantExpression;
 import tools.vitruv.optggs.operators.filters.FunctionFilter;
-import tools.vitruv.optggs.transpiler.graph.tgg.TGGNode;
 import tools.vitruv.optggs.transpiler.operators.ResolvedFilter;
 import tools.vitruv.optggs.transpiler.graph.tgg.constraint.ArbitraryAttributeConstraint;
+import tools.vitruv.optggs.transpiler.graph.tgg.TGGNode;
 import tools.vitruv.optggs.transpiler.graph.tgg.TripleRule;
 
 public class ResolvedFunctionFilter implements ResolvedFilter {
@@ -29,9 +29,7 @@ public class ResolvedFunctionFilter implements ResolvedFilter {
                 constraint.addParameter(parameter, new ConstantExpression(c.value()));
             } else if (argument instanceof FunctionInvocation.ConstrainedArgument arg) {
                 TGGNode node = rule.allSourcesAsSlice().findByType(arg.node()).orElseThrow();
-                constraint.addParameter(
-                        parameter,
-                        node.addVariableAttribute(arg.attribute(), LogicOperator.Equals));
+                constraint.addParameter(parameter, node.addVariableAttribute(arg.attribute(), LogicOperator.Equals));
             }
         }
         rule.addConstraintRule(constraint);
@@ -41,4 +39,5 @@ public class ResolvedFunctionFilter implements ResolvedFilter {
     public String toString() {
         return "Φ(" + function + ")";
     }
+
 }

@@ -16,10 +16,6 @@ public class ResolvedReferenceOperatorChain {
         this.targetRoot = targetRoot;
     }
 
-    public List<ResolvedReferenceOperator> getReferenceOperators() {
-        return referenceOperators;
-    }
-
     public FQN getTargetRoot() {
         return targetRoot;
     }

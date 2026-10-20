@@ -27,10 +27,6 @@ public class ResolvedReferenceFilter implements ResolvedReferenceOperator {
         return operator;
     }
 
-    public ConstantExpression getConstantExpression() {
-        return constantExpression;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

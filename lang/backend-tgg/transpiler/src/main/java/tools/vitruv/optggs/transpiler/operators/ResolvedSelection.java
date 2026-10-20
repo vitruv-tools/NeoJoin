@@ -18,18 +18,15 @@ public class ResolvedSelection implements RuleGenerator {
     }
 
     /**
-     * Get all mappings that this selection creates Example:
-     *
+     * Get all mappings that this selection creates
+     * Example:
      * <pre>
      * Σ(A ⨝(id) B-[c]->C => A'-[b]->B')
      * </pre>
-     *
      * will yield these mappings:
-     *
      * <pre>
      * { (A,A'), (A,B'), (B,A'), (B,B'), (C,A'), (C,B') }
      * </pre>
-     *
      * @return set of mappings
      */
     public Set<Mapping> mappings() {
@@ -60,4 +57,5 @@ public class ResolvedSelection implements RuleGenerator {
     public String toString() {
         return "Σ(" + source + " => " + target + ")";
     }
+
 }

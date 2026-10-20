@@ -98,7 +98,6 @@ public class ResolvedQuery {
             projection.extendRule(rule);
         }
         container.ifPresent(value -> value.extendRule(rule));
-
         return rule;
     }
 
@@ -106,7 +105,6 @@ public class ResolvedQuery {
         final TripleRule rule = new TripleRule();
         selection.extendRule(rule);
         link.extendRule(rule);
-
         return rule;
     }
 

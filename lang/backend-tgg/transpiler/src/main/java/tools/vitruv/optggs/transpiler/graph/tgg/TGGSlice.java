@@ -1,7 +1,6 @@
 package tools.vitruv.optggs.transpiler.graph.tgg;
 
 import tools.vitruv.optggs.operators.FQN;
-import tools.vitruv.optggs.operators.selection.PatternLink;
 import tools.vitruv.optggs.transpiler.graph.tgg.constraint.AttributeConstraint;
 
 import java.util.ArrayList;
@@ -88,16 +87,9 @@ public class TGGSlice {
         return nodes.stream().map(function).toList();
     }
 
-    public <T> Collection<T> filterMapNodes(
-            Predicate<TGGNode> predicate, Function<TGGNode, T> function) {
-        return nodes.stream().filter(predicate).map(function).toList();
-    }
-
     public Collection<TGGNode> findNodes(Predicate<TGGNode> predicate) {
         return nodes.stream().filter(predicate).toList();
     }
-
-    public void extend(PatternLink pattern) {}
 
     @Override
     public String toString() {

@@ -14,13 +14,11 @@ import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 import org.eclipse.xtext.validation.Issue;
 import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
-
 import picocli.CommandLine;
 import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
-
 import tools.vitruv.neojoin.NeoJoinStandaloneSetup;
 import tools.vitruv.neojoin.Parser;
 import tools.vitruv.neojoin.SourceLocation;
@@ -67,6 +65,7 @@ import java.util.concurrent.Callable;
         "  - Windows: C:\\path\\to\\directory;C:/path/to/file.ecore",
     })
 public class Main implements Callable<Integer> {
+
     @Parameters(index = "0", paramLabel = "QUERY", description = "Path to the query file.")
     Path queryFile;
 
@@ -211,7 +210,6 @@ public class Main implements Callable<Integer> {
             ).transform();
             EMFUtils.save(getOutputURI(transform.output, "xmi"), targetInstanceModel);
             validateInstanceModel(targetInstanceModel);
-
         }
 
         if (tggRuleGeneration != null) {

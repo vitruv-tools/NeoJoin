@@ -34,6 +34,7 @@ public class ${project.name()}${source}SyncRunner {
         ${project.name()}${source}SyncRunner.run();
     }
 
+
     public static void run() throws Exception {
         try (var builder = API_Common.createBuilder()) {
             var src = new API_Source${source}(builder).getModel_${source}();

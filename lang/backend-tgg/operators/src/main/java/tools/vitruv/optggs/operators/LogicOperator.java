@@ -14,10 +14,6 @@ public enum LogicOperator {
         this.representation = representation;
     }
 
-    public String getRepresentation() {
-        return representation;
-    }
-
     public String print() {
         return representation;
     }
