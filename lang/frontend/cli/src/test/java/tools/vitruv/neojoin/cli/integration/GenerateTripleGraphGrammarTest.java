@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static tools.vitruv.neojoin.cli.integration.Utils.getResource;
 
 import org.eclipse.emf.ecore.EObject;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -27,10 +26,13 @@ public class GenerateTripleGraphGrammarTest {
      * --generate-tgg-rules=<tgg-project-output> <query>}
      */
     @Test
-    @Disabled("Disabled until the parsing of the project works")
-    public void testGenerateTripleGraphGrammar(@TempDir Path outputDirectory) throws IOException {
+    public void testGenerateTripleGraphGrammar(
+            @TempDir Path outputDirectory, @TempDir Path metaModelPath) throws IOException {
         // GIVEN meta-models, a valid query and a TGG project output path
-        var metaModelPath = getResource(Utils.MODELS);
+        // Only the car meta-model is used, as other meta-models in the test resources define
+        // classes with the same names, which cannot be resolved in a single TGG project
+        Files.copy(
+                getResource(Utils.MODELS.resolve("car.ecore")), metaModelPath.resolve("car.ecore"));
         var query = getResource(Utils.QUERIES.resolve("car.nj"));
 
         Path metaModelOutput = outputDirectory.resolve("metamodelOutput.ecore");
@@ -53,7 +55,11 @@ public class GenerateTripleGraphGrammarTest {
                 Files.readString(tggProjectOutput.resolve("src/SourceMetamodel.msl"));
         final String targetMetamodel =
                 Files.readString(tggProjectOutput.resolve("src/TargetMetamodel.msl"));
-        final String tripleGraphGrammarContent = Files.readString(tripleGraphGrammarRulesFilePath);
+        // The imports of the generated files use platform URIs, which cannot be resolved outside
+        // of an Eclipse workspace
+        final String tripleGraphGrammarContent =
+                Files.readString(tripleGraphGrammarRulesFilePath)
+                        .replaceAll("(?m)^import \"platform:/resource/.*\\R", "");
         Files.writeString(
                 tripleGraphGrammarRulesFilePath,
                 tripleGraphGrammarContent + sourceMetamodel + targetMetamodel);
@@ -61,7 +67,6 @@ public class GenerateTripleGraphGrammarTest {
         // THEN a TGG project is generated
         assertEquals(0, exitCode);
 
-        // TODO: Fix parsing
         final List<EObject> parsedObjects =
                 EmslParser.parse(tripleGraphGrammarRulesFilePath.toAbsolutePath().toString());
         assertThat(parsedObjects).isNotNull().isNotEmpty();
