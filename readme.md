@@ -108,8 +108,8 @@ Model Path
 
 1. Build view from operators directly: `var view = new View(); view.addQuery(...);`
 2. Resolve interdependent queries (see documentation in `Query`): `var queries = view.resolveQueries()`
-3. Transform queries to TGG rules: `var rules = query.toRules();`
-4. Build triple grammar from TGG rules: `var grammar = new TripleGrammar(name, ..., rules);`
+3. Get the TGG rules and constraints generated for a query: `var rules = query.getGeneratedRules(); var constraints = query.getGeneratedConstraints();`
+4. Build triple grammar from the TGG rules and constraints: `var grammar = new TripleGrammar(name, rules, constraints, sourceMetamodels, targetMetamodels);`
 5. Optional: generate eMoflon::Neo project: `new Scaffolding(...).create(...);`
 
 You can use the convenience function `API.generateProjectForView(...)` for steps 2 to 5.
@@ -165,6 +165,7 @@ steps describe how to execute the forward and sync transformations with an initi
 | backend-tgg/**driver**     | Auxiliary logic for generating eMoflon::Neo Eclipse projects                                            |
 | backend-tgg/**operators**  | Primary operators for creating TGGs                                                                     |
 | backend-tgg/**transpiler** | The core logic and operators for creating TGGs from operators                                           |
+| **expression-parser**      | Parser for the reference expressions of features *(used by the TGG backend)*                            |
 | frontend/**cli**           | CLI interface to execute meta-model generation and instance model transformation *(currently EMF-only)* |
 | frontend/**ide**           | IDE support via language server protocol (LSP)                                                          |
 | frontend/**language**      | Main language implementation and meta-model generator                                                   |
