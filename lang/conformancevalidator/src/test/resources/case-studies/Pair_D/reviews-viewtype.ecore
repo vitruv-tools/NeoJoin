@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Pair D (view type): Weakened constraints in the view type.
+     Every difference makes the view type more permissive than the reference.
+     Expected result: NOT CONFORMING.
+
+     Rule 5  CHANGE on lowerBound, view 0 < reference 1:        Review.user
+     Rule 7  CHANGE on upperBound, view -1 > reference 1:       ReviewPage.reviews
+     Rule 20 CHANGE on unique, view false, reference true:      ReviewPage.tags
+     Rule 22 CHANGE on containment (always):                    ReviewPage.reviews
+     Rule 2  ADD of EStructuralFeature (co-hit):                Root.allReviews
+     Rule 1  AttributeChange on name/nsURI/nsPrefix (ignored) -->
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="reviewpage" nsURI="http://example.org/reviewpage" nsPrefix="reviewpage">
+  <eClassifiers xsi:type="ecore:EClass" name="ReviewPage">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="reviews" upperBound="-1" eType="#//Review"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="tags" unique="false" upperBound="-1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Review">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="user" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="rating" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Root">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="allReviewPages" ordered="false" upperBound="-1" eType="#//ReviewPage" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="allReviews" ordered="false" upperBound="-1" eType="#//Review" containment="true"/>
+  </eClassifiers>
+</ecore:EPackage>
