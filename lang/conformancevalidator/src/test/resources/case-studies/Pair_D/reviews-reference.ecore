@@ -6,7 +6,8 @@
      Rule 5  CHANGE on lowerBound, view 0 < reference 1:        Review.user
      Rule 7  CHANGE on upperBound, view -1 > reference 1:       ReviewPage.reviews
      Rule 20 CHANGE on unique, view false, reference true:      ReviewPage.tags
-     Rule 22 CHANGE on containment (always):                    ReviewPage.reviews
+     Rule 22 CHANGE on containment (always):                    ReviewPage.reviews,
+                                                                ReviewPage.replies (view only)
      Rule 2  ADD of EStructuralFeature (co-hit):                Root.allReviews
      Rule 1  AttributeChange on name/nsURI/nsPrefix (ignored) -->
 <ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -15,6 +16,7 @@
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="reviews" upperBound="1" eType="#//Review" containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="tags" upperBound="-1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="replies" upperBound="-1" eType="#//Review"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Review">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="user" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>

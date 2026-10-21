@@ -6,12 +6,16 @@ import static tools.vitruv.neojoin.cli.integration.Utils.getResource;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.List;
 
+import org.eclipse.emf.ecore.EValidator;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import picocli.CommandLine;
+import tools.vitruv.neojoin.ast.AstPackage;
 import tools.vitruv.neojoin.cli.Main;
 
 /**
@@ -24,8 +28,11 @@ public class ConformanceTest {
     private final ByteArrayOutputStream err = new ByteArrayOutputStream();
 
     @BeforeEach
-    void captureErr() {
+    void resetGlobalStateAndCaptureErr() {
         System.setErr(new PrintStream(err));
+        // Xtext registers the validator in the global EValidator registry and keeps the first one per JVM, which
+        // would carry the strictness of whichever test ran first. Dropping it lets each run register its own.
+        EValidator.Registry.INSTANCE.remove(AstPackage.eINSTANCE);
     }
 
     @AfterEach
@@ -60,11 +67,29 @@ public class ConformanceTest {
         assertTrue(err.toString().contains("nationality"), err.toString());
     }
 
-    private int check(String queryName) {
+    /**
+     * {@code java -jar cli.jar --meta-model-path=<meta-model-path> --strictness=EXACT_MATCH <query>}
+     */
+    @Test
+    public void testExactMatchReportsAdditionalStructure() {
+        // GIVEN a query whose view type declares more than its reference meta-model
+        // WHEN checking the query with the strictness EXACT_MATCH
+        int exitCode = check("movies-conforming", "--strictness=EXACT_MATCH");
+
+        // THEN the query is rejected because of the additional feature
+        assertEquals(1, exitCode, err.toString());
+        assertTrue(err.toString().contains("Rule 2"), err.toString());
+    }
+
+    private int check(String queryName, String... options) {
         var metaModelPath = getResource(Utils.MODELS);
         var query = getResource(Utils.QUERIES.resolve(queryName + ".nj"));
 
-        return new CommandLine(new Main()).execute("--meta-model-path=" + metaModelPath, query.toString());
+        var args = new ArrayList<String>();
+        args.add("--meta-model-path=" + metaModelPath);
+        args.addAll(List.of(options));
+        args.add(query.toString());
+        return new CommandLine(new Main()).execute(args.toArray(String[]::new));
     }
 
 }

@@ -103,6 +103,22 @@ class ConformanceValidatorIntegrationTest {
     }
 
     @Test
+    void containmentIsReportedInBothDirections() {
+        Pair pairD = PAIRS.stream().filter(pair -> pair.name().equals("Pair_D")).findFirst().orElseThrow();
+
+        List<String> messages = validate(pairD, Strictness.SUBTYPE).stream()
+            .filter(v -> v.ruleId().equals("Rule 22"))
+            .map(Violation::message)
+            .toList();
+
+        assertEquals(2, messages.size(), messages.toString());
+        assertTrue(messages.stream().anyMatch(m -> m.contains("'ReviewPage.reviews' is a containment in the reference but not in the view type")),
+            messages.toString());
+        assertTrue(messages.stream().anyMatch(m -> m.contains("'ReviewPage.replies' is a containment in the view type but not in the reference")),
+            messages.toString());
+    }
+
+    @Test
     void theCaseStudiesTriggerEveryRuleOfTheCatalogue() {
         Set<String> catalogue = IntStream.rangeClosed(2, 30)
             .mapToObj(i -> "Rule " + i)
