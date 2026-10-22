@@ -162,4 +162,32 @@ class ConformsParseTest extends AbstractIntegrationTest {
         assertThat(result).hasIssues("Reference metamodel not found: http://example.org/unknown");
     }
 
+    @Test
+    void unresolvedReferenceInQuery() {
+        var result = parse("""
+            export something to "http://example.com"
+            conforms to "http://example.org/foodref"
+
+            import "http://example.org/restaurant"
+
+            from Unknown create Food
+            """);
+
+        assertThat(result).hasIssues("Unknown cannot be resolved.");
+    }
+
+    @Test
+    void unresolvedFeatureInQuery() {
+        var result = parse("""
+            export something to "http://example.com"
+            strict conforms to "http://example.org/foodref"
+
+            import "http://example.org/restaurant"
+
+            from Food f create Food { name := f.unknown }
+            """);
+
+        assertThat(result).hasIssues("The method or field unknown is undefined for the type Food");
+    }
+
 }

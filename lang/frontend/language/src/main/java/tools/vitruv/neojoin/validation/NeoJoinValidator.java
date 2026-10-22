@@ -6,10 +6,12 @@ import com.google.inject.name.Named;
 
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.xtext.validation.Check;
+import org.eclipse.xtext.validation.CheckType;
 import org.eclipse.xtext.validation.ComposedChecks;
 import tools.vitruv.neojoin.Constants;
 import tools.vitruv.neojoin.aqr.AQR;
 import tools.vitruv.neojoin.aqr.AQRBuilder;
+import tools.vitruv.neojoin.aqr.AQRInvariantViolatedException;
 import tools.vitruv.neojoin.ast.AstPackage;
 import tools.vitruv.neojoin.ast.MainQuery;
 import tools.vitruv.neojoin.ast.ViewTypeDefinition;
@@ -105,7 +107,7 @@ public class NeoJoinValidator extends AbstractNeoJoinValidator {
         }
     }
 
-    @Check
+    @Check(CheckType.EXPENSIVE)
     public void checkConformance(ViewTypeDefinition viewType) {
         if (viewType.getConforms() == null) return;
 
@@ -117,7 +119,14 @@ public class NeoJoinValidator extends AbstractNeoJoinValidator {
             return;
         }
 
-        AQR aqr = new AQRBuilder(viewType, expressionHelper).build();
+        // the AQR can only be built from a valid query, other checks report the errors of an invalid one
+        if (!viewType.eResource().getErrors().isEmpty()) return;
+        AQR aqr;
+        try {
+            aqr = new AQRBuilder(viewType, expressionHelper).build();
+        } catch (AQRInvariantViolatedException ex) { // invalid query
+            return;
+        }
         EPackage viewTypePackage = new MetaModelGenerator(aqr).generate().pack();
 
         Strictness strictness = viewType.getConforms().isStrict() ? Strictness.EXACT_MATCH : Strictness.SUBTYPE;
