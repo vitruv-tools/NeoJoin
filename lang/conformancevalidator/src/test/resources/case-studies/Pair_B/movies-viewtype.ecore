@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Pair B (view type): Additional structure in the view type.
+     The view type contains everything the reference requires and more.
+     Expected result: CONFORMING (only non-breaking rules fire).
+
+     Rule 2  ADD of EStructuralFeature: Movie.avgRating,
+                                        Root.allActors
+     Rule 27 ADD of EClass:             Studio,
+                                        Person
+     Rule 28 ADD of EEnum:              Rating
+     Rule 26 ADD of EPackage:           extras
+     Rule 14 ADD of eSuperType:         Actor extends Person
+     Rule 1  AttributeChange on name/nsURI/nsPrefix (ignored)
+
+     Rule 14 and Rule 26 are only reachable with a hand-written view type. NeoJoin does
+     not generate supertypes or subpackages yet. -->
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="movies" nsURI="http://example.org/movies" nsPrefix="movies">
+  <eClassifiers xsi:type="ecore:EClass" name="Movie">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="title" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="cast" upperBound="-1" eType="#//Actor"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="avgRating" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDouble"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Person">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="birthDate" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDate"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Actor" eSuperTypes="#//Person">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Studio">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="Rating">
+    <eLiterals name="G"/>
+    <eLiterals name="PG" value="1"/>
+    <eLiterals name="R" value="2"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Root">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="allMovies" ordered="false" upperBound="-1" eType="#//Movie" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="allActors" ordered="false" upperBound="-1" eType="#//Actor" containment="true"/>
+  </eClassifiers>
+  <eSubpackages name="extras" nsURI="http://example.org/movies/extras" nsPrefix="extras">
+    <eClassifiers xsi:type="ecore:EClass" name="Trailer">
+      <eStructuralFeatures xsi:type="ecore:EAttribute" name="url" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    </eClassifiers>
+  </eSubpackages>
+</ecore:EPackage>

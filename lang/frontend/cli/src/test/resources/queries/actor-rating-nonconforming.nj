@@ -1,0 +1,13 @@
+export actorrating to "http://example.org/actorrating"
+conforms to "http://example.org/actor-rating-ref-nonconforming"
+
+import "http://example.org/imdb"
+
+from Actor a
+join Film f
+    on f.figures.exists[ it.playedBy.contains(a) ]
+group by a
+create {
+    name := a.same[ it.name ]
+    avgMovieScore := f.avg[ it.votes.avg[ it.score ] ]
+}
