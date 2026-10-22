@@ -63,12 +63,13 @@ public class ConformanceTest {
     }
 
     /**
-     * {@code java -jar cli.jar --meta-model-path=<meta-model-path> <query>} where the query declares {@code strict conforms to}
+     * {@code java -jar cli.jar --meta-model-path=<meta-model-path> <query>}
+     * where the query uses {@code strict conforms to}
      */
     @Test
     public void testExactMatchReportsAdditionalStructure() {
         // GIVEN a query whose view type declares more than its reference meta-model
-        // WHEN checking the query with a {@code strict conforms to} clause
+        // WHEN checking the query with a strict conforms-to clause
         int exitCode = check("movies-conforming-strict");
 
         // THEN the query is rejected because of the additional feature

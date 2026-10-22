@@ -116,7 +116,7 @@ public class NeoJoinValidator extends AbstractNeoJoinValidator {
                 AstPackage.Literals.VIEW_TYPE_DEFINITION__CONFORMS);
             return;
         }
-        
+
         AQR aqr = new AQRBuilder(viewType, expressionHelper).build();
         EPackage viewTypePackage = new MetaModelGenerator(aqr).generate().pack();
 

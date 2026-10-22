@@ -6,7 +6,7 @@ import tools.vitruv.neojoin.conformancevalidator.Category;
 
 /**
  * The requirement a view type has to satisfy regarding its reference metamodel.
- * 
+ *
  * The strictness decides which rule categories Phase II evaluates, and therefore which
  * differences count as a violation.
  */
@@ -30,13 +30,13 @@ public enum Strictness {
      */
     public Set<Category> getAllowedCategories() {
         return switch (this) {
-        case SUBTYPE -> Set.of(
-            Category.BREAKING_RESOLVABLE,
-            Category.BREAKING_NOT_RESOLVABLE);
-        case EXACT_MATCH -> Set.of(
-            Category.BREAKING_RESOLVABLE,
-            Category.BREAKING_NOT_RESOLVABLE,
-            Category.NON_BREAKING);
+            case SUBTYPE -> Set.of(
+                Category.BREAKING_RESOLVABLE,
+                Category.BREAKING_NOT_RESOLVABLE);
+            case EXACT_MATCH -> Set.of(
+                Category.BREAKING_RESOLVABLE,
+                Category.BREAKING_NOT_RESOLVABLE,
+                Category.NON_BREAKING);
         };
     }
 }

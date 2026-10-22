@@ -1,15 +1,43 @@
 package tools.vitruv.neojoin.conformancevalidator;
 
-import org.eclipse.emf.compare.*;
+import org.eclipse.emf.compare.Comparison;
+import org.eclipse.emf.compare.Diff;
+import org.eclipse.emf.compare.EMFCompare;
 import org.eclipse.emf.compare.scope.DefaultComparisonScope;
 import org.eclipse.emf.compare.scope.IComparisonScope;
 import org.eclipse.emf.ecore.EPackage;
 
 import tools.vitruv.neojoin.conformancevalidator.rules.ConformanceRule;
 import tools.vitruv.neojoin.conformancevalidator.rules.Strictness;
-import tools.vitruv.neojoin.conformancevalidator.rules.breakingnotresolvable.*;
-import tools.vitruv.neojoin.conformancevalidator.rules.breakingresolvable.*;
-import tools.vitruv.neojoin.conformancevalidator.rules.nonbreaking.*;
+import tools.vitruv.neojoin.conformancevalidator.rules.breakingnotresolvable.AbstractChangedRule;
+import tools.vitruv.neojoin.conformancevalidator.rules.breakingnotresolvable.EnumLiteralAddedRule;
+import tools.vitruv.neojoin.conformancevalidator.rules.breakingnotresolvable.OppositeChangedRule;
+import tools.vitruv.neojoin.conformancevalidator.rules.breakingnotresolvable.PackageDeletedRule;
+import tools.vitruv.neojoin.conformancevalidator.rules.breakingnotresolvable.SuperTypeDeletedRule;
+import tools.vitruv.neojoin.conformancevalidator.rules.breakingresolvable.ClassDeletedRule;
+import tools.vitruv.neojoin.conformancevalidator.rules.breakingresolvable.ContainmentChangedRule;
+import tools.vitruv.neojoin.conformancevalidator.rules.breakingresolvable.EnumDeletedRule;
+import tools.vitruv.neojoin.conformancevalidator.rules.breakingresolvable.FeatureDeletedRule;
+import tools.vitruv.neojoin.conformancevalidator.rules.breakingresolvable.LowerBoundChangedRule;
+import tools.vitruv.neojoin.conformancevalidator.rules.breakingresolvable.TypeChangedRule;
+import tools.vitruv.neojoin.conformancevalidator.rules.breakingresolvable.UniqueChangedRule;
+import tools.vitruv.neojoin.conformancevalidator.rules.breakingresolvable.UpperBoundChangedRule;
+import tools.vitruv.neojoin.conformancevalidator.rules.nonbreaking.ClassAddedRule;
+import tools.vitruv.neojoin.conformancevalidator.rules.nonbreaking.EnumAddedRule;
+import tools.vitruv.neojoin.conformancevalidator.rules.nonbreaking.EnumLiteralDeletedRule;
+import tools.vitruv.neojoin.conformancevalidator.rules.nonbreaking.FeatureAddedRule;
+import tools.vitruv.neojoin.conformancevalidator.rules.nonbreaking.PackageAddedRule;
+import tools.vitruv.neojoin.conformancevalidator.rules.nonbreaking.SafeAbstractChangedRule;
+import tools.vitruv.neojoin.conformancevalidator.rules.nonbreaking.SafeClassDeletedRule;
+import tools.vitruv.neojoin.conformancevalidator.rules.nonbreaking.SafeEnumDeletedRule;
+import tools.vitruv.neojoin.conformancevalidator.rules.nonbreaking.SafeFeatureDeletedRule;
+import tools.vitruv.neojoin.conformancevalidator.rules.nonbreaking.SafeLowerBoundChangedRule;
+import tools.vitruv.neojoin.conformancevalidator.rules.nonbreaking.SafePackageDeletedRule;
+import tools.vitruv.neojoin.conformancevalidator.rules.nonbreaking.SafeSuperTypeDeletedRule;
+import tools.vitruv.neojoin.conformancevalidator.rules.nonbreaking.SafeTypeChangedRule;
+import tools.vitruv.neojoin.conformancevalidator.rules.nonbreaking.SafeUniqueChangedRule;
+import tools.vitruv.neojoin.conformancevalidator.rules.nonbreaking.SafeUpperBoundChangedRule;
+import tools.vitruv.neojoin.conformancevalidator.rules.nonbreaking.SuperTypeAddedRule;
 
 import java.util.ArrayList;
 import java.util.List;

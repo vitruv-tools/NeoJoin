@@ -28,6 +28,10 @@
       <groupId>tools.vitruv</groupId>
       <artifactId>tools.vitruv.change.p2wrappers.emfcompare</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.jspecify</groupId>
+      <artifactId>jspecify</artifactId>
+    </dependency>
     <!-- EMF Compare needs Guava at runtime, but the p2 wrapper does not declare it -->
     <dependency>
       <groupId>com.google.guava</groupId>

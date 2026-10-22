@@ -21,10 +21,10 @@ public final class RuleUtils {
     private RuleUtils() {}
 
     /**
-     * 
+     *
      * Checks whether any class in the pack declares a feature that demands at least one
      * value of the given classifier.
-     * 
+     *
      * @param pack the package to search in
      * @param classifier the classifier to look for
      * @return true if some feature has this classifier as its type and a lowerbound >= 1
