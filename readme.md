@@ -45,6 +45,21 @@ create ReviewedRestaurant {
 * [VSCode](https://code.visualstudio.com/) plugin for syntax highlighting, code completion, and live visualization of the resulting view type
 * Input and output meta-models as `.ecore` and instance-models as `.xmi` files
 
+### Keywords
+
+Keywords of the query language are reserved everywhere in a query, including inside expressions, in addition to the
+keywords of [Xbase](https://eclipse.dev/Xtext/xtend/documentation/203_xtend_expressions.html). The
+[grammar](lang/frontend/language/src/main/xtext/tools/vitruv/neojoin/NeoJoin.xtext) defines the current set. To use a
+keyword as the name of a feature, an alias or a method, escape it with `^`, e.g. Xtend's `join` extension method:
+
+```
+from Food f
+group by true
+create Foods {
+    name := f.map[ it.name ].sort.^join("+")
+}
+```
+
 ## Usage
 
 NeoJoin comes with two frontends and two backends. The first frontend is the VSCode plugin, which provides IDE support and view type visualization. The second frontend is the CLI, which provides commands for generating the view type, as well as executing the model-level transformations, currently only with our unidirectional, state-based EMF backend. The other backend, currently in development, offers bidirectional, incremental model-level transformations by generating triple graph grammars (TGGs).
