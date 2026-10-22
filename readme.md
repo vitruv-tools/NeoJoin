@@ -129,10 +129,10 @@ Whenever the clause is present, NeoJoin generates the view type, compares it aga
 
 Which differences count as a violation depends on the strictness:
 
-| Strictness    | Requirement                                                                            |
-|---------------|----------------------------------------------------------------------------------------|
+| Strictness    | Requirement                                                                                                                       |
+|---------------|-----------------------------------------------------------------------------------------------------------------------------------|
 | `SUBTYPE`     | The view type has to be usable wherever the reference is expected. Additional structure in the view type is accepted. *(default)* |
-| `EXACT_MATCH` | The view type has to reproduce the reference exactly, so every difference that one of the rules covers is reported. |
+| `EXACT_MATCH` | The view type has to reproduce the reference exactly, so every difference that one of the rules covers is reported.               |
 
 Not every difference is covered by a rule. Moves and changes to the package name, `nsURI` or `nsPrefix` are always ignored, and differences that no rule matches (for example changes to `ordered`, `derived` or `changeable`, annotations, or a renamed element, which EMF Compare reports as an addition plus a deletion) produce no violation under either strictness.
 
