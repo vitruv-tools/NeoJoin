@@ -6,9 +6,9 @@ import com.google.inject.Singleton;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EDataType;
+import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.EcorePackage;
-import org.eclipse.emf.ecore.impl.DynamicEObjectImpl;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.xtext.common.types.*;
 import org.eclipse.xtext.common.types.util.TypeReferences;
@@ -52,13 +52,14 @@ import static tools.vitruv.neojoin.utils.Assertions.check;
 public class ExpressionHelper {
 
     /**
-     * Custom interpreter that can handle field accesses on {@link DynamicEObjectImpl dynamic ecore objects}.
+     * Custom interpreter that reads field accesses on {@link EObject ecore objects} via {@link EObject#eGet eGet},
+     * for dynamic as well as generated EMF classes.
      */
     private static class Interpreter extends XbaseInterpreter {
 
         @Override
         protected Object featureCallField(JvmField jvmField, Object receiver) {
-            if (receiver instanceof DynamicEObjectImpl eObject) {
+            if (receiver instanceof EObject eObject) {
                 var field = eObject.eClass().getEStructuralFeature(jvmField.getSimpleName());
                 check(field != null, () -> "Could not find field " + jvmField.getIdentifier());
                 var value = eObject.eGet(field);
