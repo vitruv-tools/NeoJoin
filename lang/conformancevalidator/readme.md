@@ -43,7 +43,7 @@ Rule 0 and Rule 1 have no rule class. They state that a difference is conforming
 | Rule 10 | `CHANGE` on `eType`       | the type of the view type is a subtype of the reference type     | `NON_BREAKING`            |
 | Rule 11 | `DELETE` of class         | a feature of the reference requires the class                    | `BREAKING_RESOLVABLE`     |
 | Rule 12 | `DELETE` of class         | no feature of the reference requires the class                   | `NON_BREAKING`            |
-| Rule 13 | `DELETE` of supertype     | the supertype declares a mandatory feature                       | `BREAKING_NOT_RESOLVABLE` |
+| Rule 13 | `DELETE` of supertype     | the supertype declares a mandatory feature, even if the class declares it itself | `BREAKING_NOT_RESOLVABLE` |
 | Rule 14 | `ADD` of supertype        | the view type class extends a supertype the reference does not   | `NON_BREAKING`            |
 | Rule 15 | `DELETE` of supertype     | the supertype declares no mandatory feature                      | `NON_BREAKING`            |
 | Rule 16 | `DELETE` of enum          | a feature of the reference requires the enumeration              | `BREAKING_RESOLVABLE`     |
@@ -63,6 +63,10 @@ Rule 0 and Rule 1 have no rule class. They state that a difference is conforming
 | Rule 30 | `DELETE` of package       | nothing outside the subpackage requires its classifiers          | `NON_BREAKING`            |
 
 Five rules are not resolvable because NeoJoin has no way to express the element in a query: supertypes (Rule 13), the literals of an enum (Rule 18), abstract classes (Rule 23), opposite references (Rule 25) and subpackages (Rule 29). If the language is extended in those ways, the rules become resolvable.
+
+Rule 13 does not check whether the view type class declares the mandatory features of the deleted supertype itself (flattened inheritance), so it can report a violation that the view type would not actually have.
+
+Four rules cannot fire for a view type that NeoJoin generates, although they work on any pair of packages: Rule 10 (two types count as compatible only if they have equal names, which produces no difference, or if one is a supertype of the other, and a generated class has no supertypes, so a changed type is always reported by Rule 9), Rule 14 (a generated class has no supertypes), Rule 24 (a generated class is never abstract) and Rule 26 (a generated package has no subpackages).
 
 Rules that react to an addition or a deletion only apply when the containing element exists on both sides. A classifier that is added or deleted as a whole is therefore reported once by its own rule, and not once more for each of its features or literals, which EMF Compare reports as separate differences.
 

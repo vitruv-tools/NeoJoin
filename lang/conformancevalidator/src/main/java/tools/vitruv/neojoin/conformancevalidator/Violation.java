@@ -13,15 +13,6 @@ import org.eclipse.emf.compare.Diff;
 public record Violation(String ruleId, String message, Category category, Diff diff) {
 
     /**
-     * Returns the category of the rule that reported the violation.
-     *
-     * @return the category of the violation
-     */
-    public Category getCategory() {
-        return category;
-    }
-
-    /**
      * Puts together a violation message.
      *
      * @return the rule id and the message

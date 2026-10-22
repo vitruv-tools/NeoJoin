@@ -139,7 +139,9 @@ Which differences count as a violation depends on the strictness:
 | Strictness    | Requirement                                                                            |
 |---------------|----------------------------------------------------------------------------------------|
 | `SUBTYPE`     | The view type has to be usable wherever the reference is expected. Additional structure in the view type is accepted. *(default)* |
-| `EXACT_MATCH` | The view type has to reproduce the reference exactly, so every difference is reported. |
+| `EXACT_MATCH` | The view type has to reproduce the reference exactly, so every difference that one of the rules covers is reported. |
+
+Not every difference is covered by a rule. Moves and changes to the package name, `nsURI` or `nsPrefix` are always ignored, and differences that no rule matches (for example changes to `ordered`, `derived` or `changeable`, annotations, or a renamed element, which EMF Compare reports as an addition plus a deletion) produce no violation under either strictness.
 
 The strictness is selected with `--strictness` on the CLI and with the **Strictness** setting in the VSCode plugin. The rules and their categories are documented in the [conformance validator readme](/lang/conformancevalidator/readme.md).
 

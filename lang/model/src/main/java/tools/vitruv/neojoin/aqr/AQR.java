@@ -17,7 +17,6 @@ import java.util.List;
  */
 public record AQR(
     AQRExport export,
-    AQRConforms conforms,
     List<AQRImport> imports,
     List<AQRParameter> parameters,
     List<EDataType> dataTypes,

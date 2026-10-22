@@ -47,6 +47,6 @@ class ViolationTest {
     @Test
     void theCategoryIsTheOneTheViolationWasCreatedWith() {
         assertEquals(Category.BREAKING_RESOLVABLE,
-            violation(Category.BREAKING_RESOLVABLE).getCategory());
+            violation(Category.BREAKING_RESOLVABLE).category());
     }
 }

@@ -42,8 +42,8 @@ public class SuperTypeDeletedRule extends ConformanceRule {
                     .filter(sf -> sf.getLowerBound() >= 1)
                     .findFirst();
             if (required.isPresent()) {
-                // Eventuell noch prüfen, ob die View-Type-Klasse diese Felder
-                // direkt selbst hat (flache Vererbung). Wird aktuell trotzdem gemeldet.
+                // Possibly also check whether the view type class declares these features
+                // itself (flattened inheritance). Currently it is reported anyway.
                 return Optional.of(violation(
                     "Class '" + ownerClass.getName() + "' does not extend '" + supertype.getName()
                         + "' in the view type, and '" + supertype.getName()

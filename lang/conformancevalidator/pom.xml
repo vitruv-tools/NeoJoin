@@ -27,7 +27,6 @@
     <dependency>
       <groupId>tools.vitruv</groupId>
       <artifactId>tools.vitruv.change.p2wrappers.emfcompare</artifactId>
-      <version>3.2.3</version>
     </dependency>
     <!-- EMF Compare needs Guava at runtime, but the p2 wrapper does not declare it -->
     <dependency>
@@ -35,7 +34,7 @@
       <artifactId>guava</artifactId>
       <scope>runtime</scope>
     </dependency>
-    <!-- only needed to load .ecore files from disk in the case-study runner -->
+    <!-- only needed to load the .ecore case-study files from disk in the integration test -->
     <dependency>
       <groupId>org.eclipse.emf</groupId>
       <artifactId>org.eclipse.emf.ecore.xmi</artifactId>
