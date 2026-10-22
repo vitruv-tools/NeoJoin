@@ -14,6 +14,8 @@ The check runs in two phases.
 
 ## Strictness
 
+NeoJoin selects the strictness per view type through the optional `strict` keyword of the `conforms to` clause, see the [project readme](/readme.md#conformance-validation).
+
 Every rule carries one of three categories, and the strictness decides which of them are evaluated:
 
 | Category                  | Meaning                                                                        | `SUBTYPE` | `EXACT_MATCH` |

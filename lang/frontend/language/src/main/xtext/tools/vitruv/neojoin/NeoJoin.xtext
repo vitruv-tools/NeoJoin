@@ -16,7 +16,7 @@ Export:
     'export' package=ID 'to' uri=STRING;
 
 Conforms:
-    'conforms' 'to' uri=STRING;
+    (strict?='strict')? 'conforms' 'to' uri=STRING;
 
 Import:
     'import' package=[ecore::EPackage|STRING] ('as' alias=ID)?;

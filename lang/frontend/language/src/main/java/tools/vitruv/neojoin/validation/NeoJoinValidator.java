@@ -37,8 +37,6 @@ public class NeoJoinValidator extends AbstractNeoJoinValidator {
     @Named(Constants.ImportPackageRegistry)
     private EPackage.Registry registry;
     @Inject
-    private Strictness strictness;
-    @Inject
     private ConformanceValidator conformanceValidator;
 
     @Check
@@ -122,6 +120,7 @@ public class NeoJoinValidator extends AbstractNeoJoinValidator {
         AQR aqr = new AQRBuilder(viewType, expressionHelper).build();
         EPackage viewTypePackage = new MetaModelGenerator(aqr).generate().pack();
 
+        Strictness strictness = viewType.getConforms().isStrict() ? Strictness.EXACT_MATCH : Strictness.SUBTYPE;
         List<Violation> violations = conformanceValidator.validatePackages(viewTypePackage, referencePackage, strictness);
         for (Violation v : violations) {
             error(v.toString(), AstPackage.Literals.VIEW_TYPE_DEFINITION__CONFORMS);

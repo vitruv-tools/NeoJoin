@@ -9,13 +9,11 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.emf.ecore.EValidator;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import picocli.CommandLine;
-import tools.vitruv.neojoin.ast.AstPackage;
 import tools.vitruv.neojoin.cli.Main;
 
 /**
@@ -28,11 +26,8 @@ public class ConformanceTest {
     private final ByteArrayOutputStream err = new ByteArrayOutputStream();
 
     @BeforeEach
-    void resetGlobalStateAndCaptureErr() {
+    void captureErr() {
         System.setErr(new PrintStream(err));
-        // Xtext registers the validator in the global EValidator registry and keeps the first one per JVM, which
-        // would carry the strictness of whichever test ran first. Dropping it lets each run register its own.
-        EValidator.Registry.INSTANCE.remove(AstPackage.eINSTANCE);
     }
 
     @AfterEach
@@ -68,13 +63,13 @@ public class ConformanceTest {
     }
 
     /**
-     * {@code java -jar cli.jar --meta-model-path=<meta-model-path> --strictness=EXACT_MATCH <query>}
+     * {@code java -jar cli.jar --meta-model-path=<meta-model-path> <query>} where the query declares {@code strict conforms to}
      */
     @Test
     public void testExactMatchReportsAdditionalStructure() {
         // GIVEN a query whose view type declares more than its reference meta-model
-        // WHEN checking the query with the strictness EXACT_MATCH
-        int exitCode = check("movies-conforming", "--strictness=EXACT_MATCH");
+        // WHEN checking the query with a {@code strict conforms to} clause
+        int exitCode = check("movies-conforming-strict");
 
         // THEN the query is rejected because of the additional feature
         assertEquals(1, exitCode, err.toString());

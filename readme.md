@@ -70,13 +70,12 @@ Provides basic IDE support (syntax highlighting, code-completion, etc.) and a si
 
 #### Settings
 * **Meta Model Search Path** - Semicolon separted list of file URLs to search for source meta models.
-* **Strictness** - Requirement used for the `conforms to` clause: `SUBTYPE` or `EXACT_MATCH`.
 * **Debug** - Enable debug logging.
 
 ### Command Line Interface
 
 ```
-Usage: neojoin [-hV] -m=MODEL-PATH [-s=STRICTNESS] [-g=OUTPUT] [-i=MODEL-PATH -t=OUTPUT] QUERY
+Usage: neojoin [-hV] -m=MODEL-PATH [-g=OUTPUT] [-i=MODEL-PATH -t=OUTPUT] QUERY
 
       QUERY                Path to the query file.
 
@@ -84,12 +83,6 @@ Usage: neojoin [-hV] -m=MODEL-PATH [-s=STRICTNESS] [-g=OUTPUT] [-i=MODEL-PATH -t
   -m, --meta-model-path=MODEL-PATH
                            Model path (see below) to find referenced
                              meta-models (.ecore).
-  -s, --strictness=STRICTNESS
-                           Conformance strictness to check the view type
-                             against its reference metamodel: SUBTYPE (view
-                             type must fit the reference) or EXACT_MATCH (view
-                             type must match the reference exactly). Default:
-                             SUBTYPE.
   -V, --version            Print version information and exit.
 
 Generate the meta-model:
@@ -143,7 +136,16 @@ Which differences count as a violation depends on the strictness:
 
 Not every difference is covered by a rule. Moves and changes to the package name, `nsURI` or `nsPrefix` are always ignored, and differences that no rule matches (for example changes to `ordered`, `derived` or `changeable`, annotations, or a renamed element, which EMF Compare reports as an addition plus a deletion) produce no violation under either strictness.
 
-The strictness is selected with `--strictness` on the CLI and with the **Strictness** setting in the VSCode plugin. The rules and their categories are documented in the [conformance validator readme](/lang/conformancevalidator/readme.md).
+The strictness is selected per view type with the optional `strict` keyword. A plain `conforms to` clause uses `SUBTYPE`, while `strict conforms to` uses `EXACT_MATCH`:
+
+```
+export food-view to "https://food.example.com/"
+strict conforms to "https://food-reference.example.com/"
+
+from Pizza create Food { type := "pizza" }
+```
+
+The rules and their categories are documented in the [conformance validator readme](/lang/conformancevalidator/readme.md).
 
 ### Transformation of Operators to Triple Graph Grammars
 

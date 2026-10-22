@@ -4,7 +4,6 @@ import com.google.inject.Binder;
 import com.google.inject.name.Names;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.xtext.xbase.scoping.batch.ImplicitlyImportedFeatures;
-import tools.vitruv.neojoin.conformancevalidator.rules.Strictness;
 import tools.vitruv.neojoin.jvmmodel.ImplicitExpressionImports;
 
 /**
@@ -20,15 +19,9 @@ public class NeoJoinRuntimeModule extends AbstractNeoJoinRuntimeModule {
     public static class Dynamic extends NeoJoinRuntimeModule {
 
         private final EPackage.Registry registry;
-        private final Strictness strictness;
 
         public Dynamic(EPackage.Registry registry) {
-            this(registry, Strictness.SUBTYPE);
-        }
-
-        public Dynamic(EPackage.Registry registry, Strictness strictness) {
             this.registry = registry;
-            this.strictness = strictness;
         }
 
         @Override
@@ -37,8 +30,6 @@ public class NeoJoinRuntimeModule extends AbstractNeoJoinRuntimeModule {
             binder.bind(EPackage.Registry.class)
                 .annotatedWith(Names.named(Constants.ImportPackageRegistry))
                 .toInstance(registry);
-            binder.bind(Strictness.class)
-                .toInstance(strictness);
         }
 
     }

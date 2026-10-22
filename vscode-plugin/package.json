@@ -88,20 +88,6 @@
                     "scope": "machine-overridable",
                     "default": false,
                     "markdownDescription": "Enable debug logging into `neojoin-debug.log`. Requires a [restart of the NeoJoin server](command:neojoin.restart)."
-                },
-                "neojoin.strictness": {
-                    "type": "string",
-                    "enum": [
-                        "SUBTYPE",
-                        "EXACT_MATCH"
-                    ],
-                    "enumDescriptions": [
-                        "The view type must fit the reference metamodel.",
-                        "The view type must match the reference metamodel exactly."
-                    ],
-                    "scope": "machine-overridable",
-                    "default": "SUBTYPE",
-                    "markdownDescription": "Conformance strictness used to check a view type against its reference metamodel. **Note:** Changes to this config entry require a [restart of the NeoJoin server](command:neojoin.restart)."
                 }
             }
         }
