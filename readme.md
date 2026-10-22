@@ -46,15 +46,10 @@ create ReviewedRestaurant {
 
 ### Keywords
 
-The following words are keywords of the query language. They are reserved everywhere in a query, including inside
-expressions, in addition to the keywords of [Xbase](https://eclipse.dev/Xtext/xtend/documentation/203_xtend_expressions.html):
-
-`as`, `by`, `changeable`, `containment`, `create`, `derived`, `export`, `from`, `group`, `id`, `import`, `inner`,
-`join`, `left`, `on`, `ordered`, `param`, `root`, `to`, `transient`, `unique`, `unsettable`, `using`, `volatile`,
-`where`, `with`
-
-To use one of them as the name of a feature, an alias or a method, escape it with `^`, e.g. a source feature `id`
-(`it.^id`), a target feature `^left = rest.name`, or Xtend's `join` extension method:
+Keywords of the query language are reserved everywhere in a query, including inside expressions, in addition to the
+keywords of [Xbase](https://eclipse.dev/Xtext/xtend/documentation/203_xtend_expressions.html). The
+[grammar](lang/frontend/language/src/main/xtext/tools/vitruv/neojoin/NeoJoin.xtext) defines the current set. To use a
+keyword as the name of a feature, an alias or a method, escape it with `^`, e.g. Xtend's `join` extension method:
 
 ```
 from Food f
