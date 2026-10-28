@@ -1,21 +1,20 @@
 package tools.vitruv.optggs.operators;
 
 public enum LogicOperator {
-    Equals,
-    NotEquals,
-    LessThan,
-    LessEquals,
-    MoreThan,
-    MoreEquals;
+    Equals("=="),
+    NotEquals("!="),
+    LessThan("<"),
+    LessEquals("<="),
+    MoreThan(">"),
+    MoreEquals(">=");
+
+    final String representation;
+
+    LogicOperator(String representation) {
+        this.representation = representation;
+    }
 
     public String print() {
-        return switch (this) {
-            case Equals -> "==";
-            case NotEquals -> "!=";
-            case LessThan -> "<";
-            case LessEquals -> "<=";
-            case MoreThan -> ">";
-            case MoreEquals -> ">=";
-        };
+        return representation;
     }
 }

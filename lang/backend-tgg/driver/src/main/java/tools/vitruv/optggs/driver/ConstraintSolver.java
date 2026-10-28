@@ -1,6 +1,7 @@
 package tools.vitruv.optggs.driver;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -22,14 +23,14 @@ public class ConstraintSolver {
     private final Collection<String> supportedGenBindings = new ArrayList<>();
     private final Map<String, String> parameters = new HashMap<>();
 
-    public ConstraintSolver(String name, String className, Path file) {
-        this.name = name;
-        this.className = className;
-        this.file = file;
-    }
-
     public ConstraintSolver(String name, String className, URL url) {
-        this(name, className, Path.of(url.getPath()));
+        try {
+            this.name = name;
+            this.className = className;
+            this.file = Path.of(url.toURI());
+        } catch (URISyntaxException e) {
+            throw new RuntimeException("Invalid URL: " + url, e);
+        }
     }
 
     public ConstraintSolver supportsBindings(Collection<String> bindings) {
@@ -104,6 +105,15 @@ public class ConstraintSolver {
                 .parameter("prefix", DATA_TYPE_ESTRING)
                 .supportsBindings(List.of("B B", "B F", "F B"))
                 .supportsGenBindings(List.of("B B", "F F"))
+        );
+        solvers.add(
+            constraintSolverFromClass("notEquals", "NotEquals")
+                // The arguments are typed as String, but the constraint supports arbitrary types.
+                // However, we need a fixed type here and cannot overload the method or make it work with a
+                // more generic type
+                .parameter(SELF_PARAM_KEYWORD, DATA_TYPE_ESTRING)
+                .parameter("other", DATA_TYPE_ESTRING)
+                .supportsBindings(List.of("B B", "B F", "F B"))
         );
         return solvers;
     }

@@ -6,8 +6,8 @@ import tools.vitruv.optggs.operators.expressions.ConstantExpression;
 import tools.vitruv.optggs.operators.expressions.ValueExpression;
 import tools.vitruv.optggs.operators.projections.DerivedProjection;
 import tools.vitruv.optggs.transpiler.operators.ResolvedProjection;
-import tools.vitruv.optggs.transpiler.tgg.AttributeConstraint;
-import tools.vitruv.optggs.transpiler.tgg.TripleRule;
+import tools.vitruv.optggs.transpiler.graph.tgg.TripleRule;
+import tools.vitruv.optggs.transpiler.graph.tgg.constraint.ArbitraryAttributeConstraint;
 
 public class ResolvedDerivedProjection implements ResolvedProjection {
 
@@ -25,7 +25,7 @@ public class ResolvedDerivedProjection implements ResolvedProjection {
 
     @Override
     public void extendRule(TripleRule rule) {
-        var constraint = new AttributeConstraint(function.name());
+        var constraint = new ArbitraryAttributeConstraint(function.name());
         for (var parameter : function.parameters()) {
             var value = determineValueForFunctionParameter(rule, parameter);
             constraint.addParameter(parameter, value);

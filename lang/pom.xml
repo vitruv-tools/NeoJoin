@@ -46,8 +46,10 @@
   <modules>
     <module>backend-emf</module>
     <module>backend-tgg</module>
+    <module>conformancevalidator</module>
     <module>frontend</module>
     <module>model</module>
+    <module>expression-parser</module>
     <module>p2wrappers</module>
   </modules>
 

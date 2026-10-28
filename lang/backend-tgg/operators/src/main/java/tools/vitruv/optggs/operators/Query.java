@@ -1,6 +1,8 @@
 package tools.vitruv.optggs.operators;
 
+import tools.vitruv.neojoin.expression_parser.model.ReferenceOperator;
 import tools.vitruv.optggs.operators.builder.SourceSelectionBuilder;
+import tools.vitruv.optggs.operators.reference_operator.ReferenceOperatorChain;
 import tools.vitruv.optggs.operators.traits.Containable;
 import tools.vitruv.optggs.operators.traits.Filterable;
 import tools.vitruv.optggs.operators.traits.Linkable;
@@ -51,6 +53,7 @@ import java.util.stream.Collectors;
  */
 public record Query(Selection selection,
                     List<Projection> projections,
+                    List<ReferenceOperatorChain> referenceOperators,
                     List<Filter> filters,
                     List<Containment> containments,
                     List<Link> links) implements Filterable<Query>, Projectable<Query>, Containable<Query>, Linkable<Query> {
@@ -61,7 +64,7 @@ public record Query(Selection selection,
      * @param selection Selection clause
      */
     public Query(Selection selection) {
-        this(selection, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+        this(selection, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
 
     }
 
@@ -77,6 +80,11 @@ public record Query(Selection selection,
 
     public Query project(Projection projection) {
         projections.add(projection);
+        return this;
+    }
+
+    public Query referenceOperator(String sourceNamespace, FQN targetRoot, FQN targetLeaf, String targetField, ReferenceOperator referenceOperator) {
+        referenceOperators.add(new ReferenceOperatorChain(sourceNamespace, targetRoot, targetLeaf, targetField, referenceOperator));
         return this;
     }
 
@@ -147,9 +155,10 @@ public record Query(Selection selection,
     @Override
     public String toString() {
         var p = projections.stream().map(Object::toString).collect(Collectors.joining("."));
+        var r = referenceOperators.stream().map(Object::toString).collect(Collectors.joining("."));
         var f = filters.stream().map(Object::toString).collect(Collectors.joining("."));
         var c = containments.stream().map(Object::toString).collect(Collectors.joining("."));
         var l = links.stream().map(Object::toString).collect(Collectors.joining("."));
-        return selection + f + p + c + l;
+        return selection + f + p + r + c + l;
     }
 }

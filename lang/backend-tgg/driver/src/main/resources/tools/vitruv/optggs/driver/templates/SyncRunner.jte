@@ -42,15 +42,11 @@ public class ${p.name()}SyncRunner {
         this.trgModelName = trgModelName;
     }
 
-    public void run(Model src, Model tgt) throws Exception {
+    public void run() throws Exception {
         try (var builder = API_Common.createBuilder()) {
             new API_Transform(builder).exportMetamodelsFor${p.name()}();
 
-            builder.clearDataBase();
-            builder.exportEMSLEntityToNeo4j(src);
-            builder.exportEMSLEntityToNeo4j(tgt);
-
-            var generator = createGenerator(builder, src.getName(), tgt.getName());
+            var generator = createGenerator(builder, srcModelName, trgModelName);
 
             logger.info("Running generator...");
             generator.generate();

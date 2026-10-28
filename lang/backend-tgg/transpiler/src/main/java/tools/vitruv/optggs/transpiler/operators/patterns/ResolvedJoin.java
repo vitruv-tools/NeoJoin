@@ -3,9 +3,9 @@ package tools.vitruv.optggs.transpiler.operators.patterns;
 import tools.vitruv.optggs.operators.FQN;
 import tools.vitruv.optggs.operators.LogicOperator;
 import tools.vitruv.optggs.operators.Tuple;
-import tools.vitruv.optggs.transpiler.tgg.Attribute;
-import tools.vitruv.optggs.transpiler.tgg.Node;
-import tools.vitruv.optggs.transpiler.tgg.Slice;
+import tools.vitruv.optggs.transpiler.graph.Attribute;
+import tools.vitruv.optggs.transpiler.graph.tgg.TGGNode;
+import tools.vitruv.optggs.transpiler.graph.tgg.TGGSlice;
 
 import java.util.Collection;
 import java.util.List;
@@ -27,8 +27,8 @@ public class ResolvedJoin implements ResolvedPatternLink {
     }
 
     @Override
-    public Node extendSlice(Slice slice, Node lastNode) {
-        var node = slice.findByType(element).orElseGet(() -> slice.addNode(element));
+    public TGGNode extendSlice(TGGSlice slice, TGGNode lastNode) {
+        TGGNode node = slice.findByType(element).orElseGet(() -> slice.addNode(element));
         for (var property : constrainedProperties) {
 
             var variable = lastNode.addVariableAttribute(property.first(), LogicOperator.Equals);
