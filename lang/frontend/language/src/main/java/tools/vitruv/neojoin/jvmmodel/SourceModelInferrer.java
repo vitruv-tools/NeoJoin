@@ -161,6 +161,11 @@ public class SourceModelInferrer {
 
     private JvmTypeReference getReferenceType(EReference ref) {
         var type = typeRegistry.getClass(ref.getEReferenceType());
+        var instanceClass = ref.getEReferenceType().getInstanceClass();
+        if (type == null && instanceClass != null) {
+            // a class outside the source meta-models with a Java type, e.g. Ecore's own EObject
+            return references.typeRef(instanceClass);
+        }
         check(
             type != null,
             () -> "unknown reference type '%s' in %s".formatted(ref.getEReferenceType(), getPackageUri(ref))
