@@ -9,7 +9,7 @@ import java.util.Map.Entry;
 
 /**
  * Mapping from source instances to target instances. Given that one source class can be the source for multiple
- * target classes, this mapping does also depend on the target class. When {@link #get(EObject, AQRTargetClass) queried}
+ * target classes, this mapping does also depend on the target class. When {@link #get(EObject, AQRTargetClass, boolean) queried}
  * for a target instance this class checks that there is exactly one such instance and throws otherwise.
  */
 public class TargetMap {
@@ -73,15 +73,6 @@ public class TargetMap {
         var previous = getMapping(source, targetClass);
         map.computeIfAbsent(source, k -> new HashMap<>())
             .put(targetClass, previous.join(new One(target)));
-    }
-
-    /**
-     * Retrieve the target instance that is mapped to the given source instance and target class.
-     *
-     * @throws TransformatorException if none or multiple target instances are mapped to the given source instance and target class
-     */
-    public EObject get(EObject source, AQRTargetClass targetClass) {
-        return get(source, targetClass, false);
     }
 
     /**

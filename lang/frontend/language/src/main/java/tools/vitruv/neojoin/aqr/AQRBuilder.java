@@ -373,8 +373,6 @@ public class AQRBuilder {
             return copy.source().getName();
         } else if (kind instanceof AQRFeature.Kind.Calculate) {
             return invariantFailed("Calculated feature must have a name: " + ((ConcreteFeature) feature).getExpression());
-        } else if (kind instanceof AQRFeature.Kind.Override overriding) {
-            return overriding.overridden().name();
         } else {
             return fail();
         }
