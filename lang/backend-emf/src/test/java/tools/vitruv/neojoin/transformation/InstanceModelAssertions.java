@@ -4,6 +4,7 @@ import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EAttribute;
+import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EEnumLiteral;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
@@ -64,6 +65,67 @@ public class InstanceModelAssertions extends AbstractAssert<InstanceModelAsserti
 
     public InstanceModelAssertions hasInstance(String clazz, Predicate<EObject> filter) {
         return hasInstance(clazz, filter, obj -> {});
+    }
+
+    /**
+     * Asserts that there are exactly {@code count} instances of exactly the given class (not counting instances of
+     * sub classes) that were not checked before and marks all of them as checked.
+     */
+    public InstanceModelAssertions hasInstances(String clazz, int count) {
+        isNotNull();
+
+        var results = getContentsOfClass(clazz).toList();
+        Assertions.assertThat(results).as(
+            "Expected to find %d instances of class %s, but found %d",
+            count,
+            clazz,
+            results.size()
+        ).hasSize(count);
+        Assertions.assertThat(seenInstances)
+            .as("Matching instances were already checked before: %s", results)
+            .doesNotContainAnyElementsOf(results);
+        seenInstances.addAll(results);
+        return this;
+    }
+
+    /**
+     * Asserts that all instances referenced by the reference are instances of a proper sub class of the reference type.
+     */
+    public InstanceModelAssertions hasOnlySubClassInstancesInReference(String name) {
+        var feature = getFeature(name);
+        var type = (EClass) feature.getEType();
+        var value = actual.eGet(feature);
+        var values = value instanceof List<?> list ? list : List.of(value);
+        Assertions.assertThat(values).isNotEmpty().allSatisfy(v -> {
+            var clazz = ((EObject) v).eClass();
+            Assertions.assertThat(clazz).isNotEqualTo(type);
+            Assertions.assertThat(type.isSuperTypeOf(clazz)).isTrue();
+        });
+        return this;
+    }
+
+    /**
+     * Asserts that the single-valued reference points to an instance of exactly the given class.
+     */
+    public InstanceModelAssertions hasReferenceInstanceOf(String name, String className) {
+        return hasReference(
+            name, obj -> {
+                Assertions.assertThat(obj).isInstanceOf(EObject.class);
+                Assertions.assertThat(((EObject) obj).eClass().getName()).isEqualTo(className);
+            }
+        );
+    }
+
+    /**
+     * Asserts that the many-valued reference contains instances of exactly the given classes (in any order).
+     */
+    public InstanceModelAssertions hasManyReferenceInstancesOf(String name, String... classNames) {
+        return hasManyReference(
+            name, list -> {
+                Assertions.assertThat(list.stream().map(e -> e.eClass().getName()).toList())
+                    .containsExactlyInAnyOrder(classNames);
+            }
+        );
     }
 
     public void hasNoMoreInstances() {

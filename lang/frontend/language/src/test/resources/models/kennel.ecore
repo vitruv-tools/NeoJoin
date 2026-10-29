@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="kennel" nsURI="http://example.org/kennel" nsPrefix="kennel">
+  <eClassifiers xsi:type="ecore:EClass" name="Animal" abstract="true">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Dog" eSuperTypes="#//Animal">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="breed" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Puppy" eSuperTypes="#//Dog">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="age" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Cat" eSuperTypes="#//Animal">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="lives" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Kennel">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="animals" upperBound="-1" eType="#//Animal"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="dogs" upperBound="-1" eType="#//Dog"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="star" eType="#//Dog"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="puppy" eType="#//Puppy"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="Specialty">
+    <eLiterals name="GENERAL"/>
+    <eLiterals name="SURGERY" value="1"/>
+    <eLiterals name="DENTISTRY" value="2"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Vet">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="specialty" eType="#//Specialty"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Park">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="kennels" upperBound="-1" eType="#//Kennel" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="animals" upperBound="-1" eType="#//Animal" containment="true"/>
+  </eClassifiers>
+</ecore:EPackage>

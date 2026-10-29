@@ -1,0 +1,223 @@
+package tools.vitruv.neojoin.aqr;
+
+import org.junit.jupiter.api.Test;
+import tools.vitruv.neojoin.AbstractKennelTest;
+import tools.vitruv.neojoin.Constants;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static tools.vitruv.neojoin.aqr.AQRAssertions.assertThat;
+import static tools.vitruv.neojoin.aqr.AQRTargetClassAssertions.assertThat;
+
+/**
+ * Intended behavior: an implicit target class gets super class links to the target classes of its source super
+ * classes if those are part of the view type. If the direct source super class is not part of the view, the nearest
+ * source ancestor that is part of the view is used (assumption). Selecting a class alone must not create target
+ * classes for its super classes.
+ */
+public class ImplicitSuperClassAQRTest extends AbstractKennelTest {
+
+    private static AQRTargetClass find(AQR aqr, String name) {
+        return aqr.classes().stream().filter(c -> c.name().equals(name)).findFirst().orElseThrow();
+    }
+
+    /**
+     * Implicit Dog extends Animal and Puppy extends Dog, with the inherited features overridden by implicit copies.
+     */
+    @Test
+    void implicitClassesAreLinkedToImplicitSuperClasses() {
+        var aqr = parse("""
+            from Kennel create
+            """);
+
+        assertThat(aqr)
+            .hasRootTargetClass(
+                Constants.DefaultRootClassName, root -> {
+                    assertThat(root)
+                        .hasGeneratedReference("allKennels", "Kennel")
+                        .hasGeneratedReference("allDogs", "Dog")
+                        .hasGeneratedReference("allPuppys", "Puppy")
+                        .hasNoMoreFeatures(); // no reference for the abstract class Animal
+                }
+            )
+            .hasTargetClass("Kennel", kennel -> {})
+            .hasTargetClass(
+                "Animal", animal -> {
+                    assertThat(animal)
+                        .isAbstract()
+                        .hasNoSuperClasses()
+                        .hasCopiedAttribute("name", lookup("kennel", "Animal", "name"))
+                        .hasNoMoreFeatures();
+                }
+            )
+            .hasTargetClass(
+                "Dog", dog -> {
+                    assertThat(dog)
+                        .isNotAbstract()
+                        .hasSuperClasses("Animal")
+                        .hasOverridingImplicitlyCopiedAttribute("name", lookup("kennel", "Animal", "name"))
+                        .hasCopiedAttribute("breed", lookup("kennel", "Dog", "breed"))
+                        .hasNoMoreFeatures();
+                }
+            )
+            .hasTargetClass(
+                "Puppy", puppy -> {
+                    assertThat(puppy)
+                        .hasSuperClasses("Dog")
+                        .hasAllSuperClasses("Dog", "Animal")
+                        .hasFeatureNames("name", "breed", "age");
+                }
+            )
+            .hasNoMoreTargetClasses();
+    }
+
+    /**
+     * The implicit Dog extends the explicit target class Pet of its source super class Animal.
+     */
+    @Test
+    void implicitClassIsLinkedToExplicitSuperClass() {
+        var aqr = parse("""
+            from extends Animal a create Pet {
+                a.name
+            }
+
+            from Kennel create
+            """);
+
+        assertThat(aqr)
+            .hasTargetClass("Pet", pet -> assertThat(pet).isNotAbstract().hasNoSuperClasses())
+            .hasTargetClass("Kennel", kennel -> {})
+            .hasTargetClass(
+                "Dog", dog -> {
+                    assertThat(dog)
+                        .hasSuperClasses("Pet")
+                        .hasOverridingImplicitlyCopiedAttribute("name", lookup("kennel", "Animal", "name"))
+                        .hasCopiedAttribute("breed", lookup("kennel", "Dog", "breed"))
+                        .hasNoMoreFeatures();
+                }
+            )
+            .hasTargetClass(
+                "Puppy", puppy -> {
+                    assertThat(puppy).hasSuperClasses("Dog").hasAllSuperClasses("Dog", "Pet");
+                }
+            )
+            .hasNoMoreTargetClasses();
+    }
+
+    /**
+     * Assumption: if the direct source super class (Dog) is not part of the view, the nearest source ancestor that is
+     * (Animal) is used. Puppy extends Animal and there is no Dog.
+     */
+    @Test
+    void implicitClassIsLinkedToNearestAncestorInView() {
+        var aqr = parse("""
+            from Kennel k create KennelT {
+                k.name
+                k.animals
+                k.puppy
+            }
+            """);
+
+        assertThat(aqr.classes()).extracting(AQRTargetClass::name)
+            .containsExactlyInAnyOrder("KennelT", "Animal", "Puppy", Constants.DefaultRootClassName);
+
+        var puppy = find(aqr, "Puppy");
+        assertThat(puppy.superClasses()).extracting(AQRTargetClass::name).containsExactly("Animal");
+        assertThat(puppy.allSuperClasses()).extracting(AQRTargetClass::name).contains("Animal");
+        assertThat(puppy.features()).extracting(AQRFeature::name).contains("name", "age");
+    }
+
+    /**
+     * Super classes are never created or linked when they are not part of the view: selecting a class alone and
+     * referencing a class alone create no target class for Animal and no super class links. Implicit target classes
+     * include sub classes.
+     */
+    @Test
+    void noSuperClassWhenSourceSuperClassIsNotInView() {
+        var aqr = parse("""
+            from Puppy create
+
+            from Kennel k create KennelT {
+                k.name
+                k.dogs
+            }
+            """);
+
+        assertThat(aqr)
+            .hasTargetClass("KennelT", kennel -> assertThat(kennel).hasCopiedReference("dogs", "Dog", lookup("kennel", "Kennel", "dogs")))
+            .hasTargetClass(
+                "Puppy", puppy -> {
+                    assertThat(puppy)
+                        .sourceIs(lookup("kennel", "Puppy"))
+                        .sourceExcludesSubClasses()
+                        .hasNoSuperClasses();
+                }
+            )
+            .hasTargetClass(
+                "Dog", dog -> {
+                    assertThat(dog)
+                        .sourceIs(lookup("kennel", "Dog"))
+                        .sourceIncludesSubClasses() // implicit target classes include sub classes
+                        .hasNoSuperClasses();
+                }
+            )
+            .hasNoMoreTargetClasses(); // no Animal
+    }
+
+    /**
+     * An explicit query defines its super classes itself: it gets none, even though an implicit target class for its
+     * source super class exists.
+     */
+    @Test
+    void explicitQueryWithoutExtendsHasNoSuperClasses() {
+        var aqr = parse("""
+            from Dog create
+
+            from Kennel k create KennelT {
+                k.name
+                k.animals
+            }
+            """);
+
+        assertThat(aqr)
+            .hasTargetClass("Animal", animal -> assertThat(animal).isAbstract()) // implicit
+            .hasTargetClass(
+                "Dog", dog -> {
+                    assertThat(dog)
+                        .sourceIs(lookup("kennel", "Dog"))
+                        .sourceExcludesSubClasses()
+                        .hasNoSuperClasses();
+                }
+            )
+            .hasTargetClass("KennelT", kennel -> {})
+            .hasNoMoreTargetClasses();
+    }
+
+    /**
+     * Decided: sub queries cannot declare {@code extends}, so like implicit classes the class of a sub query gets super
+     * class links to the available target classes of its source super classes (explicit or implicit classes, nearest
+     * ancestor), independently of how these are transformed. Sub queries select direct instances and instances of sub
+     * classes. The class of the sub query, Dog, therefore extends the explicit class Pet.
+     */
+    @Test
+    void subQueryClassIsLinkedToSuperClassInView() {
+        var aqr = parse("""
+            from extends Animal a create Pet {
+                a.name
+            }
+
+            from Kennel k create KennelT {
+                k.name
+                k.star create {
+                    name
+                    breed
+                }
+            }
+            """);
+
+        var dog = find(aqr, "Dog");
+        assertThat(dog.superClasses()).extracting(AQRTargetClass::name).containsExactly("Pet");
+        assertThat(dog.features()).extracting(AQRFeature::name).containsExactlyInAnyOrder("name", "breed");
+        assertThat(dog).sourceIncludesSubClasses();
+    }
+
+}

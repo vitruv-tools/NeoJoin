@@ -2,7 +2,7 @@ export pizza to "http://example.org/pizza2"
 
 import "http://example.org/restaurant"
 
-create abstract Restaurant {
+abstract Restaurant {
     name: EString
     sells: Item [*]
 }

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ken:Park
+    xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ken="http://example.org/kennel">
+  <animals xsi:type="ken:Dog" name="Rex" breed="Lab"/>
+  <animals xsi:type="ken:Puppy" name="Bello" breed="Pug" age="1"/>
+  <animals xsi:type="ken:Cat" name="Tom" lives="9"/>
+  <kennels name="North"
+      animals="//@animals.0 //@animals.1"
+      dogs="//@animals.0 //@animals.1"
+      star="//@animals.0"
+      puppy="//@animals.1"/>
+  <kennels name="South"/>
+</ken:Park>

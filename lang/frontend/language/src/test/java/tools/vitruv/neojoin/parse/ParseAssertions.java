@@ -50,6 +50,13 @@ public class ParseAssertions extends AbstractAssert<ParseAssertions, List<Issue>
         }
     }
 
+    public void hasIssueWithSeverity(Severity severity, String message) {
+        if (actual.stream().noneMatch(i -> i.getSeverity() == severity && i.getMessage().equals(message))) {
+            failWithMessage("Expected %s '%s' but got:%n%s".formatted(
+                severity, message, formatUnexpectedIssues(actual)));
+        }
+    }
+
     public void hasIssues(String... messages) {
         var missingIssues = Arrays.stream(messages)
             .filter(message -> actual.stream().noneMatch(issue -> issue.getMessage().equals(message)))
