@@ -20,6 +20,7 @@ import tools.vitruv.neojoin.ast.ConcreteFeature;
 import tools.vitruv.neojoin.ast.ConcreteMainQuery;
 import tools.vitruv.neojoin.ast.Feature;
 import tools.vitruv.neojoin.ast.FeatureOp;
+import tools.vitruv.neojoin.ast.MainQuery;
 import tools.vitruv.neojoin.ast.Query;
 import tools.vitruv.neojoin.ast.SubQuery;
 import tools.vitruv.neojoin.ast.ViewTypeDefinition;
@@ -31,10 +32,14 @@ import tools.vitruv.neojoin.utils.FeatureType.AmbiguousReferenceType;
 import tools.vitruv.neojoin.utils.FeatureType.ImplicitReferenceType;
 import tools.vitruv.neojoin.utils.FeatureType.QueryReferenceType;
 import tools.vitruv.neojoin.utils.FeatureTypeResolver;
+import tools.vitruv.neojoin.utils.ImplicitClassCollector;
 import tools.vitruv.neojoin.utils.TypeCasts;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -208,7 +213,7 @@ public class FeatureValidator extends ComposableValidator {
             // the target class of the inferred type must be unambiguously assignable to the explicit type, which
             // mirrors the invariant in AQRBuilder.determineReferenceType (otherwise, the transformation could not
             // decide which target instance to reference)
-            var assignable = sourceMap.get(inferredClass).stream()
+            var assignable = sourceMap.getOrDefault(inferredClass, Set.of()).stream()
                 .filter(type -> AstUtils.isSameOrSuperTypeOf(explicitType, type))
                 .toList();
             if (assignable.size() > 1) {
@@ -223,6 +228,17 @@ public class FeatureValidator extends ComposableValidator {
                 );
                 return;
             } else if (assignable.size() == 1) {
+                return;
+            }
+
+            // no query selects exactly the inferred class with a matching target class: sub class instances (or
+            // instances selected via 'from extends') of the inferred class can still be selected by a query whose
+            // target class is the explicit type or a sub class of it
+            var viewType = AstUtils.getViewType(feature);
+            if (AstUtils.getAllQueries(viewType).anyMatch(query ->
+                AstUtils.canSelectInstancesOf(query, inferredClass, expressionHelper)
+                    && AstUtils.isSameOrSuperTypeOf(explicitType, query)
+            )) {
                 return;
             }
         }
@@ -250,6 +266,10 @@ public class FeatureValidator extends ComposableValidator {
 
     @Check
     public void checkFeatureNullability(ConcreteFeature feature) {
+        if (feature.eContainer().eContainer() instanceof MainQuery mainQuery && !mainQuery.getSuperClasses().isEmpty()) {
+            return; // checked by InheritanceValidator, because overriding features have the modifiers of the overridden feature
+        }
+
         if (feature.getExpression() instanceof XMemberFeatureCall featureCall) {
             if (featureCall.isNullSafe() && isRequired(feature)) {
                 warning(
@@ -387,6 +407,94 @@ public class FeatureValidator extends ComposableValidator {
                 }
             }
         }
+    }
+
+    /**
+     * Checks that implicit target classes and sub query classes have an unambiguous super class.
+     * <p>
+     * {@code AQRBuilder} links these classes (they cannot declare {@code extends}) to the target class of their
+     * nearest source super class that has one: a query that selects exactly this source class (single {@code from},
+     * no joins, no grouping, or a sub query), or an implicit target class. It fails if several target classes exist
+     * on the nearest level of the source class hierarchy, so this is reported here instead. The check in
+     * {@code AQRBuilder.findAutomaticSuperClass} stays as the safeguard for queries that were not validated (it
+     * decides which class is linked, while this method only reports the ambiguity to the user).
+     * <p>
+     * The implicit classes are determined from the AST like in {@link #checkAmbiguousImplicitFeatureTypes}: classes of
+     * references (copied or inferred) for which no query selects the referenced source class.
+     */
+    @Check
+    public void checkAmbiguousImplicitSuperClasses(ViewTypeDefinition viewType) {
+        var queriesBySourceClass = AstUtils.mapSourceClassesToQueries(viewType, expressionHelper);
+        var typeResolver = new FeatureTypeResolver(queriesBySourceClass, expressionHelper);
+
+        var implicitClasses = new ImplicitClassCollector(typeResolver, expressionHelper).collectImplicitClasses(viewType);
+
+        implicitClasses.forEach((sourceClass, cause) ->
+            checkSuperClassCandidates(sourceClass, cause, queriesBySourceClass, implicitClasses.keySet())
+        );
+        AstUtils.getAllQueries(viewType)
+            .filter(SubQuery.class::isInstance)
+            .map(SubQuery.class::cast)
+            .forEach(subQuery -> {
+                var sourceClass = AstUtils.inferSubQuerySourceType(subQuery, expressionHelper);
+                if (sourceClass != null) {
+                    checkSuperClassCandidates(sourceClass, subQuery, queriesBySourceClass, implicitClasses.keySet());
+                }
+            });
+    }
+
+    private void checkSuperClassCandidates(
+        EClass sourceClass,
+        Query cause,
+        Map<EClass, Set<Query>> queriesBySourceClass,
+        Set<EClass> implicitClasses
+    ) {
+        var candidates = findNearestSuperClassCandidates(sourceClass, queriesBySourceClass, implicitClasses);
+        if (candidates.size() > 1) {
+            error(
+                "Ambiguous super class for implicit target class of source class '%s'. Possible candidates: %s".formatted(
+                    sourceClass.getName(), String.join(", ", candidates)
+                ),
+                cause,
+                null
+            );
+        }
+    }
+
+    /**
+     * Returns the names of the target classes of the nearest level of super classes of the given source class
+     * (breadth first) that has any.
+     */
+    private List<String> findNearestSuperClassCandidates(
+        EClass sourceClass,
+        Map<EClass, Set<Query>> queriesBySourceClass,
+        Set<EClass> implicitClasses
+    ) {
+        var visited = new HashSet<EClass>();
+        visited.add(sourceClass);
+        List<EClass> level = sourceClass.getESuperTypes();
+        while (!level.isEmpty()) {
+            var candidates = new ArrayList<String>();
+            var nextLevel = new ArrayList<EClass>();
+            for (var superClass : level) {
+                if (!visited.add(superClass)) {
+                    continue;
+                }
+                queriesBySourceClass.getOrDefault(superClass, Set.of()).stream()
+                    .filter(q -> superClass.equals(AstUtils.getSingleSourceClass(q, expressionHelper)))
+                    .map(q -> AstUtils.getTargetName(q, expressionHelper))
+                    .forEach(candidates::add);
+                if (implicitClasses.contains(superClass)) {
+                    candidates.add(superClass.getName());
+                }
+                nextLevel.addAll(superClass.getESuperTypes());
+            }
+            if (!candidates.isEmpty()) {
+                return candidates.stream().sorted().toList();
+            }
+            level = nextLevel;
+        }
+        return List.of();
     }
 
     @Check

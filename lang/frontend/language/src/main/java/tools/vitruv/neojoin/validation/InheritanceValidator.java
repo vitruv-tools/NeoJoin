@@ -1,27 +1,29 @@
 package tools.vitruv.neojoin.validation;
 
 import com.google.inject.Inject;
-import org.eclipse.emf.ecore.EClass;
 import org.eclipse.xtext.validation.Check;
+import org.eclipse.xtext.xbase.XMemberFeatureCall;
 import org.jspecify.annotations.Nullable;
+import tools.vitruv.neojoin.aqr.AQRFeature;
 import tools.vitruv.neojoin.ast.AstPackage;
-import tools.vitruv.neojoin.ast.Body;
+import tools.vitruv.neojoin.ast.ConcreteFeature;
 import tools.vitruv.neojoin.ast.ConcreteMainQuery;
 import tools.vitruv.neojoin.ast.Feature;
 import tools.vitruv.neojoin.ast.MainQuery;
 import tools.vitruv.neojoin.ast.Query;
 import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
 import tools.vitruv.neojoin.utils.AstUtils;
+import tools.vitruv.neojoin.utils.FeatureInfo;
+import tools.vitruv.neojoin.utils.FeatureInfoResolver;
+import tools.vitruv.neojoin.utils.Pair;
 import tools.vitruv.neojoin.utils.FeatureType;
 import tools.vitruv.neojoin.utils.FeatureType.AmbiguousReferenceType;
 import tools.vitruv.neojoin.utils.FeatureType.AttributeType;
 import tools.vitruv.neojoin.utils.FeatureType.QueryReferenceType;
 import tools.vitruv.neojoin.utils.FeatureType.ReferenceType;
-import tools.vitruv.neojoin.utils.FeatureTypeResolver;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -45,13 +47,6 @@ public class InheritanceValidator extends ComposableValidator {
 
     @Inject
     private ExpressionHelper expressionHelper;
-
-    /**
-     * @param name name of the feature
-     * @param type type of the feature or {@code null} if it could not be determined
-     * @param node AST node of the feature or {@code null} for implicitly copied features
-     */
-    private record FeatureInfo(String name, @Nullable FeatureType type, @Nullable Feature node) {}
 
     // ---- super class list
 
@@ -129,24 +124,27 @@ public class InheritanceValidator extends ComposableValidator {
     // ---- inherited features
 
     /**
-     * Checks that a feature is not inherited from multiple super classes.
+     * Checks that a feature that is inherited from multiple super classes has the same type and modifiers in all of
+     * them.
      * <p>
-     * {@code AQRBuilder.applyInheritance} requires exactly one overridden feature per feature name
-     * ({@code invariant(overriddenFeatures.size() == 1)}), so diamonds or name conflicts cannot be resolved (this is
-     * a current limitation).
+     * A class overrides a feature that is provided by several super classes (diamond) only once, and
+     * {@code AQRBuilder.applyInheritance} takes the type and modifiers of the overridden feature. This is only
+     * well-defined if the provided features are equivalent (same name, type and effective modifiers). Otherwise, the
+     * overriding feature cannot be assigned through all super classes in the generated view type and during the
+     * transformation.
      */
     @Check
-    public void checkFeatureInheritedFromSingleSuperClass(MainQuery query) {
+    public void checkConflictingInheritedFeatures(MainQuery query) {
         var inherited = getInheritedFeatures(query);
         for (var entry : getSuperClassesByFeatureName(inherited).entrySet()) {
             var superClasses = entry.getValue();
-            if (superClasses.size() > 1) {
+            if (superClasses.size() > 1 && hasConflictingProviders(entry.getKey(), superClasses, inherited)) {
                 var classNames = superClasses.stream()
                     .map(c -> AstUtils.getTargetName(c, expressionHelper))
                     .collect(Collectors.joining(", "));
                 for (var superClass : superClasses) {
                     errorAtSuperClass(
-                        "Feature '%s' is inherited from multiple super classes: %s".formatted(entry.getKey(), classNames),
+                        "Feature '%s' is inherited from multiple super classes with different types or modifiers: %s".formatted(entry.getKey(), classNames),
                         query,
                         superClass
                     );
@@ -220,26 +218,26 @@ public class InheritanceValidator extends ComposableValidator {
      * through the super class): an explicit type must be equal to it, and the type of the value must be equal to it or
      * a sub class (invariants in {@code AQRBuilder.applyInheritance}). Otherwise, the generated view type would be
      * invalid, and values could not be assigned to the inherited feature during the transformation.
-     * Features that are inherited from multiple super classes are skipped (see
-     * {@link #checkFeatureInheritedFromSingleSuperClass}).
+     * Features that are inherited from conflicting features of multiple super classes are skipped (see
+     * {@link #checkConflictingInheritedFeatures}); equivalent ones are overridden once and the first provider
+     * is the overridden feature.
      */
     @Check
     public void checkOverridingFeatureTypes(MainQuery query) {
-        var inherited = getInheritedFeatures(query);
-        var superClassesByName = getSuperClassesByFeatureName(inherited);
+        var overriddenByName = getOverriddenFeatures(query);
         var own = getOwnFeatures(query);
         if (own == null) {
             return; // features cannot be determined: other errors will be reported
         }
 
         for (var feature : own) {
-            var superClasses = superClassesByName.get(feature.name());
-            if (superClasses == null || superClasses.size() != 1) {
-                continue; // does not override or reported by checkFeatureInheritedFromSingleSuperClass
+            var overriddenEntry = overriddenByName.get(feature.name());
+            if (overriddenEntry == null) {
+                continue; // does not override or reported by checkConflictingInheritedFeatures
             }
 
-            var superClass = superClasses.get(0);
-            var overridden = findFeature(inherited.get(superClass), feature.name());
+            var superClass = overriddenEntry.left();
+            var overridden = overriddenEntry.right();
             var hasExplicitType = feature.node() != null && feature.node().getType() != null;
             var message = getOverrideViolation(feature.name(), feature.type(), hasExplicitType, overridden.type());
             if (message != null) {
@@ -252,6 +250,101 @@ public class InheritanceValidator extends ComposableValidator {
                 } else {
                     errorAtSuperClass(message, query, superClass);
                 }
+            }
+        }
+    }
+
+    /**
+     * Checks that the expression of an overriding feature has the multiplicity of the overridden feature.
+     * <p>
+     * The modifiers of an overriding feature are ignored ({@code AQRBuilder.applyInheritance} takes them from the
+     * overridden feature), so {@link FeatureModifierValidator#checkMultiplicity} compares the expression only with
+     * the modifiers written on the overriding feature. A single value for a multi-valued feature (or the other way
+     * around) would make {@code Transformator.cast} cast the value to the wrong kind. Nothing is reported if the
+     * overriding feature writes a multiplicity with the same cardinality as the overridden one, because
+     * {@code FeatureModifierValidator} already reports the same error.
+     */
+    @Check
+    public void checkOverridingFeatureMultiplicity(MainQuery query) {
+        var overriddenByName = getOverriddenFeatures(query);
+        var own = getOwnFeatures(query);
+        if (own == null) {
+            return; // features cannot be determined: other errors will be reported
+        }
+
+        for (var feature : own) {
+            var overridden = overriddenByName.get(feature.name());
+            if (overridden == null
+                || overridden.right().options() == null
+                || !(feature.node() instanceof ConcreteFeature concreteFeature)) {
+                continue;
+            }
+
+            var hasExplicitType = feature.node() != null && feature.node().getType() != null;
+            if (getOverrideViolation(feature.name(), feature.type(), hasExplicitType, overridden.right().type()) != null) {
+                continue; // incompatible override, reported by checkOverridingFeatureTypes
+            }
+
+            var inheritedIsMany = overridden.right().options().isMany();
+            var ownMultiplicity = AstUtils.findMultiplicityExpression(concreteFeature);
+            if (ownMultiplicity != null && AstUtils.isManyMultiplicity(ownMultiplicity) == inheritedIsMany) {
+                continue; // reported by FeatureModifierValidator
+            }
+
+            var inferredType = AstUtils.inferTypeOrNull(concreteFeature.getExpression(), expressionHelper);
+            if (inferredType == null) {
+                continue; // will be handled by type checking
+            }
+            if (inheritedIsMany && !inferredType.isMany()) {
+                error(
+                    "Cannot assign a single value to a multi-valued feature",
+                    concreteFeature,
+                    AstPackage.Literals.CONCRETE_FEATURE__EXPRESSION
+                );
+            } else if (!inheritedIsMany && inferredType.isMany()) {
+                error(
+                    "Cannot assign multiple values to a single-valued feature",
+                    concreteFeature,
+                    AstPackage.Literals.CONCRETE_FEATURE__EXPRESSION
+                );
+            }
+        }
+    }
+
+    /**
+     * Warns if a nullable expression ({@code ?.}) initializes a required feature of a class with super classes.
+     * <p>
+     * An overriding feature has the modifiers of the overridden feature, so whether it is required depends on those
+     * ({@code AQRBuilder.applyInheritance}) and not on the modifiers written on the overriding feature. The check for
+     * other classes is {@code FeatureValidator.checkFeatureNullability}, which does not know the inherited modifiers.
+     */
+    @Check
+    public void checkNullableExpressionForRequiredFeature(MainQuery query) {
+        if (query.getSuperClasses().isEmpty()) {
+            return;
+        }
+
+        var overriddenByName = getOverriddenFeatures(query);
+        var own = getOwnFeatures(query);
+        if (own == null) {
+            return; // features cannot be determined: other errors will be reported
+        }
+
+        for (var feature : own) {
+            if (!(feature.node() instanceof ConcreteFeature concreteFeature)
+                || !(concreteFeature.getExpression() instanceof XMemberFeatureCall featureCall)
+                || !featureCall.isNullSafe()) {
+                continue;
+            }
+
+            var overridden = overriddenByName.get(feature.name());
+            var effectiveOptions = overridden != null ? overridden.right().options() : feature.options();
+            if (effectiveOptions != null && effectiveOptions.isRequired()) {
+                warning(
+                    "Nullable expression used to initialize non-nullable feature",
+                    concreteFeature,
+                    AstPackage.Literals.CONCRETE_FEATURE__EXPRESSION
+                );
             }
         }
     }
@@ -270,19 +363,6 @@ public class InheritanceValidator extends ComposableValidator {
         );
     }
 
-    /**
-     * Returns the distinct, resolved super classes of the given query.
-     */
-    private static List<Query> getResolvedSuperClasses(MainQuery query) {
-        var result = new LinkedHashSet<Query>();
-        for (var superClass : query.getSuperClasses()) {
-            if (superClass instanceof Query superQuery && !superQuery.eIsProxy() && superQuery != query) {
-                result.add(superQuery);
-            }
-        }
-        return List.copyOf(result);
-    }
-
     private static boolean hasCyclicSuperClasses(MainQuery query) {
         return query.getSuperClasses().stream().anyMatch(superClass ->
             superClass instanceof Query superQuery
@@ -296,20 +376,60 @@ public class InheritanceValidator extends ComposableValidator {
     }
 
     /**
-     * Returns the features of the super classes by super class. Super classes whose features cannot be determined are
-     * left out. The result is empty if the class has no super classes or if the inheritance is cyclic (reported by
+     * Returns whether the features that the given super classes provide under the same name differ in type or
+     * effective modifiers. Unknown types or modifiers are not a conflict (reported elsewhere).
+     */
+    private static boolean hasConflictingProviders(
+        String name,
+        List<Query> superClasses,
+        Map<Query, List<FeatureInfo>> inherited
+    ) {
+        var first = findFeature(inherited.get(superClasses.get(0)), name);
+        return superClasses.stream()
+            .skip(1)
+            .map(superClass -> findFeature(inherited.get(superClass), name))
+            .anyMatch(other -> !isEquivalent(first, other));
+    }
+
+    private static boolean isEquivalent(FeatureInfo first, FeatureInfo second) {
+        if (first.type() == null || second.type() == null || first.options() == null || second.options() == null) {
+            return true; // unknown: reported elsewhere
+        }
+        return first.hasSameTypeAndModifiers(second);
+    }
+
+    /**
+     * Returns the overridden feature by name of the feature, together with the super class that provides it. If several super classes provide equivalent features,
+     * the first provider is the overridden feature. Features with conflicting providers are left out (reported by
+     * {@link #checkConflictingInheritedFeatures}).
+     */
+    private Map<String, Pair<Query, FeatureInfo>> getOverriddenFeatures(MainQuery query) {
+        var inherited = getInheritedFeatures(query);
+        var result = new LinkedHashMap<String, Pair<Query, FeatureInfo>>();
+        getSuperClassesByFeatureName(inherited).forEach((name, superClasses) -> {
+            if (!hasConflictingProviders(name, superClasses, inherited)) {
+                var superClass = superClasses.get(0);
+                result.put(name, new Pair<>(superClass, findFeature(inherited.get(superClass), name)));
+            }
+        });
+        return result;
+    }
+
+    /**
+     * Returns the features of the super classes by super class (with the effective type and modifiers, see
+     * {@link #getEffectiveFeatureInfos}). Super classes whose features cannot be determined are left out. The result is empty if the class has no super classes or if the inheritance is cyclic (reported by
      * {@link #checkAcyclicInheritance}).
      */
     private Map<Query, List<FeatureInfo>> getInheritedFeatures(MainQuery query) {
-        var superClasses = getResolvedSuperClasses(query);
+        var superClasses = AstUtils.getResolvedSuperClasses(query);
         if (superClasses.isEmpty() || hasCyclicSuperClasses(query)) {
             return Map.of();
         }
 
-        var typeResolver = new FeatureTypeResolver(AstUtils.getViewType(query), expressionHelper);
+        var featureInfoResolver = new FeatureInfoResolver(AstUtils.getViewType(query), expressionHelper);
         var inherited = new LinkedHashMap<Query, List<FeatureInfo>>();
         for (var superClass : superClasses) {
-            var features = getFeatureInfos(superClass, typeResolver);
+            var features = featureInfoResolver.getEffectiveFeatureInfos(superClass);
             if (features != null) {
                 inherited.put(superClass, features);
             }
@@ -324,8 +444,7 @@ public class InheritanceValidator extends ComposableValidator {
      * @return the features or {@code null} if they cannot be determined
      */
     private @Nullable List<FeatureInfo> getOwnFeatures(MainQuery query) {
-        var typeResolver = new FeatureTypeResolver(AstUtils.getViewType(query), expressionHelper);
-        return getFeatureInfos(query, typeResolver);
+        return new FeatureInfoResolver(AstUtils.getViewType(query), expressionHelper).getFeatureInfos(query);
     }
 
     /**
@@ -390,45 +509,6 @@ public class InheritanceValidator extends ComposableValidator {
                 && superType instanceof QueryReferenceType sup
                 && AstUtils.isSameOrSuperTypeOf(sup.query(), sub.query())
         );
-    }
-
-    // ---- features and types of queries
-
-    /**
-     * Determines the features that the target class of the given query will have.
-     *
-     * @return the features or {@code null} if they cannot be determined
-     */
-    private @Nullable List<FeatureInfo> getFeatureInfos(Query query, FeatureTypeResolver typeResolver) {
-        var body = AstUtils.getBody(query);
-        if (body != null) {
-            return getDeclaredFeatureInfos(body, typeResolver);
-        }
-
-        // no body: all features are copied from the source class
-        var sourceClass = AstUtils.getCopiedSourceClass(query, expressionHelper);
-        if (sourceClass == null || sourceClass.eIsProxy()) {
-            return null;
-        }
-        return getCopiedFeatureInfos(sourceClass, typeResolver);
-    }
-
-    private @Nullable List<FeatureInfo> getDeclaredFeatureInfos(Body body, FeatureTypeResolver typeResolver) {
-        var result = new ArrayList<FeatureInfo>();
-        for (var feature : AstUtils.getFeatures(body)) {
-            var name = AstUtils.getFeatureNameOrNull(feature, expressionHelper);
-            if (name == null) {
-                return null;
-            }
-            result.add(new FeatureInfo(name, typeResolver.resolve(feature), feature));
-        }
-        return result;
-    }
-
-    private static List<FeatureInfo> getCopiedFeatureInfos(EClass sourceClass, FeatureTypeResolver typeResolver) {
-        return sourceClass.getEStructuralFeatures().stream()
-            .map(feature -> new FeatureInfo(feature.getName(), typeResolver.resolveCopied(feature), null))
-            .toList();
     }
 
 }

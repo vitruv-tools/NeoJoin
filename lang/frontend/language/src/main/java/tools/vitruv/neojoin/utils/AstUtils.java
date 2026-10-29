@@ -2,9 +2,11 @@ package tools.vitruv.neojoin.utils;
 
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.ETypedElement;
 import org.eclipse.xtext.EcoreUtil2;
+import org.eclipse.xtext.xbase.XExpression;
 import org.jspecify.annotations.Nullable;
 import tools.vitruv.neojoin.aqr.AQRFeatureOptionsBuilder;
 import tools.vitruv.neojoin.ast.AbstractBody;
@@ -24,11 +26,13 @@ import tools.vitruv.neojoin.ast.Source;
 import tools.vitruv.neojoin.ast.SubQuery;
 import tools.vitruv.neojoin.ast.ViewTypeDefinition;
 import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
+import tools.vitruv.neojoin.jvmmodel.TypeInfo;
 import tools.vitruv.neojoin.jvmmodel.TypeResolutionException;
 
 import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -188,6 +192,46 @@ public final class AstUtils {
     }
 
     /**
+     * Infer the type of the expression.
+     *
+     * @return the type or {@code null} if it cannot be inferred (this is handled by type checking)
+     */
+    public static @Nullable TypeInfo inferTypeOrNull(XExpression expression, ExpressionHelper expressionHelper) {
+        try {
+            return expressionHelper.inferEType(expression);
+        } catch (TypeResolutionException e) {
+            return null; // ignore: will be handled by type checking
+        }
+    }
+
+    /**
+     * Get the feature that the expression references, if it references one.
+     *
+     * @return the feature or {@code null} if the expression does not reference a feature or its type cannot be
+     * resolved (this is handled by type checking)
+     */
+    public static @Nullable EStructuralFeature getReferencedFeatureOrNull(XExpression expression, ExpressionHelper expressionHelper) {
+        try {
+            return expressionHelper.getFeatureOrNull(expression);
+        } catch (TypeResolutionException e) {
+            return null; // ignore: will be handled by type checking
+        }
+    }
+
+    /**
+     * Get the distinct, resolved super classes of the given query (without the query itself).
+     */
+    public static List<Query> getResolvedSuperClasses(MainQuery query) {
+        var result = new LinkedHashSet<Query>();
+        for (var superClass : query.getSuperClasses()) {
+            if (superClass instanceof Query superQuery && !superQuery.eIsProxy() && superQuery != query) {
+                result.add(superQuery);
+            }
+        }
+        return List.copyOf(result);
+    }
+
+    /**
      * Check whether the given queries are the same or whether the first query defines a (transitive) super type of
      * the type defined by the second query. Terminates for cyclic inheritance.
      *
@@ -241,6 +285,45 @@ public final class AstUtils {
             }
         });
         return queriesBySourceClass;
+    }
+
+    /**
+     * Returns whether the given query can select instances of the given class: one of its source classes is the class
+     * or a sub class of it, or a super class of it that is selected including sub classes ({@code from extends}, and
+     * always for sub queries).
+     */
+    public static boolean canSelectInstancesOf(Query query, EClass clazz, ExpressionHelper expressionHelper) {
+        if (query instanceof ConcreteMainQuery mainQuery) {
+            var source = mainQuery.getSource();
+            return source != null && getAllFroms(source).anyMatch(from -> {
+                var sourceClass = from.getClazz();
+                return sourceClass != null
+                    && !sourceClass.eIsProxy()
+                    && (clazz.isSuperTypeOf(sourceClass) || (from.isIncludeSubClasses() && sourceClass.isSuperTypeOf(clazz)));
+            });
+        } else if (query instanceof SubQuery subQuery) {
+            var sourceClass = inferSubQuerySourceType(subQuery, expressionHelper);
+            return sourceClass != null && (clazz.isSuperTypeOf(sourceClass) || sourceClass.isSuperTypeOf(clazz));
+        }
+        return false;
+    }
+
+    /**
+     * Get the source class of a query that selects exactly one source class: a main query with a single {@code from},
+     * no joins and no grouping, or a sub query.
+     *
+     * @return the source class or {@code null} if the query selects differently or the class cannot be determined
+     */
+    public static @Nullable EClass getSingleSourceClass(Query query, ExpressionHelper expressionHelper) {
+        if (query instanceof ConcreteMainQuery mainQuery) {
+            var source = mainQuery.getSource();
+            if (source != null && source.getJoins().isEmpty() && !isGrouping(source) && source.getFrom() != null) {
+                var sourceClass = source.getFrom().getClazz();
+                return sourceClass != null && !sourceClass.eIsProxy() ? sourceClass : null;
+            }
+            return null;
+        }
+        return getCopiedSourceClass(query, expressionHelper);
     }
 
     /**
