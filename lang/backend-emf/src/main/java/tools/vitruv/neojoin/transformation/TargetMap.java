@@ -2,7 +2,6 @@ package tools.vitruv.neojoin.transformation;
 
 import org.eclipse.emf.ecore.EObject;
 import tools.vitruv.neojoin.aqr.AQRTargetClass;
-import tools.vitruv.neojoin.utils.Pair;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -51,19 +50,18 @@ public class TargetMap {
 
     }
 
-    private final Map<Pair<EObject, AQRTargetClass>, Mapping> map = new HashMap<>();
+    /**
+     * Mappings grouped by source instance, so that lookups only scan the mappings of one source instance.
+     */
+    private final Map<EObject, Map<AQRTargetClass, Mapping>> map = new HashMap<>();
 
     private Mapping getMapping(EObject source, AQRTargetClass targetClass) {
-        return map.computeIfAbsent(
-            new Pair<>(source, targetClass),
-            k -> new None()
-        );
+        return map.getOrDefault(source, Map.of()).getOrDefault(targetClass, new None());
     }
 
     private Mapping getMappingInstanceOf(EObject source, AQRTargetClass targetClass) {
-        return map.entrySet().stream()
-            .filter(entry -> entry.getKey().left().equals(source))
-            .filter(entry -> entry.getKey().right().equals(targetClass) || entry.getKey().right().allSuperClasses().contains(targetClass))
+        return map.getOrDefault(source, Map.of()).entrySet().stream()
+            .filter(entry -> entry.getKey().equals(targetClass) || entry.getKey().allSuperClasses().contains(targetClass))
             .map(Entry::getValue)
             .reduce(new None(), Mapping::join);
     }
@@ -73,10 +71,8 @@ public class TargetMap {
      */
     public void register(EObject source, AQRTargetClass targetClass, EObject target) {
         var previous = getMapping(source, targetClass);
-        map.put(
-            new Pair<>(source, targetClass),
-            previous.join(new One(target))
-        );
+        map.computeIfAbsent(source, k -> new HashMap<>())
+            .put(targetClass, previous.join(new One(target)));
     }
 
     /**

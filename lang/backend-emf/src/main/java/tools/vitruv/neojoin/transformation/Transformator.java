@@ -341,7 +341,8 @@ public class Transformator {
         if (featureKind.expression() != null) {
             return context.evaluateExpression(Objects.requireNonNull(featureKind.expression()));
         } else if (featureKind instanceof AQRFeature.Kind.Copy.Implicit(EStructuralFeature feature)) {
-            check(source != null && source.eClass() == feature.getEContainingClass());
+            // the source may be an instance of a sub class of the class declaring the feature
+            check(source != null && feature.getEContainingClass().isSuperTypeOf(source.eClass()));
             return source.eGet(feature);
         } else if (featureKind instanceof AQRFeature.Kind.Override(AQRFeature overridden, AQRFeature.Kind overriding)) {
             return evaluateFeature(overriding, source, context);
