@@ -54,6 +54,7 @@ public class FromExtendsAQRTest extends AbstractKennelTest {
                     assertThat(cat)
                         .sourceIs(lookup("kennel", "Cat"))
                         .sourceIncludesSubClasses()
+                        .hasCopiedAttribute("name", lookup("kennel", "Animal", "name")) // inherited source feature
                         .hasCopiedAttribute("lives", lookup("kennel", "Cat", "lives"))
                         .hasNoMoreFeatures();
                 }

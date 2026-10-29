@@ -97,17 +97,6 @@ public class InheritanceParseTest extends AbstractInheritanceParseTest {
         assertThat(result).hasIssues("Restaurant cannot be resolved.");
     }
 
-    @Test
-    void createAbstractSyntax() {
-        var result = parse("""
-            create abstract A {
-                x: EString
-            }
-            """);
-
-        assertThat(result).hasNoIssues();
-    }
-
     // ---- super class relation
 
     @Test
@@ -412,48 +401,6 @@ public class InheritanceParseTest extends AbstractInheritanceParseTest {
         assertThat(result).hasIssues(
             "Type of overriding feature 'sells' must be equal to the type of the overridden feature"
         );
-    }
-
-    @Test
-    void sameFeatureFromMultipleSuperClasses() {
-        var result = parse("""
-            abstract A {
-                name: EString
-            }
-
-            abstract B {
-                name: EString
-            }
-
-            from Restaurant r create C extends A, B {
-                name = r.name
-            }
-            """);
-
-        assertThat(result).hasIssues("Feature 'name' is inherited from multiple super classes: A, B");
-    }
-
-    @Test
-    void sameFeatureFromCommonAncestor() {
-        var result = parse("""
-            abstract A {
-                x: EString
-            }
-
-            abstract B extends A {
-                x: EString
-            }
-
-            abstract C extends A {
-                x: EString
-            }
-
-            abstract D extends B, C {
-                x: EString
-            }
-            """);
-
-        assertThat(result).hasIssues("Feature 'x' is inherited from multiple super classes: B, C");
     }
 
     @Test

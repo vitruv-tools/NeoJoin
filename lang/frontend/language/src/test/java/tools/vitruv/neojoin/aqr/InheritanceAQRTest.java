@@ -109,6 +109,7 @@ public class InheritanceAQRTest extends AbstractKennelTest {
                 "Tabby", tabby -> {
                     assertThat(tabby)
                         .hasSuperClasses("Lived")
+                        .hasCopiedAttribute("name", lookup("kennel", "Animal", "name")) // inherited source feature
                         .hasOverridingImplicitlyCopiedAttribute(
                             "lives", lookup("kennel", "Cat", "lives"), options -> {
                                 assertThat(options)
@@ -124,6 +125,7 @@ public class InheritanceAQRTest extends AbstractKennelTest {
                 "Lion", lion -> {
                     assertThat(lion)
                         .hasSuperClasses("Base")
+                        .hasCopiedAttribute("name", lookup("kennel", "Animal", "name")) // inherited source feature
                         .hasOverridingImplicitlyCopiedAttribute(
                             "lives", lookup("kennel", "Cat", "lives"), options -> {
                                 assertThat(options).hasBounds(1, 1);
