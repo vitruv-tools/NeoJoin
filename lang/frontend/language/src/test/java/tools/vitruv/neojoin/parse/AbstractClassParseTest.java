@@ -118,4 +118,22 @@ public class AbstractClassParseTest extends AbstractParseTest {
         assertThat(result).hasIssues("Duplicated target class named 'A'");
     }
 
+    @Test
+    void withoutBody() {
+        var result = parse("""
+            abstract A
+            """);
+
+        assertThat(result).hasIssues("mismatched input '<EOF>' expecting '{'");
+    }
+
+    @Test
+    void withSource() {
+        var result = parse("""
+            from Food abstract A {}
+            """);
+
+        assertThat(result).hasIssues("missing 'create' at 'abstract'");
+    }
+
 }

@@ -96,6 +96,25 @@ public class FromExtendsTest extends AbstractKennelTest {
             .hasNoMoreInstances();
     }
 
+    @Test
+    void leftJoinWithFromExtends() {
+        var result = transform("""
+            from Kennel k
+            left join extends Animal a
+                on k.animals.contains(a)
+            create Housing {
+                kennel := k.name
+                animal := a?.name
+            }
+            """);
+
+        assertThat(result)
+            .hasInstance("Housing", and(attribute("kennel", "North"), attribute("animal", "Rex")))
+            .hasInstance("Housing", and(attribute("kennel", "North"), attribute("animal", "Bello")))
+            .hasInstance("Housing", and(attribute("kennel", "South"), attribute("animal", null)))
+            .hasNoMoreInstances();
+    }
+
     /**
      * The implicit copy of sub class instances yields Dog instances for Rex and Bello with their breed.
      */

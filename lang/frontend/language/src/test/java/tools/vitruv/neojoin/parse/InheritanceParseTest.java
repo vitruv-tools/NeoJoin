@@ -495,4 +495,19 @@ public class InheritanceParseTest extends AbstractInheritanceParseTest {
         );
     }
 
+    @Test
+    void featuresCannotBeDeterminedForInheritanceChecks() {
+        var result = parse("""
+            abstract A {
+                x: EString
+            }
+
+            from Restaurant r create B extends A {
+                r.doesNotExist
+            }
+            """);
+
+        assertThat(result).hasIssues("The method or field doesNotExist is undefined for the type Restaurant");
+    }
+
 }
