@@ -1,6 +1,6 @@
 package tools.vitruv.neojoin.cli;
 
-class ParameterResolutionException extends RuntimeException {
+class ParameterResolutionException extends Exception {
 
     ParameterResolutionException(String message) {
         super(message);
