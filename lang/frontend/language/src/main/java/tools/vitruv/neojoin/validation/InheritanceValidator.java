@@ -1,30 +1,29 @@
 package tools.vitruv.neojoin.validation;
 
 import com.google.inject.Inject;
-import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
-import org.eclipse.emf.ecore.EDataType;
-import org.eclipse.emf.ecore.EReference;
 import org.eclipse.xtext.validation.Check;
 import org.jspecify.annotations.Nullable;
 import tools.vitruv.neojoin.ast.AstPackage;
 import tools.vitruv.neojoin.ast.Body;
-import tools.vitruv.neojoin.ast.ConcreteFeature;
 import tools.vitruv.neojoin.ast.ConcreteMainQuery;
 import tools.vitruv.neojoin.ast.Feature;
-import tools.vitruv.neojoin.ast.FeatureOp;
 import tools.vitruv.neojoin.ast.MainQuery;
 import tools.vitruv.neojoin.ast.Query;
 import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
-import tools.vitruv.neojoin.jvmmodel.TypeResolutionException;
 import tools.vitruv.neojoin.utils.AstUtils;
+import tools.vitruv.neojoin.utils.FeatureType;
+import tools.vitruv.neojoin.utils.FeatureType.AmbiguousReferenceType;
+import tools.vitruv.neojoin.utils.FeatureType.AttributeType;
+import tools.vitruv.neojoin.utils.FeatureType.QueryReferenceType;
+import tools.vitruv.neojoin.utils.FeatureType.ReferenceType;
+import tools.vitruv.neojoin.utils.FeatureTypeResolver;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -46,26 +45,6 @@ public class InheritanceValidator extends ComposableValidator {
 
     @Inject
     private ExpressionHelper expressionHelper;
-
-    private sealed interface FeatureType {}
-
-    /**
-     * @param type the data type of the attribute
-     */
-    private record AttributeType(EDataType type) implements FeatureType {}
-
-    private sealed interface ReferenceType extends FeatureType {}
-
-    /**
-     * @param query the {@link Query} that creates the target class which is the type of the reference
-     */
-    private record QueryReferenceType(Query query) implements ReferenceType {}
-
-    /**
-     * @param sourceClass the source class that is copied to an implicitly created target class which is the type of
-     *                    the reference
-     */
-    private record ImplicitReferenceType(EClass sourceClass) implements ReferenceType {}
 
     /**
      * @param name name of the feature
@@ -327,10 +306,10 @@ public class InheritanceValidator extends ComposableValidator {
             return Map.of();
         }
 
-        var sourceMap = AstUtils.mapSourceClassesToQueries(AstUtils.getViewType(query), expressionHelper);
+        var typeResolver = new FeatureTypeResolver(AstUtils.getViewType(query), expressionHelper);
         var inherited = new LinkedHashMap<Query, List<FeatureInfo>>();
         for (var superClass : superClasses) {
-            var features = getFeatureInfos(superClass, sourceMap);
+            var features = getFeatureInfos(superClass, typeResolver);
             if (features != null) {
                 inherited.put(superClass, features);
             }
@@ -345,8 +324,8 @@ public class InheritanceValidator extends ComposableValidator {
      * @return the features or {@code null} if they cannot be determined
      */
     private @Nullable List<FeatureInfo> getOwnFeatures(MainQuery query) {
-        var sourceMap = AstUtils.mapSourceClassesToQueries(AstUtils.getViewType(query), expressionHelper);
-        return getFeatureInfos(query, sourceMap);
+        var typeResolver = new FeatureTypeResolver(AstUtils.getViewType(query), expressionHelper);
+        return getFeatureInfos(query, typeResolver);
     }
 
     /**
@@ -376,6 +355,9 @@ public class InheritanceValidator extends ComposableValidator {
     ) {
         if (overriding == null || overridden == null) {
             return null;
+        }
+        if (overriding instanceof AmbiguousReferenceType || overridden instanceof AmbiguousReferenceType) {
+            return null; // reported by FeatureValidator.checkAmbiguousImplicitFeatureTypes
         }
 
         if (overriding instanceof AttributeType attribute) {
@@ -417,10 +399,10 @@ public class InheritanceValidator extends ComposableValidator {
      *
      * @return the features or {@code null} if they cannot be determined
      */
-    private @Nullable List<FeatureInfo> getFeatureInfos(Query query, Map<EClass, Set<Query>> sourceMap) {
+    private @Nullable List<FeatureInfo> getFeatureInfos(Query query, FeatureTypeResolver typeResolver) {
         var body = AstUtils.getBody(query);
         if (body != null) {
-            return getDeclaredFeatureInfos(body, sourceMap);
+            return getDeclaredFeatureInfos(body, typeResolver);
         }
 
         // no body: all features are copied from the source class
@@ -428,108 +410,25 @@ public class InheritanceValidator extends ComposableValidator {
         if (sourceClass == null || sourceClass.eIsProxy()) {
             return null;
         }
-        return getCopiedFeatureInfos(sourceClass, sourceMap);
+        return getCopiedFeatureInfos(sourceClass, typeResolver);
     }
 
-    private @Nullable List<FeatureInfo> getDeclaredFeatureInfos(
-        Body body,
-        Map<EClass, Set<Query>> sourceMap
-    ) {
+    private @Nullable List<FeatureInfo> getDeclaredFeatureInfos(Body body, FeatureTypeResolver typeResolver) {
         var result = new ArrayList<FeatureInfo>();
         for (var feature : AstUtils.getFeatures(body)) {
             var name = AstUtils.getFeatureNameOrNull(feature, expressionHelper);
             if (name == null) {
                 return null;
             }
-            result.add(new FeatureInfo(name, resolveType(feature, sourceMap), feature));
+            result.add(new FeatureInfo(name, typeResolver.resolve(feature), feature));
         }
         return result;
     }
 
-    private static List<FeatureInfo> getCopiedFeatureInfos(EClass sourceClass, Map<EClass, Set<Query>> sourceMap) {
-        var result = new ArrayList<FeatureInfo>();
-        for (var feature : sourceClass.getEStructuralFeatures()) {
-            FeatureType type = null;
-            if (feature instanceof EAttribute attribute) {
-                type = new AttributeType(attribute.getEAttributeType());
-            } else if (feature instanceof EReference reference) {
-                type = resolveReferenceType(reference.getEReferenceType(), sourceMap);
-            }
-            result.add(new FeatureInfo(feature.getName(), type, null));
-        }
-        return result;
-    }
-
-    /**
-     * Determines the type of the given feature like {@link tools.vitruv.neojoin.aqr.AQRBuilder} does.
-     *
-     * @return the type or {@code null} if it cannot be determined (e.g. because of other errors)
-     */
-    private @Nullable FeatureType resolveType(Feature feature, Map<EClass, Set<Query>> sourceMap) {
-        if (feature.getType() != null) {
-            return resolveExplicitType(feature);
-        }
-        if (feature instanceof ConcreteFeature concreteFeature && concreteFeature.getExpression() != null) {
-            return resolveInferredType(concreteFeature, sourceMap);
-        }
-        return null;
-    }
-
-    private static @Nullable FeatureType resolveExplicitType(Feature feature) {
-        var explicitType = feature.getType();
-        if (explicitType == null || explicitType.eIsProxy()) {
-            return null;
-        } else if (explicitType instanceof EDataType dataType) {
-            return new AttributeType(dataType);
-        } else if (explicitType instanceof Query query) {
-            return new QueryReferenceType(query);
-        }
-        return null;
-    }
-
-    private @Nullable FeatureType resolveInferredType(
-        ConcreteFeature feature,
-        Map<EClass, Set<Query>> sourceMap
-    ) {
-        if (feature.getSubQuery() != null) {
-            return new QueryReferenceType(feature.getSubQuery());
-        }
-
-        try {
-            var inferredType = expressionHelper.inferEType(feature.getExpression());
-            if (inferredType == null || inferredType.classifier() == null) {
-                return null;
-            }
-
-            if (inferredType.classifier() instanceof EDataType inferredDataType) {
-                if (feature.getOp() == FeatureOp.COPY) {
-                    var copied = expressionHelper.getFeatureOrNull(feature.getExpression());
-                    if (copied != null && copied.getEType() instanceof EDataType copiedDataType) {
-                        return new AttributeType(copiedDataType);
-                    }
-                }
-                return new AttributeType(inferredDataType);
-            } else if (inferredType.classifier() instanceof EClass inferredClass) {
-                return resolveReferenceType(inferredClass, sourceMap);
-            }
-        } catch (TypeResolutionException e) {
-            // ignore: will be handled by type checking
-        }
-        return null;
-    }
-
-    private static @Nullable ReferenceType resolveReferenceType(
-        EClass sourceClass,
-        Map<EClass, Set<Query>> sourceMap
-    ) {
-        var candidates = sourceMap.get(sourceClass);
-        if (candidates == null || candidates.isEmpty()) {
-            return new ImplicitReferenceType(sourceClass);
-        } else if (candidates.size() == 1) {
-            return new QueryReferenceType(candidates.iterator().next());
-        } else {
-            return null; // ambiguous: reported elsewhere
-        }
+    private static List<FeatureInfo> getCopiedFeatureInfos(EClass sourceClass, FeatureTypeResolver typeResolver) {
+        return sourceClass.getEStructuralFeatures().stream()
+            .map(feature -> new FeatureInfo(feature.getName(), typeResolver.resolveCopied(feature), null))
+            .toList();
     }
 
 }

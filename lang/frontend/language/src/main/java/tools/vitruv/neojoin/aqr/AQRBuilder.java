@@ -29,6 +29,8 @@ import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
 import tools.vitruv.neojoin.jvmmodel.TypeInfo;
 import tools.vitruv.neojoin.jvmmodel.TypeResolutionException;
 import tools.vitruv.neojoin.utils.AstUtils;
+import tools.vitruv.neojoin.utils.FeatureType;
+import tools.vitruv.neojoin.utils.FeatureTypeResolver;
 import tools.vitruv.neojoin.utils.Pair;
 import tools.vitruv.neojoin.utils.TypeCasts;
 
@@ -69,6 +71,7 @@ public class AQRBuilder {
 
     private final ViewTypeDefinition viewTypeDefinition;
     private final ExpressionHelper expressionHelper;
+    private final FeatureTypeResolver typeResolver;
 
     private final Queue<Pair<AQRTargetClass, @Nullable Query>> populationQueue = new ArrayDeque<>(); // target class + query it originated from (or null if implicit)
 
@@ -81,6 +84,7 @@ public class AQRBuilder {
     public AQRBuilder(ViewTypeDefinition viewTypeDefinition, ExpressionHelper expressionHelper) {
         this.viewTypeDefinition = viewTypeDefinition;
         this.expressionHelper = expressionHelper;
+        this.typeResolver = new FeatureTypeResolver(viewTypeDefinition, expressionHelper);
     }
 
     /**
@@ -287,13 +291,18 @@ public class AQRBuilder {
             return fail("Feature must be either a concrete or an abstract feature");
         }
 
-        if (isAttribute(inferredType, feature.getType())) {
+        var featureType = typeResolver.resolve(feature);
+        invariant(featureType != null, "Type of feature cannot be determined");
+        if (featureType instanceof FeatureType.AttributeType attributeType) {
             invariant(subQuery == null);
-            var type = determineAttributeType(inferredType, (EDataType) feature.getType(), kind);
+            var type = attributeType.type();
+            if (feature.getType() != null || kind instanceof AQRFeature.Kind.Copy) {
+                invariant(inferredType == null || inferredType.classifier() == null || isAssignable(type, inferredType.classifier()));
+            }
             encounteredDataTypes.add(type);
             return new AQRFeature.Attribute(name, type, kind, options);
         } else {
-            var type = determineReferenceType(inferredType, (Query) feature.getType(), subQuery);
+            var type = getOrCreateReferencedTargetClass((FeatureType.ReferenceType) featureType, inferredType, (Query) feature.getType(), subQuery);
             return new AQRFeature.Reference(name, type, kind, options);
         }
     }
@@ -344,43 +353,6 @@ public class AQRBuilder {
         }
     }
 
-    /**
-     * Determines whether a feature is an attribute or reference based on the inferred type and the explicit type.
-     *
-     * @return {@code true} if the feature is an attribute, {@code false} if it is a reference
-     */
-    private boolean isAttribute(@Nullable TypeInfo inferredType, @Nullable EObject explicitType) {
-        if (explicitType != null) {
-            return explicitType instanceof EDataType;
-        } else {
-            invariant(inferredType != null && inferredType.classifier() != null);
-            return inferredType.classifier() instanceof EDataType;
-        }
-    }
-
-    /**
-     * Determine the {@link EAttribute#getEAttributeType() type} of the attribute.
-     */
-    private EDataType determineAttributeType(
-        @Nullable TypeInfo inferredType,
-        @Nullable EDataType explicitType,
-        AQRFeature.Kind kind
-    ) {
-        if (explicitType != null) { // explicit type
-            invariant(inferredType == null || inferredType.classifier() == null || isAssignable(explicitType, inferredType.classifier()));
-            return explicitType;
-        } else { // implicit type
-            invariant(inferredType != null && inferredType.classifier() != null);
-            if (kind instanceof AQRFeature.Kind.Copy copy) {
-                var type = (EDataType) copy.source().getEType();
-                invariant(isAssignable(type, inferredType.classifier()));
-                return type;
-            } else {
-                return (EDataType) inferredType.classifier();
-            }
-        }
-    }
-
     private static boolean isAssignable(EDataType to, EClassifier from) {
         if (to.getInstanceClass() == null || from.getInstanceClass() == null) {
             return to == from;
@@ -390,9 +362,20 @@ public class AQRBuilder {
     }
 
     /**
-     * Determine the {@link EReference#getEReferenceType() type} of the reference.
+     * Returns the target class that is the {@link EReference#getEReferenceType() type} of a reference. This is the
+     * target class of the explicit type if there is one (after checking that the inferred type is unambiguously
+     * assignable to it), otherwise the target class of the subquery or of the query that selects the inferred source
+     * class. If no query selects the inferred source class, an implicit target class is created (see
+     * {@link #getOrCreateTargetClass}).
+     *
+     * @param resolvedType the type of the feature as determined from the AST
+     * @param inferredType the type of the feature expression, {@code null} for features without expression
+     * @param explicitType the explicit type of the feature, {@code null} if there is none
+     * @param subQuery     the subquery of the feature, {@code null} if there is none
+     * @return the target class that the reference points to
      */
-    private AQRTargetClass determineReferenceType(
+    private AQRTargetClass getOrCreateReferencedTargetClass(
+        FeatureType.ReferenceType resolvedType,
         @Nullable TypeInfo inferredType,
         @Nullable Query explicitType,
         @Nullable SubQuery subQuery
@@ -421,13 +404,19 @@ public class AQRBuilder {
                 }
             }
             return explicitTargetType;
+        } else if (resolvedType instanceof FeatureType.QueryReferenceType queryType) { // subquery or query that selects the inferred source class
+            return getTargetForQuery(queryType.query());
+        } else if (resolvedType instanceof FeatureType.ImplicitReferenceType implicitType) {
+            return getOrCreateTargetClass(implicitType.sourceClass());
+        } else if (resolvedType instanceof FeatureType.AmbiguousReferenceType ambiguousType) {
+            return invariantFailed(
+                "Ambiguous target class for source class '%s'. Possible candidates: %s".formatted(
+                    ambiguousType.sourceClass().getName(),
+                    ambiguousType.candidates().stream().map(q -> AstUtils.getTargetName(q, expressionHelper)).collect(Collectors.joining(", "))
+                )
+            );
         } else {
-            invariant(inferredType != null && inferredType.classifier() instanceof EClass); // includes null check
-            if (subQuery != null) {
-                return getTargetForQuery(subQuery);
-            } else {
-                return getOrCreateTargetClass((EClass) inferredType.classifier());
-            }
+            return fail();
         }
     }
 
