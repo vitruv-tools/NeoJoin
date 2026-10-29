@@ -44,9 +44,35 @@ public class SourceValidator extends ComposableValidator {
         }
     }
 
+    /**
+     * Checks that {@code create} is not used on its own.
+     * <p>
+     * A typical mistake is {@code create abstract A { ... }}: the correct syntax is {@code abstract A { ... }}. The
+     * parser reads such input as a query that consists of the keyword {@code create} only, followed by the abstract
+     * class.
+     */
+    @Check
+    public void checkLoneCreate(ConcreteMainQuery mainQuery) {
+        if (isLoneCreate(mainQuery)) {
+            error(
+                "Incomplete query: 'create' needs a source, a target name or a body",
+                mainQuery,
+                null
+            );
+        }
+    }
+
+    private static boolean isLoneCreate(ConcreteMainQuery mainQuery) {
+        return mainQuery.getSource() == null
+            && !mainQuery.isRoot()
+            && mainQuery.getName() == null
+            && mainQuery.getSuperClasses().isEmpty()
+            && mainQuery.getBody() == null;
+    }
+
     @Check
     public void checkQueryWithoutSource(ConcreteMainQuery mainQuery) {
-        if (mainQuery.getSource() == null) {
+        if (mainQuery.getSource() == null && !isLoneCreate(mainQuery)) { // lone create: see checkLoneCreate
             if (mainQuery.getName() == null) {
                 error("Query without source must have a target name", mainQuery, AstPackage.Literals.QUERY__NAME);
             }

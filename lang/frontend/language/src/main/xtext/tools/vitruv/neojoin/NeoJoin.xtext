@@ -19,6 +19,7 @@ Import:
 MainQuery: ConcreteMainQuery | AbstractMainQuery;
 
 ConcreteMainQuery:
+    {ConcreteMainQuery} // ensures that the object is created even if only `create` is given, otherwise the lone keyword is dropped silently
     source=Source?
     'create' root?='root'? name=ID?
     ('extends' superClasses+=[ecore::EObject|QualifiedName] (',' superClasses+=[ecore::EObject|QualifiedName])*)?
