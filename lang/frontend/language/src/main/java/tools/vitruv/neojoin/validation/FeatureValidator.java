@@ -223,10 +223,24 @@ public class FeatureValidator extends ComposableValidator {
     private void checkQueryType(ConcreteFeature feature, Query explicitType, EClassifier inferredClassifier) {
         if (inferredClassifier instanceof EClass inferredClass) {
             var sourceMap = createSourceMap(AstUtils.getViewType(feature));
-            var inferredType = sourceMap.get(inferredClass);
-            if (inferredType.stream().anyMatch(type -> type.equals(explicitType))) {
+            // the target class of the inferred type must be unambiguously assignable to the explicit type, which
+            // mirrors the invariant in AQRBuilder.determineReferenceType (otherwise, the transformation could not
+            // decide which target instance to reference)
+            var assignable = sourceMap.get(inferredClass).stream()
+                .filter(type -> AstUtils.isSameOrSuperTypeOf(explicitType, type))
+                .toList();
+            if (assignable.size() > 1) {
+                error(
+                    "Ambiguous target class for source class '%s'. Possible candidates: %s".formatted(
+                        inferredClass.getName(),
+                        assignable.stream().map(q -> AstUtils.getTargetName(q, expressionHelper)).sorted()
+                            .collect(Collectors.joining(", "))
+                    ),
+                    feature,
+                    AstPackage.Literals.CONCRETE_FEATURE__EXPRESSION
+                );
                 return;
-            } else if (inferredType.stream().anyMatch(type -> AstUtils.isSuperTypeOf(explicitType, type))) {
+            } else if (assignable.size() == 1) {
                 return;
             }
         }

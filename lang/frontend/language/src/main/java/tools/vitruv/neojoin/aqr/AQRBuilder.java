@@ -463,9 +463,12 @@ public class AQRBuilder {
             } else if (feature instanceof AQRFeature.Reference reference) {
                 invariant(overriddenFeature instanceof AQRFeature.Reference, "Reference must override reference");
                 var overriddenReference = (AQRFeature.Reference)overriddenFeature;
-                invariant(overriddenReference.type().equals(reference.type()) || reference.type().allSuperClasses().contains(overriddenReference.type()), "Type of overriding feature must be equal to or a subtype of the type of the overridden feature");
+                // the value must be assignable to the overridden type, which also becomes the type of the overriding
+                // feature (a stricter type would break setting the reference through the super class)
+                invariant(overriddenReference.type().equals(reference.type()) || reference.type().allSuperClasses().contains(overriddenReference.type()), "Value of overriding feature must be assignable to the type of the overridden feature");
 
                 return reference
+                    .withType(overriddenReference.type())
                     .withFeatureKind(new AQRFeature.Kind.Override(overriddenFeature, feature.kind()))
                     .withOptions(overriddenFeature.options());
             } else {

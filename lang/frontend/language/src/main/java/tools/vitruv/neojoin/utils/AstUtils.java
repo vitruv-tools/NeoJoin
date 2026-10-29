@@ -26,9 +26,13 @@ import tools.vitruv.neojoin.ast.ViewTypeDefinition;
 import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
 import tools.vitruv.neojoin.jvmmodel.TypeResolutionException;
 
+import java.util.ArrayDeque;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import static tools.vitruv.neojoin.utils.Assertions.fail;
@@ -184,24 +188,101 @@ public final class AstUtils {
     }
 
     /**
-     * Check whether the given query defines a super type of the type defined by the given other query.
-     * 
-     * @return {@code true} if the given query is a super type of the given other query
+     * Check whether the given queries are the same or whether the first query defines a (transitive) super type of
+     * the type defined by the second query. Terminates for cyclic inheritance.
+     *
+     * @return {@code true} if {@code superType} is {@code subType} or one of its (transitive) super types
      */
-    public static boolean isSuperTypeOf(Query superType, Query subType) {
-        if (subType instanceof MainQuery subMainQuery) {
-            if (subMainQuery.getSuperClasses().contains(superType)) {
+    public static boolean isSameOrSuperTypeOf(Query superType, Query subType) {
+        var visited = new HashSet<Query>();
+        var pending = new ArrayDeque<Query>();
+        pending.push(subType);
+        while (!pending.isEmpty()) {
+            var current = pending.pop();
+            if (current == superType) {
                 return true;
             }
-            for (var subSuperType : subMainQuery.getSuperClasses()) {
-                if (subSuperType instanceof Query subSuperQuery) {
-                    if (isSuperTypeOf(superType, subSuperQuery)) {
-                        return true;
+            if (visited.add(current) && current instanceof MainQuery mainQuery) {
+                for (var superClass : mainQuery.getSuperClasses()) {
+                    if (superClass instanceof Query superQuery && !superQuery.eIsProxy()) {
+                        pending.push(superQuery);
                     }
                 }
             }
         }
         return false;
+    }
+
+    /**
+     * Map each source class to the queries that select it, either in the {@code from} or {@code join} clause of a
+     * main query or as the inferred source class of a subquery.
+     *
+     * @param viewType the view type whose queries are mapped
+     * @return queries by source class, source classes that cannot be resolved are skipped
+     */
+    public static Map<EClass, Set<Query>> mapSourceClassesToQueries(
+        ViewTypeDefinition viewType,
+        ExpressionHelper expressionHelper
+    ) {
+        var queriesBySourceClass = new HashMap<EClass, Set<Query>>();
+        getAllQueries(viewType).forEach(query -> {
+            if (query instanceof ConcreteMainQuery mainQuery) {
+                if (mainQuery.getSource() != null) {
+                    getAllFroms(mainQuery.getSource())
+                        .map(From::getClazz)
+                        .filter(clazz -> clazz != null && !clazz.eIsProxy())
+                        .forEach(clazz -> queriesBySourceClass.computeIfAbsent(clazz, k -> new HashSet<>()).add(mainQuery));
+                }
+            } else if (query instanceof SubQuery subQuery) {
+                var sourceClass = inferSubQuerySourceType(subQuery, expressionHelper);
+                if (sourceClass != null) {
+                    queriesBySourceClass.computeIfAbsent(sourceClass, k -> new HashSet<>()).add(subQuery);
+                }
+            }
+        });
+        return queriesBySourceClass;
+    }
+
+    /**
+     * Get the source class whose features are copied by a query without body.
+     *
+     * @return the source class or {@code null} if the query has no source or a source with joins (which is not
+     * allowed without body, but handled elsewhere) or if the source class of a subquery cannot be inferred
+     */
+    public static @Nullable EClass getCopiedSourceClass(Query query, ExpressionHelper expressionHelper) {
+        if (query instanceof ConcreteMainQuery mainQuery) {
+            var source = mainQuery.getSource();
+            if (source != null && source.getJoins().isEmpty() && source.getFrom() != null) {
+                return source.getFrom().getClazz();
+            }
+        } else if (query instanceof SubQuery subQuery) {
+            return inferSubQuerySourceType(subQuery, expressionHelper);
+        }
+        return null;
+    }
+
+    /**
+     * Get the name of the feature, either the explicitly given name or the name of the copied feature.
+     *
+     * @return the name or {@code null} if it cannot be determined (this is handled by other validation rules)
+     */
+    public static @Nullable String getFeatureNameOrNull(Feature feature, ExpressionHelper expressionHelper) {
+        if (feature.getName() != null) {
+            return feature.getName();
+        }
+
+        if (feature instanceof ConcreteFeature concreteFeature && concreteFeature.getExpression() != null) {
+            try {
+                var eFeature = expressionHelper.getFeatureOrNull(concreteFeature.getExpression());
+                if (eFeature != null) {
+                    return eFeature.getName();
+                }
+            } catch (TypeResolutionException e) {
+                // ignore: will be handled by type checking
+            }
+        }
+
+        return null;
     }
 
     /**

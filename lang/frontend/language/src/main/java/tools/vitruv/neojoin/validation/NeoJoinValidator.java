@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
  * This class and the linked {@link ComposedChecks composed validators} contain custom validation rules.
  * See <a href="https://eclipse.dev/Xtext/documentation/303_runtime_concepts.html#validation">here</a>.
  */
-@ComposedChecks(validators = {ImportValidator.class, SourceValidator.class, FeatureValidator.class, FeatureModifierValidator.class})
+@ComposedChecks(validators = {ImportValidator.class, SourceValidator.class, FeatureValidator.class, FeatureModifierValidator.class, InheritanceValidator.class})
 public class NeoJoinValidator extends AbstractNeoJoinValidator {
 
     @Inject

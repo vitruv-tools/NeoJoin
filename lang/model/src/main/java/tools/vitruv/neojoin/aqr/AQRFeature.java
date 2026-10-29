@@ -197,6 +197,10 @@ public sealed interface AQRFeature {
             return "Reference[name='%s', type=%s, kind=%s, options=%s]".formatted(name, type.name(), kind, options);
         }
 
+        Reference withType(AQRTargetClass type) {
+            return new Reference(name, type, kind, options);
+        }
+
         Reference withFeatureKind(Kind kind) {
             return new Reference(name, type, kind, options);
         }
