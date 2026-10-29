@@ -32,12 +32,30 @@ create ReviewedRestaurant {
 }
 ```
 
+#### Abstract Classes and Inheritance
+
+```
+abstract Item {
+    name: EString
+}
+
+from extends Food
+create Dish extends Item {
+    name = name
+}
+```
+
+NeoJoin supports the usage and definition of inheritance in meta-models. Defining inheritance in the view type covers multiple aspects: `abstract` declares an abstract class without instances, while `extends` makes a class inherit from other classes (abstract or concrete) of the view type. Abstract classes declare features, for which extending classes must define the transformation. An override takes the modifiers and the type of the overridden feature. An explicitly written type must be equal to the type of the overridden feature. The type of an attribute expression must be equal to the type of the overridden feature, while the type of a reference expression can be the same class or a sub class. Inheritance in the source meta-models can be considered by using `from extends` instead of `from` in the source part of a query. This in addition selects instances of the sub classes of the specified source class.
+
+*Note that queries do not inherit from each other:* `extends` only specifies inheritance between the classes of the resulting view type. The behavior of a query (source, join, filter, grouping, feature expressions) cannot be inherited, so a class that extends another class still has to define how each of its features is computed.
+
 ### Features
 
 * *Generation of the view type* (view meta-model) based on a query
 * *Transformation* of models to derive an instance of a view based on a query
 * *Bidirectional and incremental transformations* using the TGG backend
 * Queries can *select*, *join*, *filter* and *group* classes from the source models
+* *Abstract classes* and *inheritance* between classes of the view (`abstract`, `extends`), and selecting instances of sub classes (`from extends`)
 * Features in the view can be *copied* from the source models, *renamed* or *calculated* based on a custom expression
 * Query conditions and feature definition using [Xtend expressions](https://eclipse.dev/Xtext/xtend/documentation/203_xtend_expressions.html)
 * [VSCode](https://code.visualstudio.com/) plugin for syntax highlighting, code completion, and live visualization of the resulting view type
@@ -204,7 +222,7 @@ We use [SonarQube](https://sonarcloud.io/project/overview?id=vitruv-tools_NeoJoi
 
 ### Notes
 
-* Xtext heavily uses generated classes which means that opening this repository in a Java IDE after cloning will look like a christmas tree. Run `maven compile` to generate all missing classes. To improve compile times afterwards you can skip re-generation of classes by activating the maven profile `skip-workflow`.
+* Xtext heavily uses generated classes which means that opening this repository in a Java IDE after cloning will look like a christmas tree. Run `maven compile` to generate all missing classes. To improve compile times afterwards you can skip re-generation of classes by activating the maven profile `skip-code-generation`.
 
 ## Used Technology
 
