@@ -38,9 +38,11 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -81,6 +83,9 @@ public class AQRBuilder {
     private final Map<EClass, Set<AQRTargetClass>> sourceClassToAQR = new HashMap<>(); // source class -> aqr targets
     private final Map<Query, AQRTargetClass> queryToTarget = new HashMap<>(); // query (Query | SubQuery) -> target class
 
+    // classes that cannot declare super classes (implicit classes and classes of sub queries), see linkAutomaticSuperClasses
+    private final List<AQRTargetClass> classesWithAutomaticSuperClasses = new ArrayList<>();
+
     public AQRBuilder(ViewTypeDefinition viewTypeDefinition, ExpressionHelper expressionHelper) {
         this.viewTypeDefinition = viewTypeDefinition;
         this.expressionHelper = expressionHelper;
@@ -112,10 +117,11 @@ public class AQRBuilder {
             populateTargetClass(entry.left(), entry.right() == null ? null : AstUtils.getBody(entry.right()));
         }
 
+        // link implicit classes and classes of sub queries to the target classes of their source super classes
+        linkAutomaticSuperClasses();
+
         // identify and verify inheritance
-        for (var targetClass : targetClasses) {
-            applyInheritance(targetClass);
-        }
+        applyInheritanceToAllTargetClasses();
 
         var root = createRootIfNeededAndInit();
 
@@ -156,6 +162,10 @@ public class AQRBuilder {
         if (query != null) {
             var previous = queryToTarget.put(query, target);
             invariant(previous == null);
+        }
+
+        if (query == null || query instanceof SubQuery) {
+            classesWithAutomaticSuperClasses.add(target);
         }
 
         if (source != null) {
@@ -199,6 +209,8 @@ public class AQRBuilder {
 
     /**
      * Returns the existing target class associated with a source class or creates a new one if none is found.
+     * If no query selects the source class, but an explicit abstract class without source has the same name as the
+     * source class, that class is used instead of creating a second class with this name.
      * Also checks that there is at most one target class associated with the given source class.
      *
      * @param source source class for which to find the corresponding target class
@@ -207,6 +219,11 @@ public class AQRBuilder {
     private AQRTargetClass getOrCreateTargetClass(EClass source) {
         var targets = sourceClassToAQR.get(source);
         if (targets == null) {
+            var explicitAbstractClass = findExplicitAbstractClassWithoutSource(source.getName());
+            if (explicitAbstractClass.isPresent()) {
+                return explicitAbstractClass.get();
+            }
+
             return createTargetClass(source.getName(), source.isAbstract(), AQRSourceBuilder.createSource(source, IMPLICIT_INCLUDE_SUB_CLASSES), null);
         }
 
@@ -221,12 +238,21 @@ public class AQRBuilder {
         return targets.iterator().next();
     }
 
+    /**
+     * Finds an explicit abstract class that has no source (e.g. {@code abstract Animal { ... }}) and the given name.
+     */
+    private Optional<AQRTargetClass> findExplicitAbstractClassWithoutSource(String name) {
+        return targetClasses.stream()
+            .filter(targetClass -> targetClass.isAbstract() && targetClass.source() == null && targetClass.name().equals(name))
+            .findFirst();
+    }
+
     private void addSuperClassesToTargetClass(AQRTargetClass targetClazz, @Nullable Query query) {
         if (query != null && query instanceof MainQuery mainQuery) {
             for (EObject superClass : mainQuery.getSuperClasses()) {
                 invariant(superClass instanceof Query, "Classes can only extend classes created from other queries");
 
-                targetClazz.superClasses().add(getTargetForQuery((Query) superClass));
+                targetClazz.addSuperClass(getTargetForQuery((Query) superClass));
             }
         }
     }
@@ -240,15 +266,16 @@ public class AQRBuilder {
     private void populateTargetClass(AQRTargetClass targetClazz, @Nullable Body body) {
         if (body != null) { // create features based on definition in Body
             for (Feature feature : AstUtils.getFeatures(body)) {
-                targetClazz.features().add(createFeature(feature));
+                targetClazz.addFeature(createFeature(feature));
             }
         } else { // copy all features from the source class
             invariant(targetClazz.source() != null, "Query without source must have a body");
             invariant(targetClazz.source().joins().isEmpty(), "Query with join must have a body");
 
             var sourceClazz = targetClazz.source().from().clazz();
-            for (var feature : sourceClazz.getEStructuralFeatures()) {
-                targetClazz.features().add(copyFeature(feature));
+            // includes features inherited from source super classes
+            for (var feature : sourceClazz.getEAllStructuralFeatures()) {
+                targetClazz.addFeature(copyFeature(feature));
             }
         }
     }
@@ -302,7 +329,7 @@ public class AQRBuilder {
             encounteredDataTypes.add(type);
             return new AQRFeature.Attribute(name, type, kind, options);
         } else {
-            var type = getOrCreateReferencedTargetClass((FeatureType.ReferenceType) featureType, inferredType, (Query) feature.getType(), subQuery);
+            var type = getOrCreateReferencedTargetClass((FeatureType.ReferenceType) featureType);
             return new AQRFeature.Reference(name, type, kind, options);
         }
     }
@@ -362,49 +389,18 @@ public class AQRBuilder {
     }
 
     /**
-     * Returns the target class that is the {@link EReference#getEReferenceType() type} of a reference. This is the
-     * target class of the explicit type if there is one (after checking that the inferred type is unambiguously
-     * assignable to it), otherwise the target class of the subquery or of the query that selects the inferred source
-     * class. If no query selects the inferred source class, an implicit target class is created (see
-     * {@link #getOrCreateTargetClass}).
+     * Returns the target class that is the {@link EReference#getEReferenceType() type} of a reference: the target
+     * class of the explicit type, the subquery, or the query that selects the inferred source class. If no query
+     * selects the inferred source class, an implicit target class is created (see {@link #getOrCreateTargetClass}).
+     * <p>
+     * Whether values of the inferred source class can be assigned to an explicit type is checked by
+     * {@code FeatureValidator.checkQueryType}.
      *
-     * @param resolvedType the type of the feature as determined from the AST
-     * @param inferredType the type of the feature expression, {@code null} for features without expression
-     * @param explicitType the explicit type of the feature, {@code null} if there is none
-     * @param subQuery     the subquery of the feature, {@code null} if there is none
+     * @param resolvedType the type of the reference as determined from the AST
      * @return the target class that the reference points to
      */
-    private AQRTargetClass getOrCreateReferencedTargetClass(
-        FeatureType.ReferenceType resolvedType,
-        @Nullable TypeInfo inferredType,
-        @Nullable Query explicitType,
-        @Nullable SubQuery subQuery
-    ) {
-        if (explicitType != null) {
-            var explicitTargetType = getTargetForQuery(explicitType);
-
-            invariant(subQuery == null || explicitType == subQuery);
-            if (inferredType != null && inferredType.classifier() instanceof EClass inferredClass) {
-                // check that the inferred type is unambiguously assignable to the explicit type
-                var inferredTargetClasses = sourceClassToAQR.get(inferredClass);
-                var assignableTargetClasses = inferredTargetClasses.stream()
-                    .filter(targetClass ->
-                        targetClass.equals(explicitTargetType) ||
-                        targetClass.allSuperClasses().contains(explicitTargetType))
-                    .toList();
-                invariant(assignableTargetClasses.size() == 1, "Expression cannot be assigned to feature with this type");
-
-                if (explicitType instanceof SubQuery explicitSubQueryType) {
-                    var subQuerySourceType = AstUtils.inferSubQuerySourceType(
-                        explicitSubQueryType,
-                        expressionHelper
-                    );
-                    invariant(subQuerySourceType != null);
-                    invariant(AstUtils.checkSourceType(subQuerySourceType, inferredClass));
-                }
-            }
-            return explicitTargetType;
-        } else if (resolvedType instanceof FeatureType.QueryReferenceType queryType) { // subquery or query that selects the inferred source class
+    private AQRTargetClass getOrCreateReferencedTargetClass(FeatureType.ReferenceType resolvedType) {
+        if (resolvedType instanceof FeatureType.QueryReferenceType queryType) {
             return getTargetForQuery(queryType.query());
         } else if (resolvedType instanceof FeatureType.ImplicitReferenceType implicitType) {
             return getOrCreateTargetClass(implicitType.sourceClass());
@@ -420,6 +416,79 @@ public class AQRBuilder {
         }
     }
 
+    /**
+     * Adds super classes to implicit target classes and to the target classes of sub queries, because they cannot
+     * declare {@code extends} themselves. Explicit main queries never get automatic super classes.
+     * <p>
+     * For such a class with source class {@code S}, the source super classes of {@code S} are searched level by
+     * level (nearest first). At the nearest level with at least one target class of a source super class, that target
+     * class becomes the super class. Target classes for super classes are never created, only existing ones are linked.
+     *
+     * @see #findAutomaticSuperClass
+     */
+    private void linkAutomaticSuperClasses() {
+        for (var targetClass : classesWithAutomaticSuperClasses) {
+            findAutomaticSuperClass(targetClass).ifPresent(targetClass::addSuperClass);
+        }
+    }
+
+    /**
+     * Finds the target class of the nearest source super class that has one (breadth first over the super types of the
+     * source class).
+     *
+     * @return the super class, empty if no source super class has a target class
+     */
+    private Optional<AQRTargetClass> findAutomaticSuperClass(AQRTargetClass targetClass) {
+        var source = targetClass.source();
+        invariant(source != null, "Class with automatic super classes must have a source");
+
+        var visited = new HashSet<EClass>();
+        var level = List.copyOf(source.from().clazz().getESuperTypes());
+        while (!level.isEmpty()) {
+            var candidates = level.stream()
+                .flatMap(sourceSuperClass -> findTargetClassesOfSourceClass(sourceSuperClass).stream())
+                .distinct()
+                .sorted(Comparator.comparing(AQRTargetClass::name))
+                .toList();
+            if (!candidates.isEmpty()) {
+                // ambiguity is reported to users by FeatureValidator.checkAmbiguousImplicitSuperClasses, this guards
+                // against queries that were not validated (the first candidate would be an arbitrary choice)
+                invariant(
+                    candidates.size() == 1,
+                    () -> "Ambiguous super class for target class '%s'. Possible candidates: %s".formatted(
+                        targetClass.name(),
+                        candidates.stream().map(AQRTargetClass::name).collect(Collectors.joining(", "))
+                    )
+                );
+                return Optional.of(candidates.get(0));
+            }
+
+            visited.addAll(level);
+            level = level.stream()
+                .flatMap(sourceSuperClass -> sourceSuperClass.getESuperTypes().stream())
+                .filter(sourceSuperClass -> !visited.contains(sourceSuperClass))
+                .distinct()
+                .toList();
+        }
+
+        return Optional.empty();
+    }
+
+    /**
+     * Finds the target classes that are the target of the given source class: classes whose source is exactly this
+     * class without joins and grouping expressions (explicit, implicit and sub query classes).
+     */
+    private List<AQRTargetClass> findTargetClassesOfSourceClass(EClass sourceClass) {
+        return sourceClassToAQR.getOrDefault(sourceClass, Set.of()).stream()
+            .filter(targetClass -> {
+                var source = Objects.requireNonNull(targetClass.source());
+                return source.from().clazz() == sourceClass
+                    && source.joins().isEmpty()
+                    && source.groupingExpressions().isEmpty();
+            })
+            .toList();
+    }
+
     private TypeInfo inferType(XExpression expression) {
         try {
             return Objects.requireNonNull(expressionHelper.inferEType(expression));
@@ -428,46 +497,121 @@ public class AQRBuilder {
         }
     }
 
+    /**
+     * Applies inheritance to all target classes. Super classes are processed before their sub classes, independent of
+     * the iteration order of the target classes, because the features of a class are only final after its own
+     * inheritance was applied (e.g. its modifiers are those of the root of the override chain).
+     */
+    private void applyInheritanceToAllTargetClasses() {
+        var processed = new HashSet<AQRTargetClass>();
+        for (var targetClass : targetClasses) {
+            applyInheritanceSuperClassesFirst(targetClass, processed);
+        }
+    }
+
+    private void applyInheritanceSuperClassesFirst(AQRTargetClass targetClass, Set<AQRTargetClass> processed) {
+        if (!processed.add(targetClass)) {
+            return;
+        }
+
+        invariant(!targetClass.allSuperClasses().contains(targetClass), () -> "Cyclic inheritance of class '%s'".formatted(targetClass.name()));
+        for (var superClass : targetClass.superClasses()) {
+            applyInheritanceSuperClassesFirst(superClass, processed);
+        }
+
+        applyInheritance(targetClass);
+    }
+
+    /**
+     * Turns the features of the class that have the same name as an inherited feature into overriding features and
+     * checks that all inherited features are overridden. Requires that inheritance was already applied to all super
+     * classes.
+     */
     private void applyInheritance(AQRTargetClass targetClass) {
         var superClassFeatures = targetClass.superClasses().stream().flatMap(superClass -> superClass.features().stream()).toList();
 
         // update overriding features
-        targetClass.features().replaceAll(feature -> {
+        targetClass.replaceFeatures(targetClass.features().stream().map(feature -> {
             var overriddenFeatures = superClassFeatures.stream().filter(superClassFeature -> superClassFeature.name().equals(feature.name())).toList();
             if (overriddenFeatures.isEmpty()) {
                 return feature;
             }
 
-            invariant(overriddenFeatures.size() == 1);
-            var overriddenFeature = overriddenFeatures.get(0);
-
-            if (feature instanceof AQRFeature.Attribute attribute) {
-                invariant(overriddenFeature instanceof AQRFeature.Attribute, "Attribute must override attribute");
-                var overriddenAttribute = (AQRFeature.Attribute)overriddenFeature;
-                invariant(overriddenAttribute.type().equals(attribute.type()), "Type of overriding feature must be equal to type of overridden feature");
-
-                return attribute
-                    .withFeatureKind(new AQRFeature.Kind.Override(overriddenFeature, feature.kind()))
-                    .withOptions(overriddenFeature.options());
-            } else if (feature instanceof AQRFeature.Reference reference) {
-                invariant(overriddenFeature instanceof AQRFeature.Reference, "Reference must override reference");
-                var overriddenReference = (AQRFeature.Reference)overriddenFeature;
-                // the value must be assignable to the overridden type, which also becomes the type of the overriding
-                // feature (a stricter type would break setting the reference through the super class)
-                invariant(overriddenReference.type().equals(reference.type()) || reference.type().allSuperClasses().contains(overriddenReference.type()), "Value of overriding feature must be assignable to the type of the overridden feature");
-
-                return reference
-                    .withType(overriddenReference.type())
-                    .withFeatureKind(new AQRFeature.Kind.Override(overriddenFeature, feature.kind()))
-                    .withOptions(overriddenFeature.options());
-            } else {
-                throw new IllegalStateException("AQRFeature is a sealed interface therefore this check should be exhaustive");
-            }
-        });
+            var overriddenFeature = getOverriddenFeature(targetClass, overriddenFeatures);
+            return createOverridingFeature(feature, overriddenFeature);
+        }).toList());
 
         // check if all inherited features are overridden
         invariant(superClassFeatures.stream().allMatch(superClassFeature -> targetClass.features().stream().anyMatch(feature -> feature.name().equals(superClassFeature.name()) && (feature.kind() instanceof AQRFeature.Kind.Override))),
             "Sub classes must override all inherited features");
+    }
+
+    /**
+     * Determines the overridden feature if several super classes provide a feature with the same name (diamond): this
+     * is accepted if all provided features are equivalent, then the first one is the overridden feature.
+     *
+     * @param overriddenFeatures the features with the same name in the direct super classes (at least one)
+     */
+    private static AQRFeature getOverriddenFeature(AQRTargetClass targetClass, List<AQRFeature> overriddenFeatures) {
+        var first = overriddenFeatures.get(0);
+        for (var other : overriddenFeatures) {
+            invariant(
+                isEquivalent(first, other),
+                () -> "Class '%s' inherits conflicting features named '%s' from several super classes: %s and %s".formatted(
+                    targetClass.name(),
+                    first.name(),
+                    first,
+                    other
+                )
+            );
+        }
+        return first;
+    }
+
+    /**
+     * Whether two features are the same kind of feature with the same type and equal modifiers.
+     */
+    private static boolean isEquivalent(AQRFeature a, AQRFeature b) {
+        if (!a.options().equals(b.options())) {
+            return false;
+        }
+
+        if (a instanceof AQRFeature.Attribute attributeA && b instanceof AQRFeature.Attribute attributeB) {
+            return attributeA.type().equals(attributeB.type());
+        } else if (a instanceof AQRFeature.Reference referenceA && b instanceof AQRFeature.Reference referenceB) {
+            return referenceA.type() == referenceB.type();
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Creates the feature that overrides the given feature: it has the modifiers of the overridden feature (which are
+     * those of the root of the override chain) and, for references, the type of the overridden feature.
+     */
+    private static AQRFeature createOverridingFeature(AQRFeature feature, AQRFeature overriddenFeature) {
+        if (feature instanceof AQRFeature.Attribute attribute) {
+            invariant(overriddenFeature instanceof AQRFeature.Attribute, "Attribute must override attribute");
+            var overriddenAttribute = (AQRFeature.Attribute)overriddenFeature;
+            invariant(overriddenAttribute.type().equals(attribute.type()), "Type of overriding feature must be equal to type of overridden feature");
+
+            return attribute
+                .withFeatureKind(new AQRFeature.Kind.Override(overriddenFeature, feature.kind()))
+                .withOptions(overriddenFeature.options());
+        } else if (feature instanceof AQRFeature.Reference reference) {
+            invariant(overriddenFeature instanceof AQRFeature.Reference, "Reference must override reference");
+            var overriddenReference = (AQRFeature.Reference)overriddenFeature;
+            // the value must be assignable to the overridden type, which also becomes the type of the overriding
+            // feature (a stricter type would break setting the reference through the super class)
+            invariant(overriddenReference.type().equals(reference.type()) || reference.type().allSuperClasses().contains(overriddenReference.type()), "Value of overriding feature must be assignable to the type of the overridden feature");
+
+            return reference
+                .withType(overriddenReference.type())
+                .withFeatureKind(new AQRFeature.Kind.Override(overriddenFeature, feature.kind()))
+                .withOptions(overriddenFeature.options());
+        } else {
+            throw new IllegalStateException("AQRFeature is a sealed interface therefore this check should be exhaustive");
+        }
     }
 
     private AQRTargetClass createRootIfNeededAndInit() {
@@ -532,7 +676,7 @@ public class AQRBuilder {
                 root.features().stream().noneMatch(f -> f.name().equals(featureName)),
                 () -> "Duplicated feature name '%s' in root class".formatted(featureName)
             );
-            root.features().add(
+            root.addFeature(
                 new AQRFeature.Reference(
                     featureName,
                     target,

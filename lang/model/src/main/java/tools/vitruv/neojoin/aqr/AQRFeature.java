@@ -64,7 +64,8 @@ public sealed interface AQRFeature {
             /**
              * Implicit copy.
              *
-             * @param source source feature (must be a feature of the containing target class)
+             * @param source source feature (must be a feature of the source class of the containing target class
+             *               or may be inherited from a source super class of it)
              */
             record Implicit(EStructuralFeature source) implements Copy {}
 
@@ -77,12 +78,17 @@ public sealed interface AQRFeature {
         record Generate() implements Kind {}
 
         /**
-         * The feature overrides a feature in a super classs.
-         * 
+         * The feature overrides a feature in a super class.
+         *
          * @param overridden overridden feature in a super class
-         * @param overriding 
+         * @param overriding kind of the overriding feature itself (how its value is derived)
          */
         record Override(AQRFeature overridden, AQRFeature.Kind overriding) implements Kind {
+
+            @java.lang.Override
+            public @Nullable EStructuralFeature source() {
+                return overriding.source();
+            }
 
             @java.lang.Override
             public XExpression expression() {

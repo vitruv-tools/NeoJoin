@@ -2,11 +2,10 @@ package tools.vitruv.neojoin.aqr;
 
 import org.jspecify.annotations.Nullable;
 
-import java.util.HashSet;
-import java.util.LinkedList;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Queue;
-import java.util.Set;
 
 /**
  * Class within the target model.
@@ -43,8 +42,8 @@ public final class AQRTargetClass {
         this.name = name;
         this.isAbstract = isAbstract;
         this.source = source;
-        this.superClasses = superClasses;
-        this.features = features;
+        this.superClasses = new ArrayList<>(superClasses);
+        this.features = new ArrayList<>(features);
     }
 
     public String name() {
@@ -59,29 +58,61 @@ public final class AQRTargetClass {
         return source;
     }
 
+    /**
+     * @return a copy of the direct super classes, changes to the returned list do not affect this class
+     */
     public List<AQRTargetClass> superClasses() {
-        return superClasses;
+        return List.copyOf(superClasses);
     }
 
+    /**
+     * Returns all direct and transitive super classes without duplicates (breadth first, nearest first). This is a
+     * pure query: it does not modify any class and can be called repeatedly.
+     *
+     * @return a copy of the list of all super classes
+     */
     public List<AQRTargetClass> allSuperClasses() {
-        // BFS
-        Queue<AQRTargetClass> queue = new LinkedList<>(superClasses());
-        Set<AQRTargetClass> allSuperClasses = new HashSet<>();
+        var allSuperClasses = new LinkedHashSet<AQRTargetClass>();
+        var queue = new ArrayDeque<>(superClasses);
 
         while (!queue.isEmpty()) {
             var superClass = queue.poll();
-            allSuperClasses.add(superClass);
-
-            var newSuperClasses = superClass.superClasses();
-            newSuperClasses.removeAll(allSuperClasses);
-            queue.addAll(newSuperClasses);
+            // only enqueue the super classes of newly found classes, so this also terminates for cyclic inheritance
+            if (allSuperClasses.add(superClass)) {
+                queue.addAll(superClass.superClasses);
+            }
         }
 
-        return allSuperClasses.stream().toList();
+        return List.copyOf(allSuperClasses);
     }
 
+    /**
+     * @return a copy of the features, changes to the returned list do not affect this class
+     */
     public List<AQRFeature> features() {
-        return features;
+        return List.copyOf(features);
+    }
+
+    /**
+     * Adds a direct super class. Only used while building the AQR.
+     */
+    void addSuperClass(AQRTargetClass superClass) {
+        superClasses.add(superClass);
+    }
+
+    /**
+     * Adds a feature. Only used while building the AQR.
+     */
+    void addFeature(AQRFeature feature) {
+        features.add(feature);
+    }
+
+    /**
+     * Replaces all features. Only used while building the AQR.
+     */
+    void replaceFeatures(List<AQRFeature> newFeatures) {
+        features.clear();
+        features.addAll(newFeatures);
     }
 
     @Override
