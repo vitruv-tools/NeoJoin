@@ -2,6 +2,7 @@ package tools.vitruv.neojoin.aqr;
 
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
+import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EStructuralFeature;
 
@@ -155,7 +156,7 @@ public class AQRTargetClassAssertions extends AbstractAssert<AQRTargetClassAsser
     private static String getFeatureTypeName(AQRFeature feature) {
         if (feature instanceof AQRFeature.Attribute) {
             return "attribute";
-        } else if (feature instanceof AQRFeature.Reference) {
+        } else if (feature instanceof AQRFeature.Reference || feature instanceof AQRFeature.EcoreReference) {
             return "reference";
         } else {
             return fail();
@@ -242,6 +243,19 @@ public class AQRTargetClassAssertions extends AbstractAssert<AQRTargetClassAsser
 
     public AQRTargetClassAssertions hasCopiedReference(String name, String type, EStructuralFeature copyOf) {
         return hasCopiedReference(name, type, copyOf, IgnoreOptions);
+    }
+
+    @SuppressWarnings("DataFlowIssue")
+    public AQRTargetClassAssertions hasCopiedEcoreReference(String name, EClass type, EStructuralFeature copyOf) {
+        isNotNull();
+        var feature = getFeature(name);
+        if (feature instanceof AQRFeature.EcoreReference ref) {
+            Assertions.assertThat(ref.type()).isSameAs(type);
+            checkCopied(ref, copyOf);
+        } else {
+            failWithMessage("Expected feature named '%s' in '%s' to be an Ecore reference", name, actual.name());
+        }
+        return this;
     }
 
     public AQRTargetClassAssertions hasCalculatedReference(

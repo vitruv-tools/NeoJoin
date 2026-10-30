@@ -4,7 +4,9 @@ import org.eclipse.emf.ecore.EObject;
 import tools.vitruv.neojoin.aqr.AQRTargetClass;
 import tools.vitruv.neojoin.utils.Pair;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -49,6 +51,8 @@ public class TargetMap {
 
     private final Map<Pair<EObject, AQRTargetClass>, Mapping> map = new HashMap<>();
 
+    private final Map<EObject, List<EObject>> targetsBySource = new HashMap<>();
+
     private Mapping getMapping(EObject source, AQRTargetClass targetClass) {
         return map.computeIfAbsent(
             new Pair<>(source, targetClass),
@@ -60,6 +64,7 @@ public class TargetMap {
      * Register a new mapping from the source instance to the target instance via the target class.
      */
     public void register(EObject source, AQRTargetClass targetClass, EObject target) {
+        targetsBySource.computeIfAbsent(source, k -> new ArrayList<>()).add(target);
         var previous = getMapping(source, targetClass);
         map.put(
             new Pair<>(source, targetClass),
@@ -86,6 +91,28 @@ public class TargetMap {
                 )
             );
         };
+    }
+
+    /**
+     * Retrieve the target instance that is mapped to the given source instance regardless of the target class. Used
+     * for references to Ecore classes, which have no target class.
+     *
+     * @throws TransformatorException if none or multiple target instances are mapped to the given source instance
+     */
+    public EObject get(EObject source) {
+        var targets = targetsBySource.getOrDefault(source, List.of());
+        if (targets.isEmpty()) {
+            throw new TransformatorException(
+                "no target instance found for source instance of class '%s'".formatted(source.eClass().getName())
+            );
+        } else if (targets.size() > 1) {
+            throw new TransformatorException(
+                "multiple target instances found for source instance of class '%s'".formatted(
+                    source.eClass().getName()
+                )
+            );
+        }
+        return targets.get(0);
     }
 
 }

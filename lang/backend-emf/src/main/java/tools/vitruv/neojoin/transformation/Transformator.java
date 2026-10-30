@@ -252,6 +252,8 @@ public class Transformator {
                 populateAttribute(attr, target, source, context);
             } else if (feature instanceof AQRFeature.Reference ref) {
                 populateReference(ref, target, source, context);
+            } else if (feature instanceof AQRFeature.EcoreReference ref) {
+                populateEcoreReference(ref, target, source, context);
             }
         }
     }
@@ -306,6 +308,32 @@ public class Transformator {
         target.eSet(target.eClass().getEStructuralFeature(ref.name()), mappedValue);
     }
 
+    /**
+     * Ecore classes have no target class, so the referenced source instance must be the source of exactly one target
+     * instance, to which the reference then points.
+     */
+    private void populateEcoreReference(
+        AQRFeature.EcoreReference ref,
+        EObject target,
+        @Nullable EObject source,
+        ExpressionEvaluator.Context context
+    ) {
+        var value = evaluateFeature(ref.kind(), source, context);
+        var mappedValue = value != null ? mapInstances(value) : null;
+        if (mappedValue != null && ref.options().isContainment()) {
+            checkNotAlreadyContained(mappedValue, target, ref);
+        }
+        target.eSet(target.eClass().getEStructuralFeature(ref.name()), mappedValue);
+    }
+
+    private Object mapInstances(Object instance) {
+        if (instance instanceof List<?> list) {
+            return list.stream().map(i -> targetMap.get((EObject) i)).toList();
+        } else {
+            return targetMap.get((EObject) instance);
+        }
+    }
+
     private Object mapInstances(Object instance, AQRTargetClass target) {
         if (instance instanceof List<?> list) {
             return list.stream().map(i -> targetMap.get((EObject) i, target)).toList();
@@ -314,7 +342,7 @@ public class Transformator {
         }
     }
 
-    private void checkNotAlreadyContained(Object value, EObject target, AQRFeature.Reference ref) {
+    private void checkNotAlreadyContained(Object value, EObject target, AQRFeature ref) {
         if (value instanceof List<?> list) {
             list.forEach(v -> checkNotAlreadyContained((EObject) v, target, ref));
         } else {
@@ -322,7 +350,7 @@ public class Transformator {
         }
     }
 
-    private void checkNotAlreadyContained(EObject value, EObject target, AQRFeature.Reference ref) {
+    private void checkNotAlreadyContained(EObject value, EObject target, AQRFeature ref) {
         if (value.eContainer() != null && value.eContainer() != root) {
             throw new TransformatorException(
                 "cannot add target instance of class '%s' to containment reference '%s.%s' because it is already contained in another instance of class '%s'".formatted(

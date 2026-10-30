@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xmi:XMI
+    xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:eobjectref="http://vitruv.tools/eobjectref">
+  <eobjectref:Holder xmi:id="a" name="a" target="b"/>
+  <eobjectref:Holder xmi:id="b" name="b"/>
+</xmi:XMI>
