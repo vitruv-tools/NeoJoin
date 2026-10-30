@@ -44,6 +44,7 @@ create ReviewedRestaurant {
 * Parameterizable queries with typed parameters passed at transformation time
 * [VSCode](https://code.visualstudio.com/) plugin for syntax highlighting, code completion, and live visualization of the resulting view type
 * Input and output meta-models as `.ecore` and instance-models as `.xmi` files
+* Source meta-models may reference classes of the Ecore meta-model (e.g. `EObject`) without having Ecore on the meta-model path or importing it
 
 ### Keywords
 
