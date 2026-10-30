@@ -114,6 +114,8 @@ public class MetaModelGenerator {
             eFeature = createAttribute(attr);
         } else if (feature instanceof AQRFeature.Reference ref) {
             eFeature = createReference(ref);
+        } else if (feature instanceof AQRFeature.EcoreReference ref) {
+            eFeature = createEcoreReference(ref);
         } else {
             throw new IllegalStateException(); // sealed interface
         }
@@ -134,6 +136,12 @@ public class MetaModelGenerator {
         var reference = Ecore.createEReference();
         var targetClass = Objects.requireNonNull(trace.aqrToTarget().get(ref.type()));
         reference.setEType(targetClass);
+        return reference;
+    }
+
+    protected EReference createEcoreReference(AQRFeature.EcoreReference ref) {
+        var reference = Ecore.createEReference();
+        reference.setEType(ref.type());
         return reference;
     }
 

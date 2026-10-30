@@ -5,6 +5,7 @@ import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EEnum;
 import org.eclipse.emf.ecore.EPackage;
+import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.xtext.common.types.JvmTypeReference;
@@ -35,6 +36,8 @@ public class SourceModelInferrer {
         JvmTypeReferenceBuilder references
     ) {
         this.packages = EMFUtils.collectAvailablePackages(packageRegistry);
+        // source meta-models can refer to Ecore classes (e.g. EObject) without Ecore being on the meta-model path
+        this.packages.add(EcorePackage.eINSTANCE);
         this.typeRegistry = typeRegistry;
         this.references = references;
     }
