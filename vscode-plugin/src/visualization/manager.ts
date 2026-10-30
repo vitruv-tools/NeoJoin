@@ -80,6 +80,10 @@ export default class VisualizationManager {
             { enableScripts: true }
         );
 
+        panel.onDidChangeViewState(() => {
+            this.updateAll(true);
+        });
+
         this.restore(panel, currentEditor.document, createPanelOptions());
     }
 
