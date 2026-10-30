@@ -51,6 +51,20 @@ public class EcoreClassReferenceTest extends AbstractTransformationTest implemen
     }
 
     @Test
+    void containmentReferenceToEObjectContainsTargetInstanceOfSelectedSource() {
+        transformAndAssert("""
+            from Container c create Container { c.content }
+            from Leaf l create Leaf { l.name }
+            """, result -> assertThat(result)
+            .hasInstance(
+                "Container", c -> true, container -> assertThat(container)
+                    .hasReference("content", content -> content != null && content.eContainer() == container)
+            )
+            .hasInstance("Leaf", named("leaf"))
+            .hasNoMoreInstances());
+    }
+
+    @Test
     void referenceToEObjectFailsIfReferencedSourceIsNotSelected() {
         assertThatThrownBy(() -> transformAndAssert("""
             from Holder h where h.name == "a" create Holder { h.name h.target }
