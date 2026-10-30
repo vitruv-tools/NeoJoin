@@ -49,7 +49,7 @@ public class DiamondInheritanceParseTest extends AbstractParseTest {
             }
             """);
 
-        assertThat(result).hasIssues(
+        assertThat(result).hasExactlyIssues(
             "Feature 'x' is inherited from multiple super classes with different types or modifiers: A, B"
         );
     }
@@ -70,7 +70,7 @@ public class DiamondInheritanceParseTest extends AbstractParseTest {
             }
             """);
 
-        assertThat(result).hasIssues(
+        assertThat(result).hasExactlyIssues(
             "Feature 'x' is inherited from multiple super classes with different types or modifiers: A, B"
         );
     }

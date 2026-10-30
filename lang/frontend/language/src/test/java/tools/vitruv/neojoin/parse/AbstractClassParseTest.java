@@ -55,7 +55,7 @@ public class AbstractClassParseTest extends AbstractParseTest {
             }
             """);
 
-        assertThat(result).hasIssues("Empty modifier list");
+        assertThat(result).hasExactlyIssues("Empty modifier list");
     }
 
     @Test
@@ -66,7 +66,7 @@ public class AbstractClassParseTest extends AbstractParseTest {
             }
             """);
 
-        assertThat(result).hasIssues("Modifier 'containment' is not applicable to attributes");
+        assertThat(result).hasExactlyIssues("Modifier 'containment' is not applicable to attributes");
     }
 
     @Test
@@ -79,7 +79,7 @@ public class AbstractClassParseTest extends AbstractParseTest {
             abstract B {}
             """);
 
-        assertThat(result).hasIssues("Modifier 'id' is not applicable to references");
+        assertThat(result).hasExactlyIssues("Modifier 'id' is not applicable to references");
     }
 
     @Test
@@ -91,7 +91,7 @@ public class AbstractClassParseTest extends AbstractParseTest {
             }
             """);
 
-        assertThat(result).hasIssues("Duplicated feature name: x");
+        assertThat(result).hasExactlyIssues("Duplicated feature name: x");
     }
 
     @Test
@@ -102,7 +102,7 @@ public class AbstractClassParseTest extends AbstractParseTest {
             }
             """);
 
-        assertThat(result).hasIssues("Unknown cannot be resolved.");
+        assertThat(result).hasExactlyIssues("Unknown cannot be resolved.");
     }
 
     @Test
@@ -115,7 +115,7 @@ public class AbstractClassParseTest extends AbstractParseTest {
             }
             """);
 
-        assertThat(result).hasIssues("Duplicated target class named 'A'");
+        assertThat(result).hasExactlyIssues("Duplicated target class named 'A'");
     }
 
     @Test
@@ -124,7 +124,7 @@ public class AbstractClassParseTest extends AbstractParseTest {
             abstract A
             """);
 
-        assertThat(result).hasIssues("mismatched input '<EOF>' expecting '{'");
+        assertThat(result).hasExactlyIssues("mismatched input '<EOF>' expecting '{'");
     }
 
     @Test
@@ -133,7 +133,7 @@ public class AbstractClassParseTest extends AbstractParseTest {
             from Food abstract A {}
             """);
 
-        assertThat(result).hasIssues("missing 'create' at 'abstract'");
+        assertThat(result).hasExactlyIssues("missing 'create' at 'abstract'");
     }
 
 }

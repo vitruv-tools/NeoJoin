@@ -31,7 +31,7 @@ public class MainQueryParseTest extends AbstractParseTest {
             from Food create Rest {}
             """);
 
-        assertThat(result).hasIssues("Duplicated target class named 'Rest'");
+        assertThat(result).hasExactlyIssues("Duplicated target class named 'Rest'");
     }
 
     @Test
@@ -41,7 +41,7 @@ public class MainQueryParseTest extends AbstractParseTest {
             from Food create Restaurant {}
             """);
 
-        assertThat(result).hasIssues("Duplicated target class named 'Restaurant'");
+        assertThat(result).hasExactlyIssues("Duplicated target class named 'Restaurant'");
     }
 
     @Test
@@ -60,7 +60,7 @@ public class MainQueryParseTest extends AbstractParseTest {
             """);
 
         assertThat(result)
-            .hasIssues("mismatched input 'from' expecting 'export'", "Restaurant cannot be resolved.");
+            .hasExactlyIssues("mismatched input 'from' expecting 'export'", "Restaurant cannot be resolved.");
     }
 
     @Test
@@ -85,7 +85,7 @@ public class MainQueryParseTest extends AbstractParseTest {
             """);
 
         assertThat(result)
-            .hasIssues("Query without source must have a target name");
+            .hasExactlyIssues("Query without source must have a target name");
     }
 
     @Test
@@ -95,7 +95,7 @@ public class MainQueryParseTest extends AbstractParseTest {
             """);
 
         assertThat(result)
-            .hasIssues("Query without source must have a body");
+            .hasExactlyIssues("Query without source must have a body");
     }
 
     @Test
@@ -109,7 +109,7 @@ public class MainQueryParseTest extends AbstractParseTest {
             """);
 
         assertThat(result)
-            .hasIssues("Type mismatch: cannot convert from Restaurant to Result");
+            .hasExactlyIssues("Type mismatch: cannot convert from Restaurant to Result");
     }
 
 }

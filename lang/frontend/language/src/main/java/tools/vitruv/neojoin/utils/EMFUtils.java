@@ -4,10 +4,14 @@ import static tools.vitruv.neojoin.utils.Assertions.check;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.eclipse.emf.common.util.Diagnostic;
@@ -62,6 +66,36 @@ public final class EMFUtils {
                 throw new RuntimeException("Unexpected internal structure of package registry", e);
             }
         }
+    }
+
+    /**
+     * Searches the super classes of the given class level by level (breadth first, nearest first) and returns the
+     * elements that {@code lookup} finds for the classes of the nearest level where it finds any.
+     *
+     * @param clazz  class whose super classes are searched
+     * @param lookup finds the elements that belong to a class (for example, the target classes of a source class)
+     * @return the distinct elements of the nearest level in the order of discovery, empty if no super class has any
+     */
+    public static <T> List<T> findInNearestSuperClasses(EClass clazz, Function<EClass, ? extends Collection<T>> lookup) {
+        var visited = new HashSet<EClass>();
+        visited.add(clazz);
+        List<EClass> level = clazz.getESuperTypes();
+        while (!level.isEmpty()) {
+            var found = new LinkedHashSet<T>();
+            var nextLevel = new ArrayList<EClass>();
+            for (var superClass : level) {
+                if (!visited.add(superClass)) {
+                    continue;
+                }
+                found.addAll(lookup.apply(superClass));
+                nextLevel.addAll(superClass.getESuperTypes());
+            }
+            if (!found.isEmpty()) {
+                return List.copyOf(found);
+            }
+            level = nextLevel;
+        }
+        return List.of();
     }
 
     /**

@@ -9,7 +9,7 @@ import java.util.Map.Entry;
 
 /**
  * Mapping from source instances to target instances. Given that one source class can be the source for multiple
- * target classes, this mapping does also depend on the target class. When {@link #get(EObject, AQRTargetClass, boolean) queried}
+ * target classes, this mapping does also depend on the target class. When {@link #get(EObject, AQRTargetClass) queried}
  * for a target instance this class checks that there is exactly one such instance and throws otherwise.
  */
 public class TargetMap {
@@ -33,7 +33,7 @@ public class TargetMap {
 
         @Override
         public Mapping join(Mapping other) {
-            return switch (other)  {
+            return switch (other) {
                 case None ignored -> this;
                 default -> new Many();
             };
@@ -76,26 +76,20 @@ public class TargetMap {
     }
 
     /**
-     * Retrieve the target instance that is mapped to the given source instance and target class or subclasses or the target class.
+     * Retrieve the target instance that is mapped to the given source instance and the target class or one of its
+     * sub classes.
      *
      * @throws TransformatorException if none or multiple target instances are mapped to the given source instance and target class
      */
-    public EObject get(EObject source, AQRTargetClass targetClass, boolean allowSubclasses) {
-        Mapping mapping;
-        if (allowSubclasses) {
-            mapping = getMappingInstanceOf(source, targetClass);
-        } else {
-            mapping = getMapping(source, targetClass);
-        }
-
-        return switch (mapping) {
+    public EObject get(EObject source, AQRTargetClass targetClass) {
+        return switch (getMappingInstanceOf(source, targetClass)) {
             case One(var value) -> value;
             case None ignored -> throw new TransformatorException(
-                    "no target instance of class '%s' found for source instance of class '%s'".formatted(
-                        targetClass.name(), source.eClass().getName()
-                    )
-                );
-                        case Many ignored -> throw new TransformatorException(
+                "no target instance of class '%s' found for source instance of class '%s'".formatted(
+                    targetClass.name(), source.eClass().getName()
+                )
+            );
+            case Many ignored -> throw new TransformatorException(
                 "multiple target instances of class '%s' found for source instance of class '%s'".formatted(
                     targetClass.name(), source.eClass().getName()
                 )

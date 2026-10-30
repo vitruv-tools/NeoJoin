@@ -12,7 +12,7 @@ public class FeatureParseTest extends AbstractParseTest {
             from Restaurant create Rest { r.name }
             """);
 
-        assertThat(result).hasIssues("The method or field r is undefined");
+        assertThat(result).hasExactlyIssues("The method or field r is undefined");
     }
 
     @Test
@@ -23,7 +23,7 @@ public class FeatureParseTest extends AbstractParseTest {
             }
             """);
 
-        assertThat(result).hasIssues("Unsupported type: AtomicInteger");
+        assertThat(result).hasExactlyIssues("Unsupported type: AtomicInteger");
     }
 
     @Test
@@ -35,7 +35,7 @@ public class FeatureParseTest extends AbstractParseTest {
             }
             """);
 
-        assertThat(result).hasIssues("Duplicated feature name: name");
+        assertThat(result).hasExactlyIssues("Duplicated feature name: name");
     }
 
     @Test
@@ -47,7 +47,7 @@ public class FeatureParseTest extends AbstractParseTest {
             }
             """);
 
-        assertThat(result).hasIssues("Duplicated feature name: name");
+        assertThat(result).hasExactlyIssues("Duplicated feature name: name");
     }
 
     @Test
@@ -59,7 +59,7 @@ public class FeatureParseTest extends AbstractParseTest {
             }
             """);
 
-        assertThat(result).hasIssues("Duplicated feature name: name");
+        assertThat(result).hasExactlyIssues("Duplicated feature name: name");
     }
 
     @Test
@@ -70,7 +70,7 @@ public class FeatureParseTest extends AbstractParseTest {
             }
             """);
 
-        assertThat(result).hasIssues("Copy feature expression does not reference a feature");
+        assertThat(result).hasExactlyIssues("Copy feature expression does not reference a feature");
     }
 
     @Test
@@ -81,7 +81,7 @@ public class FeatureParseTest extends AbstractParseTest {
             }
             """);
 
-        assertThat(result).hasIssues("Copy feature expression does not reference a feature");
+        assertThat(result).hasExactlyIssues("Copy feature expression does not reference a feature");
     }
 
     @Test
@@ -92,7 +92,7 @@ public class FeatureParseTest extends AbstractParseTest {
             }
             """);
 
-        assertThat(result).hasIssues("Nullable expression used to initialize non-nullable feature");
+        assertThat(result).hasExactlyIssues("Nullable expression used to initialize non-nullable feature");
     }
 
     @Test
@@ -118,7 +118,7 @@ public class FeatureParseTest extends AbstractParseTest {
             create MixedFoods {}
             """);
 
-        assertThat(result).hasIssues(
+        assertThat(result).hasExactlyIssues(
             "Inferred type 'MixedFoods' is a query with join which might be unintended and " +
                 "can lead to errors during transformation. Use explicit type to clarify the intended type."
         );
@@ -136,7 +136,7 @@ public class FeatureParseTest extends AbstractParseTest {
             create MixedFoods {}
             """);
 
-        assertThat(result).hasIssues(
+        assertThat(result).hasExactlyIssues(
             "Inferred type 'MixedFoods' is a query with group by which might be unintended and " +
                 "can lead to errors during transformation. Use explicit type to clarify the intended type."
         );
@@ -168,7 +168,7 @@ public class FeatureParseTest extends AbstractParseTest {
             create { it.name }
             """);
 
-        assertThat(result).hasIssues("The method or field it is undefined");
+        assertThat(result).hasExactlyIssues("The method or field it is undefined");
     }
 
     @Test
@@ -177,7 +177,7 @@ public class FeatureParseTest extends AbstractParseTest {
             from Restaurant create { it }
             """);
 
-        assertThat(result).hasIssues("Copy feature expression does not reference a feature");
+        assertThat(result).hasExactlyIssues("Copy feature expression does not reference a feature");
     }
 
 }

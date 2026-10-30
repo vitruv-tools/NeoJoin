@@ -232,18 +232,18 @@ public final class AstUtils {
     }
 
     /**
-     * Check whether the given queries are the same or whether the first query defines a (transitive) super type of
+     * Check whether the given queries are the same or whether the first query defines a (transitive) super class of
      * the type defined by the second query. Terminates for cyclic inheritance.
      *
-     * @return {@code true} if {@code superType} is {@code subType} or one of its (transitive) super types
+     * @return {@code true} if {@code superClassQuery} is {@code subClassQuery} or one of its (transitive) super classes
      */
-    public static boolean isSameOrSuperTypeOf(Query superType, Query subType) {
+    public static boolean isSameOrSuperClassOf(Query superClassQuery, Query subClassQuery) {
         var visited = new HashSet<Query>();
         var pending = new ArrayDeque<Query>();
-        pending.push(subType);
+        pending.push(subClassQuery);
         while (!pending.isEmpty()) {
             var current = pending.pop();
-            if (current == superType) {
+            if (current == superClassQuery) {
                 return true;
             }
             if (visited.add(current) && current instanceof MainQuery mainQuery) {
@@ -456,7 +456,7 @@ public final class AstUtils {
         }
     }
 
-    public static Body getBody(Query query) {
+    public static @Nullable Body getBody(Query query) {
         if (query instanceof ConcreteMainQuery concreteMainQuery) {
             return concreteMainQuery.getBody();
         } else if (query instanceof AbstractMainQuery abstractMainQuery) {
@@ -464,7 +464,7 @@ public final class AstUtils {
         } else if (query instanceof SubQuery subQuery) {
             return subQuery.getBody();
         } else {
-            return fail("Query must be either a concrete main query, an abstract main query, or a sub query"); 
+            return fail("Query must be either a concrete main query, an abstract main query, or a sub query");
         }
     }
 

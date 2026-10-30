@@ -57,7 +57,7 @@ public class SubQueryParseTest extends AbstractParseTest {
             }
             """);
 
-        assertThat(result).hasIssues("The method or field r is undefined");
+        assertThat(result).hasExactlyIssues("The method or field r is undefined");
     }
 
     @Test
@@ -80,7 +80,7 @@ public class SubQueryParseTest extends AbstractParseTest {
             create MixedFoods {}
             """);
 
-        assertThat(result).hasIssues(
+        assertThat(result).hasExactlyIssues(
             "Unsupported type: AtomicInteger",
             "Duplicated feature name: test",
             "Duplicated feature name: name",
@@ -103,7 +103,7 @@ public class SubQueryParseTest extends AbstractParseTest {
             }
             """);
 
-        assertThat(result).hasIssues(
+        assertThat(result).hasExactlyIssues(
             "Duplicated modifier 'changeable'",
             "Cannot assign a single value to a multi-valued feature",
             "Modifier 'containment' is not applicable to attributes",
@@ -138,7 +138,7 @@ public class SubQueryParseTest extends AbstractParseTest {
             }
             """);
 
-        assertThat(result).hasIssues(
+        assertThat(result).hasExactlyIssues(
             "Duplicated target class named 'TastyFood'",
             "Duplicated target class named 'Food'"
         );
@@ -160,7 +160,7 @@ public class SubQueryParseTest extends AbstractParseTest {
             }
             """);
 
-        assertThat(result).hasIssues(
+        assertThat(result).hasExactlyIssues(
             "Type mismatch: cannot convert from EString (String) to EFloat (float)",
             "Type mismatch: cannot convert from EString to Restaurant",
             "Type mismatch: cannot convert from Food to Restaurant",
@@ -182,7 +182,7 @@ public class SubQueryParseTest extends AbstractParseTest {
             from Food create NotSoTastyFood
             """);
 
-        assertThat(result).hasIssues(
+        assertThat(result).hasExactlyIssues(
             "Ambiguous target class for source class 'Food'. Possible candidates: NotSoTastyFood, TastyFood"
         );
     }
@@ -206,7 +206,7 @@ public class SubQueryParseTest extends AbstractParseTest {
             }
             """);
 
-        assertThat(result).hasIssues("Cannot use null expression for a subquery");
+        assertThat(result).hasExactlyIssues("Cannot use null expression for a subquery");
     }
 
     @Test
@@ -217,7 +217,7 @@ public class SubQueryParseTest extends AbstractParseTest {
             }
             """);
 
-        assertThat(result).hasIssues("Cannot use a subquery with an attribute expression (EString)");
+        assertThat(result).hasExactlyIssues("Cannot use a subquery with an attribute expression (EString)");
     }
 
     @Test
@@ -253,7 +253,7 @@ public class SubQueryParseTest extends AbstractParseTest {
             }
             """);
 
-        assertThat(result).hasIssues("The method or field sell is undefined for the type Restaurant");
+        assertThat(result).hasExactlyIssues("The method or field sell is undefined for the type Restaurant");
     }
 
     @Test
@@ -265,7 +265,7 @@ public class SubQueryParseTest extends AbstractParseTest {
             }
             """);
 
-        assertThat(result).hasIssues("Type mismatch: cannot convert from Restaurant to TastyFood");
+        assertThat(result).hasExactlyIssues("Type mismatch: cannot convert from Restaurant to TastyFood");
     }
 
     @Test
@@ -278,7 +278,7 @@ public class SubQueryParseTest extends AbstractParseTest {
             from Food create
             """);
 
-        assertThat(result).hasIssues("Type mismatch: explicit type does not match subquery type");
+        assertThat(result).hasExactlyIssues("Type mismatch: explicit type does not match subquery type");
     }
 
 }

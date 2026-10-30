@@ -91,13 +91,18 @@ public sealed interface AQRFeature {
             }
 
             @java.lang.Override
-            public XExpression expression() {
+            public @Nullable XExpression expression() {
                 return overriding.expression();
             }
 
         }
 
+        /**
+         * The feature is declared in an abstract class and has no value. It must be overridden in every
+         * concrete sub class.
+         */
         record Abstract() implements Kind {}
+
     }
 
     /**

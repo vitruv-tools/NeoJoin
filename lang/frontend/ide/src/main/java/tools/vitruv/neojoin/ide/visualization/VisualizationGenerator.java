@@ -128,7 +128,7 @@ public class VisualizationGenerator {
                         .forEach(classifier -> {
                             if (classifier instanceof EClass clazz) {
                                 // class might have already been generated as super class of another class
-                                clazzIfNew(clazz, false);
+                                clazzIfNew(clazz);
                             } else if (classifier instanceof EEnum eEnum) {
                                 // enum might have already been generated from a class attribute
                                 enumerationIfNew(eEnum);
@@ -210,7 +210,7 @@ public class VisualizationGenerator {
         var sourceClasses = targetMetaModel.trace().getSourceClassesForTargetClass(target);
         if (sourceClasses != null) {
             sourceClasses.forEach(source -> {
-                clazzIfNew(source, true);
+                clazzIfNew(source);
                 out.arrow(
                     getQualifiedName(source),
                     ArrowSourceClass,
@@ -222,9 +222,9 @@ public class VisualizationGenerator {
 
     private final HashSet<EClass> seenClazzes = new HashSet<>();
 
-    private void clazzIfNew(EClass clazz, boolean target) {
+    private void clazzIfNew(EClass clazz) {
         if (!seenClazzes.contains(clazz)) {
-            clazz(clazz, target);
+            clazz(clazz, false);
         }
     }
 
@@ -260,7 +260,7 @@ public class VisualizationGenerator {
             if (target) {
                 targetClazzIfNew(superType);
             } else {
-                clazzIfNew(superType, false);
+                clazzIfNew(superType);
             }
             var superName = getQualifiedName(superType);
             out.arrow(qualifiedName, PlantUMLBuilder.ReferenceInheritanceUpwards, superName);

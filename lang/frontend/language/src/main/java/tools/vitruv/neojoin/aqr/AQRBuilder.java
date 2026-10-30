@@ -29,6 +29,7 @@ import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
 import tools.vitruv.neojoin.jvmmodel.TypeInfo;
 import tools.vitruv.neojoin.jvmmodel.TypeResolutionException;
 import tools.vitruv.neojoin.utils.AstUtils;
+import tools.vitruv.neojoin.utils.EMFUtils;
 import tools.vitruv.neojoin.utils.FeatureType;
 import tools.vitruv.neojoin.utils.FeatureTypeResolver;
 import tools.vitruv.neojoin.utils.Pair;
@@ -69,7 +70,7 @@ import static tools.vitruv.neojoin.utils.Assertions.fail;
  */
 public class AQRBuilder {
 
-    public static final boolean IMPLICIT_INCLUDE_SUB_CLASSES = true;
+    private static final boolean IMPLICIT_INCLUDE_SUB_CLASSES = true;
 
     private final ViewTypeDefinition viewTypeDefinition;
     private final ExpressionHelper expressionHelper;
@@ -83,8 +84,8 @@ public class AQRBuilder {
     private final Map<EClass, Set<AQRTargetClass>> sourceClassToAQR = new HashMap<>(); // source class -> aqr targets
     private final Map<Query, AQRTargetClass> queryToTarget = new HashMap<>(); // query (Query | SubQuery) -> target class
 
-    // classes that cannot declare super classes (implicit classes and classes of sub queries), see linkAutomaticSuperClasses
-    private final List<AQRTargetClass> classesWithAutomaticSuperClasses = new ArrayList<>();
+    // classes that cannot declare super classes (implicit classes and classes of sub queries), see linkImplicitSuperClasses
+    private final List<AQRTargetClass> classesWithImplicitSuperClasses = new ArrayList<>();
 
     public AQRBuilder(ViewTypeDefinition viewTypeDefinition, ExpressionHelper expressionHelper) {
         this.viewTypeDefinition = viewTypeDefinition;
@@ -109,7 +110,7 @@ public class AQRBuilder {
         for (var entry : populationQueue) {
             addSuperClassesToTargetClass(entry.left(), entry.right());
         }
-        
+
         // populate target classes
         while (!populationQueue.isEmpty()) {
             var entry = populationQueue.poll();
@@ -118,7 +119,7 @@ public class AQRBuilder {
         }
 
         // link implicit classes and classes of sub queries to the target classes of their source super classes
-        linkAutomaticSuperClasses();
+        linkImplicitSuperClasses();
 
         // identify and verify inheritance
         applyInheritanceToAllTargetClasses();
@@ -165,7 +166,7 @@ public class AQRBuilder {
         }
 
         if (query == null || query instanceof SubQuery) {
-            classesWithAutomaticSuperClasses.add(target);
+            classesWithImplicitSuperClasses.add(target);
         }
 
         if (source != null) {
@@ -193,7 +194,7 @@ public class AQRBuilder {
                 null,
                 mainQuery
             );
-        } else if  (query instanceof SubQuery subQuery) {
+        } else if (query instanceof SubQuery subQuery) {
             var sourceType = AstUtils.inferSubQuerySourceType(subQuery, expressionHelper);
             invariant(sourceType != null);
             createTargetClass(
@@ -248,7 +249,7 @@ public class AQRBuilder {
     }
 
     private void addSuperClassesToTargetClass(AQRTargetClass targetClazz, @Nullable Query query) {
-        if (query != null && query instanceof MainQuery mainQuery) {
+        if (query instanceof MainQuery mainQuery) {
             for (EObject superClass : mainQuery.getSuperClasses()) {
                 invariant(superClass instanceof Query, "Classes can only extend classes created from other queries");
 
@@ -416,17 +417,17 @@ public class AQRBuilder {
 
     /**
      * Adds super classes to implicit target classes and to the target classes of sub queries, because they cannot
-     * declare {@code extends} themselves. Explicit main queries never get automatic super classes.
+     * declare {@code extends} themselves. Explicit main queries never get implicit super classes.
      * <p>
      * For such a class with source class {@code S}, the source super classes of {@code S} are searched level by
      * level (nearest first). At the nearest level with at least one target class of a source super class, that target
      * class becomes the super class. Target classes for super classes are never created, only existing ones are linked.
      *
-     * @see #findAutomaticSuperClass
+     * @see #findImplicitSuperClass
      */
-    private void linkAutomaticSuperClasses() {
-        for (var targetClass : classesWithAutomaticSuperClasses) {
-            findAutomaticSuperClass(targetClass).ifPresent(targetClass::addSuperClass);
+    private void linkImplicitSuperClasses() {
+        for (var targetClass : classesWithImplicitSuperClasses) {
+            findImplicitSuperClass(targetClass).ifPresent(targetClass::addSuperClass);
         }
     }
 
@@ -436,40 +437,27 @@ public class AQRBuilder {
      *
      * @return the super class, empty if no source super class has a target class
      */
-    private Optional<AQRTargetClass> findAutomaticSuperClass(AQRTargetClass targetClass) {
+    private Optional<AQRTargetClass> findImplicitSuperClass(AQRTargetClass targetClass) {
         var source = targetClass.source();
-        invariant(source != null, "Class with automatic super classes must have a source");
+        invariant(source != null, "Class with implicit super classes must have a source");
 
-        var visited = new HashSet<EClass>();
-        var level = List.copyOf(source.from().clazz().getESuperTypes());
-        while (!level.isEmpty()) {
-            var candidates = level.stream()
-                .flatMap(sourceSuperClass -> findTargetClassesOfSourceClass(sourceSuperClass).stream())
-                .distinct()
-                .sorted(Comparator.comparing(AQRTargetClass::name))
-                .toList();
-            if (!candidates.isEmpty()) {
-                // ambiguity is reported to users by FeatureValidator.checkAmbiguousImplicitSuperClasses, this guards
-                // against queries that were not validated (the first candidate would be an arbitrary choice)
-                invariant(
-                    candidates.size() == 1,
-                    () -> "Ambiguous super class for target class '%s'. Possible candidates: %s".formatted(
-                        targetClass.name(),
-                        candidates.stream().map(AQRTargetClass::name).collect(Collectors.joining(", "))
-                    )
-                );
-                return Optional.of(candidates.get(0));
-            }
-
-            visited.addAll(level);
-            level = level.stream()
-                .flatMap(sourceSuperClass -> sourceSuperClass.getESuperTypes().stream())
-                .filter(sourceSuperClass -> !visited.contains(sourceSuperClass))
-                .distinct()
-                .toList();
+        var candidates = EMFUtils.findInNearestSuperClasses(source.from().clazz(), this::findTargetClassesOfSourceClass).stream()
+            .sorted(Comparator.comparing(AQRTargetClass::name))
+            .toList();
+        if (candidates.isEmpty()) {
+            return Optional.empty();
         }
 
-        return Optional.empty();
+        // ambiguity is reported to users by FeatureValidator.checkAmbiguousImplicitSuperClasses, this guards
+        // against queries that were not validated (the first candidate would be an arbitrary choice)
+        invariant(
+            candidates.size() == 1,
+            () -> "Ambiguous super class for target class '%s'. Possible candidates: %s".formatted(
+                targetClass.name(),
+                candidates.stream().map(AQRTargetClass::name).collect(Collectors.joining(", "))
+            )
+        );
+        return Optional.of(candidates.get(0));
     }
 
     /**

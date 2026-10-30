@@ -17,7 +17,7 @@ public abstract class AbstractKennelTest extends AbstractIntegrationTest impleme
     protected AQR parse(String query) {
         return internalParseAQR("""
             export view to "http://example.com/view"
-            
+
             import "http://example.org/kennel"
             """ + query);
     }

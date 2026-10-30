@@ -30,7 +30,7 @@ public class FromSource implements InstanceSource {
 
     public Stream<EObject> getEObjects() {
         if (includeSubClasses) {
-           return EMFUtils.getAllInstances(resource, clazz);
+            return EMFUtils.getAllInstances(resource, clazz);
         } else {
             return EMFUtils.getAllDirectInstances(resource, clazz);
         }

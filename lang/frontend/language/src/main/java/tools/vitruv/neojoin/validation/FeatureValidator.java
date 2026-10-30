@@ -28,6 +28,7 @@ import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
 import tools.vitruv.neojoin.jvmmodel.TypeInfo;
 import tools.vitruv.neojoin.jvmmodel.TypeResolutionException;
 import tools.vitruv.neojoin.utils.AstUtils;
+import tools.vitruv.neojoin.utils.EMFUtils;
 import tools.vitruv.neojoin.utils.FeatureType.AmbiguousReferenceType;
 import tools.vitruv.neojoin.utils.FeatureType.ImplicitReferenceType;
 import tools.vitruv.neojoin.utils.FeatureType.QueryReferenceType;
@@ -54,7 +55,7 @@ public class FeatureValidator extends ComposableValidator {
         if (body == null) {
             return;
         }
-        
+
         var features = AstUtils.getFeatures(body);
         if (features.isEmpty()) {
             return;
@@ -214,7 +215,7 @@ public class FeatureValidator extends ComposableValidator {
             // mirrors the invariant in AQRBuilder.determineReferenceType (otherwise, the transformation could not
             // decide which target instance to reference)
             var assignable = sourceMap.getOrDefault(inferredClass, Set.of()).stream()
-                .filter(type -> AstUtils.isSameOrSuperTypeOf(explicitType, type))
+                .filter(type -> AstUtils.isSameOrSuperClassOf(explicitType, type))
                 .toList();
             if (assignable.size() > 1) {
                 error(
@@ -237,7 +238,7 @@ public class FeatureValidator extends ComposableValidator {
             var viewType = AstUtils.getViewType(feature);
             if (AstUtils.getAllQueries(viewType).anyMatch(query ->
                 AstUtils.canSelectInstancesOf(query, inferredClass, expressionHelper)
-                    && AstUtils.isSameOrSuperTypeOf(explicitType, query)
+                    && AstUtils.isSameOrSuperClassOf(explicitType, query)
             )) {
                 return;
             }
@@ -416,7 +417,7 @@ public class FeatureValidator extends ComposableValidator {
      * nearest source super class that has one: a query that selects exactly this source class (single {@code from},
      * no joins, no grouping, or a sub query), or an implicit target class. It fails if several target classes exist
      * on the nearest level of the source class hierarchy, so this is reported here instead. The check in
-     * {@code AQRBuilder.findAutomaticSuperClass} stays as the safeguard for queries that were not validated (it
+     * {@code AQRBuilder.findImplicitSuperClass} stays as the safeguard for queries that were not validated (it
      * decides which class is linked, while this method only reports the ambiguity to the user).
      * <p>
      * The implicit classes are determined from the AST like in {@link #checkAmbiguousImplicitFeatureTypes}: classes of
@@ -470,31 +471,18 @@ public class FeatureValidator extends ComposableValidator {
         Map<EClass, Set<Query>> queriesBySourceClass,
         Set<EClass> implicitClasses
     ) {
-        var visited = new HashSet<EClass>();
-        visited.add(sourceClass);
-        List<EClass> level = sourceClass.getESuperTypes();
-        while (!level.isEmpty()) {
-            var candidates = new ArrayList<String>();
-            var nextLevel = new ArrayList<EClass>();
-            for (var superClass : level) {
-                if (!visited.add(superClass)) {
-                    continue;
-                }
-                queriesBySourceClass.getOrDefault(superClass, Set.of()).stream()
+        return EMFUtils.findInNearestSuperClasses(
+            sourceClass, superClass -> {
+                var names = queriesBySourceClass.getOrDefault(superClass, Set.of()).stream()
                     .filter(q -> superClass.equals(AstUtils.getSingleSourceClass(q, expressionHelper)))
                     .map(q -> AstUtils.getTargetName(q, expressionHelper))
-                    .forEach(candidates::add);
+                    .collect(Collectors.toCollection(ArrayList::new));
                 if (implicitClasses.contains(superClass)) {
-                    candidates.add(superClass.getName());
+                    names.add(superClass.getName());
                 }
-                nextLevel.addAll(superClass.getESuperTypes());
+                return names;
             }
-            if (!candidates.isEmpty()) {
-                return candidates.stream().sorted().toList();
-            }
-            level = nextLevel;
-        }
-        return List.of();
+        ).stream().sorted().toList();
     }
 
     @Check

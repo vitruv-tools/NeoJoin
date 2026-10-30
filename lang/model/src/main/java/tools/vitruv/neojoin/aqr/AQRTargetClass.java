@@ -28,9 +28,11 @@ public final class AQRTargetClass {
     private final List<AQRFeature> features;
 
     /**
-     * @param name     name of the target class
-     * @param source   source of the target class
-     * @param features features of the target class
+     * @param name         name of the target class
+     * @param isAbstract   whether the target class is abstract (no instances are created for it)
+     * @param source       source of the target class
+     * @param superClasses direct super classes of the target class
+     * @param features     features of the target class
      */
     public AQRTargetClass(
         String name,
@@ -120,7 +122,7 @@ public final class AQRTargetClass {
         return "TargetClass[name=%s, source=%s, superClasses=%s, features=%s]".formatted(
             name,
             source,
-            superClasses,
+            superClasses.stream().map(AQRTargetClass::name).toList(),
             features
         );
     }

@@ -18,7 +18,7 @@ public class CreateAbstractParseTest extends AbstractInheritanceParseTest {
             }
             """);
 
-        assertThat(result).hasIssues("Incomplete query: 'create' needs a source, a target name or a body");
+        assertThat(result).hasExactlyIssues("Incomplete query: 'create' needs a source, a target name or a body");
     }
 
     @Test
@@ -27,7 +27,7 @@ public class CreateAbstractParseTest extends AbstractInheritanceParseTest {
             create
             """);
 
-        assertThat(result).hasIssues("Incomplete query: 'create' needs a source, a target name or a body");
+        assertThat(result).hasExactlyIssues("Incomplete query: 'create' needs a source, a target name or a body");
     }
 
 }

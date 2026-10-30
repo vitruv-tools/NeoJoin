@@ -27,7 +27,7 @@ public class TypeParseTest extends AbstractParseTest {
             }
             """);
 
-        assertThat(result).hasIssues("Type mismatch: cannot convert from EString (String) to EInt (int)");
+        assertThat(result).hasExactlyIssues("Type mismatch: cannot convert from EString (String) to EInt (int)");
     }
 
     @Test
@@ -40,7 +40,7 @@ public class TypeParseTest extends AbstractParseTest {
             from Food create TastyFood
             """);
 
-        assertThat(result).hasIssues("Type mismatch: cannot convert from EString to TastyFood");
+        assertThat(result).hasExactlyIssues("Type mismatch: cannot convert from EString to TastyFood");
     }
 
     @Test
@@ -79,7 +79,7 @@ public class TypeParseTest extends AbstractParseTest {
             from Food create TastyFood
             """);
 
-        assertThat(result).hasIssues("Type mismatch: cannot convert from Food to EString");
+        assertThat(result).hasExactlyIssues("Type mismatch: cannot convert from Food to EString");
     }
 
     @Test
@@ -92,7 +92,7 @@ public class TypeParseTest extends AbstractParseTest {
             from Food create TastyFood
             """);
 
-        assertThat(result).hasIssues("Type mismatch: cannot convert from Food to Restaurant");
+        assertThat(result).hasExactlyIssues("Type mismatch: cannot convert from Food to Restaurant");
     }
 
     @Test
@@ -118,7 +118,7 @@ public class TypeParseTest extends AbstractParseTest {
             from Food create
             """);
 
-        assertThat(result).hasIssues("Cannot infer type");
+        assertThat(result).hasExactlyIssues("Cannot infer type");
     }
 
     @Test
@@ -133,7 +133,7 @@ public class TypeParseTest extends AbstractParseTest {
             """);
 
         assertThat(result)
-            .hasIssues("Ambiguous target class for source class 'Food'. Possible candidates: NotSoTastyFood, TastyFood");
+            .hasExactlyIssues("Ambiguous target class for source class 'Food'. Possible candidates: NotSoTastyFood, TastyFood");
     }
 
     @Test
@@ -146,7 +146,41 @@ public class TypeParseTest extends AbstractParseTest {
             """);
 
         assertThat(result)
-            .hasIssues("Ambiguous target class for source class 'Food' while copying reference 'Restaurant::sells'. Possible candidates: NotSoTastyFood, TastyFood");
+            .hasExactlyIssues("Ambiguous target class for source class 'Food' while copying reference 'Restaurant::sells'. Possible candidates: NotSoTastyFood, TastyFood");
+    }
+
+    @Test
+    void copiedReferenceToQueryWithJoinWarnsAboutInferredTargetClass() {
+        var result = parse("""
+            from Restaurant create
+
+            from Food f1
+            join Food f2
+            create MixedFoods {}
+            """);
+
+        assertThat(result).hasExactlyIssues(
+            "Inferred target class 'MixedFoods' for source class 'Food' while copying reference 'Restaurant::sells' " +
+                "is a query with join which might be unintended and can lead to errors during transformation. " +
+                "Use explicit type to clarify the intended type."
+        );
+    }
+
+    @Test
+    void copiedReferenceToQueryWithGroupByWarnsAboutInferredTargetClass() {
+        var result = parse("""
+            from Restaurant create
+
+            from Food f1
+            group by f1.name
+            create MixedFoods {}
+            """);
+
+        assertThat(result).hasExactlyIssues(
+            "Inferred target class 'MixedFoods' for source class 'Food' while copying reference 'Restaurant::sells' " +
+                "is a query with group by which might be unintended and can lead to errors during transformation. " +
+                "Use explicit type to clarify the intended type."
+        );
     }
 
     @Test
@@ -159,7 +193,7 @@ public class TypeParseTest extends AbstractParseTest {
             """);
 
         assertThat(result)
-            .hasIssues(
+            .hasExactlyIssues(
                 "Ambiguous target class for source class 'Food' while copying reference 'Store::foods'. Possible candidates: NotSoTastyFood, TastyFood",
                 "Ambiguous target class for source class 'Food' while copying reference 'Restaurant::sells'. Possible candidates: NotSoTastyFood, TastyFood"
             );
@@ -193,7 +227,7 @@ public class TypeParseTest extends AbstractParseTest {
             """);
 
         assertThat(result)
-            .hasIssues("Ambiguous target class for source class 'Child' while copying reference 'Parent::child'. Possible candidates: Child1, Child2");
+            .hasExactlyIssues("Ambiguous target class for source class 'Child' while copying reference 'Parent::child'. Possible candidates: Child1, Child2");
     }
 
     @Test
@@ -207,7 +241,7 @@ public class TypeParseTest extends AbstractParseTest {
             """);
 
         assertThat(result)
-            .hasIssues("Food cannot be resolved.");
+            .hasExactlyIssues("Food cannot be resolved.");
     }
 
     @Test
@@ -284,7 +318,7 @@ public class TypeParseTest extends AbstractParseTest {
             }
             """);
 
-        assertThat(result).hasIssues(
+        assertThat(result).hasExactlyIssues(
             "Type mismatch: cannot convert from EShort (short) to EBoolean (boolean)",
             "Type mismatch: cannot convert from EShort (short) to EString (String)",
             "Type mismatch: cannot convert from EBoolean (boolean) to EShort (short)",

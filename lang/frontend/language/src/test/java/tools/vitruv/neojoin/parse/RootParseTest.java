@@ -25,7 +25,7 @@ public class RootParseTest extends AbstractParseTest {
             """);
 
         assertThat(result)
-            .hasIssues("Query without source must have a target name");
+            .hasExactlyIssues("Query without source must have a target name");
     }
 
     @Test
@@ -35,7 +35,7 @@ public class RootParseTest extends AbstractParseTest {
             """);
 
         assertThat(result)
-            .hasIssues("Query without source must have a body");
+            .hasExactlyIssues("Query without source must have a body");
     }
 
     @Test
@@ -49,7 +49,7 @@ public class RootParseTest extends AbstractParseTest {
             """);
 
         assertThat(result)
-            .hasIssues("Feature name collides with implicit root containment reference.");
+            .hasExactlyIssues("Feature name collides with implicit root containment reference.");
     }
 
     @Test
@@ -60,7 +60,7 @@ public class RootParseTest extends AbstractParseTest {
             """);
 
         assertThat(result)
-            .hasIssues("Multiple root queries");
+            .hasExactlyIssues("Multiple root queries");
     }
 
     @Test
@@ -70,7 +70,7 @@ public class RootParseTest extends AbstractParseTest {
             """);
 
         assertThat(result)
-            .hasIssues("Target class name 'Root' collides with name of the implicit root class. " +
+            .hasExactlyIssues("Target class name 'Root' collides with name of the implicit root class. " +
                 "Either choose a different name for this class or explicitly create a root class with a different name.");
     }
 
@@ -85,7 +85,7 @@ public class RootParseTest extends AbstractParseTest {
             """);
 
         assertThat(result)
-            .hasIssues("Target class name 'Root' collides with name of the implicit root class. " +
+            .hasExactlyIssues("Target class name 'Root' collides with name of the implicit root class. " +
                 "Either choose a different name for this class or explicitly create a root class with a different name.");
     }
 

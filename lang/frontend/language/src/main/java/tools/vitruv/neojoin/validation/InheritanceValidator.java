@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
  * construction. They also protect the later stages, which rely on a well-formed class hierarchy:
  * {@link tools.vitruv.neojoin.generation.MetaModelGenerator} maps the super classes to {@code eSuperTypes} (which
  * must be acyclic and duplicate free), and the transformation resolves references to instances of sub classes via
- * {@code AQRTargetClass.allSuperClasses()} (see {@code TargetMap.get(..., allowSubclasses)} in the EMF backend) and
+ * {@code AQRTargetClass.allSuperClasses()} (see {@code TargetMap.get(...)} in the EMF backend) and
  * evaluates overriding features via {@code AQRFeature.Kind.Override} ({@code Transformator.evaluateFeature}).
  * <p>
  * Note that the rules only handle inheritance. The validation of features and types in general is done by
@@ -55,7 +55,7 @@ public class InheritanceValidator extends ComposableValidator {
      * <p>
      * A class that extends itself has no finite set of super classes: the generated {@code eSuperTypes} would be
      * cyclic (invalid Ecore), and walking the hierarchy ({@code AQRTargetClass.allSuperClasses()},
-     * {@code AstUtils.isSameOrSuperTypeOf}) would not terminate or would produce meaningless results.
+     * {@code AstUtils.isSameOrSuperClassOf}) would not terminate or would produce meaningless results.
      */
     @Check
     public void checkAcyclicInheritance(MainQuery query) {
@@ -67,7 +67,7 @@ public class InheritanceValidator extends ComposableValidator {
 
             if (superQuery == query) {
                 error("A class cannot extend itself", query, AstPackage.Literals.MAIN_QUERY__SUPER_CLASSES, i);
-            } else if (AstUtils.isSameOrSuperTypeOf(query, superQuery)) {
+            } else if (AstUtils.isSameOrSuperClassOf(query, superQuery)) {
                 error("Cyclic inheritance", query, AstPackage.Literals.MAIN_QUERY__SUPER_CLASSES, i);
             }
         }
@@ -367,7 +367,7 @@ public class InheritanceValidator extends ComposableValidator {
         return query.getSuperClasses().stream().anyMatch(superClass ->
             superClass instanceof Query superQuery
                 && !superQuery.eIsProxy()
-                && (superQuery == query || AstUtils.isSameOrSuperTypeOf(query, superQuery))
+                && (superQuery == query || AstUtils.isSameOrSuperClassOf(query, superQuery))
         );
     }
 
@@ -495,7 +495,7 @@ public class InheritanceValidator extends ComposableValidator {
                 return "Type of overriding feature '%s' must be equal to the type of the overridden feature"
                     .formatted(name);
             }
-            if (!isSameOrSubType(reference, overriddenReference)) {
+            if (!isSameOrSubReferenceType(reference, overriddenReference)) {
                 return "Value of overriding feature '%s' cannot be assigned to the type of the overridden feature"
                     .formatted(name);
             }
@@ -503,11 +503,11 @@ public class InheritanceValidator extends ComposableValidator {
         return null;
     }
 
-    private static boolean isSameOrSubType(ReferenceType subType, ReferenceType superType) {
+    private static boolean isSameOrSubReferenceType(ReferenceType subType, ReferenceType superType) {
         return subType.equals(superType) || (
             subType instanceof QueryReferenceType sub
                 && superType instanceof QueryReferenceType sup
-                && AstUtils.isSameOrSuperTypeOf(sup.query(), sub.query())
+                && AstUtils.isSameOrSuperClassOf(sup.query(), sub.query())
         );
     }
 

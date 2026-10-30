@@ -83,7 +83,7 @@ public class InheritanceParseTest extends AbstractInheritanceParseTest {
             }
             """);
 
-        assertThat(result).hasIssues("Unknown cannot be resolved.");
+        assertThat(result).hasExactlyIssues("Unknown cannot be resolved.");
     }
 
     @Test
@@ -94,7 +94,7 @@ public class InheritanceParseTest extends AbstractInheritanceParseTest {
             }
             """);
 
-        assertThat(result).hasIssues("Restaurant cannot be resolved.");
+        assertThat(result).hasExactlyIssues("Restaurant cannot be resolved.");
     }
 
     // ---- super class relation
@@ -105,7 +105,7 @@ public class InheritanceParseTest extends AbstractInheritanceParseTest {
             abstract A extends A {}
             """);
 
-        assertThat(result).hasIssues("A class cannot extend itself");
+        assertThat(result).hasExactlyIssues("A class cannot extend itself");
     }
 
     @Test
@@ -115,7 +115,7 @@ public class InheritanceParseTest extends AbstractInheritanceParseTest {
             abstract B extends A {}
             """);
 
-        assertThat(result).hasIssues("Cyclic inheritance");
+        assertThat(result).hasExactlyIssues("Cyclic inheritance");
         assertThat(result.right().stream().filter(i -> i.getMessage().equals("Cyclic inheritance"))).hasSize(2);
     }
 
@@ -126,7 +126,7 @@ public class InheritanceParseTest extends AbstractInheritanceParseTest {
             abstract B extends A, A {}
             """);
 
-        assertThat(result).hasIssues("Duplicated super class: A");
+        assertThat(result).hasExactlyIssues("Duplicated super class: A");
     }
 
     @Test
@@ -141,7 +141,7 @@ public class InheritanceParseTest extends AbstractInheritanceParseTest {
             }
             """);
 
-        assertThat(result).hasIssues("Class extends the root class and inherits all root containment references");
+        assertThat(result).hasExactlyIssues("Class extends the root class and inherits all root containment references");
         assertThat(result).hasIssueWithSeverity(
             Severity.WARNING,
             "Class extends the root class and inherits all root containment references"
@@ -162,7 +162,7 @@ public class InheritanceParseTest extends AbstractInheritanceParseTest {
             }
             """);
 
-        assertThat(result).hasIssues("Missing override of inherited feature 'name' from 'Named'");
+        assertThat(result).hasExactlyIssues("Missing override of inherited feature 'name' from 'Named'");
     }
 
     @Test
@@ -175,7 +175,7 @@ public class InheritanceParseTest extends AbstractInheritanceParseTest {
             from Restaurant create Rest extends Named
             """);
 
-        assertThat(result).hasIssues("Missing override of inherited feature 'label' from 'Named'");
+        assertThat(result).hasExactlyIssues("Missing override of inherited feature 'label' from 'Named'");
     }
 
     @Test
@@ -195,7 +195,7 @@ public class InheritanceParseTest extends AbstractInheritanceParseTest {
             }
             """);
 
-        assertThat(result).hasIssues("Missing override of inherited feature 'y' from 'B'");
+        assertThat(result).hasExactlyIssues("Missing override of inherited feature 'y' from 'B'");
     }
 
     @Test
@@ -233,7 +233,7 @@ public class InheritanceParseTest extends AbstractInheritanceParseTest {
             }
             """);
 
-        assertThat(result).hasIssues(
+        assertThat(result).hasExactlyIssues(
             "Type of overriding feature 'name' must be equal to the type of the overridden feature"
         );
     }
@@ -248,7 +248,7 @@ public class InheritanceParseTest extends AbstractInheritanceParseTest {
             from Restaurant create R extends Base
             """);
 
-        assertThat(result).hasIssues(
+        assertThat(result).hasExactlyIssues(
             "Type of overriding feature 'name' must be equal to the type of the overridden feature"
         );
     }
@@ -263,7 +263,7 @@ public class InheritanceParseTest extends AbstractInheritanceParseTest {
             from Restaurant create R extends Base
             """);
 
-        assertThat(result).hasIssues("Reference 'sells' cannot override an attribute");
+        assertThat(result).hasExactlyIssues("Reference 'sells' cannot override an attribute");
     }
 
     @Test
@@ -278,7 +278,7 @@ public class InheritanceParseTest extends AbstractInheritanceParseTest {
             }
             """);
 
-        assertThat(result).hasIssues("Cannot assign a single value to a multi-valued feature");
+        assertThat(result).hasExactlyIssues("Cannot assign a single value to a multi-valued feature");
     }
 
     @Test
@@ -293,36 +293,30 @@ public class InheritanceParseTest extends AbstractInheritanceParseTest {
             }
             """);
 
-        assertThat(result).hasIssues("Cannot assign multiple values to a single-valued feature");
+        assertThat(result).hasExactlyIssues("Cannot assign multiple values to a single-valued feature");
     }
 
     @Test
-    void explicitTypesWithInferredSubClassSource() {
+    void implicitClassWithSeveralCandidatesForSuperClassIsAmbiguous() {
         var result = parseWithKennel("""
-            abstract Animal {
-                name: EString
+            from Animal a create A1 {
+                a.name
             }
 
-            from Dog d create D extends Animal {
-                name = d.name
+            from Animal a create A2 {
+                a.name
             }
 
             from Kennel k create K {
                 k.name
-                animals: Animal := k.animals
-            }
-
-            from extends Animal a create Pet {
-                a.name
-            }
-
-            from Kennel k create L {
-                k.name
-                star: Pet = k.star
+                k.star create {
+                    name
+                    breed
+                }
             }
             """);
 
-        assertThat(result).hasNoIssues();
+        assertThat(result).hasExactlyIssues("Ambiguous super class for implicit target class of source class 'Dog'. Possible candidates: A1, A2");
     }
 
     @Test
@@ -337,7 +331,7 @@ public class InheritanceParseTest extends AbstractInheritanceParseTest {
             }
             """);
 
-        assertThat(result).hasIssues("Reference 'sells' cannot override an attribute");
+        assertThat(result).hasExactlyIssues("Reference 'sells' cannot override an attribute");
     }
 
     @Test
@@ -354,7 +348,7 @@ public class InheritanceParseTest extends AbstractInheritanceParseTest {
             }
             """);
 
-        assertThat(result).hasIssues("Attribute 'name' cannot override a reference");
+        assertThat(result).hasExactlyIssues("Attribute 'name' cannot override a reference");
     }
 
     @Test
@@ -373,7 +367,7 @@ public class InheritanceParseTest extends AbstractInheritanceParseTest {
             }
             """);
 
-        assertThat(result).hasIssues(
+        assertThat(result).hasExactlyIssues(
             "Value of overriding feature 'sells' cannot be assigned to the type of the overridden feature"
         );
     }
@@ -398,7 +392,7 @@ public class InheritanceParseTest extends AbstractInheritanceParseTest {
             }
             """);
 
-        assertThat(result).hasIssues(
+        assertThat(result).hasExactlyIssues(
             "Type of overriding feature 'sells' must be equal to the type of the overridden feature"
         );
     }
@@ -415,14 +409,14 @@ public class InheritanceParseTest extends AbstractInheritanceParseTest {
             }
             """);
 
-        assertThat(result).hasIssues("Modifiers of overriding feature 'name' are ignored");
+        assertThat(result).hasExactlyIssues("Modifiers of overriding feature 'name' are ignored");
         assertThat(result).hasIssueWithSeverity(Severity.WARNING, "Modifiers of overriding feature 'name' are ignored");
     }
 
     // ---- explicitly typed references to classes with sub classes
 
     @Test
-    void ambiguousExplicitSuperType() {
+    void ambiguousExplicitSuperClass() {
         var result = parse("""
             from Food create Dish
 
@@ -433,13 +427,13 @@ public class InheritanceParseTest extends AbstractInheritanceParseTest {
             }
             """);
 
-        assertThat(result).hasIssues(
+        assertThat(result).hasExactlyIssues(
             "Ambiguous target class for source class 'Food'. Possible candidates: Dish, Special"
         );
     }
 
     @Test
-    void unambiguousExplicitSubType() {
+    void unambiguousExplicitSubClass() {
         var result = parse("""
             from Food create Dish
 
@@ -454,8 +448,7 @@ public class InheritanceParseTest extends AbstractInheritanceParseTest {
     }
 
     /**
-     * {@code FeatureValidator.checkQueryType} dereferences the source map entry of the inferred class without a
-     * null check. This throws if no query selects the inferred class.
+     * A reference with an explicit class type is reported as a type mismatch if no query selects the inferred class.
      */
     @Test
     void explicitQueryTypeWithoutQueryForInferredClass() {
@@ -467,12 +460,11 @@ public class InheritanceParseTest extends AbstractInheritanceParseTest {
             }
             """);
 
-        assertThat(result).hasIssues("Type mismatch: cannot convert from Food to Rev");
+        assertThat(result).hasExactlyIssues("Type mismatch: cannot convert from Food to Rev");
     }
 
     /**
-     * Checks with an explicit class type must terminate for cyclic inheritance (the old {@code AstUtils.isSuperTypeOf}
-     * recursed without a visited set).
+     * Checks with an explicit class type terminate for cyclic inheritance.
      */
     @Test
     void cyclicInheritanceWithExplicitQueryType() {
@@ -489,7 +481,7 @@ public class InheritanceParseTest extends AbstractInheritanceParseTest {
             }
             """);
 
-        assertThat(result).hasIssues(
+        assertThat(result).hasExactlyIssues(
             "Cyclic inheritance",
             "Type mismatch: cannot convert from Food to Other"
         );
@@ -507,7 +499,7 @@ public class InheritanceParseTest extends AbstractInheritanceParseTest {
             }
             """);
 
-        assertThat(result).hasIssues("The method or field doesNotExist is undefined for the type Restaurant");
+        assertThat(result).hasExactlyIssues("The method or field doesNotExist is undefined for the type Restaurant");
     }
 
 }
