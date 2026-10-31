@@ -84,6 +84,8 @@ public abstract class AbstractModelCollector {
                         throw new RuntimeException(e);
                     }
                 })
+                // directory entries can look like models too, e.g. META-INF/maven/org.eclipse.emf/org.eclipse.emf.ecore/
+                .filter(Files::isRegularFile)
                 .toList();
         } catch (IOException | ProviderNotFoundException e) {
             throw new RuntimeException(e);
