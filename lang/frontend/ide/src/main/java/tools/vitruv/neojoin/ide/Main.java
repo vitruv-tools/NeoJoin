@@ -27,6 +27,7 @@ import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 @NullUnmarked
@@ -35,6 +36,9 @@ public class Main implements Runnable {
 
     @Option(names = {"-m", "--meta-model-path"}, paramLabel = "MODEL-PATH", required = true, description = "Path specification to find referenced meta-models.")
     String metaModelPath;
+
+    @Option(names = {"--excluded-directories"}, paramLabel = "NAMES", split = ";", description = "Names of directories that are not indexed (e.g. build output), separated by semicolons.")
+    List<String> excludedDirectories = new ArrayList<>();
 
     @ArgGroup(exclusive = false)
     Logging logging;
@@ -76,7 +80,7 @@ public class Main implements Runnable {
         System.out.println("Starting NeoJoin IDE server...");
 
         var serverModule = Modules.override(new ServerModule()).with(binder ->
-            binder.bind(IFileSystemScanner.class).to(NeoJoinFileSystemScanner.class)
+            binder.bind(IFileSystemScanner.class).toInstance(new NeoJoinFileSystemScanner(Set.copyOf(excludedDirectories)))
         );
         var languageServer = Guice.createInjector(serverModule).getInstance(NeoJoinIdeServer.class);
         var launcher = Launcher.createLauncher(
