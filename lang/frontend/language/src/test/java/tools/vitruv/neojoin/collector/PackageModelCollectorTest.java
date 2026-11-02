@@ -37,4 +37,23 @@ class PackageModelCollectorTest {
         assertThat(result.right().keySet()).containsExactly("http://example.org/restaurant");
     }
 
+    /**
+     * Collecting must not keep the archive open (on Windows an open archive cannot be deleted or replaced).
+     */
+    @Test
+    void releasesArchivesAfterCollecting(@TempDir Path dir) throws IOException {
+        var jar = dir.resolve("models.jar");
+        try (var out = new ZipOutputStream(Files.newOutputStream(jar));
+             InputStream model = Objects.requireNonNull(getClass().getResourceAsStream("/models/restaurant.ecore"))) {
+            out.putNextEntry(new ZipEntry("model/restaurant.ecore"));
+            model.transferTo(out);
+            out.closeEntry();
+        }
+
+        new PackageModelCollector(jar.toString()).collect();
+
+        Files.delete(jar);
+        assertThat(jar).doesNotExist();
+    }
+
 }

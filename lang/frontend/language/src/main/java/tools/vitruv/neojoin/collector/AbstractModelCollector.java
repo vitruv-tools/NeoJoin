@@ -58,7 +58,7 @@ public abstract class AbstractModelCollector {
 			return paths
 				.filter(Files::isRegularFile)
                 .flatMap(file -> isSupportedArchive(file) ? getContainedFilesInArchive(file).stream() : Stream.of(file))
-				.map(path -> URI.createURI(path.toUri().toString()))
+				.map(AbstractModelCollector::toEmfUri)
 				.filter(uri -> Objects.equals(uri.fileExtension(), extension))
 				.toList();
 		} catch (NoSuchFileException e) {
@@ -67,6 +67,16 @@ public abstract class AbstractModelCollector {
 			throw new RuntimeException(e);
 		}
 	}
+
+    /**
+     * Entries of an archive have {@code jar:} URIs. EMF loads those through {@code java.net.JarURLConnection}, which
+     * caches the opened archive and keeps it locked (on Windows it cannot be deleted or replaced). EMF's own
+     * {@code archive:} scheme closes the archive after reading the entry.
+     */
+    private static URI toEmfUri(Path path) {
+        var uri = path.toUri().toString();
+        return URI.createURI(uri.startsWith("jar:") ? "archive:" + uri.substring("jar:".length()) : uri);
+    }
 
     public static boolean isSupportedArchive(Path file) {
         var name = file.getFileName().toString().toLowerCase();
