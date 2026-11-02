@@ -84,8 +84,8 @@ public class AQRBuilder {
     private final Map<EClass, Set<AQRTargetClass>> sourceClassToAQR = new HashMap<>(); // source class -> aqr targets
     private final Map<Query, AQRTargetClass> queryToTarget = new HashMap<>(); // query (Query | SubQuery) -> target class
 
-    // classes that cannot declare super classes (implicit classes and classes of subqueries), see linkImplicitSuperClasses
-    private final List<AQRTargetClass> classesWithImplicitSuperClasses = new ArrayList<>();
+    // implicit classes, they cannot declare super classes, see linkImplicitSuperClasses
+    private final List<AQRTargetClass> implicitClasses = new ArrayList<>();
 
     public AQRBuilder(ViewTypeDefinition viewTypeDefinition, ExpressionHelper expressionHelper) {
         this.viewTypeDefinition = viewTypeDefinition;
@@ -118,7 +118,7 @@ public class AQRBuilder {
             populateTargetClass(entry.left(), entry.right() == null ? null : AstUtils.getBody(entry.right()));
         }
 
-        // link implicit classes and classes of subqueries to the target classes of their source super classes
+        // link implicit classes to the target classes of their source super classes
         linkImplicitSuperClasses();
 
         // identify and verify inheritance
@@ -165,8 +165,8 @@ public class AQRBuilder {
             invariant(previous == null);
         }
 
-        if (query == null || query instanceof SubQuery) {
-            classesWithImplicitSuperClasses.add(target);
+        if (query == null) {
+            implicitClasses.add(target);
         }
 
         if (source != null) {
@@ -416,17 +416,18 @@ public class AQRBuilder {
     }
 
     /**
-     * Adds super classes to implicit target classes and to the target classes of subqueries, because they cannot
-     * declare {@code extends} themselves. Explicit main queries never get implicit super classes.
+     * Adds super classes to implicit target classes, because they cannot declare {@code extends} themselves.
+     * Explicit main queries and subqueries never get implicit super classes. The target classes of subqueries can be
+     * linked as super classes, though.
      * <p>
-     * For such a class with source class {@code S}, the source super classes of {@code S} are searched level by
+     * For an implicit class with source class {@code S}, the source super classes of {@code S} are searched level by
      * level (nearest first). At the nearest level with at least one target class of a source super class, that target
      * class becomes the super class. Target classes for super classes are never created, only existing ones are linked.
      *
      * @see #findImplicitSuperClass
      */
     private void linkImplicitSuperClasses() {
-        for (var targetClass : classesWithImplicitSuperClasses) {
+        for (var targetClass : implicitClasses) {
             findImplicitSuperClass(targetClass).ifPresent(targetClass::addSuperClass);
         }
     }
@@ -439,7 +440,7 @@ public class AQRBuilder {
      */
     private Optional<AQRTargetClass> findImplicitSuperClass(AQRTargetClass targetClass) {
         var source = targetClass.source();
-        invariant(source != null, "Class with implicit super classes must have a source");
+        invariant(source != null, "Implicit class must have a source");
 
         var candidates = EMFUtils.findInNearestSuperClasses(source.from().clazz(), this::findTargetClassesOfSourceClass).stream()
             .sorted(Comparator.comparing(AQRTargetClass::name))

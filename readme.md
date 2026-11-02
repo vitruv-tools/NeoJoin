@@ -47,7 +47,7 @@ create Dish extends Item {
 
 NeoJoin supports the usage and definition of inheritance in meta-models. Defining inheritance in the view type covers multiple aspects: `abstract` declares an abstract class without instances, while `extends` makes a class inherit from other classes (abstract or concrete) of the view type. Abstract classes declare features, for which extending classes must define the transformation. An override takes the modifiers and the type of the overridden feature. An explicitly written type must be equal to the type of the overridden feature. The type of an attribute expression must be equal to the type of the overridden feature, while the type of a reference expression can be the same class or a sub class. `from` selects only the direct instances of the specified source class, while `from extends` also selects the instances of its sub classes.
 
-*Note that queries do not inherit from each other:* `extends` only specifies inheritance between the classes of the resulting view type. The behavior of a query (source, join, filter, grouping, feature expressions) cannot be inherited, so a class that extends another class still has to define how each of its features is computed.
+*Note that queries do not inherit from each other:* `extends` only specifies inheritance between the classes of the resulting view type. The behavior of a query (source, join, filter, grouping, feature expressions) cannot be inherited, so a class that extends another class still has to define how each of its features is computed. Subqueries cannot declare `extends`, so their classes have no super classes (they can be super classes of other classes).
 
 ### Features
 

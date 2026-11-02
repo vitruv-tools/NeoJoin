@@ -411,11 +411,11 @@ public class FeatureValidator extends ComposableValidator {
     }
 
     /**
-     * Checks that implicit target classes and subquery classes have an unambiguous super class.
+     * Checks that implicit target classes have an unambiguous super class.
      * <p>
      * {@code AQRBuilder} links these classes (they cannot declare {@code extends}) to the target class of their
      * nearest source super class that has one: a query that selects exactly this source class (single {@code from},
-     * no joins, no grouping, or a subquery), or an implicit target class. It fails if several target classes exist
+     * no joins, no grouping, including subqueries), or an implicit target class. It fails if several target classes exist
      * on the nearest level of the source class hierarchy, so this is reported here instead. The check in
      * {@code AQRBuilder.findImplicitSuperClass} stays as the safeguard for queries that were not validated (it
      * decides which class is linked, while this method only reports the ambiguity to the user).
@@ -433,15 +433,6 @@ public class FeatureValidator extends ComposableValidator {
         implicitClasses.forEach((sourceClass, cause) ->
             checkSuperClassCandidates(sourceClass, cause, queriesBySourceClass, implicitClasses.keySet())
         );
-        AstUtils.getAllQueries(viewType)
-            .filter(SubQuery.class::isInstance)
-            .map(SubQuery.class::cast)
-            .forEach(subQuery -> {
-                var sourceClass = AstUtils.inferSubQuerySourceType(subQuery, expressionHelper);
-                if (sourceClass != null) {
-                    checkSuperClassCandidates(sourceClass, subQuery, queriesBySourceClass, implicitClasses.keySet());
-                }
-            });
     }
 
     private void checkSuperClassCandidates(

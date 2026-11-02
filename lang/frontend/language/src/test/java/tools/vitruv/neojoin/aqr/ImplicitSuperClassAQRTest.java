@@ -9,10 +9,10 @@ import static tools.vitruv.neojoin.aqr.AQRAssertions.assertThat;
 import static tools.vitruv.neojoin.aqr.AQRTargetClassAssertions.assertThat;
 
 /**
- * Intended behavior: an implicit target class gets super class links to the target classes of its source super
- * classes if those are part of the view type. If the direct source super class is not part of the view, the nearest
- * source ancestor that is part of the view is used (assumption). Selecting a class alone must not create target
- * classes for its super classes.
+ * Intended behavior: an implicit target class (but not the class of a subquery) gets super class links to the
+ * target classes of its source super classes if those are part of the view type. If the direct source super class
+ * is not part of the view, the nearest source ancestor that is part of the view is used (assumption). Selecting a
+ * class alone must not create target classes for its super classes.
  */
 public class ImplicitSuperClassAQRTest extends AbstractKennelTest {
 
@@ -193,16 +193,17 @@ public class ImplicitSuperClassAQRTest extends AbstractKennelTest {
     }
 
     /**
-     * Decided: subqueries cannot declare {@code extends}, so like implicit classes the class of a subquery gets super
-     * class links to the available target classes of its source super classes (explicit or implicit classes, nearest
-     * ancestor), independently of how these are transformed. Subqueries select direct instances and instances of sub
-     * classes. The class of the subquery, Dog, therefore extends the explicit class Pet.
+     * Subqueries cannot declare {@code extends}, so their classes get no super classes, even though the explicit
+     * class Pet exists for the source super class Animal. Pet has a feature that the subquery class Dog does not
+     * declare, which would violate the rule that sub classes override all inherited features if Dog extended Pet.
+     * Subqueries select direct instances and instances of sub classes.
      */
     @Test
-    void subQueryClassIsLinkedToSuperClassInView() {
+    void subQueryClassHasNoSuperClasses() {
         var aqr = parse("""
             from extends Animal a create Pet {
                 a.name
+                tag = a.name
             }
 
             from Kennel k create KennelT {
@@ -215,7 +216,7 @@ public class ImplicitSuperClassAQRTest extends AbstractKennelTest {
             """);
 
         var dog = find(aqr, "Dog");
-        assertThat(dog.superClasses()).extracting(AQRTargetClass::name).containsExactly("Pet");
+        assertThat(dog).hasNoSuperClasses();
         assertThat(dog.features()).extracting(AQRFeature::name).containsExactlyInAnyOrder("name", "breed");
         assertThat(dog).sourceIncludesSubClasses();
     }

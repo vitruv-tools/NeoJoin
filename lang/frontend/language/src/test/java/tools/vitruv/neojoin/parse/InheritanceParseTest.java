@@ -309,10 +309,7 @@ public class InheritanceParseTest extends AbstractInheritanceParseTest {
 
             from Kennel k create K {
                 k.name
-                k.star create {
-                    name
-                    breed
-                }
+                k.star
             }
             """);
 
