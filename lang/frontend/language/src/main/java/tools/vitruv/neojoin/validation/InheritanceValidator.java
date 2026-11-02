@@ -31,14 +31,13 @@ import java.util.stream.Collectors;
 /**
  * Validates the inheritance relations between target classes (see {@code extends} in queries).
  * <p>
- * The checks mirror the invariants of {@link tools.vitruv.neojoin.aqr.AQRBuilder} (mainly
- * {@code addSuperClassesToTargetClass}, {@code applyInheritance} and {@code determineReferenceType}) so that invalid
- * queries are reported as issues instead of failing with an {@code AQRInvariantViolatedException} during AQR
- * construction. They also protect the later stages, which rely on a well-formed class hierarchy:
+ * The checks mirror the invariants of {@link tools.vitruv.neojoin.aqr.AQRBuilder} (wiring of the super classes,
+ * application of inheritance, and determination of reference types) so that invalid queries are reported as issues
+ * instead of failing with an {@code AQRInvariantViolatedException} during AQR construction. They also protect the
+ * later stages, which rely on a well-formed class hierarchy:
  * {@link tools.vitruv.neojoin.generation.MetaModelGenerator} maps the super classes to {@code eSuperTypes} (which
  * must be acyclic and duplicate free), and the transformation resolves references to instances of sub classes via
- * {@code AQRTargetClass.allSuperClasses()} (see {@code TargetMap.get(...)} in the EMF backend) and
- * evaluates overriding features via {@code AQRFeature.Kind.Override} ({@code Transformator.evaluateFeature}).
+ * the transitive super classes of the target classes and evaluates overriding features via their overriding kind.
  * <p>
  * Note that the rules only handle inheritance. The validation of features and types in general is done by
  * {@link FeatureValidator} and {@link FeatureModifierValidator}.
@@ -54,8 +53,8 @@ public class InheritanceValidator extends ComposableValidator {
      * Checks that a class does not (transitively) extend itself.
      * <p>
      * A class that extends itself has no finite set of super classes: the generated {@code eSuperTypes} would be
-     * cyclic (invalid Ecore), and walking the hierarchy ({@code AQRTargetClass.allSuperClasses()},
-     * {@code AstUtils.isSameOrSuperClassOf}) would not terminate or would produce meaningless results.
+     * cyclic (invalid Ecore), and walking the hierarchy (e.g. collecting all transitive super
+     * classes) would not terminate or would produce meaningless results.
      */
     @Check
     public void checkAcyclicInheritance(MainQuery query) {
@@ -76,8 +75,8 @@ public class InheritanceValidator extends ComposableValidator {
     /**
      * Checks that a class lists each super class only once.
      * <p>
-     * A duplicated super class would be added twice to {@code AQRTargetClass.superClasses()}
-     * ({@code AQRBuilder.addSuperClassesToTargetClass}) and to the {@code eSuperTypes} of the generated class.
+     * A duplicated super class would be added twice to the super classes of the target class in the AQR
+     * and to the {@code eSuperTypes} of the generated class.
      */
     @Check
     public void checkDuplicatedSuperClasses(MainQuery query) {
@@ -102,8 +101,8 @@ public class InheritanceValidator extends ComposableValidator {
     /**
      * Warns if a class extends the root class.
      * <p>
-     * The containment references of the root class are generated last ({@code AQRBuilder.populateRoot}, after
-     * {@code applyInheritance}), so they are not part of the features that the sub class has to override. The sub
+     * The containment references of the root class are generated last (after inheritance was applied), so they
+     * are not part of the features that the sub class has to override. The sub
      * class would nevertheless inherit them in the generated view type, which is rarely intended.
      */
     @Check
@@ -128,7 +127,7 @@ public class InheritanceValidator extends ComposableValidator {
      * them.
      * <p>
      * A class overrides a feature that is provided by several super classes (diamond) only once, and
-     * {@code AQRBuilder.applyInheritance} takes the type and modifiers of the overridden feature. This is only
+     * the AQR construction takes the type and modifiers of the overridden feature. This is only
      * well-defined if the provided features are equivalent (same name, type and effective modifiers). Otherwise, the
      * overriding feature cannot be assigned through all super classes in the generated view type and during the
      * transformation.
@@ -156,10 +155,9 @@ public class InheritanceValidator extends ComposableValidator {
     /**
      * Checks that a class declares every inherited feature again.
      * <p>
-     * Without a declaration, the transformation would have no way to compute the value
-     * ({@code Transformator.evaluateFeature} only evaluates the overriding kind of an
-     * {@code AQRFeature.Kind.Override}). {@code AQRBuilder.applyInheritance} requires this ("Sub classes must
-     * override all inherited features").
+     * Without a declaration, the transformation would have no way to compute the value (it only evaluates
+     * the overriding kind of an overriding feature). The AQR construction requires this ("Sub classes must override
+     * all inherited features").
      */
     @Check
     public void checkInheritedFeaturesAreOverridden(MainQuery query) {
@@ -188,8 +186,8 @@ public class InheritanceValidator extends ComposableValidator {
     /**
      * Warns about modifiers on overriding features.
      * <p>
-     * {@code AQRBuilder.applyInheritance} replaces the modifiers of an overriding feature by the modifiers of the
-     * overridden feature ({@code withOptions}), so modifiers written on the overriding feature have no effect.
+     * The AQR construction replaces the modifiers of an overriding feature by the modifiers of the overridden
+     * feature, so modifiers written on the overriding feature have no effect.
      */
     @Check
     public void checkOverridingFeatureModifiers(MainQuery query) {
@@ -216,7 +214,7 @@ public class InheritanceValidator extends ComposableValidator {
      * Attributes must override attributes of the same data type, and references must override references. An
      * overriding feature has the type of the overridden feature (a stricter type would break setting the reference
      * through the super class): an explicit type must be equal to it, and the type of the value must be equal to it or
-     * a sub class (invariants in {@code AQRBuilder.applyInheritance}). Otherwise, the generated view type would be
+     * a sub class (invariants of the AQR construction). Otherwise, the generated view type would be
      * invalid, and values could not be assigned to the inherited feature during the transformation.
      * Features that are inherited from conflicting features of multiple super classes are skipped (see
      * {@link #checkConflictingInheritedFeatures}); equivalent ones are overridden once and the first provider
@@ -257,10 +255,10 @@ public class InheritanceValidator extends ComposableValidator {
     /**
      * Checks that the expression of an overriding feature has the multiplicity of the overridden feature.
      * <p>
-     * The modifiers of an overriding feature are ignored ({@code AQRBuilder.applyInheritance} takes them from the
-     * overridden feature), so {@link FeatureModifierValidator#checkMultiplicity} compares the expression only with
+     * The modifiers of an overriding feature are ignored (the AQR construction takes them from the overridden
+     * feature), so {@link FeatureModifierValidator#checkMultiplicity} compares the expression only with
      * the modifiers written on the overriding feature. A single value for a multi-valued feature (or the other way
-     * around) would make {@code Transformator.cast} cast the value to the wrong kind. Nothing is reported if the
+     * around) would make the transformation cast the value to the wrong kind. Nothing is reported if the
      * overriding feature writes a multiplicity with the same cardinality as the overridden one, because
      * {@code FeatureModifierValidator} already reports the same error.
      */
@@ -315,8 +313,8 @@ public class InheritanceValidator extends ComposableValidator {
      * Warns if a nullable expression ({@code ?.}) initializes a required feature of a class with super classes.
      * <p>
      * An overriding feature has the modifiers of the overridden feature, so whether it is required depends on those
-     * ({@code AQRBuilder.applyInheritance}) and not on the modifiers written on the overriding feature. The check for
-     * other classes is {@code FeatureValidator.checkFeatureNullability}, which does not know the inherited modifiers.
+     * (see the AQR construction) and not on the modifiers written on the overriding feature. The check for other
+     * classes is part of the {@link FeatureValidator}, which does not know the inherited modifiers.
      */
     @Check
     public void checkNullableExpressionForRequiredFeature(MainQuery query) {
@@ -476,7 +474,7 @@ public class InheritanceValidator extends ComposableValidator {
             return null;
         }
         if (overriding instanceof AmbiguousReferenceType || overridden instanceof AmbiguousReferenceType) {
-            return null; // reported by FeatureValidator.checkAmbiguousImplicitFeatureTypes
+            return null; // reported by FeatureValidator
         }
 
         if (overriding instanceof AttributeType attribute) {

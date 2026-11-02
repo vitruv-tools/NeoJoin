@@ -258,7 +258,7 @@ public class AQRBuilder {
      */
     private Optional<AQRTargetClass> findExplicitAbstractClassWithoutSource(String name) {
         return targetClasses.stream()
-            .filter(targetClass -> targetClass.isAbstract() && targetClass.source() == null && targetClass.name().equals(name))
+            .filter(targetClazz -> targetClazz.isAbstract() && targetClazz.source() == null && targetClazz.name().equals(name))
             .findFirst();
     }
 
@@ -452,16 +452,16 @@ public class AQRBuilder {
      * level (nearest first). At the nearest level with at least one target class of a source super class, that target
      * class becomes the super class, but only if the implicit class has all features of it (it must override every
      * inherited feature, see {@link #applyInheritance}). Otherwise the implicit class gets no super class, which
-     * {@code FeatureValidator.checkAmbiguousImplicitSuperClasses} reports as a warning. Target classes for super
+     * {@code ImplicitSuperClassValidator.checkAmbiguousImplicitSuperClasses} reports as a warning. Target classes for super
      * classes are never created, only existing ones are linked.
      *
      * @see #findImplicitSuperClass
      */
     private void linkImplicitSuperClasses() {
-        for (var targetClass : implicitClasses) {
-            findImplicitSuperClass(targetClass)
-                .filter(superClass -> hasAllFeaturesOf(targetClass, superClass))
-                .ifPresent(targetClass::addSuperClass);
+        for (var targetClazz : implicitClasses) {
+            findImplicitSuperClass(targetClazz)
+                .filter(superClass -> hasAllFeaturesOf(targetClazz, superClass))
+                .ifPresent(targetClazz::addSuperClass);
         }
     }
 
@@ -470,8 +470,8 @@ public class AQRBuilder {
      * The explicit super classes of an explicit or subquery class are already set. An implicit super class always
      * passes: its features are source features of its source class, which the target class also has.
      */
-    private static boolean hasAllFeaturesOf(AQRTargetClass targetClass, AQRTargetClass superClass) {
-        var names = targetClass.features().stream().map(AQRFeature::name).collect(Collectors.toSet());
+    private static boolean hasAllFeaturesOf(AQRTargetClass targetClazz, AQRTargetClass superClass) {
+        var names = targetClazz.features().stream().map(AQRFeature::name).collect(Collectors.toSet());
         return Stream.concat(Stream.of(superClass), superClass.allSuperClasses().stream())
             .flatMap(c -> c.features().stream())
             .allMatch(feature -> names.contains(feature.name()));
@@ -483,8 +483,8 @@ public class AQRBuilder {
      *
      * @return the super class, empty if no source super class has a target class
      */
-    private Optional<AQRTargetClass> findImplicitSuperClass(AQRTargetClass targetClass) {
-        var source = targetClass.source();
+    private Optional<AQRTargetClass> findImplicitSuperClass(AQRTargetClass targetClazz) {
+        var source = targetClazz.source();
         invariant(source != null, "Implicit class must have a source");
 
         var candidates = EMFUtils.findInNearestSuperClasses(source.from().clazz(), this::findTargetClassesOfSourceClass).stream()
@@ -494,12 +494,12 @@ public class AQRBuilder {
             return Optional.empty();
         }
 
-        // ambiguity is reported to users by FeatureValidator.checkAmbiguousImplicitSuperClasses, this guards
+        // ambiguity is reported to users by ImplicitSuperClassValidator.checkAmbiguousImplicitSuperClasses, this guards
         // against queries that were not validated (the first candidate would be an arbitrary choice)
         invariant(
             candidates.size() == 1,
             () -> "Ambiguous super class for target class '%s'. Possible candidates: %s".formatted(
-                targetClass.name(),
+                targetClazz.name(),
                 candidates.stream().map(AQRTargetClass::name).collect(Collectors.joining(", "))
             )
         );
@@ -512,8 +512,8 @@ public class AQRBuilder {
      */
     private List<AQRTargetClass> findTargetClassesOfSourceClass(EClass sourceClass) {
         return sourceClassToAQR.getOrDefault(sourceClass, Set.of()).stream()
-            .filter(targetClass -> {
-                var source = Objects.requireNonNull(targetClass.source());
+            .filter(targetClazz -> {
+                var source = Objects.requireNonNull(targetClazz.source());
                 return source.from().clazz() == sourceClass
                     && source.joins().isEmpty()
                     && source.groupingExpressions().isEmpty();
@@ -536,22 +536,22 @@ public class AQRBuilder {
      */
     private void applyInheritanceToAllTargetClasses() {
         var processed = new HashSet<AQRTargetClass>();
-        for (var targetClass : targetClasses) {
-            applyInheritanceSuperClassesFirst(targetClass, processed);
+        for (var targetClazz : targetClasses) {
+            applyInheritanceSuperClassesFirst(targetClazz, processed);
         }
     }
 
-    private void applyInheritanceSuperClassesFirst(AQRTargetClass targetClass, Set<AQRTargetClass> processed) {
-        if (!processed.add(targetClass)) {
+    private void applyInheritanceSuperClassesFirst(AQRTargetClass targetClazz, Set<AQRTargetClass> processed) {
+        if (!processed.add(targetClazz)) {
             return;
         }
 
-        invariant(!targetClass.allSuperClasses().contains(targetClass), () -> "Cyclic inheritance of class '%s'".formatted(targetClass.name()));
-        for (var superClass : targetClass.superClasses()) {
+        invariant(!targetClazz.allSuperClasses().contains(targetClazz), () -> "Cyclic inheritance of class '%s'".formatted(targetClazz.name()));
+        for (var superClass : targetClazz.superClasses()) {
             applyInheritanceSuperClassesFirst(superClass, processed);
         }
 
-        applyInheritance(targetClass);
+        applyInheritance(targetClazz);
     }
 
     /**
@@ -559,22 +559,22 @@ public class AQRBuilder {
      * checks that all inherited features are overridden. Requires that inheritance was already applied to all super
      * classes.
      */
-    private void applyInheritance(AQRTargetClass targetClass) {
-        var superClassFeatures = targetClass.superClasses().stream().flatMap(superClass -> superClass.features().stream()).toList();
+    private void applyInheritance(AQRTargetClass targetClazz) {
+        var superClassFeatures = targetClazz.superClasses().stream().flatMap(superClass -> superClass.features().stream()).toList();
 
         // update overriding features
-        targetClass.replaceFeatures(targetClass.features().stream().map(feature -> {
+        targetClazz.replaceFeatures(targetClazz.features().stream().map(feature -> {
             var overriddenFeatures = superClassFeatures.stream().filter(superClassFeature -> superClassFeature.name().equals(feature.name())).toList();
             if (overriddenFeatures.isEmpty()) {
                 return feature;
             }
 
-            var overriddenFeature = getOverriddenFeature(targetClass, overriddenFeatures);
+            var overriddenFeature = getOverriddenFeature(targetClazz, overriddenFeatures);
             return createOverridingFeature(feature, overriddenFeature);
         }).toList());
 
         // check if all inherited features are overridden
-        invariant(superClassFeatures.stream().allMatch(superClassFeature -> targetClass.features().stream().anyMatch(feature -> feature.name().equals(superClassFeature.name()) && (feature.kind() instanceof AQRFeature.Kind.Override))),
+        invariant(superClassFeatures.stream().allMatch(superClassFeature -> targetClazz.features().stream().anyMatch(feature -> feature.name().equals(superClassFeature.name()) && (feature.kind() instanceof AQRFeature.Kind.Override))),
             "Sub classes must override all inherited features");
     }
 
@@ -584,13 +584,13 @@ public class AQRBuilder {
      *
      * @param overriddenFeatures the features with the same name in the direct super classes (at least one)
      */
-    private static AQRFeature getOverriddenFeature(AQRTargetClass targetClass, List<AQRFeature> overriddenFeatures) {
+    private static AQRFeature getOverriddenFeature(AQRTargetClass targetClazz, List<AQRFeature> overriddenFeatures) {
         var first = overriddenFeatures.get(0);
         for (var other : overriddenFeatures) {
             invariant(
                 isEquivalent(first, other),
                 () -> "Class '%s' inherits conflicting features named '%s' from several super classes: %s and %s".formatted(
-                    targetClass.name(),
+                    targetClazz.name(),
                     first.name(),
                     first,
                     other

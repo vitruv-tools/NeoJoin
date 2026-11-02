@@ -374,8 +374,9 @@ public class Transformator {
             // the source may be an instance of a sub class of the class declaring the feature
             check(source != null && feature.getEContainingClass().isSuperTypeOf(source.eClass()));
             return source.eGet(feature);
-        } else if (featureKind instanceof AQRFeature.Kind.Override(AQRFeature overridden, AQRFeature.Kind overriding)) {
-            return evaluateFeature(overriding, source, context);
+        } else if (featureKind instanceof AQRFeature.Kind.Override override) {
+            // the value is derived by the overriding kind, the overridden feature only provides type and modifiers
+            return evaluateFeature(override.overriding(), source, context);
         } else {
             return fail();
         }
