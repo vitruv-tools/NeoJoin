@@ -81,7 +81,7 @@ export default class VisualizationManager {
         );
 
         panel.onDidChangeViewState(() => {
-            this.updateAll(true);
+            this.update(currentEditor.document, true);
         });
 
         this.restore(panel, currentEditor.document, createPanelOptions());

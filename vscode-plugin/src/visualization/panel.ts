@@ -172,7 +172,7 @@ export default class VisualizationPanel {
             const type = result.value.message
                 ? MessageType.Warning
                 : MessageType.Ok;
-            this.#sendToWebview(type, result.value.message, result.value.svg);
+            this.#sendToWebview(type, result.value.message, result.value.svg, this.#options);
         }
     }
 
@@ -182,8 +182,8 @@ export default class VisualizationPanel {
      * @param message optional info message to show
      * @param svg optional visualization as SVG string to display
      */
-    #sendToWebview(type: MessageType, message = "", svg?: string) {
-        this.webview.webview.postMessage({ type, message, svg });
+    #sendToWebview(type: MessageType, message = "", svg?: string, options?: PanelOptions) {
+        this.webview.webview.postMessage({ type, message, svg, options });
     }
 
     /**
