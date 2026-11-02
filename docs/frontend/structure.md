@@ -17,6 +17,9 @@ The **language frontend** parses the given query and together with the reference
     * generating queries for classes which are referenced but not explicitly generated from a query
     * populating query target classes with features when no body was provided (e.g. `from Food create`)
     * collecting declared query parameters and their types for resolution during transformation
+    * wiring the super classes of target classes (declared via `extends`) and linking implicit target classes to the target classes of their source super classes
+    * applying inheritance: a feature that overrides an inherited feature takes its type and modifiers, and all inherited features must be overridden
+    * not generating root references for abstract classes
 * `collector` - collecting input models (meta or instance) from a given search path
 * `generation` - target meta-model generation from AQR
 * `jvmmodel` - Xtend expressions (= Xbase) work on java classes.
