@@ -207,7 +207,7 @@ public class AbstractClassTest extends AbstractKennelTest {
 
         assertThat(result)
             .hasAttribute("name", "zoo")
-            .hasManyReference("allDogTs", named("Rex"))
+            .hasManyReference("dogTs", named("Rex"))
             .hasInstance("DogT", named("Rex"))
             .hasNoMoreInstances();
     }

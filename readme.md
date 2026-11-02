@@ -52,14 +52,32 @@ NeoJoin supports the usage and definition of inheritance in meta-models. Definin
 ### Features
 
 * *Generation of the view type* (view meta-model) based on a query
+* *Conformance check* of the generated view type against a reference metamodel, reported directly in the editor
 * *Transformation* of models to derive an instance of a view based on a query
 * *Bidirectional and incremental transformations* using the TGG backend
 * Queries can *select*, *join*, *filter* and *group* classes from the source models
 * *Abstract classes* and *inheritance* between classes of the view (`abstract`, `extends`), and selecting instances of sub classes (`from extends`)
 * Features in the view can be *copied* from the source models, *renamed* or *calculated* based on a custom expression
 * Query conditions and feature definition using [Xtend expressions](https://eclipse.dev/Xtext/xtend/documentation/203_xtend_expressions.html)
+* Parameterizable queries with typed parameters passed at transformation time
 * [VSCode](https://code.visualstudio.com/) plugin for syntax highlighting, code completion, and live visualization of the resulting view type
 * Input and output meta-models as `.ecore` and instance-models as `.xmi` files
+* Source meta-models may reference classes of the Ecore meta-model (e.g. `EObject`) without having Ecore on the meta-model path or importing it
+
+### Keywords
+
+Keywords of the query language are reserved everywhere in a query, including inside expressions, in addition to the
+keywords of [Xbase](https://eclipse.dev/Xtext/xtend/documentation/203_xtend_expressions.html). The
+[grammar](lang/frontend/language/src/main/xtext/tools/vitruv/neojoin/NeoJoin.xtext) defines the current set. To use a
+keyword as the name of a feature, an alias or a method, escape it with `^`, e.g. Xtend's `join` extension method:
+
+```
+from Food f
+group by true
+create Foods {
+    name := f.map[ it.name ].sort.^join("+")
+}
+```
 
 ## Usage
 
@@ -108,6 +126,14 @@ Generate the meta-model:
 Transform the input models:
   -i, --instance-model-path=MODEL-PATH
                            Model path (see below) to find instance models (.xmi).
+  -p, --parameters=PARAMS[,PARAMS...]
+                           Query parameters as comma-separated name=value
+                             pairs. Supported Scalar Types: EString, EInt,
+                             EDouble, EBoolean, ELong and EFloat. Strings with
+                             spaces have to be quoted. For EClass/EList
+                             parameters the value is a path to an XMI file.
+                             Example: -p featureName=Navigation,
+                             activeFeatures=config.xmi
   -t, --transform=OUTPUT   Transform the input models based on the query and
                              write the result to the given output file or
                              directory.
@@ -122,12 +148,45 @@ Model Path
 
 *Note: `QUERY` and `OUTPUT`s need to be specified with regular paths, e.g., `/x/y/z` or `./x/y`.*
 
+### Conformance Validation
+
+A view type often has to fit a meta-model that exists outside the query, for example because a tool that consumes the view was written against it. A query can name such a *reference meta-model* with the optional `conforms to` clause:
+
+```
+export food-view to "https://food.example.com/"
+conforms to "https://food-reference.example.com/"
+
+from Pizza create Food { type := "pizza" }
+```
+
+Whenever the clause is present, NeoJoin generates the view type, compares it against the reference with [EMF Compare](https://eclipse.dev/emfcompare/), and evaluates every structural difference against a catalogue of rules. Each rule decides whether the difference it matches leaves the conformance relation intact, breaks it in a way the query can repair, or breaks it in a way that requires a change to the reference meta-model. Violations are reported on the `conforms to` clause, so they appear in the editor while the query is written. Without the clause, nothing changes and no check runs.
+
+Which differences count as a violation depends on the strictness:
+
+| Strictness    | Requirement                                                                                                                       |
+|---------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| `SUBTYPE`     | The view type has to be usable wherever the reference is expected. Additional structure in the view type is accepted. *(default)* |
+| `EXACT_MATCH` | The view type has to reproduce the reference exactly, so every difference that one of the rules covers is reported.               |
+
+Not every difference is covered by a rule. Moves and changes to the package name, `nsURI` or `nsPrefix` are always ignored, and differences that no rule matches (for example changes to `ordered`, `derived` or `changeable`, annotations, or a renamed element, which EMF Compare reports as an addition plus a deletion) produce no violation under either strictness.
+
+The strictness is selected per view type with the optional `strict` keyword. A plain `conforms to` clause uses `SUBTYPE`, while `strict conforms to` uses `EXACT_MATCH`:
+
+```
+export food-view to "https://food.example.com/"
+strict conforms to "https://food-reference.example.com/"
+
+from Pizza create Food { type := "pizza" }
+```
+
+The rules and their categories are documented in the [conformance validator readme](/lang/conformancevalidator/readme.md).
+
 ### Transformation of Operators to Triple Graph Grammars
 
 1. Build view from operators directly: `var view = new View(); view.addQuery(...);`
 2. Resolve interdependent queries (see documentation in `Query`): `var queries = view.resolveQueries()`
-3. Transform queries to TGG rules: `var rules = query.toRules();`
-4. Build triple grammar from TGG rules: `var grammar = new TripleGrammar(name, ..., rules);`
+3. Get the TGG rules and constraints generated for a query: `var rules = query.getGeneratedRules(); var constraints = query.getGeneratedConstraints();`
+4. Build triple grammar from the TGG rules and constraints: `var grammar = new TripleGrammar(name, rules, constraints, sourceMetamodels, targetMetamodels);`
 5. Optional: generate eMoflon::Neo project: `new Scaffolding(...).create(...);`
 
 You can use the convenience function `API.generateProjectForView(...)` for steps 2 to 5.
@@ -183,6 +242,8 @@ steps describe how to execute the forward and sync transformations with an initi
 | backend-tgg/**driver**     | Auxiliary logic for generating eMoflon::Neo Eclipse projects                                            |
 | backend-tgg/**operators**  | Primary operators for creating TGGs                                                                     |
 | backend-tgg/**transpiler** | The core logic and operators for creating TGGs from operators                                           |
+| **expression-parser**      | Parser for the reference expressions of features *(used by the TGG backend)*                            |
+| **conformancevalidator**   | Rule-based check whether a generated view type conforms to a reference meta-model                       |
 | frontend/**cli**           | CLI interface to execute meta-model generation and instance model transformation *(currently EMF-only)* |
 | frontend/**ide**           | IDE support via language server protocol (LSP)                                                          |
 | frontend/**language**      | Main language implementation and meta-model generator                                                   |
@@ -212,13 +273,32 @@ We use [SonarQube](https://sonarcloud.io/project/overview?id=vitruv-tools_NeoJoi
 
 ### VSCode Plugin
 
-* Open the `vscode-plugin` folder in VSCode (top-level in a workspace)
+* Open the `vscode-plugin` folder in VSCode (top-level in a workspace or add it to another workspace)
 * Run `npm install` to install dependencies
 * Go to `Run and Debug` > Select launch configuration `Launch Client` > Press `Start Debugging`
     * The language server needs a few seconds to start up, so code completion / analysis will not work right at the start.
     * The plugin requires that the `.jar` files have been generated and are at their default location.
     * If you cannot find the launch configuration `Launch Client`, ensure that you have opened VSCode with the `vscode-plugin` folder as your workspace.
 * If you get the error message `Activating extension 'vitruv-tools.neojoin' failed: Cannot find module` check the build task for potential problems: Bottom Panel > Select tab `Terminal` > Select task `watch` (on the right)
+
+* for manual build do the following:
+    ```bash
+    npm clean-install                                                       # only required the first time
+    cp ../lang/frontend/ide/target/tools.vitruv.neojoin.frontend.ide.jar .  # provide lsp for vscode-plugin (this assumes your in the NeoJoin/vscode-plugin and that the lang folder lies beside it)
+    npx @vscode/vsce package
+    ```
+
+### Integration
+
+To integrate NeoJoin into other projects, such as a custom transpiler, the `NeoJoinStandaloneSetup` serves as a starting point.
+One can create a new setup which extends that setup and then use the `xtext-maven-plugin` to integrate the setup into the build process.
+To customize the behavior, overriding of the injection module is used.
+Overriding the `IGenerator` allows supplying a custom generator.
+A custom implementation of `QueryModelExpressionTypeConfiguration` allows customizing the type of the Java model holding the query expressions.
+By default, NeoJoin creates a Java function per XBase expression in a private `AllQueryExpressions` class.
+A custom implementation of `SourceTypeRegistryInitialization` allows customizing the types used in the source type registry.
+By default, NeoJoin infers the types of the source metamodel using the `SourceModelInferrer` class.
+This means it creates a Java class model for each type in the source metamodel.
 
 ### Notes
 

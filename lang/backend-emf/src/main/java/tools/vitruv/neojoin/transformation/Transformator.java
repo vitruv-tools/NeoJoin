@@ -9,7 +9,7 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.jspecify.annotations.Nullable;
-import tools.vitruv.neojoin.Constants;
+import tools.vitruv.neojoin.Formatting;
 import tools.vitruv.neojoin.aqr.AQR;
 import tools.vitruv.neojoin.aqr.AQRFeature;
 import tools.vitruv.neojoin.aqr.AQRTargetClass;
@@ -38,6 +38,7 @@ public class Transformator {
     private final AQR aqr;
     private final EPackage targetMetaModel;
     private final InstanceSourceFactory instanceSourceFactory;
+    private final Map<String, Object> parameters;
 
     private @Nullable EObject root;
     private final TargetMap targetMap = new TargetMap();
@@ -51,17 +52,20 @@ public class Transformator {
      * @param aqr                  query representation
      * @param targetMetaModel      target meta-model that corresponds to the given query representation
      * @param sourceInstanceModels map from {@link EPackage package} to the corresponding instance model {@link Resource resource}
+     * @param parameters           map from parameter name to parameter value
      */
     public Transformator(
         ExpressionHelper expressionHelper,
         AQR aqr,
         EPackage targetMetaModel,
-        Map<EPackage, Resource> sourceInstanceModels
+        Map<EPackage, Resource> sourceInstanceModels,
+        Map<String, Object> parameters
     ) {
         this.expressionHelper = expressionHelper;
         this.aqr = aqr;
         this.targetMetaModel = targetMetaModel;
         this.instanceSourceFactory = new InstanceSourceFactory(sourceInstanceModels);
+        this.parameters = parameters;
     }
 
     /**
@@ -101,7 +105,7 @@ public class Transformator {
             .forEach(target -> {
                 var instances = transformTargetClass(target);
                 var rootRef = root.eClass()
-                    .getEStructuralFeature(Constants.RootReferenceNameFormat.formatted(target.name()));
+                    .getEStructuralFeature(Formatting.formatRootReferenceName(target.name()));
                 root.eSet(rootRef, instances);
             });
 
@@ -124,7 +128,7 @@ public class Transformator {
         if (targetClass.source() == null) { // no source -> create a single instance
             return List.of(createTransformedInstance(targetClass, clazz));
         } else {
-            var evaluator = new ExpressionEvaluator(expressionHelper, targetClass.source());
+            var evaluator = new ExpressionEvaluator(expressionHelper, targetClass.source(), parameters);
             var instanceSource = instanceSourceFactory.create(targetClass.source(), evaluator);
 
             if (targetClass.source().groupingExpressions().isEmpty()) { // no grouping
@@ -231,9 +235,7 @@ public class Transformator {
         AQRTargetClass targetClass,
         Stream<@Nullable EObject> sources
     ) {
-        sources.filter(Objects::nonNull).forEach(source -> {
-            targetMap.register(source, targetClass, targetInstance);
-        });
+        sources.filter(Objects::nonNull).forEach(source -> targetMap.register(source, targetClass, targetInstance));
     }
 
     private void populateTargetInstance(
@@ -251,6 +253,8 @@ public class Transformator {
                 populateAttribute(attr, target, source, context);
             } else if (feature instanceof AQRFeature.Reference ref) {
                 populateReference(ref, target, source, context);
+            } else if (feature instanceof AQRFeature.EcoreReference ref) {
+                populateEcoreReference(ref, target, source, context);
             }
         }
     }
@@ -305,6 +309,32 @@ public class Transformator {
         target.eSet(target.eClass().getEStructuralFeature(ref.name()), mappedValue);
     }
 
+    /**
+     * Ecore classes have no target class, so the referenced source instance must be the source of exactly one target
+     * instance, to which the reference then points.
+     */
+    private void populateEcoreReference(
+        AQRFeature.EcoreReference ref,
+        EObject target,
+        @Nullable EObject source,
+        ExpressionEvaluator.Context context
+    ) {
+        var value = evaluateFeature(ref.kind(), source, context);
+        var mappedValue = value != null ? mapInstances(value) : null;
+        if (mappedValue != null && ref.options().isContainment()) {
+            checkNotAlreadyContained(mappedValue, target, ref);
+        }
+        target.eSet(target.eClass().getEStructuralFeature(ref.name()), mappedValue);
+    }
+
+    private Object mapInstances(Object instance) {
+        if (instance instanceof List<?> list) {
+            return list.stream().map(i -> targetMap.get((EObject) i)).toList();
+        } else {
+            return targetMap.get((EObject) instance);
+        }
+    }
+
     private Object mapInstances(Object instance, AQRTargetClass target) {
         if (instance instanceof List<?> list) {
             return list.stream().map(i -> targetMap.get((EObject) i, target)).toList();
@@ -313,7 +343,7 @@ public class Transformator {
         }
     }
 
-    private void checkNotAlreadyContained(Object value, EObject target, AQRFeature.Reference ref) {
+    private void checkNotAlreadyContained(Object value, EObject target, AQRFeature ref) {
         if (value instanceof List<?> list) {
             list.forEach(v -> checkNotAlreadyContained((EObject) v, target, ref));
         } else {
@@ -321,7 +351,7 @@ public class Transformator {
         }
     }
 
-    private void checkNotAlreadyContained(EObject value, EObject target, AQRFeature.Reference ref) {
+    private void checkNotAlreadyContained(EObject value, EObject target, AQRFeature ref) {
         if (value.eContainer() != null && value.eContainer() != root) {
             throw new TransformatorException(
                 "cannot add target instance of class '%s' to containment reference '%s.%s' because it is already contained in another instance of class '%s'".formatted(

@@ -1,5 +1,7 @@
 package tools.vitruv.optggs.operators.expressions;
 
+import java.util.Objects;
+
 /**
  * A constant expression
  *
@@ -30,7 +32,24 @@ public class ConstantExpression implements ValueExpression {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ConstantExpression other)) return false;
+        return Objects.equals(value, other.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(value);
+    }
+
+    @Override
     public String toString() {
         return value;
+    }
+
+    @Override
+    public ValueExpression deepCopy() {
+        return new ConstantExpression(value);
     }
 }

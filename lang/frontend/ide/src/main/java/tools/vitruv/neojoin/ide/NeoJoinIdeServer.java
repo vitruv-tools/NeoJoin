@@ -236,9 +236,7 @@ public class NeoJoinIdeServer extends LanguageServerImpl implements Visualizatio
         var selectedQueryNames = new Mutable<@Nullable List<String>>(null);
         return makeResponse(
             params,
-            (doc, res) -> {
-                selectedQueryNames.value = getTargetClassNamesAtPosition(doc, res, params.selection());
-            },
+            (doc, res) -> selectedQueryNames.value = getTargetClassNamesAtPosition(doc, res, params.selection()),
             targetMetaModel -> {
                 check(selectedQueryNames.value != null);
                 var selectedClasses = selectedQueryNames.value.stream().map(targetName -> {

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Pair C (view type): Stricter constraints in the view type.
+     Every difference makes the view type more restrictive than the reference.
+     Expected result: CONFORMING (only non-breaking rules fire).
+
+     Rule 4  DELETE of EStructuralFeature, lowerBound = 0 in reference:  Book.isbn
+     Rule 6  CHANGE on lowerBound, view 1 > reference 0:                 Book.title
+     Rule 8  CHANGE on upperBound, view 3 < reference -1:                Book.authors
+     Rule 10 CHANGE on eType, view type Writer is subtype of Person:     Book.mainAuthor
+     Rule 21 CHANGE on unique, view true, reference false:               Book.tags
+     Rule 24 CHANGE on abstract, view true, reference false:             Person
+     Rule 0  MOVE of EStructuralFeature (ignored):                       Root.allAuthors
+     Rule 1  AttributeChange on name/nsURI/nsPrefix (ignored)
+
+     Rule 24 is only reachable with a hand-written view type. NeoJoin does not
+     generate abstract classes. -->
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="library" nsURI="http://example.org/library" nsPrefix="library">
+  <eClassifiers xsi:type="ecore:EClass" name="Person" abstract="true">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Writer" eSuperTypes="#//Person">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="bio" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Book">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="title" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="authors" upperBound="3" eType="#//Writer"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="mainAuthor" eType="#//Writer"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="tags" upperBound="-1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Root">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="allAuthors" ordered="false" upperBound="-1" eType="#//Writer" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="allBooks" ordered="false" upperBound="-1" eType="#//Book" containment="true"/>
+  </eClassifiers>
+</ecore:EPackage>

@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import static tools.vitruv.neojoin.aqr.AQRAssertions.assertThat;
 import static tools.vitruv.neojoin.aqr.AQRTargetClassAssertions.assertThat;
 
-public class SubQueryAQRTest extends AbstractAQRTest {
+class SubQueryAQRTest extends AbstractAQRTest {
 
     @Test
     void simple() {
@@ -105,7 +105,7 @@ public class SubQueryAQRTest extends AbstractAQRTest {
             """);
 
         assertThat(aqr)
-            .hasTargetClass("Test", (c) -> {})
+            .hasTargetClass("Test", c -> {})
             .hasTargetClass("A", a -> assertThat(a).sourceIs(lookup("reviewpage", "Review")))
             .hasTargetClass("B", b -> assertThat(b).sourceIs(lookup("reviewpage", "Review")))
             .hasNoMoreTargetClasses();

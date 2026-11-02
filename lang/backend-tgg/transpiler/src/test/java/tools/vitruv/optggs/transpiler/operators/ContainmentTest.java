@@ -28,13 +28,13 @@ class ContainmentTest {
     }
 
     @Test
-    public void filteredContainment() {
+    void filteredContainment() {
         var containment = new Containment(Pattern.from(pkg("A")).ref(pkg("B"), "b"), t("A'"), "b")
                 .filter("id", ConstantExpression.String("foo"));
         assertEquals("κ(pkg.A-[b]->pkg.B => t.A'-[b]->? | φ(pkg.B::id==\"foo\"))", containment.toString());
         var view = new View();
         view.addQuery(Query.from(pkg("A")).create(t("A'")).build().contains(containment));
         view.addQuery(Query.from(pkg("B")).create(t("B'")).build());
-        assertEquals("[src: [<++b: pkg.B;;.id==\"foo\">, <a: pkg.A;++-[b]->b;>] tgt: [<++b': t.B';;>, <a': t.A';++-[b]->b';>] corr: [++b<-->b', a<-->a']]", resolve(view).get(1).toRules().toString());
+        assertEquals("[src: [<++b: pkg.B;;.id==\"foo\">, <a: pkg.A;++-[b]->b;>] tgt: [<++b': t.B';;>, <a': t.A';++-[b]->b';>] corr: [++b<-->b', a<-->a']]", resolve(view).get(1).getGeneratedRules().toString());
     }
 }

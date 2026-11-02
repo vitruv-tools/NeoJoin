@@ -34,8 +34,8 @@ class ResolvedQueryTest {
         var queryA = queries.get(0);
         var queryB = queries.get(1);
 
-        assertEquals("[src: [<++a: pkg.A;;>] tgt: [<++a': t.A';;>] corr: [++a<-->a']]", queryA.toRules().toString());
-        assertEquals("[src: [<++b: pkg.B;;>, <a: pkg.A;++-[b]->b;>] tgt: [<++b': t.B';;>, <a': t.A';++-[b]->b';>] corr: [++b<-->b', a<-->a']]", queryB.toRules().toString());
+        assertEquals("[src: [<++a: pkg.A;;>] tgt: [<++a': t.A';;>] corr: [++a<-->a']]", queryA.getGeneratedRules().toString());
+        assertEquals("[src: [<++b: pkg.B;;>, <a: pkg.A;++-[b]->b;>] tgt: [<++b': t.B';;>, <a': t.A';++-[b]->b';>] corr: [++b<-->b', a<-->a']]", queryB.getGeneratedRules().toString());
     }
 
     @Test
@@ -47,8 +47,8 @@ class ResolvedQueryTest {
         var queryA = queries.get(0);
         var queryB = queries.get(1);
 
-        assertEquals("[src: [<++a: pkg.A;;>] tgt: [<++a': t.A';;>] corr: [++a<-->a'], src: [<a: pkg.A;++-[b]->b;>, <b: pkg.B;;>] tgt: [<a': t.A';++-[b]->b';>, <b': t.B';;>] corr: [a<-->a', b<-->b']]", queryA.toRules().toString());
-        assertEquals("[src: [<++b: pkg.B;;>] tgt: [<++b': t.B';;>] corr: [++b<-->b']]", queryB.toRules().toString());
+        assertEquals("[src: [<++a: pkg.A;;>] tgt: [<++a': t.A';;>] corr: [++a<-->a'], src: [<a: pkg.A;++-[b]->b;>, <b: pkg.B;;>] tgt: [<a': t.A';++-[b]->b';>, <b': t.B';;>] corr: [a<-->a', b<-->b']]", queryA.getGeneratedRules().toString());
+        assertEquals("[src: [<++b: pkg.B;;>] tgt: [<++b': t.B';;>] corr: [++b<-->b']]", queryB.getGeneratedRules().toString());
     }
 
     @Test
@@ -64,9 +64,9 @@ class ResolvedQueryTest {
         var queryB = queries.get(1);
         var queryC = queries.get(2);
 
-        assertEquals("[src: [<++a: pkg.A;;>] tgt: [<++a': t.A';;>] corr: [++a<-->a']]", queryA.toRules().toString());
-        assertEquals("[src: [<++b: pkg.B;;>, <a: pkg.A;++-[children]->b;>] tgt: [<++b': t.B';;>, <a': t.A';++-[children]->b';>] corr: [++b<-->b', a<-->a']]", queryB.toRules().toString());
-        assertEquals("[src: [<++c: pkg.C;;>, <a: pkg.A;++-[children]->c;>] tgt: [<++c': t.C';;>, <a': t.A';++-[children]->c';>] corr: [++c<-->c', a<-->a']]", queryC.toRules().toString());
+        assertEquals("[src: [<++a: pkg.A;;>] tgt: [<++a': t.A';;>] corr: [++a<-->a']]", queryA.getGeneratedRules().toString());
+        assertEquals("[src: [<++b: pkg.B;;>, <a: pkg.A;++-[children]->b;>] tgt: [<++b': t.B';;>, <a': t.A';++-[children]->b';>] corr: [++b<-->b', a<-->a']]", queryB.getGeneratedRules().toString());
+        assertEquals("[src: [<++c: pkg.C;;>, <a: pkg.A;++-[children]->c;>] tgt: [<++c': t.C';;>, <a': t.A';++-[children]->c';>] corr: [++c<-->c', a<-->a']]", queryC.getGeneratedRules().toString());
     }
 
     @Test
@@ -80,8 +80,8 @@ class ResolvedQueryTest {
         var queryA = queries.get(0);
         var queryB = queries.get(1);
         var queryC = queries.get(2);
-        assertEquals("[src: [<++a: pkg.A;;>] tgt: [<++a': t.A';;>] corr: [++a<-->a'], src: [<a: pkg.A;++-[children]->b;>, <b: pkg.B;;>] tgt: [<a': t.A';++-[children]->b';>, <b': t.B';;>] corr: [a<-->a', b<-->b'], src: [<a: pkg.A;++-[children]->c;>, <c: pkg.C;;>] tgt: [<a': t.A';++-[children]->c';>, <c': t.C';;>] corr: [a<-->a', c<-->c']]", queryA.toRules().toString());
-        assertEquals("[src: [<++b: pkg.B;;>] tgt: [<++b': t.B';;>] corr: [++b<-->b']]", queryB.toRules().toString());
-        assertEquals("[src: [<++c: pkg.C;;>] tgt: [<++c': t.C';;>] corr: [++c<-->c']]", queryC.toRules().toString());
+        assertEquals("[src: [<++a: pkg.A;;>] tgt: [<++a': t.A';;>] corr: [++a<-->a'], src: [<a: pkg.A;++-[children]->b;>, <b: pkg.B;;>] tgt: [<a': t.A';++-[children]->b';>, <b': t.B';;>] corr: [a<-->a', b<-->b'], src: [<a: pkg.A;++-[children]->c;>, <c: pkg.C;;>] tgt: [<a': t.A';++-[children]->c';>, <c': t.C';;>] corr: [a<-->a', c<-->c']]", queryA.getGeneratedRules().toString());
+        assertEquals("[src: [<++b: pkg.B;;>] tgt: [<++b': t.B';;>] corr: [++b<-->b']]", queryB.getGeneratedRules().toString());
+        assertEquals("[src: [<++c: pkg.C;;>] tgt: [<++c': t.C';;>] corr: [++c<-->c']]", queryC.getGeneratedRules().toString());
     }
 }

@@ -3,12 +3,13 @@ package tools.vitruv.optggs.transpiler.operators.patterns;
 import tools.vitruv.optggs.operators.FQN;
 import tools.vitruv.optggs.operators.Tuple;
 import tools.vitruv.optggs.operators.selection.Pattern;
-import tools.vitruv.optggs.transpiler.tgg.Node;
-import tools.vitruv.optggs.transpiler.tgg.Slice;
+import tools.vitruv.optggs.transpiler.graph.tgg.TGGNode;
+import tools.vitruv.optggs.transpiler.graph.tgg.TGGSlice;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class ResolvedPattern {
     private final List<ResolvedPatternLink> links;
@@ -17,8 +18,8 @@ public class ResolvedPattern {
         this.links = links;
     }
 
-    public Slice extendSlice(Slice slice) {
-        Node node = null;
+    public TGGSlice extendSlice(TGGSlice slice) {
+        TGGNode node = null;
         for (var link : links) {
             node = link.extendSlice(slice, node);
         }
@@ -26,11 +27,11 @@ public class ResolvedPattern {
     }
 
     public FQN top() {
-        return links.get(0).element();
+        return links.getFirst().element();
     }
 
     public FQN bottom() {
-        return links.get(links.size() - 1).element();
+        return links.getLast().element();
     }
 
     public Pattern topPattern() {
@@ -50,13 +51,13 @@ public class ResolvedPattern {
     }
 
     public Tuple<ResolvedPattern, ResolvedPatternLink> popBottom() {
-        var last = links.get(links.size() - 1);
+        var last = links.getLast();
         var remainder = links.subList(0, links.size() - 1);
         return new Tuple<>(new ResolvedPattern(remainder), last);
     }
 
     public Tuple<ResolvedPattern, ResolvedPatternLink> popTop() {
-        var first = links.get(0);
+        var first = links.getFirst();
         var remainder = links.subList(1, links.size());
         return new Tuple<>(new ResolvedPattern(remainder), first);
     }
@@ -74,7 +75,7 @@ public class ResolvedPattern {
 
     @Override
     public String toString() {
-        return String.join("", links.stream().map(Object::toString).toList());
+        return links.stream().map(Object::toString).collect(Collectors.joining(""));
     }
 
     @Override

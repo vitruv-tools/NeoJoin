@@ -8,24 +8,27 @@ import org.apache.log4j.Logger;
 import org.emoflon.neo.api.${p.packageName()}.API_Common;
 import org.emoflon.neo.api.${p.packageName()}.API_Transform;
 import org.emoflon.neo.api.${p.packageName()}.tgg.API_${p.name()}_FWD;
+import org.emoflon.neo.api.${p.packageName()}.tgg.API_${p.name()}_GEN;
 import org.emoflon.neo.api.${p.packageName()}.API_SourceMetamodel;
 import org.emoflon.neo.emsl.eMSL.Model;
 import org.emoflon.neo.cypher.models.NeoCoreBuilder;
 import org.emoflon.neo.engine.modules.NeoGenerator;
-
-import org.emoflon.neo.engine.modules.cleanup.RemoveTranslateAttributes;
+import org.emoflon.neo.engine.modules.analysis.TripleRuleAnalyser;
+import org.emoflon.neo.engine.modules.ilp.ILPFactory.SupportedILPSolver;
 import org.emoflon.neo.engine.modules.matchreprocessors.ParanoidNeoReprocessor;
 import org.emoflon.neo.engine.modules.monitors.HeartBeatAndReportMonitor;
 import org.emoflon.neo.engine.modules.ruleschedulers.AllRulesAllMatchesScheduler;
 import org.emoflon.neo.engine.modules.startup.PrepareTranslateAttributes;
 import org.emoflon.neo.engine.modules.terminationcondition.NoMoreMatchesTerminationCondition;
-import org.emoflon.neo.engine.modules.updatepolicies.AnySingleMatchUpdatePolicy;
+import org.emoflon.neo.engine.modules.updatepolicies.ForwardTransformationOperationalStrategy;
 import org.emoflon.neo.engine.modules.valueGenerators.LoremIpsumStringValueGenerator;
 import org.emoflon.neo.engine.modules.valueGenerators.ModelNameValueGenerator;
 import java.util.List;
 
 @SuppressWarnings("unused")
 public class ${p.name()}ForwardRunner {
+    protected static SupportedILPSolver solver = SupportedILPSolver.Sat4J;
+    protected ForwardTransformationOperationalStrategy forwardTransformation;
     protected static final Logger logger = Logger.getLogger(${p.name()}ForwardRunner.class);
     protected String srcModelName;
     protected String trgModelName;
@@ -50,14 +53,29 @@ public class ${p.name()}ForwardRunner {
     }
 
     public NeoGenerator createGenerator(NeoCoreBuilder builder) {
+        var api = new API_Transform(builder);
+        var genAPI = new API_${p.name()}_GEN(builder);
+        var fwdAPI = new API_${p.name()}_FWD(builder);
+        var genRules = genAPI.getAllRulesFor${p.name()}_GEN();
+        var analyser = new TripleRuleAnalyser(new API_Transform(builder).getTripleRulesOf${p.name()}());
+        forwardTransformation = new ForwardTransformationOperationalStrategy(//
+            solver, //
+            builder, //
+            genRules, //
+            fwdAPI.getAllRulesFor${p.name()}_FWD(), //
+            api.getConstraintsOf${p.name()}(), //
+            srcModelName, //
+            trgModelName//
+        );
+
         var gen = new NeoGenerator(//
             new API_${p.name()}_FWD(builder).getAllRulesFor${p.name()}_FWD(), //
             new PrepareTranslateAttributes(builder, srcModelName), //
             new NoMoreMatchesTerminationCondition(), //
             new AllRulesAllMatchesScheduler(), //
-            new AnySingleMatchUpdatePolicy(), //
+            forwardTransformation, //
             new ParanoidNeoReprocessor(), //
-            new RemoveTranslateAttributes(builder, srcModelName), //
+            forwardTransformation, //
             new HeartBeatAndReportMonitor(), //
             new ModelNameValueGenerator(srcModelName, trgModelName), //
             List.of(new LoremIpsumStringValueGenerator())

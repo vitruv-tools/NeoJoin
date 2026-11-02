@@ -13,7 +13,7 @@ public record SimpleProjection(Pattern source,
                                String targetProperty) implements Projection {
 
     public boolean isContained(Collection<Containment> containments, Pattern pattern) {
-        return containments.stream().anyMatch((containment) -> containment.sources().anyStartWith(pattern));
+        return containments.stream().anyMatch(containment -> containment.sources().anyStartWith(pattern));
     }
 
     @Override

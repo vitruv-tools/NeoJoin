@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Pair A (reference): Missing required elements.
+     The reference requires elements that the view type does not have.
+     Expected result: NOT CONFORMING.
+
+     Rule 3  DELETE of EStructuralFeature, lowerBound >= 1:                 Actor.nationality,
+         and as a consequence of the missing types also:                    Actor.agency
+                                                                            Actor.gender
+                                                                            Actor.awards
+     Rule 11 DELETE of EClass, required via Actor.agency (lowerBound=1):    Agency
+     Rule 16 DELETE of EEnum, required via Actor.gender (lowerBound=1):     Gender
+     Rule 29 DELETE of EPackage, contains Award, required via Actor.awards: awards
+     Rule 1  AttributeChange on name/nsURI/nsPrefix (ignored) -->
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="actorratingref" nsURI="http://example.org/actor-rating-ref-nonconforming" nsPrefix="actorratingref">
+  <eClassifiers xsi:type="ecore:EClass" name="Actor">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="avgMovieScore" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDouble"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="nationality" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="agency" lowerBound="1" eType="#//Agency"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="gender" lowerBound="1" eType="#//Gender"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="awards" lowerBound="1" upperBound="-1" eType="#//awards/Award" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Agency">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="Gender">
+    <eLiterals name="FEMALE"/>
+    <eLiterals name="MALE" value="1"/>
+    <eLiterals name="OTHER" value="2"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Root">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="allActors" ordered="false" upperBound="-1" eType="#//Actor" containment="true"/>
+  </eClassifiers>
+  <eSubpackages name="awards" nsURI="http://example.org/actor-rating-ref-nonconforming/awards" nsPrefix="awards">
+    <eClassifiers xsi:type="ecore:EClass" name="Award">
+      <eStructuralFeatures xsi:type="ecore:EAttribute" name="title" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    </eClassifiers>
+  </eSubpackages>
+</ecore:EPackage>

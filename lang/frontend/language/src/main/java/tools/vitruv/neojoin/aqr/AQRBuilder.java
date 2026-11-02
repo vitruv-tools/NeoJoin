@@ -13,15 +13,18 @@ import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.xtext.xbase.XExpression;
 import org.jspecify.annotations.Nullable;
 import tools.vitruv.neojoin.Constants;
+import tools.vitruv.neojoin.Formatting;
 import tools.vitruv.neojoin.ast.AbstractFeature;
 import tools.vitruv.neojoin.ast.AbstractMainQuery;
 import tools.vitruv.neojoin.ast.Body;
+import tools.vitruv.neojoin.ast.CollectionParameterType;
 import tools.vitruv.neojoin.ast.ConcreteFeature;
 import tools.vitruv.neojoin.ast.ConcreteMainQuery;
 import tools.vitruv.neojoin.ast.Export;
 import tools.vitruv.neojoin.ast.Feature;
 import tools.vitruv.neojoin.ast.Import;
 import tools.vitruv.neojoin.ast.MainQuery;
+import tools.vitruv.neojoin.ast.Parameter;
 import tools.vitruv.neojoin.ast.Query;
 import tools.vitruv.neojoin.ast.SubQuery;
 import tools.vitruv.neojoin.ast.ViewTypeDefinition;
@@ -130,6 +133,7 @@ public class AQRBuilder {
         return new AQR(
             createExport(viewTypeDefinition.getExport()),
             viewTypeDefinition.getImports().stream().map(AQRBuilder::createImport).toList(),
+            viewTypeDefinition.getParameters().stream().map(AQRBuilder::createParameter).toList(),
             encounteredDataTypes.stream().filter(dataType -> dataType.getEPackage() != EcorePackage.eINSTANCE).toList(),
             List.copyOf(targetClasses),
             root
@@ -147,6 +151,15 @@ public class AQRBuilder {
         return new AQRImport(
             Objects.requireNonNull(imp.getPackage()),
             Objects.requireNonNull(AstUtils.getImportAlias(imp))
+        );
+    }
+
+    private static AQRParameter createParameter(Parameter parameter) {
+        var paramType = parameter.getType();
+        return new AQRParameter(
+            Objects.requireNonNull(parameter.getAlias()),
+            Objects.requireNonNull(paramType.getElementType()),
+            paramType instanceof CollectionParameterType
         );
     }
 
@@ -171,9 +184,9 @@ public class AQRBuilder {
         }
 
         if (source != null) {
-            source.allFroms().forEach(f -> {
-                sourceClassToAQR.computeIfAbsent(f.clazz(), (k) -> new HashSet<>()).add(target);
-            });
+            source.allFroms().forEach(f ->
+                sourceClassToAQR.computeIfAbsent(f.clazz(), k -> new HashSet<>()).add(target)
+            );
         }
 
         populationQueue.add(new Pair<>(target, query));
@@ -293,6 +306,9 @@ public class AQRBuilder {
             encounteredDataTypes.add(type);
             return new AQRFeature.Attribute(attr.getName(), type, kind, options);
         } else if (feature instanceof EReference ref) {
+            if (isUnselectedEcoreClass(ref.getEReferenceType())) {
+                return new AQRFeature.EcoreReference(ref.getName(), ref.getEReferenceType(), kind, options);
+            }
             var target = getOrCreateTargetClass(ref.getEReferenceType());
             return new AQRFeature.Reference(ref.getName(), target, kind, options);
         } else {
@@ -330,10 +346,21 @@ public class AQRBuilder {
             }
             encounteredDataTypes.add(type);
             return new AQRFeature.Attribute(name, type, kind, options);
+        } else if (feature.getType() == null && subQuery == null
+            && inferredType.classifier() instanceof EClass inferredClass && isUnselectedEcoreClass(inferredClass)) {
+            return new AQRFeature.EcoreReference(name, inferredClass, kind, options);
         } else {
             var type = getOrCreateReferencedTargetClass((FeatureType.ReferenceType) featureType);
             return new AQRFeature.Reference(name, type, kind, options);
         }
+    }
+
+    /**
+     * Ecore classes (e.g. {@code EObject}) are not copied into the view type, unless a query explicitly selects them.
+     * References to them keep the Ecore class as type instead of an implicitly created target class.
+     */
+    private boolean isUnselectedEcoreClass(EClass clazz) {
+        return clazz.getEPackage() == EcorePackage.eINSTANCE && !sourceClassToAQR.containsKey(clazz);
     }
 
     /**
@@ -676,7 +703,7 @@ public class AQRBuilder {
                 continue;
             }
 
-            var featureName = Constants.RootReferenceNameFormat.formatted(target.name());
+            var featureName = Formatting.formatRootReferenceName(target.name());
             invariant(
                 root.features().stream().noneMatch(f -> f.name().equals(featureName)),
                 () -> "Duplicated feature name '%s' in root class".formatted(featureName)

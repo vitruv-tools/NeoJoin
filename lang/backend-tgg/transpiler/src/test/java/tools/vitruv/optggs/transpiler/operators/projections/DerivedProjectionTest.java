@@ -26,17 +26,17 @@ class DerivedProjectionTest {
     }
 
     @Test
-    public void deriveProjectionToRule() {
+    void deriveProjectionToRule() {
         var function = new FunctionInvocation("capitalize").setConstrainedArgument("self", pkg("A"), "name");
         var query = Query.from(pkg("A")).create(t("A'")).build().project(function, "name");
         assertEquals("σ(pkg.A => t.A')π(t.A'::name=pkg.A::name->capitalize())", query.toString());
         var view = new View();
         view.addQuery(query);
-        assertEquals("[src: [<++a: pkg.A;;.name==<name>>] tgt: [<++a': t.A';;.name==<name1>>] corr: [++a<-->a'] cs: [capitalize(self: <name>,return: <name1>)]]", resolve(view).get(0).toRules().toString());
+        assertEquals("[src: [<++a: pkg.A;;.name==<name>>] tgt: [<++a': t.A';;.name==<name1>>] corr: [++a<-->a'] cs: [capitalize(self: <name>,return: <name1>)]]", resolve(view).get(0).getGeneratedRules().toString());
     }
 
     @Test
-    public void deriveComplexProjectionToRule() {
+    void deriveComplexProjectionToRule() {
         var function = new FunctionInvocation("concatWith")
                 .setConstrainedArgument("self", pkg("A"), "name")
                 .setConstrainedArgument("text", pkg("B"), "index");
@@ -44,7 +44,7 @@ class DerivedProjectionTest {
         assertEquals("σ(pkg.A-[b]->pkg.B => t.A')π(t.A'::name=pkg.A::name->concatWith(text: pkg.B::index))", query.toString());
         var view = new View();
         view.addQuery(query);
-        assertEquals("[src: [<++a: pkg.A;++-[b]->b;.name==<name>>, <++b: pkg.B;;.index==<index>>] tgt: [<++a': t.A';;.name==<name1>>] corr: [++a<-->a', ++b<-->a'] cs: [concatWith(self: <name>,text: <index>,return: <name1>)]]", resolve(view).get(0).toRules().toString());
+        assertEquals("[src: [<++a: pkg.A;++-[b]->b;.name==<name>>, <++b: pkg.B;;.index==<index>>] tgt: [<++a': t.A';;.name==<name1>>] corr: [++a<-->a', ++b<-->a'] cs: [concatWith(self: <name>,text: <index>,return: <name1>)]]", resolve(view).get(0).getGeneratedRules().toString());
 
     }
 }

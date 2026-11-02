@@ -6,6 +6,7 @@ import tools.vitruv.optggs.operators.traits.Filterable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * A reference from one element to another
@@ -175,7 +176,7 @@ public record Link(Union source,
 
     @Override
     public String toString() {
-        var f = String.join(", ", filters.stream().map(Object::toString).toList());
+        var f = filters.stream().map(Object::toString).collect(Collectors.joining(", "));
         if (!f.isEmpty()) {
             f = " | " + f;
         }

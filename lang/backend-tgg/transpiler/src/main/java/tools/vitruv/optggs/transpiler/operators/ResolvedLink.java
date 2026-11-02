@@ -1,11 +1,12 @@
 package tools.vitruv.optggs.transpiler.operators;
 
 import tools.vitruv.optggs.transpiler.operators.patterns.ResolvedPattern;
-import tools.vitruv.optggs.transpiler.tgg.Slice;
-import tools.vitruv.optggs.transpiler.tgg.TripleRule;
+import tools.vitruv.optggs.transpiler.graph.tgg.TGGSlice;
+import tools.vitruv.optggs.transpiler.graph.tgg.TripleRule;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ResolvedLink implements RuleGenerator {
     private final ResolvedPattern source;
@@ -40,7 +41,7 @@ public class ResolvedLink implements RuleGenerator {
         }
     }
 
-    private void extendSlice(Slice slice, ResolvedPattern pattern) {
+    private void extendSlice(TGGSlice slice, ResolvedPattern pattern) {
         pattern.extendSlice(slice).makeGreen();
         slice.findByType(pattern.top()).orElseThrow().makeBlack();
         slice.findByType(pattern.bottom()).orElseThrow().makeBlack();
@@ -48,7 +49,7 @@ public class ResolvedLink implements RuleGenerator {
 
     @Override
     public String toString() {
-        var f = String.join(", ", filters.stream().map(Object::toString).toList());
+        var f = filters.stream().map(Object::toString).collect(Collectors.joining( ", "));
         if (!f.isEmpty()) {
             f = " | " + f;
         }

@@ -2,15 +2,28 @@ package tools.vitruv.neojoin.validation;
 
 
 import com.google.inject.Inject;
+import com.google.inject.name.Named;
+
+import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.xtext.validation.Check;
+import org.eclipse.xtext.validation.CheckType;
 import org.eclipse.xtext.validation.ComposedChecks;
 import tools.vitruv.neojoin.Constants;
+import tools.vitruv.neojoin.aqr.AQR;
+import tools.vitruv.neojoin.aqr.AQRBuilder;
+import tools.vitruv.neojoin.aqr.AQRInvariantViolatedException;
 import tools.vitruv.neojoin.ast.AstPackage;
 import tools.vitruv.neojoin.ast.ConcreteMainQuery;
 import tools.vitruv.neojoin.ast.ViewTypeDefinition;
+import tools.vitruv.neojoin.conformancevalidator.ConformanceValidator;
+import tools.vitruv.neojoin.conformancevalidator.Violation;
+import tools.vitruv.neojoin.conformancevalidator.rules.Strictness;
+import tools.vitruv.neojoin.generation.MetaModelGenerator;
 import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
 import tools.vitruv.neojoin.utils.AstUtils;
 
+import java.util.HashSet;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -22,6 +35,25 @@ public class NeoJoinValidator extends AbstractNeoJoinValidator {
 
     @Inject
     private ExpressionHelper expressionHelper;
+    @Inject
+    @Named(Constants.ImportPackageRegistry)
+    private EPackage.Registry registry;
+    @Inject
+    private ConformanceValidator conformanceValidator;
+
+    @Check
+    public void duplicatedParameterAlias(ViewTypeDefinition viewType) {
+        var seen = new HashSet<String>();
+        for (var param : viewType.getParameters()) {
+            if (!seen.add(param.getAlias())) {
+                error(
+                    "Duplicate parameter name '%s'".formatted(param.getAlias()),
+                    param,
+                    AstPackage.Literals.PARAMETER__ALIAS
+                );
+            }
+        }
+    }
 
     @Check
     public void duplicatedTargetClassName(ViewTypeDefinition viewType) {
@@ -44,15 +76,15 @@ public class NeoJoinValidator extends AbstractNeoJoinValidator {
         if (hasImplicitRoot) {
             var conflicts = groupedTargets.get(Constants.DefaultRootClassName);
             if (conflicts != null) {
-                conflicts.forEach(query -> {
+                conflicts.forEach(query ->
                     error(
                         ("Target class name '%s' collides with name of the implicit root class. " +
                             "Either choose a different name for this class or explicitly create a root class with a different name.")
                             .formatted(Constants.DefaultRootClassName),
                         query,
                         query.getName() != null ? AstPackage.Literals.QUERY__NAME : null
-                    );
-                });
+                    )
+                );
             }
         }
     }
@@ -72,6 +104,35 @@ public class NeoJoinValidator extends AbstractNeoJoinValidator {
             for (var query : allRoots) {
                 error("Multiple root queries", query, AstPackage.Literals.CONCRETE_MAIN_QUERY__ROOT);
             }
+        }
+    }
+
+    @Check(CheckType.EXPENSIVE)
+    public void checkConformance(ViewTypeDefinition viewType) {
+        if (viewType.getConforms() == null) return;
+
+        String uri = viewType.getConforms().getUri();
+        EPackage referencePackage = registry.getEPackage(uri);
+        if (referencePackage == null) {
+            error("Reference metamodel not found: " + uri,
+                AstPackage.Literals.VIEW_TYPE_DEFINITION__CONFORMS);
+            return;
+        }
+
+        // the AQR can only be built from a valid query, other checks report the errors of an invalid one
+        if (!viewType.eResource().getErrors().isEmpty()) return;
+        AQR aqr;
+        try {
+            aqr = new AQRBuilder(viewType, expressionHelper).build();
+        } catch (AQRInvariantViolatedException ex) { // invalid query
+            return;
+        }
+        EPackage viewTypePackage = new MetaModelGenerator(aqr).generate().pack();
+
+        Strictness strictness = viewType.getConforms().isStrict() ? Strictness.EXACT_MATCH : Strictness.SUBTYPE;
+        List<Violation> violations = conformanceValidator.validatePackages(viewTypePackage, referencePackage, strictness);
+        for (Violation v : violations) {
+            error(v.toString(), AstPackage.Literals.VIEW_TYPE_DEFINITION__CONFORMS);
         }
     }
 

@@ -1,78 +1,30 @@
 package tools.vitruv.neojoin.transformation;
 
 import org.eclipse.emf.ecore.EObject;
+import org.jspecify.annotations.Nullable;
 import tools.vitruv.neojoin.aqr.AQRTargetClass;
+import tools.vitruv.neojoin.utils.Pair;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 /**
- * Mapping from source instances to target instances. Given that one source class can be the source for multiple
- * target classes, this mapping does also depend on the target class. When {@link #get(EObject, AQRTargetClass) queried}
- * for a target instance this class checks that there is exactly one such instance and throws otherwise.
+ * Mapping from source instances to target instances and their target classes. Given that one source class can be the
+ * source for multiple target classes, a lookup can be restricted to a target class (including its sub classes). When
+ * {@link #get queried} for a target instance this class checks that there is exactly one such instance and throws
+ * otherwise.
  */
 public class TargetMap {
 
-    private sealed interface Mapping {
-
-        Mapping join(Mapping other);
-
-    }
-
-    private record None() implements Mapping {
-
-        @Override
-        public Mapping join(Mapping other) {
-            return other;
-        }
-
-    }
-
-    private record One(EObject value) implements Mapping {
-
-        @Override
-        public Mapping join(Mapping other) {
-            return switch (other) {
-                case None ignored -> this;
-                default -> new Many();
-            };
-        }
-
-    }
-
-    private record Many() implements Mapping {
-
-        @Override
-        public Mapping join(Mapping other) {
-            return this;
-        }
-
-    }
-
-    /**
-     * Mappings grouped by source instance, so that lookups only scan the mappings of one source instance.
-     */
-    private final Map<EObject, Map<AQRTargetClass, Mapping>> map = new HashMap<>();
-
-    private Mapping getMapping(EObject source, AQRTargetClass targetClass) {
-        return map.getOrDefault(source, Map.of()).getOrDefault(targetClass, new None());
-    }
-
-    private Mapping getMappingInstanceOf(EObject source, AQRTargetClass targetClass) {
-        return map.getOrDefault(source, Map.of()).entrySet().stream()
-            .filter(entry -> entry.getKey().equals(targetClass) || entry.getKey().allSuperClasses().contains(targetClass))
-            .map(Entry::getValue)
-            .reduce(new None(), Mapping::join);
-    }
+    private final Map<EObject, List<Pair<EObject, AQRTargetClass>>> targetsBySource = new HashMap<>();
 
     /**
      * Register a new mapping from the source instance to the target instance via the target class.
      */
     public void register(EObject source, AQRTargetClass targetClass, EObject target) {
-        var previous = getMapping(source, targetClass);
-        map.computeIfAbsent(source, k -> new HashMap<>())
-            .put(targetClass, previous.join(new One(target)));
+        targetsBySource.computeIfAbsent(source, k -> new ArrayList<>()).add(new Pair<>(target, targetClass));
     }
 
     /**
@@ -82,19 +34,43 @@ public class TargetMap {
      * @throws TransformatorException if none or multiple target instances are mapped to the given source instance and target class
      */
     public EObject get(EObject source, AQRTargetClass targetClass) {
-        return switch (getMappingInstanceOf(source, targetClass)) {
-            case One(var value) -> value;
-            case None ignored -> throw new TransformatorException(
-                "no target instance of class '%s' found for source instance of class '%s'".formatted(
-                    targetClass.name(), source.eClass().getName()
+        return getUnique(source, targetClass);
+    }
+
+    /**
+     * Retrieve the target instance that is mapped to the given source instance regardless of the target class. Used
+     * for references to Ecore classes, which have no target class.
+     *
+     * @throws TransformatorException if none or multiple target instances are mapped to the given source instance
+     */
+    public EObject get(EObject source) {
+        return getUnique(source, null);
+    }
+
+    private EObject getUnique(EObject source, @Nullable AQRTargetClass targetClass) {
+        var targets = targetsBySource.getOrDefault(source, List.of()).stream()
+            .filter(target -> targetClass == null || isSameOrSubClass(target.right(), targetClass))
+            .toList();
+        var classInfo = targetClass != null ? " of class '%s'".formatted(targetClass.name()) : "";
+
+        if (targets.isEmpty()) {
+            throw new TransformatorException(
+                "no target instance%s found for source instance of class '%s'".formatted(
+                    classInfo, source.eClass().getName()
                 )
             );
-            case Many ignored -> throw new TransformatorException(
-                "multiple target instances of class '%s' found for source instance of class '%s'".formatted(
-                    targetClass.name(), source.eClass().getName()
+        } else if (targets.size() > 1) {
+            throw new TransformatorException(
+                "multiple target instances%s found for source instance of class '%s'".formatted(
+                    classInfo, source.eClass().getName()
                 )
             );
-        };
+        }
+        return targets.get(0).left();
+    }
+
+    private static boolean isSameOrSubClass(AQRTargetClass targetClass, AQRTargetClass superClass) {
+        return targetClass.equals(superClass) || targetClass.allSuperClasses().contains(superClass);
     }
 
 }

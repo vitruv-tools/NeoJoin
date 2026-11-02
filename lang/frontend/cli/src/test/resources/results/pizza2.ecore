@@ -13,11 +13,11 @@
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Root">
-    <eStructuralFeatures xsi:type="ecore:EReference" name="allFoods" ordered="false"
+    <eStructuralFeatures xsi:type="ecore:EReference" name="foods" ordered="false"
         upperBound="-1" eType="#//Food" containment="true"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="allItems" ordered="false"
+    <eStructuralFeatures xsi:type="ecore:EReference" name="items" ordered="false"
         upperBound="-1" eType="#//Item" containment="true"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="allPizzerias" ordered="false"
+    <eStructuralFeatures xsi:type="ecore:EReference" name="pizzerias" ordered="false"
         upperBound="-1" eType="#//Pizzeria" containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Restaurant" abstract="true">

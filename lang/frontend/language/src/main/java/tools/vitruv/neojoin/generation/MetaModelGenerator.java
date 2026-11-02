@@ -42,9 +42,8 @@ public class MetaModelGenerator {
         this.aqr = input;
 
         // ecore data types are not copied and thereby mapped to themselves
-        EMFUtils.getAllEDataTypes(EcorePackage.eINSTANCE).forEach(dataType -> {
-            dataTypeSourceMap.put(dataType, dataType);
-        });
+        EMFUtils.getAllEDataTypes(EcorePackage.eINSTANCE)
+            .forEach(dataType -> dataTypeSourceMap.put(dataType, dataType));
     }
 
     /**
@@ -63,8 +62,8 @@ public class MetaModelGenerator {
             var copy = EcoreUtil.copy(dataType);
             dataTypeSourceMap.put(dataType, copy);
             pack.getEClassifiers().add(copy);
-            if (dataType instanceof EEnum) {
-                trace.targetToSourceEnums().put((EEnum) copy, (EEnum) dataType);
+            if (dataType instanceof EEnum eEnum) {
+                trace.targetToSourceEnums().put((EEnum) copy, eEnum);
             }
         }
 
@@ -120,6 +119,8 @@ public class MetaModelGenerator {
             eFeature = createAttribute(attr);
         } else if (feature instanceof AQRFeature.Reference ref) {
             eFeature = createReference(ref);
+        } else if (feature instanceof AQRFeature.EcoreReference ref) {
+            eFeature = createEcoreReference(ref);
         } else {
             throw new IllegalStateException(); // sealed interface
         }
@@ -140,6 +141,12 @@ public class MetaModelGenerator {
         var reference = Ecore.createEReference();
         var targetClass = Objects.requireNonNull(trace.aqrToTarget().get(ref.type()));
         reference.setEType(targetClass);
+        return reference;
+    }
+
+    protected EReference createEcoreReference(AQRFeature.EcoreReference ref) {
+        var reference = Ecore.createEReference();
+        reference.setEType(ref.type());
         return reference;
     }
 

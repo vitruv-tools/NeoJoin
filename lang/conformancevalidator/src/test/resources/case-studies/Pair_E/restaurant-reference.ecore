@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Pair E (reference): Safe omissions in the view type.
+     The view type leaves out elements of the reference that nothing requires.
+     Expected result: CONFORMING (only non-breaking rules fire).
+
+     Rule 12 DELETE of EClass, not required (Restaurant.owner lowerBound=0): Owner
+     Rule 15 DELETE of eSuperType without required features:                 Food extends Offering
+     Rule 17 DELETE of EEnum, not required (Food.category lowerBound=0):     PriceCategory
+     Rule 19 DELETE of EEnumLiteral:                                         FoodType.DRINK,
+                                                                             FoodType.TAKEAWAY
+     Rule 30 DELETE of EPackage, no classifier required:                     internal
+     Rule 4  DELETE of EStructuralFeature (co-hit):                          Food.category,
+                                                                             Restaurant.numEmployees,
+                                                                             Restaurant.owner
+                                                                             Restaurant.notes                                                                          
+     Rule 1  AttributeChange on name/nsURI/nsPrefix (ignored) -->
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="restaurantref" nsURI="http://example.org/restaurantref" nsPrefix="restaurantref">
+  <eClassifiers xsi:type="ecore:EClass" name="Offering">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="label" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Food" eSuperTypes="#//Offering">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="price" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EFloat"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="type" eType="#//FoodType"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="category" eType="#//PriceCategory"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Restaurant">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="address" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="numEmployees" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="owner" eType="#//Owner"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="notes" upperBound="-1" eType="#//internal/Note" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Owner">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="FoodType">
+    <eLiterals name="FOOD"/>
+    <eLiterals name="DRINK" value="1"/>
+    <eLiterals name="TAKEAWAY" value="2"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="PriceCategory">
+    <eLiterals name="CHEAP"/>
+    <eLiterals name="MEDIUM" value="1"/>
+    <eLiterals name="EXPENSIVE" value="2"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Root">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="allRestaurants" ordered="false" upperBound="-1" eType="#//Restaurant" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="allFoods" ordered="false" upperBound="-1" eType="#//Food" containment="true"/>
+  </eClassifiers>
+  <eSubpackages name="internal" nsURI="http://example.org/restaurantref/internal" nsPrefix="internal">
+    <eClassifiers xsi:type="ecore:EClass" name="Note">
+      <eStructuralFeatures xsi:type="ecore:EAttribute" name="text" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    </eClassifiers>
+  </eSubpackages>
+</ecore:EPackage>

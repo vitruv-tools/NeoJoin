@@ -5,7 +5,7 @@ import tools.vitruv.optggs.operators.FQN;
 import tools.vitruv.optggs.transpiler.TranspilerQueryResolver;
 import tools.vitruv.optggs.transpiler.operators.patterns.ResolvedPattern;
 import tools.vitruv.optggs.operators.selection.Pattern;
-import tools.vitruv.optggs.transpiler.tgg.TripleRule;
+import tools.vitruv.optggs.transpiler.graph.tgg.TripleRule;
 
 import java.util.List;
 
@@ -27,7 +27,7 @@ class ResolvedContainmentTest {
 
 
     @Test
-    public void toRule() {
+    void toRule() {
         var source = resolve(Pattern.from(pkg("A")).ref(pkg("B"), "b"));
         var target = resolve(Pattern.from(t("A'")).ref(t("B'"), "b"));
         var container = new ResolvedContainment(source, target, List.of());

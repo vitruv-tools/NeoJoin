@@ -3,6 +3,7 @@ package tools.vitruv.neojoin;
 import com.google.inject.Injector;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EPackage;
+import org.eclipse.emf.ecore.EValidator;
 import org.eclipse.emf.ecore.impl.EPackageRegistryImpl;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
@@ -62,6 +63,9 @@ public abstract class AbstractIntegrationTest implements HasPackageRegistry {
     @BeforeEach
     protected void setUpAIT() throws IOException {
         packageRegistry = createPackageRegistry();
+        // Xtext keeps the first validator registered per JVM, which would use the package registry of the first test
+        // class. Dropping it lets each setup register a validator bound to its own registry.
+        EValidator.Registry.INSTANCE.remove(AstPackage.eINSTANCE);
         injector = new NeoJoinStandaloneSetup(packageRegistry).getInjector();
 
         resourceSet = new ResourceSetImpl();

@@ -25,6 +25,11 @@
       <artifactId>tools.vitruv.neojoin.model</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>tools.vitruv.neojoin.conformancevalidator</artifactId>
+      <version>${project.version}</version>
+    </dependency>
 
     <!-- for TextMate grammar generation -->
     <dependency>
@@ -88,6 +93,11 @@
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>

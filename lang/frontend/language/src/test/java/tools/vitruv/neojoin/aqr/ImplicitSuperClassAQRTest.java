@@ -33,9 +33,9 @@ public class ImplicitSuperClassAQRTest extends AbstractKennelTest {
             .hasRootTargetClass(
                 Constants.DefaultRootClassName, root -> {
                     assertThat(root)
-                        .hasGeneratedReference("allKennels", "Kennel")
-                        .hasGeneratedReference("allDogs", "Dog")
-                        .hasGeneratedReference("allPuppys", "Puppy")
+                        .hasGeneratedReference("kennels", "Kennel")
+                        .hasGeneratedReference("dogs", "Dog")
+                        .hasGeneratedReference("puppys", "Puppy")
                         .hasNoMoreFeatures(); // no reference for the abstract class Animal
                 }
             )

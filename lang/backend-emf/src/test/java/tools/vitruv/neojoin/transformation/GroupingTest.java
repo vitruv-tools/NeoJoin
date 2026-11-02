@@ -29,6 +29,23 @@ public class GroupingTest extends DefaultTransformationTest {
     }
 
     @Test
+    void multipleConditionsBeforeGrouping() {
+        var result = transform("""
+            from Food f
+            where f.name != "Fanta"
+            where f.name != "Maultaschen"
+            group by true
+            create Foods {
+                name := f.map[ it.name ].sort.^join("+")
+            }
+            """);
+
+        assertThat(result)
+            .hasInstance("Foods", named("Pizza Margherita"))
+            .hasNoMoreInstances();
+    }
+
+    @Test
     void multipleResults() {
         var result = transform("""
             from Food f

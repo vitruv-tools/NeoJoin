@@ -87,7 +87,7 @@ public class InheritanceGenerationTest extends AbstractKennelTest {
         assertThat(pup.getEStructuralFeature("name").getLowerBound()).isEqualTo(1); // modifiers of the overridden feature
 
         assertThat(names(eClass(pack, Constants.DefaultRootClassName).getEStructuralFeatures()))
-            .containsExactly("allPups");
+            .containsExactly("pups");
     }
 
     /**
@@ -116,7 +116,7 @@ public class InheritanceGenerationTest extends AbstractKennelTest {
         assertThat(names(puppy.getEStructuralFeatures())).containsExactly("age");
 
         assertThat(names(eClass(pack, Constants.DefaultRootClassName).getEStructuralFeatures()))
-            .doesNotContain("allAnimals");
+            .doesNotContain("animals");
     }
 
     /**
@@ -145,8 +145,8 @@ public class InheritanceGenerationTest extends AbstractKennelTest {
         var named = eClass(pack, "Named");
         var root = eClass(pack, "R");
         assertThat(root.getESuperTypes()).containsExactly(named);
-        assertThat(names(root.getEStructuralFeatures())).containsExactly("allDoctors");
-        assertThat(names(root.getEAllStructuralFeatures())).containsExactlyInAnyOrder("name", "allDoctors");
+        assertThat(names(root.getEStructuralFeatures())).containsExactly("doctors");
+        assertThat(names(root.getEAllStructuralFeatures())).containsExactlyInAnyOrder("name", "doctors");
 
         var specialty = pack.getEClassifier("Specialty");
         assertThat(specialty).isInstanceOf(EEnum.class);

@@ -39,8 +39,8 @@ public class AbstractClassAQRTest extends AbstractKennelTest {
             .hasRootTargetClass(
                 Constants.DefaultRootClassName, root -> {
                     assertThat(root)
-                        .hasGeneratedReference("allDoggos", "Doggo")
-                        .hasGeneratedReference("allPets", "Pet")
+                        .hasGeneratedReference("doggos", "Doggo")
+                        .hasGeneratedReference("pets", "Pet")
                         .hasNoMoreFeatures(); // no reference for Shelter
                 }
             )

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Pair F (reference): Incompatible structure.
+     All classifiers exist on both sides, so no ADD or DELETE of classifiers occurs
+     and only the intended rules fire.
+     Expected result: NOT CONFORMING.
+
+     Rule 9  CHANGE on eType, Device vs Server, no subtype relation:    Link.target
+     Rule 13 DELETE of eSuperType with required feature Component.name: Device extends Component
+     Rule 18 ADD of EEnumLiteral:                                       ProtocolKind.MQTT
+     Rule 23 CHANGE on abstract, reference true, view false:            Component
+     Rule 25 CHANGE on eOpposite:                                       System.links,
+                                                                        Link.system
+     Rule 1  AttributeChange on name/nsURI/nsPrefix (ignored) -->
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="smarthomeref" nsURI="http://example.org/smarthomeref" nsPrefix="smarthomeref">
+  <eClassifiers xsi:type="ecore:EClass" name="Component" abstract="true">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="protocol" eType="#//ProtocolKind"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Device" eSuperTypes="#//Component">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="model" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Server" eSuperTypes="#//Component">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="capacity" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="ProtocolKind">
+    <eLiterals name="ZIGBEE"/>
+    <eLiterals name="ZWAVE" value="1"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="System">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="links" upperBound="-1" eType="#//Link" containment="true" eOpposite="#//Link/system"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Link">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="system" eType="#//System" eOpposite="#//System/links"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="target" eType="#//Server"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Root">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="allSystems" ordered="false" upperBound="-1" eType="#//System" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="allComponents" ordered="false" upperBound="-1" eType="#//Component" containment="true"/>
+  </eClassifiers>
+</ecore:EPackage>

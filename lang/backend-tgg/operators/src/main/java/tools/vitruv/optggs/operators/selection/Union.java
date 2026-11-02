@@ -4,6 +4,7 @@ import tools.vitruv.optggs.operators.Tuple;
 import tools.vitruv.optggs.operators.Mapping;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Union {
     private final List<Pattern> branches = new ArrayList<>();
@@ -27,7 +28,7 @@ public class Union {
 
     public ResolvedUnion resolve(Set<Mapping> mappings, Resolver resolver) {
         return new ResolvedUnion(
-                branches.stream().map((source) -> resolveBranch(source, mappings, resolver).orElseThrow()).toList()
+                branches.stream().map(source -> resolveBranch(source, mappings, resolver).orElseThrow()).toList()
         );
     }
 
@@ -41,17 +42,17 @@ public class Union {
     }
 
     public boolean anyEquals(Pattern pattern) {
-        return branches.stream().anyMatch((branch) -> branch.equals(pattern));
+        return branches.stream().anyMatch(branch -> branch.equals(pattern));
     }
 
     public boolean anyStartWith(Pattern pattern) {
-        return branches.stream().anyMatch((branch) -> branch.startsWith(pattern));
+        return branches.stream().anyMatch(branch -> branch.startsWith(pattern));
     }
 
 
     @Override
     public String toString() {
-        return String.join(" UNION ", branches.stream().map(Object::toString).toList());
+        return branches.stream().map(Object::toString).collect(Collectors.joining( " UNION "));
     }
 
     public interface Resolver {

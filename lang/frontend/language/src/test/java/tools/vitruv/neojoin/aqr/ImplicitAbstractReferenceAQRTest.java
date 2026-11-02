@@ -29,7 +29,7 @@ public class ImplicitAbstractReferenceAQRTest extends AbstractKennelTest {
             .hasRootTargetClass(
                 Constants.DefaultRootClassName, root -> {
                     assertThat(root)
-                        .hasGeneratedReference("allKennelTs", "KennelT")
+                        .hasGeneratedReference("kennelTs", "KennelT")
                         .hasNoMoreFeatures(); // no reference for the abstract class
                 }
             )

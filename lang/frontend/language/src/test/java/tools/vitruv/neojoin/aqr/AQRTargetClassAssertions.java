@@ -2,6 +2,7 @@ package tools.vitruv.neojoin.aqr;
 
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
+import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EStructuralFeature;
 
@@ -56,12 +57,9 @@ public class AQRTargetClassAssertions extends AbstractAssert<AQRTargetClassAsser
         var results = actual.source().joins().stream()
             .filter(join -> join.from().clazz() == source && Objects.equals(join.from().alias(), alias))
             .toList();
-        Assertions.assertThat(results.size() == 1).as(
-            "Expected a join with source class %s and alias %s, but found %d",
-            source.getName(),
-            alias,
-            results.size()
-        ).isTrue();
+        Assertions.assertThat(results.size())
+            .as("Expected a join with source class %s and alias %s, but found %d", source.getName(), alias, results.size())
+            .isSameAs(1);
         var join = results.get(0);
         Assertions.assertThat(join.type()).isSameAs(type);
         seenJoins.add(join);
@@ -80,22 +78,34 @@ public class AQRTargetClassAssertions extends AbstractAssert<AQRTargetClassAsser
     public AQRTargetClassAssertions hasCondition() {
         hasSource();
         check(actual.source() != null);
-        Assertions.assertThat(actual.source().condition()).as(
+        Assertions.assertThat(actual.source().conditions()).as(
                 "Expected a condition in %s, but found none",
                 actual.name()
             )
-            .isNotNull();
+            .isNotEmpty();
+        return this;
+    }
+
+    public AQRTargetClassAssertions hasConditions(int count) {
+        hasSource();
+        check(actual.source() != null);
+        Assertions.assertThat(actual.source().conditions()).as(
+                "Expected %d conditions in %s",
+                count,
+                actual.name()
+            )
+            .hasSize(count);
         return this;
     }
 
     public AQRTargetClassAssertions hasNoCondition() {
         isNotNull();
         if (actual.source() != null) {
-            Assertions.assertThat(actual.source().condition()).as(
-                    "Expected no condition in '%s', but found one",
+            Assertions.assertThat(actual.source().conditions()).as(
+                    "Expected no condition in '%s', but found some",
                     actual.name()
                 )
-                .isNull();
+                .isEmpty();
         }
         return this;
     }
@@ -103,9 +113,9 @@ public class AQRTargetClassAssertions extends AbstractAssert<AQRTargetClassAsser
     private AQRFeature getFeature(String name) {
         var results = actual.features().stream().filter(a -> a.name().equals(name)).toList();
         check(results.size() <= 1);
-        Assertions.assertThat(results.size() == 1)
+        Assertions.assertThat(results)
             .as("Expected a feature named '%s' in '%s', but found none", name, actual.name())
-            .isTrue();
+            .hasSize(1);
         var feature = results.get(0);
         seenFeatures.add(feature);
         return feature;
@@ -148,7 +158,7 @@ public class AQRTargetClassAssertions extends AbstractAssert<AQRTargetClassAsser
     private static String getFeatureTypeName(AQRFeature feature) {
         if (feature instanceof AQRFeature.Attribute) {
             return "attribute";
-        } else if (feature instanceof AQRFeature.Reference) {
+        } else if (feature instanceof AQRFeature.Reference || feature instanceof AQRFeature.EcoreReference) {
             return "reference";
         } else {
             return fail();
@@ -235,6 +245,19 @@ public class AQRTargetClassAssertions extends AbstractAssert<AQRTargetClassAsser
 
     public AQRTargetClassAssertions hasCopiedReference(String name, String type, EStructuralFeature copyOf) {
         return hasCopiedReference(name, type, copyOf, IgnoreOptions);
+    }
+
+    @SuppressWarnings("DataFlowIssue")
+    public AQRTargetClassAssertions hasCopiedEcoreReference(String name, EClass type, EStructuralFeature copyOf) {
+        isNotNull();
+        var feature = getFeature(name);
+        if (feature instanceof AQRFeature.EcoreReference ref) {
+            Assertions.assertThat(ref.type()).isSameAs(type);
+            checkCopied(ref, copyOf);
+        } else {
+            failWithMessage("Expected feature named '%s' in '%s' to be an Ecore reference", name, actual.name());
+        }
+        return this;
     }
 
     public AQRTargetClassAssertions hasCalculatedReference(

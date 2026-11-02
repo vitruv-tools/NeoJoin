@@ -2,8 +2,8 @@ package tools.vitruv.optggs.transpiler.operators;
 
 import tools.vitruv.optggs.operators.Mapping;
 import tools.vitruv.optggs.transpiler.operators.patterns.ResolvedPattern;
-import tools.vitruv.optggs.transpiler.tgg.Slice;
-import tools.vitruv.optggs.transpiler.tgg.TripleRule;
+import tools.vitruv.optggs.transpiler.graph.tgg.TGGSlice;
+import tools.vitruv.optggs.transpiler.graph.tgg.TripleRule;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -41,8 +41,8 @@ public class ResolvedSelection implements RuleGenerator {
 
     @Override
     public void extendRule(TripleRule rule) {
-        Slice sourceSlice = rule.addSourceSlice();
-        Slice targetSlice = rule.addTargetSlice();
+        TGGSlice sourceSlice = rule.addSourceSlice();
+        TGGSlice targetSlice = rule.addTargetSlice();
 
         source.extendSlice(sourceSlice);
         target.extendSlice(targetSlice);

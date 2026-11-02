@@ -412,7 +412,7 @@ public class InheritanceAQRTest extends AbstractKennelTest {
                     assertThat(root)
                         .hasSuperClasses("Named")
                         .hasOverridingCalculatedAttribute("name", "EString")
-                        .hasGeneratedReference("allTabbys", "Tabby")
+                        .hasGeneratedReference("tabbys", "Tabby")
                         .hasNoMoreFeatures();
                 }
             )

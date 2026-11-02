@@ -14,6 +14,7 @@ import org.eclipse.xtext.xbase.typesystem.IBatchTypeResolver;
 import org.eclipse.xtext.xbase.typesystem.references.LightweightTypeReference;
 import org.jspecify.annotations.Nullable;
 import tools.vitruv.neojoin.Constants;
+import tools.vitruv.neojoin.Formatting;
 import tools.vitruv.neojoin.aqr.AQRFeatureOptionsBuilder;
 import tools.vitruv.neojoin.ast.AstPackage;
 import tools.vitruv.neojoin.ast.ConcreteBody;
@@ -154,36 +155,53 @@ public class FeatureValidator extends ComposableValidator {
         if (feature.getType() instanceof Query query) {
             checkQueryType(feature, query, inferredType.classifier());
         } else if (feature.getType() instanceof EEnum eEnum) {
-            if (inferredType.classifier() != feature.getType()) {
-                error(
-                    "Type mismatch: cannot convert from %s to %s".formatted(
-                        inferredType.classifier().getName(), eEnum.getName()
-                    ),
-                    feature,
-                    AstPackage.Literals.CONCRETE_FEATURE__EXPRESSION
-                );
-            }
+            checkEnumType(feature, eEnum, inferredType);
         } else if (feature.getType() instanceof EDataType eDataType) {
-            if (inferredType.classifier() instanceof EDataType && !(inferredType.classifier() instanceof EEnum)) {
-                if (!TypeCasts.canCast(inferredType.classifier().getInstanceClass(), eDataType.getInstanceClass())) {
-                    error(
-                        "Type mismatch: cannot convert from %s (%s) to %s (%s)".formatted(
-                            inferredType.classifier().getName(), inferredType.classifier().getInstanceClass().getSimpleName(),
-                            eDataType.getName(), eDataType.getInstanceClass().getSimpleName()
-                        ),
-                        feature,
-                        AstPackage.Literals.CONCRETE_FEATURE__EXPRESSION
-                    );
-                }
-            } else {
+            checkEDataType(feature, eDataType, inferredType);
+        }
+    }
+
+    private void checkEnumType(ConcreteFeature feature, EEnum eEnum, TypeInfo inferredType) {
+        if (inferredType.classifier() != feature.getType()) {
+            error(
+                "Type mismatch: cannot convert from %s to %s".formatted(
+                    inferredType.classifier().getName(), eEnum.getName()
+                ),
+                feature,
+                AstPackage.Literals.CONCRETE_FEATURE__EXPRESSION
+            );
+        }
+    }
+
+    /**
+     * Checks whether the inferred type can be applied to the feature.
+     * NOTE: This does not cover enums since they are handled separately
+     *       (see: {@link  FeatureValidator#checkEnumType(ConcreteFeature feature, EEnum eEnum, TypeInfo inferredType)}).
+     *
+     * @param feature the feature to be checked against.
+     * @param eDataType the type of the feature.
+     * @param inferredType the inferred type for the feature.
+     */
+    private void checkEDataType(ConcreteFeature feature, EDataType eDataType, TypeInfo inferredType) {
+        if (inferredType.classifier() instanceof EDataType && !(inferredType.classifier() instanceof EEnum)) {
+            if (!TypeCasts.canCast(inferredType.classifier().getInstanceClass(), eDataType.getInstanceClass())) {
                 error(
-                    "Type mismatch: cannot convert from %s to %s".formatted(
-                        inferredType.classifier().getName(), eDataType.getName()
+                    "Type mismatch: cannot convert from %s (%s) to %s (%s)".formatted(
+                        inferredType.classifier().getName(), inferredType.classifier().getInstanceClass().getSimpleName(),
+                        eDataType.getName(), eDataType.getInstanceClass().getSimpleName()
                     ),
                     feature,
                     AstPackage.Literals.CONCRETE_FEATURE__EXPRESSION
                 );
             }
+        } else {
+            error(
+                "Type mismatch: cannot convert from %s to %s".formatted(
+                    inferredType.classifier().getName(), eDataType.getName()
+                ),
+                feature,
+                AstPackage.Literals.CONCRETE_FEATURE__EXPRESSION
+            );
         }
     }
 
@@ -523,7 +541,7 @@ public class FeatureValidator extends ComposableValidator {
 
         var allNames = AstUtils.getAllQueries(AstUtils.getViewType(mainQuery))
             .map(q -> AstUtils.getTargetName(q, expressionHelper))
-            .map(Constants.RootReferenceNameFormat::formatted)
+            .map(Formatting::formatRootReferenceName)
             .collect(Collectors.toSet());
 
         for (var feature : mainQuery.getBody().getFeatures()) {

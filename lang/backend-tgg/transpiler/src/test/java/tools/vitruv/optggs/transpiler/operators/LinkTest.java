@@ -30,7 +30,7 @@ class LinkTest {
         var view = new View();
         view.addQuery(Query.from(pkg("A")).create(t("A'")).build().references(link));
         view.addQuery(Query.from(pkg("C")).create(t("C'")).build());
-        assertEquals("[src: [<++a: pkg.A;;>] tgt: [<++a': t.A';;>] corr: [++a<-->a'], src: [<a: pkg.A;++-[c]->c;>, <c: pkg.C;;>] tgt: [<a': t.A';++-[b]->b';>, <++b': t.B';++-[c]->c';>, <c': t.C';;>] corr: [a<-->a', c<-->c']]", resolve(view).get(0).toRules().toString());
+        assertEquals("[src: [<++a: pkg.A;;>] tgt: [<++a': t.A';;>] corr: [++a<-->a'], src: [<a: pkg.A;++-[c]->c;>, <c: pkg.C;;>] tgt: [<a': t.A';++-[b]->b';>, <++b': t.B';++-[c]->c';>, <c': t.C';;>] corr: [a<-->a', c<-->c']]", resolve(view).get(0).getGeneratedRules().toString());
     }
 
     @Test
@@ -41,7 +41,7 @@ class LinkTest {
         var view = new View();
         view.addQuery(Query.from(pkg("A")).create(t("A'")).build().references(link));
         view.addQuery(Query.from(pkg("C")).create(t("C'")).build());
-        assertEquals("[src: [<++a: pkg.A;;>] tgt: [<++a': t.A';;>] corr: [++a<-->a'], src: [<a: pkg.A;++-[c]->c;>, <c: pkg.C;;.id==\"foo\">] tgt: [<a': t.A';++-[b]->b';>, <++b': t.B';++-[c]->c';>, <c': t.C';;>] corr: [a<-->a', c<-->c']]", resolve(view).get(0).toRules().toString());
+        assertEquals("[src: [<++a: pkg.A;;>] tgt: [<++a': t.A';;>] corr: [++a<-->a'], src: [<a: pkg.A;++-[c]->c;>, <c: pkg.C;;.id==\"foo\">] tgt: [<a': t.A';++-[b]->b';>, <++b': t.B';++-[c]->c';>, <c': t.C';;>] corr: [a<-->a', c<-->c']]", resolve(view).get(0).getGeneratedRules().toString());
     }
 
     @Test
@@ -52,7 +52,7 @@ class LinkTest {
         var view = new View();
         view.addQuery(Query.from(pkg("A")).create(t("A'")).build().references(link));
         view.addQuery(Query.from(pkg("C")).create(t("C'")).build());
-        assertEquals("[src: [<++a: pkg.A;;>] tgt: [<++a': t.A';;>] corr: [++a<-->a'], src: [<a: pkg.A;++-[c]->c;>, <c: pkg.C;;.id==\"foo\">] tgt: [<a': t.A';++-[b]->b';>, <++b': t.B';++-[c]->c';>, <c': t.C';;>] corr: [a<-->a', c<-->c']]", resolve(view).get(0).toRules().toString());
+        assertEquals("[src: [<++a: pkg.A;;>] tgt: [<++a': t.A';;>] corr: [++a<-->a'], src: [<a: pkg.A;++-[c]->c;>, <c: pkg.C;;.id==\"foo\">] tgt: [<a': t.A';++-[b]->b';>, <++b': t.B';++-[c]->c';>, <c': t.C';;>] corr: [a<-->a', c<-->c']]", resolve(view).get(0).getGeneratedRules().toString());
     }
 
 }

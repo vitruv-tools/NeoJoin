@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import static tools.vitruv.neojoin.aqr.AQRAssertions.assertThat;
 import static tools.vitruv.neojoin.aqr.AQRTargetClassAssertions.assertThat;
 
-public class JoinAQRTest extends AbstractAQRTest {
+class JoinAQRTest extends AbstractAQRTest {
 
     @Test
     void basicJoinWithAttributes() {
@@ -28,6 +28,33 @@ public class JoinAQRTest extends AbstractAQRTest {
                         .hasNoCondition()
                         .hasCopiedAttribute("label", lookup("reviewpage", "ReviewPage", "name"))
                         .hasCopiedAttribute("address", lookup("restaurant", "Restaurant", "address"))
+                        .hasNoMoreFeatures();
+                }
+            )
+            .hasNoMoreTargetClasses();
+    }
+
+    @Test
+    void joinWithMultipleConditions() {
+        var aqr = parse("""
+            from Restaurant rest
+            join ReviewPage rev
+            where rest.name.startsWith("Pizzeria")
+            where rev.name.endsWith("Toni")
+            create ReviewedRestaurant {
+                label = rev.name
+            }
+            """);
+
+        assertThat(aqr)
+            .hasTargetClass(
+                "ReviewedRestaurant", rest -> {
+                    assertThat(rest)
+                        .sourceIs(lookup("restaurant", "Restaurant"), "rest")
+                        .hasJoin(lookup("reviewpage", "ReviewPage"), "rev", AQRJoin.Type.Inner)
+                        .hasNoMoreJoins()
+                        .hasConditions(2)
+                        .hasCopiedAttribute("label", lookup("reviewpage", "ReviewPage", "name"))
                         .hasNoMoreFeatures();
                 }
             )

@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import static tools.vitruv.neojoin.parse.ParseAssertions.assertThat;
 
-public class RootParseTest extends AbstractParseTest {
+class RootParseTest extends AbstractParseTest {
 
     @Test
     void simple() {
@@ -44,7 +44,7 @@ public class RootParseTest extends AbstractParseTest {
             from Food create
 
             create root Rooty {
-                allFoods := 5
+                foods := 5
             }
             """);
 

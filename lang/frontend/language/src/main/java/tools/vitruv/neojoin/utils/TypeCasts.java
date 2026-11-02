@@ -2,18 +2,21 @@ package tools.vitruv.neojoin.utils;
 
 import com.google.common.primitives.Primitives;
 
-import static tools.vitruv.neojoin.utils.Assertions.check;
-import static tools.vitruv.neojoin.utils.Assertions.fail;
+import static tools.vitruv.neojoin.utils.Assertions.*;
 
 /**
  * Contains static methods for casting java types.
  */
 public final class TypeCasts {
 
+    private TypeCasts() {
+    }
+
     /**
      * Checks whether a cast from one java class to another is possible.
+     *
      * @param from source type
-     * @param to target type
+     * @param to   target type
      * @return true if the cast is possible, false otherwise
      */
     public static boolean canCast(Class<?> from, Class<?> to) {
@@ -38,8 +41,9 @@ public final class TypeCasts {
 
     /**
      * Casts the given value to the given type.
+     *
      * @param value the value to cast
-     * @param to the type to cast to
+     * @param to    the type to cast to
      * @return the cast value
      */
     public static Object cast(Object value, Class<?> to) {
@@ -58,49 +62,57 @@ public final class TypeCasts {
 
         check(value.getClass() != Boolean.class && wrappedTo != Boolean.class);
 
-        // number to character
         if (wrappedTo == Character.class) {
-            // short has the same size as char
-            return (char) ((Number) value).shortValue();
+            return castNumberToChar(value);
         }
 
-        // character to number
         if (value instanceof Character character) {
-            char c = character;
-            if (wrappedTo == Byte.class) {
-                return (byte) c;
-            } else if (wrappedTo == Short.class) {
-                return (short) c;
-            } else if (wrappedTo == Integer.class) {
-                return (int) c;
-            } else if (wrappedTo == Long.class) {
-                return (long) c;
-            } else if (wrappedTo == Float.class) {
-                return (float) c;
-            } else if (wrappedTo == Double.class) {
-                return (double) c;
-            } else {
-                return fail(); // should not occur
-            }
+            return castCharToNumber(character, wrappedTo);
         }
 
-        // number to number
+        return castNumberToNumber(value, wrappedTo);
+    }
+
+    private static Character castNumberToChar(Object value) {
+        // short has the same size as char
+        return (char) ((Number) value).shortValue();
+    }
+
+    private static Number castNumberToNumber(Object value, Class<?> to) {
         var number = (Number) value;
-        if (wrappedTo == Byte.class) {
+        if (to == Byte.class) {
             return number.byteValue();
-        } else if (wrappedTo == Short.class) {
+        } else if (to == Short.class) {
             return number.shortValue();
-        } else if (wrappedTo == Integer.class) {
+        } else if (to == Integer.class) {
             return number.intValue();
-        } else if (wrappedTo == Long.class) {
+        } else if (to == Long.class) {
             return number.longValue();
-        } else if (wrappedTo == Float.class) {
+        } else if (to == Float.class) {
             return number.floatValue();
-        } else if (wrappedTo == Double.class) {
+        } else if (to == Double.class) {
             return number.doubleValue();
         } else {
             return fail(); // should not occur
         }
     }
 
+    private static Number castCharToNumber(Character character, Class<?> to) {
+        char c = character;
+        if (to == Byte.class) {
+            return (byte) c;
+        } else if (to == Short.class) {
+            return (short) c;
+        } else if (to == Integer.class) {
+            return (int) c;
+        } else if (to == Long.class) {
+            return (long) c;
+        } else if (to == Float.class) {
+            return (float) c;
+        } else if (to == Double.class) {
+            return (double) c;
+        } else {
+            return fail(); // should not occur
+        }
+    }
 }
