@@ -326,7 +326,7 @@ public class InheritanceAQRTest extends AbstractKennelTest {
     }
 
     /**
-     * Main queries without body and sub queries can be super classes.
+     * Main queries without body and subqueries can be super classes.
      */
     @Test
     void superClassFromMainQueryWithoutBodyAndFromSubQuery() {

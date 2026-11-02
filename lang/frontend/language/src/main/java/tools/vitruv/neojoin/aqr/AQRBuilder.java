@@ -84,7 +84,7 @@ public class AQRBuilder {
     private final Map<EClass, Set<AQRTargetClass>> sourceClassToAQR = new HashMap<>(); // source class -> aqr targets
     private final Map<Query, AQRTargetClass> queryToTarget = new HashMap<>(); // query (Query | SubQuery) -> target class
 
-    // classes that cannot declare super classes (implicit classes and classes of sub queries), see linkImplicitSuperClasses
+    // classes that cannot declare super classes (implicit classes and classes of subqueries), see linkImplicitSuperClasses
     private final List<AQRTargetClass> classesWithImplicitSuperClasses = new ArrayList<>();
 
     public AQRBuilder(ViewTypeDefinition viewTypeDefinition, ExpressionHelper expressionHelper) {
@@ -118,7 +118,7 @@ public class AQRBuilder {
             populateTargetClass(entry.left(), entry.right() == null ? null : AstUtils.getBody(entry.right()));
         }
 
-        // link implicit classes and classes of sub queries to the target classes of their source super classes
+        // link implicit classes and classes of subqueries to the target classes of their source super classes
         linkImplicitSuperClasses();
 
         // identify and verify inheritance
@@ -416,7 +416,7 @@ public class AQRBuilder {
     }
 
     /**
-     * Adds super classes to implicit target classes and to the target classes of sub queries, because they cannot
+     * Adds super classes to implicit target classes and to the target classes of subqueries, because they cannot
      * declare {@code extends} themselves. Explicit main queries never get implicit super classes.
      * <p>
      * For such a class with source class {@code S}, the source super classes of {@code S} are searched level by
@@ -462,7 +462,7 @@ public class AQRBuilder {
 
     /**
      * Finds the target classes that are the target of the given source class: classes whose source is exactly this
-     * class without joins and grouping expressions (explicit, implicit and sub query classes).
+     * class without joins and grouping expressions (explicit, implicit and subquery classes).
      */
     private List<AQRTargetClass> findTargetClassesOfSourceClass(EClass sourceClass) {
         return sourceClassToAQR.getOrDefault(sourceClass, Set.of()).stream()

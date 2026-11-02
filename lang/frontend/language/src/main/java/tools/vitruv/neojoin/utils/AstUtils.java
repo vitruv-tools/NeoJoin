@@ -290,7 +290,7 @@ public final class AstUtils {
     /**
      * Returns whether the given query can select instances of the given class: one of its source classes is the class
      * or a sub class of it, or a super class of it that is selected including sub classes ({@code from extends}, and
-     * always for sub queries).
+     * always for subqueries).
      */
     public static boolean canSelectInstancesOf(Query query, EClass clazz, ExpressionHelper expressionHelper) {
         if (query instanceof ConcreteMainQuery mainQuery) {
@@ -310,7 +310,7 @@ public final class AstUtils {
 
     /**
      * Get the source class of a query that selects exactly one source class: a main query with a single {@code from},
-     * no joins and no grouping, or a sub query.
+     * no joins and no grouping, or a subquery.
      *
      * @return the source class or {@code null} if the query selects differently or the class cannot be determined
      */
@@ -449,7 +449,7 @@ public final class AstUtils {
                 .flatMap(AstUtils::getAllQueriesImpl);
             return Stream.concat(Stream.of(query), subQueries);
         } else if (body instanceof AbstractBody) {
-            // abstract features cannot have sub queries
+            // abstract features cannot have subqueries
             return Stream.of(query);
         } else {
             return fail("A query body must be either an abstract or a concrete body");
@@ -464,7 +464,7 @@ public final class AstUtils {
         } else if (query instanceof SubQuery subQuery) {
             return subQuery.getBody();
         } else {
-            return fail("Query must be either a concrete main query, an abstract main query, or a sub query");
+            return fail("Query must be either a concrete main query, an abstract main query, or a subquery");
         }
     }
 

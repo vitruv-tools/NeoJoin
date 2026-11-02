@@ -193,10 +193,10 @@ public class ImplicitSuperClassAQRTest extends AbstractKennelTest {
     }
 
     /**
-     * Decided: sub queries cannot declare {@code extends}, so like implicit classes the class of a sub query gets super
+     * Decided: subqueries cannot declare {@code extends}, so like implicit classes the class of a subquery gets super
      * class links to the available target classes of its source super classes (explicit or implicit classes, nearest
-     * ancestor), independently of how these are transformed. Sub queries select direct instances and instances of sub
-     * classes. The class of the sub query, Dog, therefore extends the explicit class Pet.
+     * ancestor), independently of how these are transformed. Subqueries select direct instances and instances of sub
+     * classes. The class of the subquery, Dog, therefore extends the explicit class Pet.
      */
     @Test
     void subQueryClassIsLinkedToSuperClassInView() {

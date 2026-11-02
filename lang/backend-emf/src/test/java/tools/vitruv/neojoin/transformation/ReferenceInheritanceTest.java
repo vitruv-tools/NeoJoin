@@ -191,7 +191,7 @@ public class ReferenceInheritanceTest extends AbstractKennelTest {
     }
 
     /**
-     * A sub query includes instances of sub classes of its source class.
+     * A subquery includes instances of sub classes of its source class.
      */
     @Test
     void subQueryIncludesSubClassInstances() {
