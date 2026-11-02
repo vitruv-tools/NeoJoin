@@ -1,5 +1,6 @@
 package tools.vitruv.neojoin.transformation;
 
+import static java.util.stream.Collectors.toList;
 import static tools.vitruv.neojoin.utils.Assertions.check;
 import static tools.vitruv.neojoin.utils.Assertions.fail;
 import static tools.vitruv.neojoin.utils.Utils.collectFailingFast;
@@ -272,6 +273,8 @@ public class Transformator {
                 populateAttribute(attr, target, source, context);
             } else if (feature instanceof AQRFeature.Reference ref) {
                 populateReference(ref, target, source, context);
+            } else if (feature instanceof AQRFeature.EcoreReference ref) {
+                populateEcoreReference(ref, target, source, context);
             }
         }
     }
@@ -326,6 +329,34 @@ public class Transformator {
         target.eSet(target.eClass().getEStructuralFeature(ref.name()), mappedValue);
     }
 
+    /**
+     * Ecore classes have no target class, so the referenced source instance must be the source of exactly one target
+     * instance, to which the reference then points.
+     */
+    private void populateEcoreReference(
+        AQRFeature.EcoreReference ref,
+        EObject target,
+        @Nullable EObject source,
+        ExpressionEvaluator.Context context
+    ) throws TransformatorException {
+        var value = evaluateFeature(ref.kind(), source, context);
+        var mappedValue = value != null ? mapInstances(value) : null;
+        if (mappedValue != null && ref.options().isContainment()) {
+            checkNotAlreadyContained(mappedValue, target, ref);
+        }
+        target.eSet(target.eClass().getEStructuralFeature(ref.name()), mappedValue);
+    }
+
+    private Object mapInstances(Object instance) throws TransformatorException {
+        if (instance instanceof List<?> list) {
+            return list.stream().map(i -> Result.executeCatching(TransformatorException.class, () -> targetMap.get((EObject) i)))
+                .collect(collectFailingFast(toList()))
+                .valueUnsafe();
+        } else {
+            return targetMap.get((EObject) instance);
+        }
+    }
+
     private Object mapInstances(Object instance, AQRTargetClass target) throws TransformatorException {
         if (instance instanceof List<?> list) {
             return list.stream().map(i -> Result.executeCatching(TransformatorException.class, () -> targetMap.get((EObject) i, target)))
@@ -336,7 +367,7 @@ public class Transformator {
         }
     }
 
-    private void checkNotAlreadyContained(Object value, EObject target, AQRFeature.Reference ref) throws TransformatorException {
+    private void checkNotAlreadyContained(Object value, EObject target, AQRFeature ref) throws TransformatorException {
         if (value instanceof List<?> list) {
             for (var v : list) {
                 checkNotAlreadyContained((EObject) v, target, ref);
@@ -346,7 +377,7 @@ public class Transformator {
         }
     }
 
-    private void checkNotAlreadyContained(EObject value, EObject target, AQRFeature.Reference ref) throws TransformatorException {
+    private void checkNotAlreadyContained(EObject value, EObject target, AQRFeature ref) throws TransformatorException {
         if (value.eContainer() != null && value.eContainer() != root) {
             throw new TransformatorException(
                 "cannot add target instance of class '%s' to containment reference '%s.%s' because it is already contained in another instance of class '%s'".formatted(
