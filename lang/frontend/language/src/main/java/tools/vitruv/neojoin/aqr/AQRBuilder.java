@@ -47,6 +47,7 @@ import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static tools.vitruv.neojoin.aqr.AQRInvariantViolatedException.invariant;
 import static tools.vitruv.neojoin.aqr.AQRInvariantViolatedException.invariantFailed;
@@ -422,14 +423,31 @@ public class AQRBuilder {
      * <p>
      * For an implicit class with source class {@code S}, the source super classes of {@code S} are searched level by
      * level (nearest first). At the nearest level with at least one target class of a source super class, that target
-     * class becomes the super class. Target classes for super classes are never created, only existing ones are linked.
+     * class becomes the super class, but only if the implicit class has all features of it (it must override every
+     * inherited feature, see {@link #applyInheritance}). Otherwise the implicit class gets no super class, which
+     * {@code FeatureValidator.checkAmbiguousImplicitSuperClasses} reports as a warning. Target classes for super
+     * classes are never created, only existing ones are linked.
      *
      * @see #findImplicitSuperClass
      */
     private void linkImplicitSuperClasses() {
         for (var targetClass : implicitClasses) {
-            findImplicitSuperClass(targetClass).ifPresent(targetClass::addSuperClass);
+            findImplicitSuperClass(targetClass)
+                .filter(superClass -> hasAllFeaturesOf(targetClass, superClass))
+                .ifPresent(targetClass::addSuperClass);
         }
+    }
+
+    /**
+     * Checks that the target class has a feature for every feature the super class declares or inherits (by name).
+     * The explicit super classes of an explicit or subquery class are already set. An implicit super class always
+     * passes: its features are source features of its source class, which the target class also has.
+     */
+    private static boolean hasAllFeaturesOf(AQRTargetClass targetClass, AQRTargetClass superClass) {
+        var names = targetClass.features().stream().map(AQRFeature::name).collect(Collectors.toSet());
+        return Stream.concat(Stream.of(superClass), superClass.allSuperClasses().stream())
+            .flatMap(c -> c.features().stream())
+            .allMatch(feature -> names.contains(feature.name()));
     }
 
     /**

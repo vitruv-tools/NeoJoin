@@ -221,4 +221,25 @@ public class ImplicitSuperClassAQRTest extends AbstractKennelTest {
         assertThat(dog).sourceIncludesSubClasses();
     }
 
+    /**
+     * The implicit class Dog is not linked to the nearest candidate, the subquery class Animal, because it cannot
+     * override the feature tag of Animal.
+     */
+    @Test
+    void implicitClassIsNotLinkedToSuperClassWithFeaturesItCannotOverride() {
+        var aqr = parse("""
+            from Kennel k create KennelT {
+                k.name
+                k.animals create Animal {
+                    name = it.name
+                    tag = it.name
+                }
+                k.dogs
+            }
+            """);
+
+        assertThat(find(aqr, "Dog")).hasNoSuperClasses();
+        assertThat(find(aqr, "Animal")).hasNoSuperClasses();
+    }
+
 }

@@ -317,6 +317,24 @@ public class InheritanceParseTest extends AbstractInheritanceParseTest {
     }
 
     @Test
+    void implicitClassWithSuperClassCandidateWithFeaturesItCannotOverrideWarns() {
+        var result = parseWithKennel("""
+            from Kennel k create KennelT {
+                k.name
+                k.animals create Animal {
+                    name = it.name
+                    tag = it.name
+                }
+                k.dogs
+            }
+            """);
+
+        assertThat(result).hasExactlyIssues(
+            "Implicit target class of source class 'Dog' is not linked to super class 'Animal', because it does not override: tag"
+        );
+    }
+
+    @Test
     void referenceOverridesAttribute() {
         var result = parse("""
             abstract Base {

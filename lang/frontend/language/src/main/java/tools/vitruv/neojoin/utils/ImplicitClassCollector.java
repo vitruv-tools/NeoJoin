@@ -1,6 +1,7 @@
 package tools.vitruv.neojoin.utils;
 
 import org.eclipse.emf.ecore.EClass;
+import org.eclipse.emf.ecore.EObject;
 import tools.vitruv.neojoin.ast.ConcreteBody;
 import tools.vitruv.neojoin.ast.Query;
 import tools.vitruv.neojoin.ast.ViewTypeDefinition;
@@ -26,15 +27,16 @@ public class ImplicitClassCollector {
     }
 
     /**
-     * @return the implicit source classes, each with the first query that causes it
+     * @return the implicit source classes, each with the first AST element that causes it: the feature that
+     * references it, or the query if the references are copied
      */
-    public Map<EClass, Query> collectImplicitClasses(ViewTypeDefinition viewType) {
-        var implicitClasses = new LinkedHashMap<EClass, Query>();
+    public Map<EClass, EObject> collectImplicitClasses(ViewTypeDefinition viewType) {
+        var implicitClasses = new LinkedHashMap<EClass, EObject>();
         AstUtils.getAllQueries(viewType).forEach(query -> collectImplicitClasses(query, implicitClasses));
         return implicitClasses;
     }
 
-    private void collectImplicitClasses(Query query, Map<EClass, Query> implicitClasses) {
+    private void collectImplicitClasses(Query query, Map<EClass, EObject> implicitClasses) {
         var body = AstUtils.getBody(query);
         if (body == null) {
             var sourceClass = AstUtils.getCopiedSourceClass(query, expressionHelper);
@@ -42,22 +44,22 @@ public class ImplicitClassCollector {
                 collectImplicitReferenceTypes(sourceClass, query, implicitClasses);
             }
         } else if (body instanceof ConcreteBody concreteBody) {
-            concreteBody.getFeatures().stream()
-                .filter(f -> f.getType() == null && f.getSubQuery() == null)
-                .map(typeResolver::resolve)
-                .filter(ImplicitReferenceType.class::isInstance)
-                .map(ImplicitReferenceType.class::cast)
-                .forEach(type -> addImplicitClass(type.sourceClass(), query, implicitClasses));
+            for (var feature : concreteBody.getFeatures()) {
+                if (feature.getType() == null && feature.getSubQuery() == null
+                    && typeResolver.resolve(feature) instanceof ImplicitReferenceType type) {
+                    addImplicitClass(type.sourceClass(), feature, implicitClasses);
+                }
+            }
         }
     }
 
-    private void addImplicitClass(EClass sourceClass, Query cause, Map<EClass, Query> implicitClasses) {
+    private void addImplicitClass(EClass sourceClass, EObject cause, Map<EClass, EObject> implicitClasses) {
         if (implicitClasses.putIfAbsent(sourceClass, cause) == null) { // also prevents infinite recursion
             collectImplicitReferenceTypes(sourceClass, cause, implicitClasses);
         }
     }
 
-    private void collectImplicitReferenceTypes(EClass copiedClass, Query cause, Map<EClass, Query> implicitClasses) {
+    private void collectImplicitReferenceTypes(EClass copiedClass, EObject cause, Map<EClass, EObject> implicitClasses) {
         for (var reference : copiedClass.getEAllReferences()) {
             if (typeResolver.resolveSourceClass(reference.getEReferenceType()) instanceof ImplicitReferenceType) {
                 addImplicitClass(reference.getEReferenceType(), cause, implicitClasses);
