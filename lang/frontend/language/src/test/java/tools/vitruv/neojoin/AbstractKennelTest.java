@@ -1,6 +1,7 @@
 package tools.vitruv.neojoin;
 
 import tools.vitruv.neojoin.aqr.AQR;
+import tools.vitruv.neojoin.aqr.AQRTargetClass;
 
 import java.util.List;
 
@@ -20,6 +21,10 @@ public abstract class AbstractKennelTest extends AbstractIntegrationTest impleme
 
             import "http://example.org/kennel"
             """ + query);
+    }
+
+    protected static AQRTargetClass find(AQR aqr, String name) {
+        return aqr.classes().stream().filter(c -> c.name().equals(name)).findFirst().orElseThrow();
     }
 
 }

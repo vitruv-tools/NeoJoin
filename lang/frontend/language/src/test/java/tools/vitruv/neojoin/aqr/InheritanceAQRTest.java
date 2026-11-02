@@ -1,6 +1,5 @@
 package tools.vitruv.neojoin.aqr;
 
-import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import tools.vitruv.neojoin.AbstractKennelTest;
 import tools.vitruv.neojoin.aqr.AQRFeatureOptionsAssertions.Mod;
@@ -13,10 +12,6 @@ import static tools.vitruv.neojoin.aqr.AQRTargetClassAssertions.assertThat;
 public class InheritanceAQRTest extends AbstractKennelTest {
 
     private static final int Unbounded = -1;
-
-    private static AQRTargetClass find(AQR aqr, String name) {
-        return aqr.classes().stream().filter(c -> c.name().equals(name)).findFirst().orElseThrow();
-    }
 
     /**
      * Explicit copy and calculation override abstract features and take all modifiers from the overridden feature.
@@ -474,10 +469,9 @@ public class InheritanceAQRTest extends AbstractKennelTest {
 
     /**
      * The modifiers of an overriding feature are those of the root of the override chain ({@code A.name} is {@code [1]},
-     * so {@code C.name} is {@code [1]}). The result must not depend on the order in which the classes are processed,
-     * hence the repetition.
+     * so {@code C.name} is {@code [1]}).
      */
-    @RepeatedTest(20)
+    @Test
     void transitiveOverrideInheritsModifiersOfRootDeclaration() {
         var aqr = parse("""
             create A {

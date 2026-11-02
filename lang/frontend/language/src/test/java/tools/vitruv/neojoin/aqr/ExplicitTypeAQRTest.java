@@ -2,6 +2,7 @@ package tools.vitruv.neojoin.aqr;
 
 import org.junit.jupiter.api.Test;
 import tools.vitruv.neojoin.AbstractKennelTest;
+import tools.vitruv.neojoin.Constants;
 
 import static tools.vitruv.neojoin.aqr.AQRAssertions.assertThat;
 import static tools.vitruv.neojoin.aqr.AQRTargetClassAssertions.assertThat;
@@ -40,8 +41,37 @@ public class ExplicitTypeAQRTest extends AbstractKennelTest {
             """);
 
         assertThat(aqr)
-            .hasTargetClass("K", k -> assertThat(k).hasCalculatedReference("animals", "Animal"))
-            .hasTargetClass("L", l -> assertThat(l).hasCopiedReference("star", "Pet", lookup("kennel", "Kennel", "star")));
+            .hasRootTargetClass(
+                Constants.DefaultRootClassName, root -> {
+                    assertThat(root)
+                        .hasGeneratedReference("ds", "D")
+                        .hasGeneratedReference("ks", "K")
+                        .hasGeneratedReference("pets", "Pet")
+                        .hasGeneratedReference("ls", "L")
+                        .hasNoMoreFeatures();
+                }
+            )
+            .hasTargetClass("Animal", animal -> assertThat(animal).isAbstract().hasAbstractAttribute("name", "EString").hasNoMoreFeatures())
+            .hasTargetClass(
+                "D", d -> assertThat(d)
+                    .hasSuperClasses("Animal")
+                    .hasOverridingCopiedAttribute("name", lookup("kennel", "Animal", "name"))
+                    .hasNoMoreFeatures()
+            )
+            .hasTargetClass(
+                "K", k -> assertThat(k)
+                    .hasCopiedAttribute("name", lookup("kennel", "Kennel", "name"))
+                    .hasCalculatedReference("animals", "Animal")
+                    .hasNoMoreFeatures()
+            )
+            .hasTargetClass("Pet", pet -> assertThat(pet).hasCopiedAttribute("name", lookup("kennel", "Animal", "name")).hasNoMoreFeatures())
+            .hasTargetClass(
+                "L", l -> assertThat(l)
+                    .hasCopiedAttribute("name", lookup("kennel", "Kennel", "name"))
+                    .hasCopiedReference("star", "Pet", lookup("kennel", "Kennel", "star"))
+                    .hasNoMoreFeatures()
+            )
+            .hasNoMoreTargetClasses();
     }
 
 }

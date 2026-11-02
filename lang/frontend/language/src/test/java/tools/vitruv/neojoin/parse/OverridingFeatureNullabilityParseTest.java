@@ -39,4 +39,22 @@ public class OverridingFeatureNullabilityParseTest extends AbstractInheritancePa
         assertThat(result).hasNoIssues();
     }
 
+    @Test
+    void nullableExpressionForRequiredNewFeatureOfClassWithSuperClassWarns() {
+        var result = parse("""
+            abstract B {
+                n: EString [?]
+            }
+
+            from Restaurant r create C extends B {
+                n := "c"
+                m: EString [1] := r.name?.toUpperCase
+            }
+            """);
+
+        assertThat(result).hasIssueWithSeverity(
+            Severity.WARNING, "Nullable expression used to initialize non-nullable feature"
+        );
+    }
+
 }

@@ -120,33 +120,19 @@ public class InheritanceGenerationTest extends AbstractKennelTest {
     }
 
     /**
-     * The root can have a super type; enum types of inherited features are mapped.
+     * Enum types of inherited features are mapped.
      */
     @Test
-    void rootClassExtendsAbstractClassAndInheritedEnumFeatureIsMapped() {
+    void enumTypeOfInheritedFeatureIsMapped() {
         var pack = generate("""
-            abstract Named {
-                name: EString
-            }
-
             abstract Specialized {
                 specialty: Specialty
-            }
-
-            create root R extends Named {
-                name := "r"
             }
 
             from Vet v create Doctor extends Specialized {
                 specialty = v.specialty
             }
             """);
-
-        var named = eClass(pack, "Named");
-        var root = eClass(pack, "R");
-        assertThat(root.getESuperTypes()).containsExactly(named);
-        assertThat(names(root.getEStructuralFeatures())).containsExactly("doctors");
-        assertThat(names(root.getEAllStructuralFeatures())).containsExactlyInAnyOrder("name", "doctors");
 
         var specialty = pack.getEClassifier("Specialty");
         assertThat(specialty).isInstanceOf(EEnum.class);

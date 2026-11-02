@@ -16,10 +16,6 @@ import static tools.vitruv.neojoin.aqr.AQRTargetClassAssertions.assertThat;
  */
 public class ImplicitSuperClassAQRTest extends AbstractKennelTest {
 
-    private static AQRTargetClass find(AQR aqr, String name) {
-        return aqr.classes().stream().filter(c -> c.name().equals(name)).findFirst().orElseThrow();
-    }
-
     /**
      * Implicit Dog extends Animal and Puppy extends Dog, with the inherited features overridden by implicit copies.
      */

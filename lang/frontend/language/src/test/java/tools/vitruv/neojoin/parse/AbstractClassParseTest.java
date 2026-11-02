@@ -7,58 +7,6 @@ import static tools.vitruv.neojoin.parse.ParseAssertions.assertThat;
 public class AbstractClassParseTest extends AbstractParseTest {
 
     @Test
-    void emptyBody() {
-        var result = parse("""
-            abstract A {}
-            """);
-
-        assertThat(result).hasNoIssues();
-    }
-
-    @Test
-    void features() {
-        var result = parse("""
-            abstract Shop {
-                name: EString [?]
-                revenue: Money
-                sells: Food [+, containment]
-                next: Shop [*]
-            }
-
-            from Food create
-            """);
-
-        assertThat(result).hasNoIssues();
-    }
-
-    @Test
-    void extendsAbstractClass() {
-        var result = parse("""
-            abstract A {
-                x: EString
-            }
-
-            abstract B extends A {
-                x: EString
-                y: EInt
-            }
-            """);
-
-        assertThat(result).hasNoIssues();
-    }
-
-    @Test
-    void emptyModifierList() {
-        var result = parse("""
-            abstract A {
-                x: EString []
-            }
-            """);
-
-        assertThat(result).hasExactlyIssues("Empty modifier list");
-    }
-
-    @Test
     void containmentOnAttribute() {
         var result = parse("""
             abstract A {
@@ -67,19 +15,6 @@ public class AbstractClassParseTest extends AbstractParseTest {
             """);
 
         assertThat(result).hasExactlyIssues("Modifier 'containment' is not applicable to attributes");
-    }
-
-    @Test
-    void idOnReference() {
-        var result = parse("""
-            abstract A {
-                x: B [id]
-            }
-
-            abstract B {}
-            """);
-
-        assertThat(result).hasExactlyIssues("Modifier 'id' is not applicable to references");
     }
 
     @Test

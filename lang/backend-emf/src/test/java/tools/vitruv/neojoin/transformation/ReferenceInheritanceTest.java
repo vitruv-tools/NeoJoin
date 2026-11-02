@@ -112,6 +112,43 @@ public class ReferenceInheritanceTest extends AbstractKennelTest {
     }
 
     /**
+     * A copied reference without explicit type, whose source class is Animal, resolves to the explicit abstract class
+     * of the same name.
+     */
+    @Test
+    void referenceResolvesToExplicitAbstractClassOfSameName() {
+        var result = transform("""
+            abstract Animal {
+                name: EString
+            }
+
+            from extends Dog d
+            create DogT extends Animal {
+                name = d.name
+            }
+
+            from Kennel k
+            create KennelT {
+                k.name
+                k.animals
+            }
+            """);
+
+        assertThat(result)
+            .hasInstance(
+                "KennelT", named("North"), kennel -> {
+                    assertThat(kennel)
+                        .hasManyReferenceInstancesOf("animals", "DogT", "DogT")
+                        .hasManyReference("animals", named("Rex"), named("Bello"));
+                }
+            )
+            .hasInstance("KennelT", named("South"))
+            .hasInstance("DogT", named("Rex"))
+            .hasInstance("DogT", named("Bello"))
+            .hasNoMoreInstances();
+    }
+
+    /**
      * Overriding a reference of an abstract class with a value of a sub class type. The overriding reference has the
      * type of the overridden reference.
      */
