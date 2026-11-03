@@ -83,6 +83,21 @@
                     "default": "${workspaceFolder}",
                     "markdownDescription": "List of search paths for meta models (*.ecore files) separated by semicolons. Found models can be imported in NeoJoin queries.\n\nExample: `/path/to/directory;/path/to/model.ecore;C:/path/to/archive.jar`\n\n**Note:** Changes to this config entry or the directory on disk require a [restart of the NeoJoin server](command:neojoin.restart)."
                 },
+                "neojoin.excludedDirectories": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "scope": "machine-overridable",
+                    "default": [
+                        "target",
+                        "bin",
+                        "build",
+                        "node_modules",
+                        ".git"
+                    ],
+                    "markdownDescription": "Names of directories that are not searched for queries, e.g. build output that contains copies of the queries.\n\n**Note:** Changes to this config entry require a [restart of the NeoJoin server](command:neojoin.restart)."
+                },
                 "neojoin.debug": {
                     "type": "boolean",
                     "scope": "machine-overridable",

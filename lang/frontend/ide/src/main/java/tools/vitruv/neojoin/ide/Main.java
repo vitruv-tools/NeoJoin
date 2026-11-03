@@ -1,6 +1,7 @@
 package tools.vitruv.neojoin.ide;
 
 import com.google.inject.Guice;
+import com.google.inject.util.Modules;
 import org.eclipse.emf.ecore.impl.EPackageRegistryImpl;
 import org.eclipse.lsp4j.MessageParams;
 import org.eclipse.lsp4j.MessageType;
@@ -8,6 +9,7 @@ import org.eclipse.lsp4j.jsonrpc.Launcher;
 import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.xtext.ide.server.ServerLauncher;
 import org.eclipse.xtext.ide.server.ServerModule;
+import org.eclipse.xtext.util.IFileSystemScanner;
 import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
 import picocli.CommandLine;
@@ -25,6 +27,7 @@ import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 @NullUnmarked
@@ -33,6 +36,9 @@ public class Main implements Runnable {
 
     @Option(names = {"-m", "--meta-model-path"}, paramLabel = "MODEL-PATH", required = true, description = "Path specification to find referenced meta-models.")
     String metaModelPath;
+
+    @Option(names = {"--excluded-directories"}, paramLabel = "NAMES", split = ";", description = "Names of directories that are not indexed (e.g. build output), separated by semicolons.")
+    List<String> excludedDirectories = new ArrayList<>();
 
     @ArgGroup(exclusive = false)
     Logging logging;
@@ -73,7 +79,10 @@ public class Main implements Runnable {
 
         System.out.println("Starting NeoJoin IDE server...");
 
-        var languageServer = Guice.createInjector(new ServerModule()).getInstance(NeoJoinIdeServer.class);
+        var serverModule = Modules.override(new ServerModule()).with(binder ->
+            binder.bind(IFileSystemScanner.class).toInstance(new NeoJoinFileSystemScanner(Set.copyOf(excludedDirectories)))
+        );
+        var languageServer = Guice.createInjector(serverModule).getInstance(NeoJoinIdeServer.class);
         var launcher = Launcher.createLauncher(
             languageServer, LanguageClient.class,
             ioConfig.in(), ioConfig.out(),
