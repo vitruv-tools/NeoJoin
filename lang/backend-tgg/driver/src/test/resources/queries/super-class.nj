@@ -1,0 +1,7 @@
+export TargetCar to "http://example.org/targetcar"
+
+import "http://example.org/SimpleCarMetamodel"
+
+from Wheel create Part
+
+from Wheel create TargetWheel extends Part
