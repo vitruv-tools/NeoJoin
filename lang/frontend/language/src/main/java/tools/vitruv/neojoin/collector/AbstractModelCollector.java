@@ -70,7 +70,7 @@ public abstract class AbstractModelCollector {
                 .collect(
                     collectFailingFast(
                         Collectors.mapping(
-                            path -> URI.createURI(path.toUri().toString()),
+                            AbstractModelCollector::toEmfUri,
                             Collectors.filtering(uri -> Objects.equals(uri.fileExtension(), extension), Collectors.toList())
                         )
                     )
@@ -80,6 +80,16 @@ public abstract class AbstractModelCollector {
 			throw new NoSuchFileException(fileOrDirectory.toString(), null, e.getMessage());
 		}
 	}
+
+    /**
+     * Entries of an archive have {@code jar:} URIs. EMF loads those through {@code java.net.JarURLConnection}, which
+     * caches the opened archive and keeps it locked (on Windows it cannot be deleted or replaced). EMF's own
+     * {@code archive:} scheme closes the archive after reading the entry.
+     */
+    private static URI toEmfUri(Path path) {
+        var uri = path.toUri().toString();
+        return URI.createURI(uri.startsWith("jar:") ? "archive:" + uri.substring("jar:".length()) : uri);
+    }
 
     public static boolean isSupportedArchive(Path file) {
         var name = file.getFileName().toString().toLowerCase();
@@ -93,7 +103,11 @@ public abstract class AbstractModelCollector {
                 .<Result<Path, IOException>>flatMap(root ->
                     Result.executeCatching(IOException.class, () -> Files.walk(root))
                         .fold(it -> it.map(Result::of), e -> Stream.of(Result.fail(e))))
-                .collect(collectFailingFast(Collectors.toList()))
+                .collect(collectFailingFast(
+                    Collectors.filtering(
+                        // directory entries can look like models too, e.g. META-INF/maven/org.eclipse.emf/org.eclipse.emf.ecore/
+                        Files::isRegularFile,
+                        Collectors.toList())))
                 .valueUnsafe();
         }
     }
