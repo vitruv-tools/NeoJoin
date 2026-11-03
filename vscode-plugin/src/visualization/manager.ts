@@ -80,11 +80,17 @@ export default class VisualizationManager {
             { enableScripts: true }
         );
 
-        panel.onDidChangeViewState(() => {
-            this.update(currentEditor.document, true);
-        });
+        panel.onDidChangeViewState(() =>
+             this.#onDidChangeViewState(currentEditor.document));
 
         this.restore(panel, currentEditor.document, createPanelOptions());
+    }
+
+    #onDidChangeViewState(document: vscode.TextDocument) {
+        const panel = this.#activePanels.get(document);
+        if (panel) {
+            panel.onDidChangeViewState();
+        }
     }
 
     /**
