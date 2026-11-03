@@ -128,4 +128,37 @@ class ImplicitAbstractReferenceAQRTest extends AbstractKennelTest {
             .hasNoMoreTargetClasses();
     }
 
+    /**
+     * A query without body copies the reference animals of Kennel. It references the explicit abstract class Animal,
+     * because no query selects the source class Animal and no implicit class is created for it.
+     */
+    @Test
+    void copiedReferenceResolvesToExplicitAbstractClassOfSameName() {
+        var aqr = parse("""
+            abstract Animal {
+                name: EString [1]
+            }
+
+            from Cat c create C extends Animal {
+                name = c.name
+            }
+
+            from Kennel create K
+            """);
+
+        assertThat(aqr)
+            .hasTargetClass("Animal", animal -> assertThat(animal).isAbstract().hasNoSource())
+            .hasTargetClass(
+                "K", k -> assertThat(k)
+                    .hasCopiedAttribute("name", lookup("kennel", "Kennel", "name"))
+                    .hasCopiedReference("animals", "Animal", lookup("kennel", "Kennel", "animals"))
+                    .hasCopiedReference("dogs", "Dog", lookup("kennel", "Kennel", "dogs"))
+                    .hasCopiedReference("star", "Dog", lookup("kennel", "Kennel", "star"))
+                    .hasCopiedReference("puppy", "Puppy", lookup("kennel", "Kennel", "puppy"))
+                    .hasNoMoreFeatures()
+            );
+        var animals = find(aqr, "K").features().stream().filter(f -> f.name().equals("animals")).findFirst().orElseThrow();
+        assertThat(((AQRFeature.Reference) animals).type().source()).isNull();
+    }
+
 }
