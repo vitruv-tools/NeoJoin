@@ -1,5 +1,6 @@
 package tools.vitruv.neojoin.aqr;
 
+import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EDataType;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.ETypedElement;
@@ -171,6 +172,29 @@ public sealed interface AQRFeature {
         @Override
         public String toString() {
             return "Reference[name='%s', type=%s, kind=%s, options=%s]".formatted(name, type.name(), kind, options);
+        }
+
+    }
+
+    /**
+     * Represents a reference to a class of the Ecore meta-model (e.g. {@code EObject}). Such classes are not copied
+     * into the view type, so the reference keeps pointing to the Ecore class and has no target class.
+     *
+     * @param name
+     * @param type    referenced Ecore class
+     * @param kind
+     * @param options
+     */
+    record EcoreReference(
+        String name,
+        EClass type,
+        Kind kind,
+        Options options
+    ) implements AQRFeature {
+
+        @Override
+        public String toString() {
+            return "EcoreReference[name='%s', type=%s, kind=%s, options=%s]".formatted(name, type.getName(), kind, options);
         }
 
     }

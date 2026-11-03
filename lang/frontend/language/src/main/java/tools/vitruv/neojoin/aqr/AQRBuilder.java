@@ -237,6 +237,9 @@ public class AQRBuilder {
             encounteredDataTypes.add(type);
             return new AQRFeature.Attribute(attr.getName(), type, kind, options);
         } else if (feature instanceof EReference ref) {
+            if (isUnselectedEcoreClass(ref.getEReferenceType())) {
+                return new AQRFeature.EcoreReference(ref.getName(), ref.getEReferenceType(), kind, options);
+            }
             var target = getOrCreateTargetClass(ref.getEReferenceType());
             return new AQRFeature.Reference(ref.getName(), target, kind, options);
         } else {
@@ -259,10 +262,21 @@ public class AQRBuilder {
             var type = determineAttributeType(inferredType, (EDataType) feature.getType(), kind);
             encounteredDataTypes.add(type);
             return new AQRFeature.Attribute(name, type, kind, options);
+        } else if (feature.getType() == null && feature.getSubQuery() == null
+            && inferredType.classifier() instanceof EClass inferredClass && isUnselectedEcoreClass(inferredClass)) {
+            return new AQRFeature.EcoreReference(name, inferredClass, kind, options);
         } else {
             var type = determineReferenceType(inferredType, (Query) feature.getType(), feature.getSubQuery());
             return new AQRFeature.Reference(name, type, kind, options);
         }
+    }
+
+    /**
+     * Ecore classes (e.g. {@code EObject}) are not copied into the view type, unless a query explicitly selects them.
+     * References to them keep the Ecore class as type instead of an implicitly created target class.
+     */
+    private boolean isUnselectedEcoreClass(EClass clazz) {
+        return clazz.getEPackage() == EcorePackage.eINSTANCE && !sourceClassToAQR.containsKey(clazz);
     }
 
     /**
