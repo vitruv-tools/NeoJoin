@@ -5,16 +5,16 @@
       "name": "keyword.control.neojoin"
     },
     {
+      "match": "\\\"(\\\\.|[^\\\\\\\"])*\\\"",
+      "name": "string.quoted.neojoin"
+    },
+    {
       "match": "[0-9]([0-9]|_)*",
       "name": "constant.numeric.neojoin"
     },
     {
       "match": "\\^?([a-z]|[A-Z]|\\$|_)([a-z]|[A-Z]|\\$|_|[0-9])*",
       "name": "variable.neojoin"
-    },
-    {
-      "match": "(\\\"(\\\\.|[^\\\\\\\"])*\\\"?|\u0027(\\\\.|[^\\\\\u0027])*\u0027?)",
-      "name": "string.quoted.neojoin"
     },
     {
       "begin": "/\\*",

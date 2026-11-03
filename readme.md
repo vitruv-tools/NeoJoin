@@ -45,9 +45,28 @@ create Dish extends Item {
 }
 ```
 
-NeoJoin supports the usage and definition of inheritance in meta-models. Defining inheritance in the view type covers multiple aspects: `abstract` declares an abstract class without instances, while `extends` makes a class inherit from other classes (abstract or concrete) of the view type. Abstract classes declare features, for which extending classes must define the transformation. An override takes the modifiers and the type of the overridden feature. An explicitly written type must be equal to the type of the overridden feature. The type of an attribute expression must be equal to the type of the overridden feature, while the type of a reference expression can be the same class or a sub class. A class can extend several classes. A feature that is inherited from several of them must have the same name, type and modifiers in all of them. `from` and `join` select only the direct instances of the specified source class, while `from extends` and `join extends` also select the instances of its sub classes. Abstract classes have no instances and no root reference. Referencing a class does not transform the instances of its sub or super classes, so referenced instances must be selected by a query.
+NeoJoin supports the usage and definition of inheritance in meta-models. Defining inheritance in the view type covers multiple aspects: `abstract` declares an abstract class without instances and without root reference, while `extends` makes a class inherit from other classes (abstract or concrete) of the view type.
 
-Classes that NeoJoin creates implicitly for referenced source classes (e.g. the target of a copied reference) keep the inheritance of their source classes. Such a class extends the class of its nearest source super class that is part of the view, as long as it has all its features. If several classes qualify, the query is ambiguous, and you need an explicit query with `extends`.
+Abstract classes declare features, for which extending classes must define the transformation. An override takes the modifiers and the type of the overridden feature. An explicitly written type must be equal to the type of the overridden feature. The type of an attribute expression must be equal to the type of the overridden feature, while the type of a reference expression can be the same class or a sub class. A class can extend several classes. A feature that is inherited from several of them must come from the same declaration (a common super class), because Ecore does not allow two features with the same name in a class.
+
+`from` and `join` select only the direct instances of the specified source class, while `from extends` and `join extends` also select the instances of its sub classes. As an abstract class has no direct instances, NeoJoin warns about `from` and `join` of an abstract class without `extends`. Subqueries select the instances of their source class and of its sub classes. A query without body copies all features of its source class, including inherited ones:
+
+```
+from Restaurant r
+join extends Food f
+    on r.sells.contains(f)
+create Offer {
+    restaurant := r.name
+    dish := f.name
+}
+
+from extends Food
+create Dish extends Item
+```
+
+A feature with an explicit class type, e.g. `offers: Item [*] := r.sells`, needs a query that selects the instances the expression returns and whose target class is the explicit type or a sub class of it (here `from extends Food create Dish extends Item`). A `from Food` query selects only direct instances, so values of sub classes of `Food` need a query of their own or a `from extends` query. If several queries select exactly the class of the value, the assignment is ambiguous and NeoJoin reports an error.
+
+Classes that NeoJoin creates implicitly for referenced source classes (e.g. the target of a copied reference) select only the direct instances of their source class and are abstract if the source class is abstract. A reference to an instance that no class selects fails during the transformation, so the sub classes of a referenced class must be selected by a query or be referenced themselves. An abstract class without source that has the name of a referenced source class is used instead of an implicit class. An implicit class keeps the inheritance of its source class: it extends the class of its nearest source super class that is part of the view, as long as it has an equivalent feature (same name, type and modifiers) for each feature of it. Otherwise NeoJoin warns that the class is not linked. If several classes qualify, the query is ambiguous, and you need an explicit query with `extends`.
 
 *Note that queries do not inherit from each other:* `extends` only specifies inheritance between the classes of the resulting view type. The behavior of a query (source, join, filter, grouping, feature expressions) cannot be inherited, so a class that extends another class still has to define how each of its features is computed. Subqueries cannot declare `extends`, so their classes have no super classes (they can be super classes of other classes).
 
