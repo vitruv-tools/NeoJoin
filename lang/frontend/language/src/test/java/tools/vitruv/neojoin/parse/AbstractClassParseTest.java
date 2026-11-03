@@ -4,10 +4,10 @@ import org.junit.jupiter.api.Test;
 
 import static tools.vitruv.neojoin.parse.ParseAssertions.assertThat;
 
-public class AbstractClassParseTest extends AbstractParseTest {
+class AbstractClassParseTest extends AbstractParseTest {
 
     @Test
-    void containmentOnAttribute() {
+    void containmentModifierOnAbstractAttributeIsRejected() {
         var result = parse("""
             abstract A {
                 x: EString [containment]
@@ -54,7 +54,7 @@ public class AbstractClassParseTest extends AbstractParseTest {
     }
 
     @Test
-    void withoutBody() {
+    void abstractClassWithoutBodyIsRejected() {
         var result = parse("""
             abstract A
             """);
@@ -63,7 +63,7 @@ public class AbstractClassParseTest extends AbstractParseTest {
     }
 
     @Test
-    void withSource() {
+    void abstractClassWithSourceIsRejected() {
         var result = parse("""
             from Food abstract A {}
             """);

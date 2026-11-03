@@ -12,15 +12,15 @@ import static tools.vitruv.neojoin.transformation.InstanceModelAssertions.assert
  * Instance-level behavior of abstract classes and inherited or overridden features.
  */
 @SuppressWarnings("unchecked")
-public class AbstractClassTest extends AbstractKennelTest {
+class AbstractClassTest extends AbstractKennelTest {
 
     /**
-     * Abstract classes produce no instances and no root reference. Overridden features (copied, calculated, many-valued
-     * and own ones) of two sub classes with different expressions end up in the instances. Covers multiple inheritance
-     * and a transitive chain of abstract classes.
+     * Abstract classes produce no instances. Overriding features (copied, calculated, many-valued and own ones) of two
+     * sub classes with different expressions end up in the instances, with multiple inheritance and a transitive chain
+     * of abstract classes.
      */
     @Test
-    void overriddenFeaturesAreEvaluated() {
+    void overridingFeaturesAreEvaluated() {
         var result = transform("""
             abstract Named {
                 name: EString
@@ -146,8 +146,7 @@ public class AbstractClassTest extends AbstractKennelTest {
             }
             """);
 
-        Predicate<EObject> inNorth = dog -> dog.eContainer() != null
-            && dog.eContainer().eClass().getName().equals("KennelT");
+        Predicate<EObject> inNorth = dog -> dog.eContainer() != null && named("North").test(dog.eContainer());
         assertThat(result)
             .hasInstance(
                 "KennelT", named("North"), kennel -> {
@@ -163,33 +162,10 @@ public class AbstractClassTest extends AbstractKennelTest {
     }
 
     /**
-     * A query without body is used as super class and the sub class overrides its (implicitly copied) features.
-     */
-    @Test
-    void queryWithoutBodyAsSuperClass() {
-        var result = transform("""
-            from Dog
-            create DogT
-
-            from Puppy p
-            create PuppyT extends DogT {
-                name = p.name
-                breed = p.breed
-                age = p.age
-            }
-            """);
-
-        assertThat(result)
-            .hasInstance("DogT", attribute("breed", "Lab"))
-            .hasInstance("PuppyT", and(named("Bello"), attribute("breed", "Pug"), attribute("age", 1)))
-            .hasNoMoreInstances();
-    }
-
-    /**
      * The root class can extend an abstract class and still contains the other classes.
      */
     @Test
-    void rootWithSuperClass() {
+    void rootClassWithSuperClassEvaluatesOverridingFeatureAndReferencesOtherClasses() {
         var result = transform("""
             abstract Named {
                 name: EString

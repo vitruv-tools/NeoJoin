@@ -6,7 +6,7 @@ import org.eclipse.emf.ecore.EDataType;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
-import org.eclipse.xtext.xbase.XExpression;
+import org.eclipse.emf.ecore.EcorePackage;
 import org.jspecify.annotations.Nullable;
 import tools.vitruv.neojoin.ast.ConcreteFeature;
 import tools.vitruv.neojoin.ast.Feature;
@@ -14,10 +14,9 @@ import tools.vitruv.neojoin.ast.FeatureOp;
 import tools.vitruv.neojoin.ast.Query;
 import tools.vitruv.neojoin.ast.ViewTypeDefinition;
 import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
-import tools.vitruv.neojoin.jvmmodel.TypeInfo;
-import tools.vitruv.neojoin.jvmmodel.TypeResolutionException;
 import tools.vitruv.neojoin.utils.FeatureType.AmbiguousReferenceType;
 import tools.vitruv.neojoin.utils.FeatureType.AttributeType;
+import tools.vitruv.neojoin.utils.FeatureType.EcoreReferenceType;
 import tools.vitruv.neojoin.utils.FeatureType.ImplicitReferenceType;
 import tools.vitruv.neojoin.utils.FeatureType.QueryReferenceType;
 import tools.vitruv.neojoin.utils.FeatureType.ReferenceType;
@@ -33,16 +32,22 @@ public class FeatureTypeResolver {
 
     private final ExpressionHelper expressionHelper;
     private final Map<EClass, Set<Query>> queriesBySourceClass;
+    private final Map<String, Query> abstractQueriesByName;
 
     public FeatureTypeResolver(ViewTypeDefinition viewType, ExpressionHelper expressionHelper) {
-        this(AstUtils.mapSourceClassesToQueries(viewType, expressionHelper), expressionHelper);
+        this(viewType, AstUtils.mapSourceClassesToQueries(viewType, expressionHelper), expressionHelper);
     }
 
     /**
      * @param queriesBySourceClass see {@link AstUtils#mapSourceClassesToQueries}
      */
-    public FeatureTypeResolver(Map<EClass, Set<Query>> queriesBySourceClass, ExpressionHelper expressionHelper) {
+    public FeatureTypeResolver(
+        ViewTypeDefinition viewType,
+        Map<EClass, Set<Query>> queriesBySourceClass,
+        ExpressionHelper expressionHelper
+    ) {
         this.queriesBySourceClass = queriesBySourceClass;
+        this.abstractQueriesByName = AstUtils.mapAbstractQueriesByName(viewType, expressionHelper);
         this.expressionHelper = expressionHelper;
     }
 
@@ -77,18 +82,37 @@ public class FeatureTypeResolver {
     }
 
     /**
-     * Determines the type of a reference to the given source class: the query that selects it, or an implicitly
-     * created target class if no query selects it.
+     * Determines the type of a reference to the given source class: the query that selects it, or the explicit
+     * abstract class of the same name (see {@link #findExplicitAbstractQuery}), or an implicitly created target class
+     * if no query selects it. Classes of the Ecore meta-model are not copied into the view type, so the type of a
+     * reference to an unselected Ecore class is the Ecore class itself.
      */
     public ReferenceType resolveSourceClass(EClass sourceClass) {
         var candidates = queriesBySourceClass.get(sourceClass);
         if (candidates == null || candidates.isEmpty()) {
-            return new ImplicitReferenceType(sourceClass);
+            if (sourceClass.getEPackage() == EcorePackage.eINSTANCE) {
+                return new EcoreReferenceType(sourceClass);
+            }
+            var abstractQuery = findExplicitAbstractQuery(sourceClass);
+            return abstractQuery != null ? new QueryReferenceType(abstractQuery) : new ImplicitReferenceType(sourceClass);
         } else if (candidates.size() == 1) {
             return new QueryReferenceType(candidates.iterator().next());
         } else {
             return new AmbiguousReferenceType(sourceClass, candidates);
         }
+    }
+
+    /**
+     * Finds the explicit abstract class that is used instead of an implicit target class for the given source class:
+     * if no query selects the source class, an abstract class without source that has the name of the source class
+     * is the target class of the source class, so that no second class with the same name is created.
+     *
+     * @return the abstract query or {@code null} if the source class is selected by a query or if there is no such
+     * abstract class
+     */
+    public @Nullable Query findExplicitAbstractQuery(EClass sourceClass) {
+        var candidates = queriesBySourceClass.get(sourceClass);
+        return candidates == null || candidates.isEmpty() ? abstractQueriesByName.get(sourceClass.getName()) : null;
     }
 
     private static @Nullable FeatureType resolveExplicitType(EObject explicitType) {
@@ -107,14 +131,14 @@ public class FeatureTypeResolver {
             return new QueryReferenceType(feature.getSubQuery());
         }
 
-        var inferredType = inferTypeOrNull(feature.getExpression());
+        var inferredType = AstUtils.inferTypeOrNull(feature.getExpression(), expressionHelper);
         if (inferredType == null || inferredType.classifier() == null) {
             return null;
         }
 
         if (inferredType.classifier() instanceof EDataType inferredDataType) {
             if (feature.getOp() == FeatureOp.COPY) {
-                var copied = getCopiedFeatureOrNull(feature.getExpression());
+                var copied = AstUtils.getReferencedFeatureOrNull(feature.getExpression(), expressionHelper);
                 if (copied != null && copied.getEType() instanceof EDataType copiedDataType) {
                     return new AttributeType(copiedDataType);
                 }
@@ -124,22 +148,6 @@ public class FeatureTypeResolver {
             return resolveSourceClass(inferredClass);
         }
         return null;
-    }
-
-    private @Nullable TypeInfo inferTypeOrNull(XExpression expression) {
-        try {
-            return expressionHelper.inferEType(expression);
-        } catch (TypeResolutionException e) {
-            return null; // ignore: will be handled by type checking
-        }
-    }
-
-    private @Nullable EStructuralFeature getCopiedFeatureOrNull(XExpression expression) {
-        try {
-            return expressionHelper.getFeatureOrNull(expression);
-        } catch (TypeResolutionException e) {
-            return null; // ignore: will be handled by type checking
-        }
     }
 
 }

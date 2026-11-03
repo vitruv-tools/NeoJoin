@@ -36,6 +36,7 @@ import tools.vitruv.neojoin.utils.FeatureTypeResolver;
 import tools.vitruv.neojoin.utils.TypeCasts;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -224,14 +225,11 @@ public class FeatureValidator extends ComposableValidator {
 
     private void checkQueryType(ConcreteFeature feature, Query explicitType, EClassifier inferredClassifier) {
         if (inferredClassifier instanceof EClass inferredClass) {
-            var sourceMap = AstUtils.mapSourceClassesToQueries(AstUtils.getViewType(feature), expressionHelper);
-            // the target class of the inferred type must be unambiguously assignable to the explicit type, which
-            // mirrors the invariant in AQRBuilder.determineReferenceType (otherwise, the transformation could not
-            // decide which target instance to reference)
-            var assignable = sourceMap.getOrDefault(inferredClass, Set.of()).stream()
-                .filter(type -> AstUtils.isSameOrSuperClassOf(explicitType, type))
-                .toList();
+            var viewType = AstUtils.getViewType(feature);
+            var assignable = findQueriesSelectingAssignableToType(viewType, explicitType, inferredClass);
             if (assignable.size() > 1) {
+                // the target class of the inferred type must be unambiguously assignable to the explicit type,
+                // otherwise the transformation could not decide which target instance to reference
                 error(
                     "Ambiguous target class for source class '%s'. Possible candidates: %s".formatted(
                         inferredClass.getName(),
@@ -242,32 +240,13 @@ public class FeatureValidator extends ComposableValidator {
                     AstPackage.Literals.CONCRETE_FEATURE__EXPRESSION
                 );
                 return;
-            } else if (assignable.size() == 1) {
-                return;
-            }
-
-            // no query selects exactly the inferred class with a matching target class: sub class instances (or
-            // instances selected via 'from extends') of the inferred class can still be selected by a query whose
-            // target class is the explicit type or a sub class of it
-            var viewType = AstUtils.getViewType(feature);
-            if (AstUtils.getAllQueries(viewType).anyMatch(query ->
-                AstUtils.canSelectInstancesOf(query, inferredClass, expressionHelper)
-                    && AstUtils.isSameOrSuperClassOf(explicitType, query)
-            )) {
+            } else if (assignable.size() == 1 || isSelectedByQueryAssignableToType(viewType, explicitType, inferredClass)) {
                 return;
             }
         }
 
-        if (explicitType instanceof SubQuery subQuery) {
-            if (inferredClassifier instanceof EClass inferredClass) {
-                var subQuerySourceType = AstUtils.inferSubQuerySourceType(subQuery, expressionHelper);
-                if (subQuerySourceType == null) {
-                    return; // will be handled elsewhere
-                }
-                if (AstUtils.checkSourceType(subQuerySourceType, inferredClass)) {
-                    return;
-                }
-            }
+        if (explicitType instanceof SubQuery subQuery && AstUtils.inferSubQuerySourceType(subQuery, expressionHelper) == null) {
+            return; // will be handled elsewhere
         }
 
         error(
@@ -276,6 +255,28 @@ public class FeatureValidator extends ComposableValidator {
             ),
             feature,
             AstPackage.Literals.CONCRETE_FEATURE__EXPRESSION
+        );
+    }
+
+    /**
+     * Finds the queries that select exactly the given class and whose target class is the explicit type or a sub class
+     * of it.
+     */
+    private List<Query> findQueriesSelectingAssignableToType(ViewTypeDefinition viewType, Query explicitType, EClass inferredClass) {
+        return AstUtils.mapSourceClassesToQueries(viewType, expressionHelper).getOrDefault(inferredClass, Set.of()).stream()
+            .filter(query -> AstUtils.isSameOrSuperClassOf(explicitType, query))
+            .toList();
+    }
+
+    /**
+     * Whether no query selects exactly the inferred class with a matching target class, but a query that selects
+     * instances of the class otherwise ({@code from extends} of a super class) has a target class that is the explicit
+     * type or a sub class of it.
+     */
+    private boolean isSelectedByQueryAssignableToType(ViewTypeDefinition viewType, Query explicitType, EClass inferredClass) {
+        return AstUtils.getAllQueries(viewType).anyMatch(query ->
+            AstUtils.canSelectInstancesOf(query, inferredClass, expressionHelper)
+                && AstUtils.isSameOrSuperClassOf(explicitType, query)
         );
     }
 
@@ -296,11 +297,11 @@ public class FeatureValidator extends ComposableValidator {
         }
     }
 
-    private boolean isRequired(Feature feature) {
+    private boolean isRequired(ConcreteFeature feature) {
         EStructuralFeature copyFrom = null;
-        if (feature instanceof ConcreteFeature concreteFeature && concreteFeature.getOp() == FeatureOp.COPY) {
+        if (feature.getOp() == FeatureOp.COPY) {
             try {
-                copyFrom = expressionHelper.getFeatureOrNull(concreteFeature.getExpression());
+                copyFrom = expressionHelper.getFeatureOrNull(feature.getExpression());
             } catch (TypeResolutionException e) {
                 return false; // ignore: will be handled by type checking
             }

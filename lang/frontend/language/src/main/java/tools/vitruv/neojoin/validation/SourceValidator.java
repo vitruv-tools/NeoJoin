@@ -65,6 +65,26 @@ public class SourceValidator extends ComposableValidator {
     }
 
     /**
+     * Warns about a {@code from} or {@code join} of an abstract class without {@code extends}.
+     * <p>
+     * Without {@code extends} only the direct instances of the class are selected, and an abstract class has none, so
+     * the query would silently select nothing.
+     */
+    @Check
+    public void checkAbstractSourceClassWithoutExtends(From from) {
+        var clazz = from.getClazz();
+        if (!from.isIncludeSubClasses() && clazz != null && !clazz.eIsProxy() && clazz.isAbstract()) {
+            warning(
+                "Abstract class '%s' has no direct instances, use 'extends' to select the instances of its sub classes".formatted(
+                    clazz.getName()
+                ),
+                from,
+                AstPackage.Literals.FROM__CLAZZ
+            );
+        }
+    }
+
+    /**
      * Checks that {@code create} is not used on its own.
      * <p>
      * A typical mistake is {@code create abstract A { ... }}: the correct syntax is {@code abstract A { ... }}. The
@@ -75,7 +95,7 @@ public class SourceValidator extends ComposableValidator {
     public void checkLoneCreate(ConcreteMainQuery mainQuery) {
         if (isLoneCreate(mainQuery)) {
             error(
-                "Incomplete query: 'create' needs a source, a target name or a body",
+                "Incomplete query: 'create' needs a source, or a target name and a body",
                 mainQuery,
                 null
             );

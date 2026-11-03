@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import tools.vitruv.neojoin.AbstractKennelTest;
 import tools.vitruv.neojoin.Constants;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static tools.vitruv.neojoin.aqr.AQRAssertions.assertThat;
 import static tools.vitruv.neojoin.aqr.AQRTargetClassAssertions.assertThat;
 
@@ -11,7 +12,7 @@ import static tools.vitruv.neojoin.aqr.AQRTargetClassAssertions.assertThat;
  * A reference to an abstract class stays typed with that abstract class. Referencing an abstract class does not
  * create target classes for its sub classes.
  */
-public class ImplicitAbstractReferenceAQRTest extends AbstractKennelTest {
+class ImplicitAbstractReferenceAQRTest extends AbstractKennelTest {
 
     /**
      * The implicit target class for Animal is abstract and no sub classes are created.
@@ -46,46 +47,11 @@ public class ImplicitAbstractReferenceAQRTest extends AbstractKennelTest {
                     assertThat(animal)
                         .isAbstract()
                         .sourceIs(lookup("kennel", "Animal"))
-                        .sourceIncludesSubClasses()
+                        .sourceExcludesSubClasses()
                         .hasNoSuperClasses();
                 }
             )
             .hasNoMoreTargetClasses(); // no Dog, Cat or Puppy
-    }
-
-    /**
-     * An explicitly declared abstract class is the explicit type of the reference. The reference is typed with the
-     * abstract target class and no further classes are created.
-     */
-    @Test
-    void referenceWithExplicitAbstractType() {
-        var aqr = parse("""
-            abstract Animal {
-                name: EString
-            }
-
-            from Dog d create D extends Animal {
-                name = d.name
-            }
-
-            from Kennel k create KennelT {
-                k.name
-                animals: Animal := k.animals
-            }
-            """);
-
-        assertThat(aqr)
-            .hasTargetClass(
-                "KennelT", kennel -> {
-                    assertThat(kennel)
-                        .hasCopiedAttribute("name", lookup("kennel", "Kennel", "name"))
-                        .hasCalculatedReference("animals", "Animal")
-                        .hasNoMoreFeatures();
-                }
-            )
-            .hasTargetClass("Animal", animal -> assertThat(animal).isAbstract().hasNoSource())
-            .hasTargetClass("D", d -> assertThat(d).hasSuperClasses("Animal"))
-            .hasNoMoreTargetClasses();
     }
 
     /**
@@ -122,9 +88,44 @@ public class ImplicitAbstractReferenceAQRTest extends AbstractKennelTest {
                 }
             )
             .hasNoMoreTargetClasses();
-        var animals = aqr.classes().stream().filter(c -> c.name().equals("K")).findFirst().orElseThrow()
-            .features().stream().filter(f -> f.name().equals("animals")).findFirst().orElseThrow();
-        org.assertj.core.api.Assertions.assertThat(((AQRFeature.Reference) animals).type().source()).isNull();
+        var animals = find(aqr, "K").features().stream().filter(f -> f.name().equals("animals")).findFirst().orElseThrow();
+        assertThat(((AQRFeature.Reference) animals).type().source()).isNull();
+    }
+
+    /**
+     * The explicit abstract class Animal counts as the target class of the source class Animal. The implicit class
+     * Dog extends it, because it has an equivalent feature for each feature of it.
+     */
+    @Test
+    void implicitClassIsLinkedToExplicitAbstractClassOfSameName() {
+        var aqr = parse("""
+            abstract Animal {
+                name: EString [1]
+            }
+
+            from Cat c create C extends Animal {
+                name = c.name
+            }
+
+            from Kennel k create K {
+                k.animals
+                k.dogs
+            }
+            """);
+
+        assertThat(aqr)
+            .hasRootTargetClass(
+                Constants.DefaultRootClassName, root -> assertThat(root)
+                    .hasGeneratedReference("cs", "C")
+                    .hasGeneratedReference("ks", "K")
+                    .hasGeneratedReference("dogs", "Dog")
+                    .hasNoMoreFeatures()
+            )
+            .hasTargetClass("Animal", animal -> assertThat(animal).isAbstract().hasNoSource())
+            .hasTargetClass("C", c -> assertThat(c).hasSuperClasses("Animal"))
+            .hasTargetClass("K", k -> assertThat(k).hasCopiedReference("animals", "Animal", lookup("kennel", "Kennel", "animals")))
+            .hasTargetClass("Dog", dog -> assertThat(dog).hasSuperClasses("Animal"))
+            .hasNoMoreTargetClasses();
     }
 
 }

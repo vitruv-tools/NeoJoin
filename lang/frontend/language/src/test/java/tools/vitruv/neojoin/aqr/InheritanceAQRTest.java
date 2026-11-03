@@ -1,5 +1,7 @@
 package tools.vitruv.neojoin.aqr;
 
+import org.eclipse.emf.ecore.EDataType;
+import org.eclipse.emf.ecore.ETypedElement;
 import org.junit.jupiter.api.Test;
 import tools.vitruv.neojoin.AbstractKennelTest;
 import tools.vitruv.neojoin.aqr.AQRFeatureOptionsAssertions.Mod;
@@ -9,9 +11,7 @@ import static tools.vitruv.neojoin.aqr.AQRAssertions.assertThat;
 import static tools.vitruv.neojoin.aqr.AQRFeatureOptionsAssertions.assertThat;
 import static tools.vitruv.neojoin.aqr.AQRTargetClassAssertions.assertThat;
 
-public class InheritanceAQRTest extends AbstractKennelTest {
-
-    private static final int Unbounded = -1;
+class InheritanceAQRTest extends AbstractKennelTest {
 
     /**
      * Explicit copy and calculation override abstract features and take all modifiers from the overridden feature.
@@ -52,7 +52,7 @@ public class InheritanceAQRTest extends AbstractKennelTest {
                         .hasOverridingCalculatedAttribute(
                             "tags", "EString", options -> {
                                 assertThat(options)
-                                    .hasBounds(0, Unbounded)
+                                    .hasBounds(0, ETypedElement.UNBOUNDED_MULTIPLICITY)
                                     .isNot(Mod.Unique)
                                     .otherModifiersHaveDefaultValue();
                             }
@@ -250,7 +250,7 @@ public class InheritanceAQRTest extends AbstractKennelTest {
                         .hasOverridingCopiedReference(
                             "residents", "Pet", lookup("kennel", "Kennel", "animals"), options -> {
                                 assertThat(options)
-                                    .hasBounds(0, Unbounded)
+                                    .hasBounds(0, ETypedElement.UNBOUNDED_MULTIPLICITY)
                                     .isNot(Mod.Ordered)
                                     .otherModifiersHaveDefaultValue();
                             }
@@ -263,7 +263,7 @@ public class InheritanceAQRTest extends AbstractKennelTest {
                     assertThat(kennel)
                         .hasOverridingCopiedReference(
                             "residents", "Pet", lookup("kennel", "Kennel", "dogs"), options -> {
-                                assertThat(options).hasBounds(0, Unbounded).isNot(Mod.Ordered);
+                                assertThat(options).hasBounds(0, ETypedElement.UNBOUNDED_MULTIPLICITY).isNot(Mod.Ordered);
                             }
                         )
                         .hasNoMoreFeatures();
@@ -299,24 +299,28 @@ public class InheritanceAQRTest extends AbstractKennelTest {
     }
 
     /**
-     * A diamond of classes without features is valid; {@code allSuperClasses()} lists each ancestor once. (A diamond is
-     * rejected if a feature is inherited via both paths, see
-     * {@code InheritanceParseTest.sameFeatureFromCommonAncestor}.)
+     * {@code allSuperClasses()} lists each ancestor once and does not change the super classes of any class: the
+     * diamond D has the ancestors A, B and C, and B still extends A after calling {@code allSuperClasses()} for
+     * {@code E extends A, B}.
      */
     @Test
-    void allSuperClassesOfDiamondHaveNoDuplicatesAndCanBeCalledRepeatedly() {
+    void allSuperClassesListsEachAncestorOnceAndDoesNotChangeSuperClasses() {
         var aqr = parse("""
             abstract A {}
             abstract B extends A {}
             abstract C extends A {}
             abstract D extends B, C {}
+            from Animal create E extends A, B {}
             """);
 
         var d = find(aqr, "D");
+        var e = find(aqr, "E");
         for (var i = 0; i < 2; i++) {
             assertThat(d.allSuperClasses()).extracting(AQRTargetClass::name).containsExactlyInAnyOrder("A", "B", "C");
+            assertThat(e.allSuperClasses()).extracting(AQRTargetClass::name).containsExactlyInAnyOrder("A", "B");
         }
         assertThat(d.superClasses()).extracting(AQRTargetClass::name).containsExactly("B", "C");
+        assertThat(e.superClasses()).extracting(AQRTargetClass::name).containsExactly("A", "B");
         assertThat(find(aqr, "B").superClasses()).extracting(AQRTargetClass::name).containsExactly("A");
     }
 
@@ -388,7 +392,7 @@ public class InheritanceAQRTest extends AbstractKennelTest {
      * classes, but none for the abstract super class.
      */
     @Test
-    void rootWithSuperClass() {
+    void rootClassKeepsSuperClassAndReferencesOtherClasses() {
         var aqr = parse("""
             abstract Named {
                 name: EString
@@ -420,7 +424,7 @@ public class InheritanceAQRTest extends AbstractKennelTest {
      * Enum types of abstract features are collected as data types.
      */
     @Test
-    void enumTypeOfAbstractFeature() {
+    void enumTypeOfAbstractFeatureIsCollectedAsDataType() {
         var aqr = parse("""
             abstract Specialized {
                 specialty: Specialty
@@ -431,7 +435,7 @@ public class InheritanceAQRTest extends AbstractKennelTest {
             }
             """);
 
-        assertThat(aqr.dataTypes()).containsExactly((org.eclipse.emf.ecore.EDataType) lookup("kennel", "Specialty"));
+        assertThat(aqr.dataTypes()).containsExactly((EDataType) lookup("kennel", "Specialty"));
         assertThat(aqr)
             .hasTargetClass("Specialized", specialized -> assertThat(specialized).hasAbstractAttribute("specialty", "Specialty"))
             .hasTargetClass(
@@ -443,28 +447,6 @@ public class InheritanceAQRTest extends AbstractKennelTest {
                 }
             )
             .hasNoMoreTargetClasses();
-    }
-
-    /**
-     * {@code allSuperClasses()} does not change the super classes of any class: for {@code D extends A, B} with
-     * {@code B extends A}, B still extends A afterwards.
-     */
-    @Test
-    void allSuperClassesDoesNotMutateSuperClassesOfSuperClasses() {
-        var aqr = parse("""
-            abstract A {}
-            abstract B extends A {}
-            from Animal create D extends A, B {}
-            """);
-
-        var d = find(aqr, "D");
-        assertThat(d.allSuperClasses()).extracting(AQRTargetClass::name).containsExactlyInAnyOrder("A", "B");
-
-        assertThat(find(aqr, "B").superClasses())
-            .as("B should still extend A after calling D.allSuperClasses()")
-            .extracting(AQRTargetClass::name)
-            .containsExactly("A");
-        assertThat(d.superClasses()).extracting(AQRTargetClass::name).containsExactly("A", "B");
     }
 
     /**
@@ -511,6 +493,29 @@ public class InheritanceAQRTest extends AbstractKennelTest {
         assertThat(kind).isInstanceOf(AQRFeature.Kind.Override.class);
         assertThat(kind.source()).isSameAs(lookup("kennel", "Cat", "lives"));
         assertThat(kind.expression()).isNotNull();
+    }
+
+    /**
+     * A query without body copies the inherited features of the source class (here {@code Animal.name}), so it
+     * overrides the inherited feature {@code name} of the super class.
+     */
+    @Test
+    void queryWithoutBodyOverridesInheritedFeatureWithInheritedSourceFeature() {
+        var aqr = parse("""
+            abstract Named {
+                name: EString [1]
+            }
+
+            from Dog create Hound extends Named
+            """);
+
+        assertThat(aqr).hasTargetClass(
+            "Hound", hound -> assertThat(hound)
+                .hasSuperClasses("Named")
+                .hasOverridingImplicitlyCopiedAttribute("name", lookup("kennel", "Animal", "name"))
+                .hasCopiedAttribute("breed", lookup("kennel", "Dog", "breed"))
+                .hasNoMoreFeatures()
+        );
     }
 
 }

@@ -6,7 +6,9 @@ import tools.vitruv.neojoin.aqr.AQRTargetClass;
 import java.util.List;
 
 /**
- * Base class for tests with the kennel meta-model (class hierarchy {@code Animal <- Dog <- Puppy}, enum {@code Specialty}).
+ * Base class for tests with the kennel meta-model: the abstract class {@code Animal} with the sub classes {@code Dog}
+ * (with the sub class {@code Puppy}) and {@code Cat}, the containers {@code Kennel} (references to animals) and
+ * {@code Park}, and {@code Vet} with the enum {@code Specialty}.
  */
 public abstract class AbstractKennelTest extends AbstractIntegrationTest implements PackageRegistryUtils {
 

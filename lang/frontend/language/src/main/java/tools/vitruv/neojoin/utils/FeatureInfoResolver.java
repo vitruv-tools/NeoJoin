@@ -47,7 +47,7 @@ public class FeatureInfoResolver {
     public @Nullable List<FeatureInfo> getFeatureInfos(Query query) {
         var body = AstUtils.getBody(query);
         if (body != null) {
-            return getDeclaredFeatureInfos(body);
+            return getDeclaredFeatureInfos(query, body);
         }
 
         // no body: all features are copied from the source class
@@ -55,7 +55,7 @@ public class FeatureInfoResolver {
         if (sourceClass == null || sourceClass.eIsProxy()) {
             return null;
         }
-        return getCopiedFeatureInfos(sourceClass);
+        return getCopiedFeatureInfos(query, sourceClass);
     }
 
     /**
@@ -91,32 +91,41 @@ public class FeatureInfoResolver {
             .map(feature -> {
                 var provider = providers.get(feature.name());
                 return provider == null ? feature : new FeatureInfo(
-                    feature.name(), provider.type(), feature.node(), provider.options()
+                    feature.name(), provider.type(), feature.node(), provider.options(), provider.declaringQuery()
                 );
             })
             .toList();
     }
 
-    private @Nullable List<FeatureInfo> getDeclaredFeatureInfos(Body body) {
+    private @Nullable List<FeatureInfo> getDeclaredFeatureInfos(Query query, Body body) {
         var result = new ArrayList<FeatureInfo>();
         for (var feature : AstUtils.getFeatures(body)) {
             var name = AstUtils.getFeatureNameOrNull(feature, expressionHelper);
             if (name == null) {
                 return null;
             }
-            result.add(new FeatureInfo(name, typeResolver.resolve(feature), feature, getOptionsOrNull(feature)));
+            result.add(new FeatureInfo(name, typeResolver.resolve(feature), feature, getOptionsOrNull(feature), query));
         }
         return result;
+    }
+
+    /**
+     * Determines the features of the implicit target class of the given source class.
+     *
+     * @see #getCopiedFeatureInfos(Query, EClass)
+     */
+    public List<FeatureInfo> getCopiedFeatureInfos(EClass sourceClass) {
+        return getCopiedFeatureInfos(null, sourceClass);
     }
 
     /**
      * Determines the features that are copied by a query without body: all features of the source class, including
      * the inherited ones.
      */
-    private List<FeatureInfo> getCopiedFeatureInfos(EClass sourceClass) {
+    private List<FeatureInfo> getCopiedFeatureInfos(@Nullable Query query, EClass sourceClass) {
         return sourceClass.getEAllStructuralFeatures().stream()
             .map(feature -> new FeatureInfo(
-                feature.getName(), typeResolver.resolveCopied(feature), null, AQRFeatureOptionsBuilder.build(feature)
+                feature.getName(), typeResolver.resolveCopied(feature), null, AQRFeatureOptionsBuilder.build(feature), query
             ))
             .toList();
     }

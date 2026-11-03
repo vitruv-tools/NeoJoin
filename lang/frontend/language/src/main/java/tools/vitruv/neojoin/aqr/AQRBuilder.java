@@ -40,9 +40,9 @@ import tools.vitruv.neojoin.utils.TypeCasts;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -50,7 +50,6 @@ import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static tools.vitruv.neojoin.aqr.AQRInvariantViolatedException.invariant;
 import static tools.vitruv.neojoin.aqr.AQRInvariantViolatedException.invariantFailed;
@@ -74,8 +73,6 @@ import static tools.vitruv.neojoin.utils.Assertions.fail;
  */
 public class AQRBuilder {
 
-    private static final boolean IMPLICIT_INCLUDE_SUB_CLASSES = true;
-
     private final ViewTypeDefinition viewTypeDefinition;
     private final ExpressionHelper expressionHelper;
     private final FeatureTypeResolver typeResolver;
@@ -88,8 +85,8 @@ public class AQRBuilder {
     private final Map<EClass, Set<AQRTargetClass>> sourceClassToAQR = new HashMap<>(); // source class -> aqr targets
     private final Map<Query, AQRTargetClass> queryToTarget = new HashMap<>(); // query (Query | SubQuery) -> target class
 
-    // implicit classes, they cannot declare super classes, see linkImplicitSuperClasses
-    private final List<AQRTargetClass> implicitClasses = new ArrayList<>();
+    // implicit classes, they cannot declare super classes, see linkImplicitSuperClass
+    private final Set<AQRTargetClass> implicitClasses = new HashSet<>();
 
     public AQRBuilder(ViewTypeDefinition viewTypeDefinition, ExpressionHelper expressionHelper) {
         this.viewTypeDefinition = viewTypeDefinition;
@@ -122,10 +119,7 @@ public class AQRBuilder {
             populateTargetClass(entry.left(), entry.right() == null ? null : AstUtils.getBody(entry.right()));
         }
 
-        // link implicit classes to the target classes of their source super classes
-        linkImplicitSuperClasses();
-
-        // identify and verify inheritance
+        // link implicit classes to the target classes of their source super classes, identify and verify inheritance
         applyInheritanceToAllTargetClasses();
 
         var root = createRootIfNeededAndInit();
@@ -211,10 +205,12 @@ public class AQRBuilder {
         } else if (query instanceof SubQuery subQuery) {
             var sourceType = AstUtils.inferSubQuerySourceType(subQuery, expressionHelper);
             invariant(sourceType != null);
+            // the type of a reference often is a super class of the referenced instances, so a subquery also selects
+            // the instances of the sub classes
             createTargetClass(
                 AstUtils.getTargetName(subQuery, sourceType),
                 false,
-                AQRSourceBuilder.createSource(sourceType, IMPLICIT_INCLUDE_SUB_CLASSES),
+                AQRSourceBuilder.createSource(sourceType, true),
                 subQuery
             );
         } else {
@@ -239,7 +235,9 @@ public class AQRBuilder {
                 return explicitAbstractClass.get();
             }
 
-            return createTargetClass(source.getName(), source.isAbstract(), AQRSourceBuilder.createSource(source, IMPLICIT_INCLUDE_SUB_CLASSES), null);
+            // an implicit class selects only the direct instances, so that each instance is selected by the implicit
+            // class of its own class
+            return createTargetClass(source.getName(), source.isAbstract(), AQRSourceBuilder.createSource(source, false), null);
         }
 
         invariant(
@@ -264,10 +262,8 @@ public class AQRBuilder {
 
     private void addSuperClassesToTargetClass(AQRTargetClass targetClazz, @Nullable Query query) {
         if (query instanceof MainQuery mainQuery) {
-            for (EObject superClass : mainQuery.getSuperClasses()) {
-                invariant(superClass instanceof Query, "Classes can only extend classes created from other queries");
-
-                targetClazz.addSuperClass(getTargetForQuery((Query) superClass));
+            for (var superClass : mainQuery.getSuperClasses()) {
+                targetClazz.addSuperClass(getTargetForQuery(superClass));
             }
         }
     }
@@ -431,6 +427,8 @@ public class AQRBuilder {
             return getTargetForQuery(queryType.query());
         } else if (resolvedType instanceof FeatureType.ImplicitReferenceType implicitType) {
             return getOrCreateTargetClass(implicitType.sourceClass());
+        } else if (resolvedType instanceof FeatureType.EcoreReferenceType) {
+            return invariantFailed("A reference to an Ecore class has no target class");
         } else if (resolvedType instanceof FeatureType.AmbiguousReferenceType ambiguousType) {
             return invariantFailed(
                 "Ambiguous target class for source class '%s'. Possible candidates: %s".formatted(
@@ -444,37 +442,57 @@ public class AQRBuilder {
     }
 
     /**
-     * Adds super classes to implicit target classes, because they cannot declare {@code extends} themselves.
-     * Explicit main queries and subqueries never get implicit super classes. The target classes of subqueries can be
-     * linked as super classes, though.
+     * Adds the super class to an implicit target class, because it cannot declare {@code extends} itself. Explicit main
+     * queries and subqueries never get implicit super classes. The target classes of subqueries can be linked as super
+     * classes, though.
      * <p>
      * For an implicit class with source class {@code S}, the source super classes of {@code S} are searched level by
      * level (nearest first). At the nearest level with at least one target class of a source super class, that target
-     * class becomes the super class, but only if the implicit class has all features of it (it must override every
-     * inherited feature, see {@link #applyInheritance}). Otherwise the implicit class gets no super class, which
-     * {@code ImplicitSuperClassValidator.checkAmbiguousImplicitSuperClasses} reports as a warning. Target classes for super
-     * classes are never created, only existing ones are linked.
+     * class becomes the super class, but only if the implicit class has an equivalent feature (same name, type and
+     * modifiers) for every feature of it: it must override every inherited feature, and an override takes the type
+     * and the modifiers of the overridden feature, so it must not change the implicit copy of the source feature.
+     * Otherwise the implicit class gets no super class, which
+     * {@code ImplicitSuperClassValidator} reports as a warning. Target classes for
+     * super classes are never created, only existing ones are linked.
+     * <p>
+     * The candidate is compared with its features after inheritance was applied to it, so it is processed first.
      *
      * @see #findImplicitSuperClass
      */
-    private void linkImplicitSuperClasses() {
-        for (var targetClazz : implicitClasses) {
-            findImplicitSuperClass(targetClazz)
-                .filter(superClass -> hasAllFeaturesOf(targetClazz, superClass))
-                .ifPresent(targetClazz::addSuperClass);
+    private void linkImplicitSuperClass(AQRTargetClass targetClazz, Set<AQRTargetClass> processed) {
+        var candidate = findImplicitSuperClass(targetClazz);
+        if (candidate.isEmpty()) {
+            return;
+        }
+
+        applyInheritanceSuperClassesFirst(candidate.get(), processed);
+        if (candidate.get().features().stream().allMatch(superFeature -> hasEquivalentFeature(targetClazz, superFeature))) {
+            targetClazz.addSuperClass(candidate.get());
         }
     }
 
+    private static boolean hasEquivalentFeature(AQRTargetClass targetClazz, AQRFeature feature) {
+        return targetClazz.features().stream()
+            .anyMatch(other -> other.name().equals(feature.name()) && isEquivalent(other, feature));
+    }
+
     /**
-     * Checks that the target class has a feature for every feature the super class declares or inherits (by name).
-     * The explicit super classes of an explicit or subquery class are already set. An implicit super class always
-     * passes: its features are source features of its source class, which the target class also has.
+     * Whether two features are the same kind of feature with the same type and equal modifiers.
      */
-    private static boolean hasAllFeaturesOf(AQRTargetClass targetClazz, AQRTargetClass superClass) {
-        var names = targetClazz.features().stream().map(AQRFeature::name).collect(Collectors.toSet());
-        return Stream.concat(Stream.of(superClass), superClass.allSuperClasses().stream())
-            .flatMap(c -> c.features().stream())
-            .allMatch(feature -> names.contains(feature.name()));
+    private static boolean isEquivalent(AQRFeature a, AQRFeature b) {
+        if (!a.options().equals(b.options())) {
+            return false;
+        }
+
+        if (a instanceof AQRFeature.Attribute attributeA && b instanceof AQRFeature.Attribute attributeB) {
+            return attributeA.type().equals(attributeB.type());
+        } else if (a instanceof AQRFeature.Reference referenceA && b instanceof AQRFeature.Reference referenceB) {
+            return referenceA.type() == referenceB.type();
+        } else if (a instanceof AQRFeature.EcoreReference referenceA && b instanceof AQRFeature.EcoreReference referenceB) {
+            return referenceA.type() == referenceB.type();
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -494,7 +512,7 @@ public class AQRBuilder {
             return Optional.empty();
         }
 
-        // ambiguity is reported to users by ImplicitSuperClassValidator.checkAmbiguousImplicitSuperClasses, this guards
+        // ambiguity is reported to users by ImplicitSuperClassValidator, this guards
         // against queries that were not validated (the first candidate would be an arbitrary choice)
         invariant(
             candidates.size() == 1,
@@ -511,7 +529,12 @@ public class AQRBuilder {
      * class without joins and grouping expressions (explicit, implicit and subquery classes).
      */
     private List<AQRTargetClass> findTargetClassesOfSourceClass(EClass sourceClass) {
-        return sourceClassToAQR.getOrDefault(sourceClass, Set.of()).stream()
+        if (!sourceClassToAQR.containsKey(sourceClass)) {
+            // no query selects the source class: an explicit abstract class of the same name is used instead of an
+            // implicit class, see getOrCreateTargetClass
+            return findExplicitAbstractClassWithoutSource(sourceClass.getName()).stream().toList();
+        }
+        return sourceClassToAQR.get(sourceClass).stream()
             .filter(targetClazz -> {
                 var source = Objects.requireNonNull(targetClazz.source());
                 return source.from().clazz() == sourceClass
@@ -546,6 +569,10 @@ public class AQRBuilder {
             return;
         }
 
+        if (implicitClasses.contains(targetClazz)) {
+            linkImplicitSuperClass(targetClazz, processed);
+        }
+
         invariant(!targetClazz.allSuperClasses().contains(targetClazz), () -> "Cyclic inheritance of class '%s'".formatted(targetClazz.name()));
         for (var superClass : targetClazz.superClasses()) {
             applyInheritanceSuperClassesFirst(superClass, processed);
@@ -560,11 +587,15 @@ public class AQRBuilder {
      * classes.
      */
     private void applyInheritance(AQRTargetClass targetClazz) {
-        var superClassFeatures = targetClazz.superClasses().stream().flatMap(superClass -> superClass.features().stream()).toList();
+        var superClassFeatures = targetClazz.superClasses().stream()
+            .flatMap(superClass -> superClass.features().stream())
+            .toList();
 
         // update overriding features
         targetClazz.replaceFeatures(targetClazz.features().stream().map(feature -> {
-            var overriddenFeatures = superClassFeatures.stream().filter(superClassFeature -> superClassFeature.name().equals(feature.name())).toList();
+            var overriddenFeatures = superClassFeatures.stream()
+                .filter(superClassFeature -> superClassFeature.name().equals(feature.name()))
+                .toList();
             if (overriddenFeatures.isEmpty()) {
                 return feature;
             }
@@ -574,13 +605,22 @@ public class AQRBuilder {
         }).toList());
 
         // check if all inherited features are overridden
-        invariant(superClassFeatures.stream().allMatch(superClassFeature -> targetClazz.features().stream().anyMatch(feature -> feature.name().equals(superClassFeature.name()) && (feature.kind() instanceof AQRFeature.Kind.Override))),
-            "Sub classes must override all inherited features");
+        invariant(
+            superClassFeatures.stream().allMatch(superClassFeature -> isOverridden(targetClazz, superClassFeature)),
+            "Sub classes must override all inherited features"
+        );
+    }
+
+    private static boolean isOverridden(AQRTargetClass targetClazz, AQRFeature superClassFeature) {
+        return targetClazz.features().stream().anyMatch(
+            feature -> feature.name().equals(superClassFeature.name()) && feature.kind() instanceof AQRFeature.Kind.Override
+        );
     }
 
     /**
      * Determines the overridden feature if several super classes provide a feature with the same name (diamond): this
-     * is accepted if all provided features are equivalent, then the first one is the overridden feature.
+     * is only valid if all of them inherit it from the same declaration (common ancestor), because Ecore does not allow
+     * two features with the same name in a class (including inherited ones). The first one is the overridden feature.
      *
      * @param overriddenFeatures the features with the same name in the direct super classes (at least one)
      */
@@ -588,8 +628,8 @@ public class AQRBuilder {
         var first = overriddenFeatures.get(0);
         for (var other : overriddenFeatures) {
             invariant(
-                isEquivalent(first, other),
-                () -> "Class '%s' inherits conflicting features named '%s' from several super classes: %s and %s".formatted(
+                getDeclaration(first) == getDeclaration(other),
+                () -> "Class '%s' inherits feature '%s' from several super classes that declare it independently: %s and %s".formatted(
                     targetClazz.name(),
                     first.name(),
                     first,
@@ -601,20 +641,15 @@ public class AQRBuilder {
     }
 
     /**
-     * Whether two features are the same kind of feature with the same type and equal modifiers.
+     * Returns the feature that declares the given feature: the feature itself or, for an overriding feature, the
+     * declaration of the overridden feature.
      */
-    private static boolean isEquivalent(AQRFeature a, AQRFeature b) {
-        if (!a.options().equals(b.options())) {
-            return false;
+    private static AQRFeature getDeclaration(AQRFeature feature) {
+        var current = feature;
+        while (current.kind() instanceof AQRFeature.Kind.Override override) {
+            current = override.overridden();
         }
-
-        if (a instanceof AQRFeature.Attribute attributeA && b instanceof AQRFeature.Attribute attributeB) {
-            return attributeA.type().equals(attributeB.type());
-        } else if (a instanceof AQRFeature.Reference referenceA && b instanceof AQRFeature.Reference referenceB) {
-            return referenceA.type() == referenceB.type();
-        } else {
-            return false;
-        }
+        return current;
     }
 
     /**
@@ -622,25 +657,40 @@ public class AQRBuilder {
      * those of the root of the override chain) and, for references, the type of the overridden feature.
      */
     private static AQRFeature createOverridingFeature(AQRFeature feature, AQRFeature overriddenFeature) {
+        var kind = new AQRFeature.Kind.Override(overriddenFeature, feature.kind());
         if (feature instanceof AQRFeature.Attribute attribute) {
-            invariant(overriddenFeature instanceof AQRFeature.Attribute, "Attribute must override attribute");
-            var overriddenAttribute = (AQRFeature.Attribute)overriddenFeature;
-            invariant(overriddenAttribute.type().equals(attribute.type()), "Type of overriding feature must be equal to type of overridden feature");
+            if (!(overriddenFeature instanceof AQRFeature.Attribute overriddenAttribute)) {
+                return invariantFailed("Attribute must override attribute");
+            }
+            invariant(
+                overriddenAttribute.type().equals(attribute.type()),
+                "Type of overriding feature must be equal to type of overridden feature"
+            );
 
-            return attribute
-                .withFeatureKind(new AQRFeature.Kind.Override(overriddenFeature, feature.kind()))
-                .withOptions(overriddenFeature.options());
+            return attribute.withFeatureKind(kind).withOptions(overriddenFeature.options());
         } else if (feature instanceof AQRFeature.Reference reference) {
-            invariant(overriddenFeature instanceof AQRFeature.Reference, "Reference must override reference");
-            var overriddenReference = (AQRFeature.Reference)overriddenFeature;
+            if (!(overriddenFeature instanceof AQRFeature.Reference overriddenReference)) {
+                return invariantFailed("Reference must override reference");
+            }
             // the value must be assignable to the overridden type, which also becomes the type of the overriding
             // feature (a stricter type would break setting the reference through the super class)
-            invariant(overriddenReference.type().equals(reference.type()) || reference.type().allSuperClasses().contains(overriddenReference.type()), "Value of overriding feature must be assignable to the type of the overridden feature");
+            invariant(
+                overriddenReference.type().equals(reference.type())
+                    || reference.type().allSuperClasses().contains(overriddenReference.type()),
+                "Value of overriding feature must be assignable to the type of the overridden feature"
+            );
 
-            return reference
-                .withType(overriddenReference.type())
-                .withFeatureKind(new AQRFeature.Kind.Override(overriddenFeature, feature.kind()))
-                .withOptions(overriddenFeature.options());
+            return reference.withType(overriddenReference.type()).withFeatureKind(kind).withOptions(overriddenFeature.options());
+        } else if (feature instanceof AQRFeature.EcoreReference reference) {
+            if (!(overriddenFeature instanceof AQRFeature.EcoreReference overriddenReference)) {
+                return invariantFailed("Reference to Ecore class must override reference to Ecore class");
+            }
+            invariant(
+                overriddenReference.type() == reference.type(),
+                "Type of overriding feature must be equal to type of overridden feature"
+            );
+
+            return reference.withFeatureKind(kind).withOptions(overriddenFeature.options());
         } else {
             throw new IllegalStateException("AQRFeature is a sealed interface therefore this check should be exhaustive");
         }

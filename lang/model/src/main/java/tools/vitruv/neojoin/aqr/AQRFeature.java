@@ -19,6 +19,8 @@ public sealed interface AQRFeature {
      * @see Kind.Calculate
      * @see Kind.Copy
      * @see Kind.Generate
+     * @see Kind.Override
+     * @see Kind.Abstract
      */
     sealed interface Kind {
 
@@ -99,8 +101,7 @@ public sealed interface AQRFeature {
         }
 
         /**
-         * The feature is declared in an abstract class and has no value. It must be overridden in every
-         * concrete sub class.
+         * The feature is declared in an abstract class and has no value. It must be overridden in every sub class.
          */
         record Abstract() implements Kind {}
 
@@ -242,6 +243,14 @@ public sealed interface AQRFeature {
         @Override
         public String toString() {
             return "EcoreReference[name='%s', type=%s, kind=%s, options=%s]".formatted(name, type.getName(), kind, options);
+        }
+
+        EcoreReference withFeatureKind(Kind kind) {
+            return new EcoreReference(name, type, kind, options);
+        }
+
+        EcoreReference withOptions(Options options) {
+            return new EcoreReference(name, type, kind, options);
         }
 
     }

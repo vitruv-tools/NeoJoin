@@ -9,7 +9,9 @@ import tools.vitruv.neojoin.utils.EMFUtils;
 import java.util.stream.Stream;
 
 /**
- * Provides {@link InstanceTuple instance tuples} for all objects of the given {@link EClass class} in the given {@link Resource resource}.
+ * Provides {@link InstanceTuple instance tuples} for the objects of the given {@link EClass class} in the given
+ * {@link Resource resource}: the direct instances of the class and, if {@code includeSubClasses} is set, also the
+ * instances of its sub classes.
  */
 public class FromSource implements InstanceSource {
 

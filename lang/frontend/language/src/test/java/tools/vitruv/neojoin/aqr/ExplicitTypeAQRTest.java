@@ -7,12 +7,12 @@ import tools.vitruv.neojoin.Constants;
 import static tools.vitruv.neojoin.aqr.AQRAssertions.assertThat;
 import static tools.vitruv.neojoin.aqr.AQRTargetClassAssertions.assertThat;
 
-public class ExplicitTypeAQRTest extends AbstractKennelTest {
+class ExplicitTypeAQRTest extends AbstractKennelTest {
 
     /**
-     * An explicit class type is accepted if no query selects exactly the source class of the expression, but queries
-     * select its sub classes ({@code Dog} for {@code Animal}) or its super class with sub classes ({@code from extends
-     * Animal} for {@code Dog}).
+     * An explicit class type is accepted if no query with a target class assignable to the type selects exactly the
+     * source class of the expression, but a query selects its sub classes ({@code Dog} for {@code Animal}) or its super
+     * class with sub classes ({@code from extends Animal} for {@code Dog}).
      */
     @Test
     void explicitTypeIsAcceptedWhenOnlySubClassOrSuperClassWithSubClassesIsSelected() {

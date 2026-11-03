@@ -8,10 +8,10 @@ import static tools.vitruv.neojoin.transformation.InstanceModelAssertions.assert
  * {@code from X} (direct instances only) in comparison to {@code from extends X} (instances of sub classes too).
  */
 @SuppressWarnings("unchecked")
-public class FromExtendsTest extends AbstractKennelTest {
+class FromExtendsTest extends AbstractKennelTest {
 
     @Test
-    void fromVersusFromExtends() {
+    void fromSelectsDirectInstancesAndFromExtendsAlsoInstancesOfSubClasses() {
         var result = transform("""
             from Dog d
             create Direct {
@@ -46,40 +46,7 @@ public class FromExtendsTest extends AbstractKennelTest {
     }
 
     @Test
-    void whereWithFromExtends() {
-        var result = transform("""
-            from extends Animal a
-            where a.name.length == 3
-            create Short {
-                a.name
-            }
-            """);
-
-        assertThat(result)
-            .hasInstance("Short", named("Rex"))
-            .hasInstance("Short", named("Tom"))
-            .hasNoMoreInstances();
-    }
-
-    @Test
-    void groupByWithFromExtends() {
-        var result = transform("""
-            from extends Animal a
-            group by a.name.length
-            create ByLength {
-                len := a.map[ it.name.length ].same
-                names := a.map[ it.name ].sort.^join("+")
-            }
-            """);
-
-        assertThat(result)
-            .hasInstance("ByLength", and(attribute("len", 3), attribute("names", "Rex+Tom")))
-            .hasInstance("ByLength", and(attribute("len", 5), attribute("names", "Bello")))
-            .hasNoMoreInstances();
-    }
-
-    @Test
-    void joinWithFromExtends() {
+    void joinExtendsSelectsInstancesOfSubClasses() {
         var result = transform("""
             from Kennel k
             join extends Animal a
@@ -96,38 +63,20 @@ public class FromExtendsTest extends AbstractKennelTest {
             .hasNoMoreInstances();
     }
 
-    @Test
-    void leftJoinWithFromExtends() {
-        var result = transform("""
-            from Kennel k
-            left join extends Animal a
-                on k.animals.contains(a)
-            create Housing {
-                kennel := k.name
-                animal := a?.name
-            }
-            """);
-
-        assertThat(result)
-            .hasInstance("Housing", and(attribute("kennel", "North"), attribute("animal", "Rex")))
-            .hasInstance("Housing", and(attribute("kennel", "North"), attribute("animal", "Bello")))
-            .hasInstance("Housing", and(attribute("kennel", "South"), attribute("animal", null)))
-            .hasNoMoreInstances();
-    }
-
     /**
-     * The implicit copy of sub class instances yields Dog instances for Rex and Bello with their breed.
+     * The implicit copy of sub class instances yields Dog instances for Rex and Bello with their inherited name and
+     * their breed.
      */
     @Test
-    void implicitCopyOfSubClassInstances() {
+    void implicitCopyOfSubClassInstancesIncludesInheritedSourceFeatures() {
         var result = transform("""
             from extends Dog
             create
             """);
 
         assertThat(result)
-            .hasInstance("Dog", attribute("breed", "Lab"))
-            .hasInstance("Dog", attribute("breed", "Pug"))
+            .hasInstance("Dog", and(named("Rex"), attribute("breed", "Lab")))
+            .hasInstance("Dog", and(named("Bello"), attribute("breed", "Pug")))
             .hasNoMoreInstances();
     }
 

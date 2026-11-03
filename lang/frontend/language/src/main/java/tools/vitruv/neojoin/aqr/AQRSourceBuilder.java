@@ -38,7 +38,9 @@ public class AQRSourceBuilder {
     }
 
     /**
-     * Creates a source for the given class.
+     * Creates a source for the given class (the source of an implicit target class or a subquery).
+     *
+     * @param includeSubClasses whether the instances of sub classes of the class are selected, too
      */
     public static AQRSource createSource(EClass source, boolean includeSubClasses) {
         return new AQRSource(createFrom(source, includeSubClasses), List.of(), List.of(), List.of());

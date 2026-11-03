@@ -1,5 +1,6 @@
 package tools.vitruv.neojoin.aqr;
 
+import org.eclipse.emf.ecore.ETypedElement;
 import org.junit.jupiter.api.Test;
 import tools.vitruv.neojoin.AbstractKennelTest;
 import tools.vitruv.neojoin.Constants;
@@ -9,16 +10,14 @@ import static tools.vitruv.neojoin.aqr.AQRAssertions.assertThat;
 import static tools.vitruv.neojoin.aqr.AQRFeatureOptionsAssertions.assertThat;
 import static tools.vitruv.neojoin.aqr.AQRTargetClassAssertions.assertThat;
 
-public class AbstractClassAQRTest extends AbstractKennelTest {
-
-    private static final int Unbounded = -1;
+class AbstractClassAQRTest extends AbstractKennelTest {
 
     /**
      * Abstract classes (no source, abstract features with all kinds of modifiers, references to concrete and abstract
      * classes) are not referenced from the root, whereas a concrete query from an abstract source class is.
      */
     @Test
-    void abstractClassWithAbstractFeatures() {
+    void abstractClassHasAbstractFeaturesAndNoRootReference() {
         var aqr = parse("""
             from Dog create Doggo
 
@@ -68,7 +67,7 @@ public class AbstractClassAQRTest extends AbstractKennelTest {
                         .hasAbstractAttribute(
                             "b", "EInt", options -> {
                                 assertThat(options)
-                                    .hasBounds(0, Unbounded)
+                                    .hasBounds(0, ETypedElement.UNBOUNDED_MULTIPLICITY)
                                     .isNot(Mod.Ordered)
                                     .otherModifiersHaveDefaultValue();
                             }
@@ -105,7 +104,7 @@ public class AbstractClassAQRTest extends AbstractKennelTest {
                         .hasAbstractReference(
                             "residents", "Doggo", options -> {
                                 assertThat(options)
-                                    .hasBounds(1, Unbounded)
+                                    .hasBounds(1, ETypedElement.UNBOUNDED_MULTIPLICITY)
                                     .isNot(Mod.Ordered)
                                     .otherModifiersHaveDefaultValue();
                             }

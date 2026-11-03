@@ -5,13 +5,13 @@ import org.junit.jupiter.api.Test;
 import static tools.vitruv.neojoin.parse.ParseAssertions.assertThat;
 
 /**
- * A feature that is inherited from several super classes is valid if the provided features are equivalent (same type
- * and effective modifiers) and an error if they conflict.
+ * A feature that is inherited from several super classes is valid if all of them inherit it from the same
+ * declaration, because Ecore does not allow two features with the same name in a class, including inherited ones.
  */
-public class DiamondInheritanceParseTest extends AbstractParseTest {
+class DiamondInheritanceParseTest extends AbstractParseTest {
 
     @Test
-    void equivalentFeaturesOverriddenOnBothPaths() {
+    void featureInheritedViaCommonAncestorIsAccepted() {
         var result = parse("""
             abstract A {
                 x: EString
@@ -34,14 +34,14 @@ public class DiamondInheritanceParseTest extends AbstractParseTest {
     }
 
     @Test
-    void conflictingTypes() {
+    void featureDeclaredIndependentlyInSeveralSuperClassesConflicts() {
         var result = parse("""
             abstract A {
                 x: EString
             }
 
             abstract B {
-                x: EInt
+                x: EString
             }
 
             from Restaurant r create C extends A, B {
@@ -50,36 +50,15 @@ public class DiamondInheritanceParseTest extends AbstractParseTest {
             """);
 
         assertThat(result).hasExactlyIssues(
-            "Feature 'x' is inherited from multiple super classes with different types or modifiers: A, B"
+            "Feature 'x' is inherited from multiple super classes that declare it independently: A, B"
         );
     }
 
     @Test
-    void conflictingModifiers() {
+    void featureInheritedAndFeatureDeclaredIndependentlyConflict() {
         var result = parse("""
             abstract A {
-                x: EString [*]
-            }
-
-            abstract B {
-                x: EString [+]
-            }
-
-            from Restaurant r create C extends A, B {
-                x := #[r.name]
-            }
-            """);
-
-        assertThat(result).hasExactlyIssues(
-            "Feature 'x' is inherited from multiple super classes with different types or modifiers: A, B"
-        );
-    }
-
-    @Test
-    void effectiveModifiersOfOverrideAreCompared() {
-        var result = parse("""
-            abstract A {
-                x: EString [+]
+                x: EString
             }
 
             abstract B extends A {
@@ -87,15 +66,17 @@ public class DiamondInheritanceParseTest extends AbstractParseTest {
             }
 
             abstract C {
-                x: EString [+]
+                x: EString
             }
 
             from Restaurant r create D extends B, C {
-                x := #[r.name]
+                x = r.name
             }
             """);
 
-        assertThat(result).hasNoIssues();
+        assertThat(result).hasExactlyIssues(
+            "Feature 'x' is inherited from multiple super classes that declare it independently: B, C"
+        );
     }
 
 }

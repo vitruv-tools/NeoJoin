@@ -2,8 +2,8 @@ package tools.vitruv.neojoin.utils;
 
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
-import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.EPackage;
+import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.ETypedElement;
 import org.eclipse.xtext.EcoreUtil2;
 import org.eclipse.xtext.xbase.XExpression;
@@ -172,28 +172,6 @@ public final class AstUtils {
     }
 
     /**
-     * Check whether the given inferred class can be assigned to a feature with a query type with the given source.
-     *
-     * @param sourceClazz source class of the query referenced by the explicit type
-     * @param inferred    inferred class
-     * @return {@code true} if the assignment is valid, {@code false} otherwise
-     */
-    public static boolean checkSourceType(EClass sourceClazz, EClass inferred) {
-        return sourceClazz.isSuperTypeOf(inferred);
-    }
-
-    /**
-     * Check whether the given inferred class can be assigned to a feature with an explicit query type with the given source.
-     *
-     * @param source   source of the query referenced by the explicit type
-     * @param inferred inferred class
-     * @return {@code true} if the assignment is valid, {@code false} otherwise
-     */
-    public static boolean checkSourceType(Source source, EClass inferred) {
-        return getAllFroms(source).anyMatch(f -> checkSourceType(f.getClazz(), inferred));
-    }
-
-    /**
      * Infer the type of the expression.
      *
      * @return the type or {@code null} if it cannot be inferred (this is handled by type checking)
@@ -226,11 +204,20 @@ public final class AstUtils {
     public static List<Query> getResolvedSuperClasses(MainQuery query) {
         var result = new LinkedHashSet<Query>();
         for (var superClass : query.getSuperClasses()) {
-            if (superClass instanceof Query superQuery && !superQuery.eIsProxy() && superQuery != query) {
-                result.add(superQuery);
+            if (!superClass.eIsProxy() && superClass != query) {
+                result.add(superClass);
             }
         }
         return List.copyOf(result);
+    }
+
+    /**
+     * Check whether the given query is the same as one of its super classes or a (transitive) super class of them.
+     */
+    public static boolean hasCyclicSuperClasses(MainQuery query) {
+        return query.getSuperClasses().stream().anyMatch(superClass ->
+            !superClass.eIsProxy() && (superClass == query || isSameOrSuperClassOf(query, superClass))
+        );
     }
 
     /**
@@ -250,8 +237,8 @@ public final class AstUtils {
             }
             if (visited.add(current) && current instanceof MainQuery mainQuery) {
                 for (var superClass : mainQuery.getSuperClasses()) {
-                    if (superClass instanceof Query superQuery && !superQuery.eIsProxy()) {
-                        pending.push(superQuery);
+                    if (!superClass.eIsProxy()) {
+                        pending.push(superClass);
                     }
                 }
             }
@@ -287,6 +274,18 @@ public final class AstUtils {
             }
         });
         return queriesBySourceClass;
+    }
+
+    /**
+     * Maps the name of each abstract class (an {@code abstract} query, which has no source) to its query. If several
+     * abstract classes have the same name, the first one is used.
+     */
+    public static Map<String, Query> mapAbstractQueriesByName(ViewTypeDefinition viewType, ExpressionHelper expressionHelper) {
+        var abstractQueries = new HashMap<String, Query>();
+        getAllQueries(viewType)
+            .filter(AbstractMainQuery.class::isInstance)
+            .forEach(query -> abstractQueries.putIfAbsent(getTargetName(query, expressionHelper), query));
+        return abstractQueries;
     }
 
     /**
@@ -423,10 +422,13 @@ public final class AstUtils {
         return isManyMultiplicity(AQRFeatureOptionsBuilder.normalizeMultiplicity(multiplicity));
     }
 
+    /**
+     * Whether the multiplicity that is written for the feature is many. A feature without multiplicity is single.
+     */
     public static boolean isManyMultiplicityDefinition(Feature feature) {
-        var explicitMultiplicity = AstUtils.findMultiplicityExpression(feature);
+        var explicitMultiplicity = findMultiplicityExpression(feature);
         if (explicitMultiplicity != null) {
-            return AstUtils.isManyMultiplicity(explicitMultiplicity);
+            return isManyMultiplicity(explicitMultiplicity);
         } else {
             return false; // should we try to infer this from the declared type?
         }
@@ -472,9 +474,9 @@ public final class AstUtils {
 
     public static List<Feature> getFeatures(Body body) {
         if (body instanceof ConcreteBody concreteBody) {
-            return concreteBody.getFeatures().stream().map(e -> (Feature) e).toList();
+            return List.copyOf(concreteBody.getFeatures());
         } else if (body instanceof AbstractBody abstractBody) {
-            return abstractBody.getFeatures().stream().map(e -> (Feature) e).toList();
+            return List.copyOf(abstractBody.getFeatures());
         } else {
             return fail("Body must be either a concrete query body or an abstract query body");
         }

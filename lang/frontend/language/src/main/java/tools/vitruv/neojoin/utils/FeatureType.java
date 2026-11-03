@@ -33,6 +33,12 @@ public sealed interface FeatureType {
     record ImplicitReferenceType(EClass sourceClass) implements ReferenceType {}
 
     /**
+     * @param ecoreClass the class of the Ecore meta-model (e.g. {@code EObject}) that no query selects: it is not
+     *                   copied into the view type, so the reference keeps pointing to it
+     */
+    record EcoreReferenceType(EClass ecoreClass) implements ReferenceType {}
+
+    /**
      * @param sourceClass the source class that is selected by multiple queries
      * @param candidates  the queries that select the source class
      */

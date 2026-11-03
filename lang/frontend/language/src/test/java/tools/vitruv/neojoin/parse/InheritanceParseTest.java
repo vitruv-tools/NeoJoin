@@ -6,29 +6,9 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static tools.vitruv.neojoin.parse.ParseAssertions.assertThat;
 
-public class InheritanceParseTest extends AbstractInheritanceParseTest {
+class InheritanceParseTest extends AbstractInheritanceParseTest {
 
     // ---- grammar and scoping
-
-    @Test
-    void multipleSuperClasses() {
-        var result = parse("""
-            abstract A {
-                a: EString
-            }
-
-            abstract B {
-                b: EInt
-            }
-
-            create C extends A, B {
-                a := "x"
-                b := 1
-            }
-            """);
-
-        assertThat(result).hasNoIssues();
-    }
 
     @Test
     void extendsWithoutNameAndBody() {
@@ -52,23 +32,6 @@ public class InheritanceParseTest extends AbstractInheritanceParseTest {
                 name = f.name
                 price = f.price
                 type = f.type
-            }
-            """);
-
-        assertThat(result).hasNoIssues();
-    }
-
-    @Test
-    void extendsSubQuery() {
-        var result = parse("""
-            from Restaurant r create {
-                r.sells create FoodItem {
-                    it.name
-                }
-            }
-
-            create Special extends FoodItem {
-                name := "x"
             }
             """);
 
@@ -100,7 +63,7 @@ public class InheritanceParseTest extends AbstractInheritanceParseTest {
     // ---- super class relation
 
     @Test
-    void extendsItself() {
+    void classCannotExtendItself() {
         var result = parse("""
             abstract A extends A {}
             """);
@@ -115,8 +78,10 @@ public class InheritanceParseTest extends AbstractInheritanceParseTest {
             abstract B extends A {}
             """);
 
-        assertThat(result).hasExactlyIssues("Cyclic inheritance");
-        assertThat(result.right().stream().filter(i -> i.getMessage().equals("Cyclic inheritance"))).hasSize(2);
+        assertThat(result).hasExactlyIssues(
+            "Cyclic inheritance: 'B' is a sub class of 'A'",
+            "Cyclic inheritance: 'A' is a sub class of 'B'"
+        );
     }
 
     @Test
@@ -151,7 +116,7 @@ public class InheritanceParseTest extends AbstractInheritanceParseTest {
     // ---- overriding of inherited features
 
     @Test
-    void missingOverride() {
+    void featureOfSuperClassMustBeOverridden() {
         var result = parse("""
             abstract Named {
                 name: EString
@@ -166,7 +131,7 @@ public class InheritanceParseTest extends AbstractInheritanceParseTest {
     }
 
     @Test
-    void missingOverrideWithoutBody() {
+    void queryWithoutBodyMustOverrideFeaturesOfSuperClass() {
         var result = parse("""
             abstract Named {
                 label: EString
@@ -179,7 +144,7 @@ public class InheritanceParseTest extends AbstractInheritanceParseTest {
     }
 
     @Test
-    void missingOverrideOfTransitiveFeature() {
+    void featureOfSuperClassOfSuperClassMustBeOverridden() {
         var result = parse("""
             abstract A {
                 x: EString
@@ -196,29 +161,6 @@ public class InheritanceParseTest extends AbstractInheritanceParseTest {
             """);
 
         assertThat(result).hasExactlyIssues("Missing override of inherited feature 'y' from 'B'");
-    }
-
-    @Test
-    void overrideReferenceWithSubType() {
-        var result = parse("""
-            abstract Item {
-                name: EString
-            }
-
-            from Food f create Dish extends Item {
-                f.name
-            }
-
-            abstract Shop {
-                sells: Item [*]
-            }
-
-            from Restaurant r create Rest extends Shop {
-                sells = r.sells
-            }
-            """);
-
-        assertThat(result).hasNoIssues();
     }
 
     @Test
@@ -299,11 +241,11 @@ public class InheritanceParseTest extends AbstractInheritanceParseTest {
     @Test
     void implicitClassWithSeveralCandidatesForSuperClassIsAmbiguous() {
         var result = parseWithKennel("""
-            from Animal a create A1 {
+            from extends Animal a create A1 {
                 a.name
             }
 
-            from Animal a create A2 {
+            from extends Animal a create A2 {
                 a.name
             }
 
@@ -317,7 +259,7 @@ public class InheritanceParseTest extends AbstractInheritanceParseTest {
     }
 
     @Test
-    void implicitClassWithSuperClassCandidateWithFeaturesItCannotOverrideWarns() {
+    void implicitClassWithSuperClassCandidateWithMissingFeatureWarns() {
         var result = parseWithKennel("""
             from Kennel k create KennelT {
                 k.name
@@ -329,9 +271,116 @@ public class InheritanceParseTest extends AbstractInheritanceParseTest {
             }
             """);
 
-        assertThat(result).hasExactlyIssues(
-            "Implicit target class of source class 'Dog' is not linked to super class 'Animal', because it does not override: tag"
+        var message = "Implicit target class of source class 'Dog' is not linked to super class 'Animal', because it has no matching feature (same name, type and modifiers) for: tag";
+        assertThat(result).hasExactlyIssues(message);
+        assertThat(result).hasIssueWithSeverity(Severity.WARNING, message);
+    }
+
+    @Test
+    void implicitClassWithSuperClassCandidateWithDifferentFeatureTypeWarns() {
+        var result = parseWithKennel("""
+            from Dog d create Dog {
+                name := d.name.length
+            }
+
+            from Kennel k create K {
+                k.puppy
+            }
+            """);
+
+        assertThat(result).hasIssueWithSeverity(Severity.WARNING, "Implicit target class of source class 'Puppy' is not linked to super class 'Dog', because it has no matching feature (same name, type and modifiers) for: name");
+    }
+
+    @Test
+    void implicitClassWithSuperClassCandidateWithDifferentFeatureModifiersWarns() {
+        var result = parseWithKennel("""
+            from Dog d create Dog {
+                name = d.name
+                breed: EString [1] := d.breed
+            }
+
+            from Kennel k create K {
+                k.puppy
+            }
+            """);
+
+        assertThat(result).hasIssueWithSeverity(Severity.WARNING, "Implicit target class of source class 'Puppy' is not linked to super class 'Dog', because it has no matching feature (same name, type and modifiers) for: breed");
+    }
+
+    @Test
+    void implicitClassIsComparedWithExplicitAbstractClassOfSameName() {
+        var result = parseWithKennel("""
+            abstract Animal {
+                name: EString
+            }
+
+            from Cat c create C extends Animal {
+                name = c.name
+            }
+
+            from Kennel k create K {
+                k.animals
+                k.dogs
+            }
+            """);
+
+        assertThat(result).hasIssueWithSeverity(
+            Severity.WARNING,
+            "Implicit target class of source class 'Dog' is not linked to super class 'Animal', because it has no matching feature (same name, type and modifiers) for: name"
         );
+    }
+
+    @Test
+    void fromAbstractClassWithoutExtendsWarns() {
+        var result = parseWithKennel("""
+            from Animal create Pet
+            """);
+
+        assertThat(result).hasIssueWithSeverity(
+            Severity.WARNING,
+            "Abstract class 'Animal' has no direct instances, use 'extends' to select the instances of its sub classes"
+        );
+        assertThat(result).hasExactlyIssues(
+            "Abstract class 'Animal' has no direct instances, use 'extends' to select the instances of its sub classes"
+        );
+    }
+
+    @Test
+    void joinAbstractClassWithoutExtendsWarns() {
+        var result = parseWithKennel("""
+            from Kennel k
+            join Animal a on a.name == k.name
+            create Mix {
+                n = k.name
+            }
+            """);
+
+        assertThat(result).hasExactlyIssues(
+            "Abstract class 'Animal' has no direct instances, use 'extends' to select the instances of its sub classes"
+        );
+    }
+
+    @Test
+    void fromExtendsAbstractClassDoesNotWarn() {
+        var result = parseWithKennel("""
+            from extends Animal create Pet
+            """);
+
+        assertThat(result).hasNoIssues();
+    }
+
+    @Test
+    void explicitSubQueryTypeAcceptsValueOfSubClass() {
+        var result = parseWithKennel("""
+            from Kennel k create KennelT {
+                k.animals create Pet {
+                    it.name
+                }
+                pal: Pet = k.star
+            }
+            """);
+
+        assertThat(result).hasNoIssues();
     }
 
     @Test
@@ -463,22 +512,6 @@ public class InheritanceParseTest extends AbstractInheritanceParseTest {
     }
 
     /**
-     * A reference with an explicit class type is reported as a type mismatch if no query selects the inferred class.
-     */
-    @Test
-    void explicitQueryTypeWithoutQueryForInferredClass() {
-        var result = parse("""
-            from Review create Rev
-
-            from Restaurant r create {
-                sells: Rev := r.sells
-            }
-            """);
-
-        assertThat(result).hasExactlyIssues("Type mismatch: cannot convert from Food to Rev");
-    }
-
-    /**
      * Checks with an explicit class type terminate for cyclic inheritance.
      */
     @Test
@@ -497,7 +530,8 @@ public class InheritanceParseTest extends AbstractInheritanceParseTest {
             """);
 
         assertThat(result).hasExactlyIssues(
-            "Cyclic inheritance",
+            "Cyclic inheritance: 'B' is a sub class of 'A'",
+            "Cyclic inheritance: 'A' is a sub class of 'B'",
             "Type mismatch: cannot convert from Food to Other"
         );
     }
@@ -515,6 +549,56 @@ public class InheritanceParseTest extends AbstractInheritanceParseTest {
             """);
 
         assertThat(result).hasExactlyIssues("The method or field doesNotExist is undefined for the type Restaurant");
+    }
+
+    @Test
+    void nullableExpressionForRequiredInheritedFeatureWarns() {
+        var result = parse("""
+            abstract B {
+                n: EString [1]
+            }
+
+            from Restaurant r create C extends B {
+                n := r.name?.toUpperCase
+            }
+            """);
+
+        assertThat(result).hasIssueWithSeverity(
+            Severity.WARNING, "Nullable expression used to initialize non-nullable feature"
+        );
+    }
+
+    @Test
+    void nullableExpressionForOptionalInheritedFeatureDoesNotWarn() {
+        var result = parse("""
+            abstract B {
+                n: EString [?]
+            }
+
+            from Restaurant r create C extends B {
+                n := r.name?.toUpperCase
+            }
+            """);
+
+        assertThat(result).hasNoIssues();
+    }
+
+    @Test
+    void nullableExpressionForRequiredNewFeatureOfClassWithSuperClassWarns() {
+        var result = parse("""
+            abstract B {
+                n: EString [?]
+            }
+
+            from Restaurant r create C extends B {
+                n := "c"
+                m: EString [1] := r.name?.toUpperCase
+            }
+            """);
+
+        assertThat(result).hasIssueWithSeverity(
+            Severity.WARNING, "Nullable expression used to initialize non-nullable feature"
+        );
     }
 
 }

@@ -545,6 +545,19 @@ public class AQRTargetClassAssertions extends AbstractAssert<AQRTargetClassAsser
         return hasOverridingCopiedReference(name, type, copyOf, IgnoreOptions);
     }
 
+    @SuppressWarnings("DataFlowIssue")
+    public AQRTargetClassAssertions hasOverridingCopiedEcoreReference(String name, EClass type, EStructuralFeature copyOf) {
+        isNotNull();
+        var feature = getFeature(name);
+        if (feature instanceof AQRFeature.EcoreReference ref) {
+            Assertions.assertThat(ref.type()).isSameAs(type);
+            checkOverridingExplicitCopy(ref, copyOf);
+        } else {
+            failWithMessage("Expected feature named '%s' in '%s' to be an Ecore reference", name, actual.name());
+        }
+        return this;
+    }
+
     /**
      * Checks the names of all features (in any order).
      */

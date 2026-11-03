@@ -9,8 +9,8 @@ import static tools.vitruv.neojoin.aqr.AQRAssertions.assertThat;
 import static tools.vitruv.neojoin.aqr.AQRTargetClassAssertions.assertThat;
 
 /**
- * If several super classes provide a feature with the same name and the features are equivalent (same kind of
- * feature, same type, equal modifiers), the feature of the first super class is the overridden feature.
+ * If several super classes provide a feature with the same name, they inherit it from the same declaration (common
+ * ancestor) and the feature of the first super class is the overridden feature.
  */
 class DiamondInheritanceAQRTest extends AbstractKennelTest {
 
@@ -18,14 +18,18 @@ class DiamondInheritanceAQRTest extends AbstractKennelTest {
      * The feature of the first super class (B) is the overridden feature.
      */
     @Test
-    void equivalentFeaturesOfSeveralSuperClassesAreAccepted() {
+    void featureOfFirstSuperClassIsOverriddenInDiamond() {
         var aqr = parse("""
-            abstract B {
+            abstract A {
                 name: EString [1]
             }
 
-            abstract C {
-                name: EString [1]
+            abstract B extends A {
+                name: EString
+            }
+
+            abstract C extends A {
+                name: EString
             }
 
             from Dog d create D extends B, C {
@@ -35,8 +39,9 @@ class DiamondInheritanceAQRTest extends AbstractKennelTest {
 
         assertThat(aqr)
             .hasRootTargetClass(Constants.DefaultRootClassName, root -> assertThat(root).hasGeneratedReference("ds", "D").hasNoMoreFeatures())
-            .hasTargetClass("B", b -> assertThat(b).isAbstract().hasAbstractAttribute("name", "EString").hasNoMoreFeatures())
-            .hasTargetClass("C", c -> assertThat(c).isAbstract().hasAbstractAttribute("name", "EString").hasNoMoreFeatures())
+            .hasTargetClass("A", a -> assertThat(a).isAbstract().hasAbstractAttribute("name", "EString").hasNoMoreFeatures())
+            .hasTargetClass("B", b -> assertThat(b).hasSuperClasses("A").hasOverridingAbstractAttribute("name", "EString").hasNoMoreFeatures())
+            .hasTargetClass("C", c -> assertThat(c).hasSuperClasses("A").hasOverridingAbstractAttribute("name", "EString").hasNoMoreFeatures())
             .hasTargetClass(
                 "D", d -> assertThat(d)
                     .hasSuperClasses("B", "C")
@@ -46,23 +51,26 @@ class DiamondInheritanceAQRTest extends AbstractKennelTest {
             .hasNoMoreTargetClasses();
 
         var name = find(aqr, "D").features().get(0);
-        assertThat(name.kind()).isInstanceOf(AQRFeature.Kind.Override.class);
         assertThat(((AQRFeature.Kind.Override) name.kind()).overridden()).isEqualTo(find(aqr, "B").features().get(0));
     }
 
     /**
-     * References of several super classes are equivalent if they have the same target class.
+     * References are overridden like attributes.
      */
     @Test
-    void equivalentReferencesOfSeveralSuperClassesAreAccepted() {
+    void referenceOfFirstSuperClassIsOverriddenInDiamond() {
         var aqr = parse("""
             from Dog create DogT
 
-            abstract B {
+            abstract A {
                 pal: DogT
             }
 
-            abstract C {
+            abstract B extends A {
+                pal: DogT
+            }
+
+            abstract C extends A {
                 pal: DogT
             }
 
@@ -72,7 +80,6 @@ class DiamondInheritanceAQRTest extends AbstractKennelTest {
             """);
 
         var pal = find(aqr, "E").features().get(0);
-        assertThat(pal.kind()).isInstanceOf(AQRFeature.Kind.Override.class);
         assertThat(((AQRFeature.Kind.Override) pal.kind()).overridden()).isEqualTo(find(aqr, "B").features().get(0));
     }
 

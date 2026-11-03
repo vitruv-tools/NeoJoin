@@ -6,7 +6,7 @@ import tools.vitruv.neojoin.AbstractKennelTest;
 import static tools.vitruv.neojoin.aqr.AQRAssertions.assertThat;
 import static tools.vitruv.neojoin.aqr.AQRTargetClassAssertions.assertThat;
 
-public class FromExtendsAQRTest extends AbstractKennelTest {
+class FromExtendsAQRTest extends AbstractKennelTest {
 
     /**
      * {@code from extends} sets {@code includeSubClasses} (with alias and condition, and without alias and body), a
@@ -66,7 +66,7 @@ public class FromExtendsAQRTest extends AbstractKennelTest {
      * {@code join extends} sets {@code includeSubClasses} of the joined source only.
      */
     @Test
-    void joinWithExtends() {
+    void joinExtendsSelectsSubClassesOfJoinedSourceOnly() {
         var aqr = parse("""
             from Kennel k
             join extends Dog d

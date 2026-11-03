@@ -158,4 +158,19 @@ class MainQueryParseTest extends AbstractParseTest {
             .hasExactlyIssues("Type mismatch: cannot convert from Restaurant to Result");
     }
 
+    /**
+     * {@code create} followed by {@code abstract} is a concrete query without name and body, followed by an abstract
+     * query. The correct syntax is {@code abstract A { ... }}.
+     */
+    @Test
+    void createWithoutSourceNameAndBodyIsRejected() {
+        var result = parse("""
+            create abstract A {
+                x: EString
+            }
+            """);
+
+        assertThat(result).hasExactlyIssues("Incomplete query: 'create' needs a source, or a target name and a body");
+    }
+
 }

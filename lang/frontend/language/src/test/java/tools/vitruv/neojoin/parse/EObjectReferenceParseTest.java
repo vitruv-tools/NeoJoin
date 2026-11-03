@@ -1,7 +1,10 @@
 package tools.vitruv.neojoin.parse;
 
+import org.eclipse.xtext.validation.Issue;
 import org.junit.jupiter.api.Test;
 import tools.vitruv.neojoin.AbstractIntegrationTest;
+import tools.vitruv.neojoin.ast.ViewTypeDefinition;
+import tools.vitruv.neojoin.utils.Pair;
 
 import java.util.List;
 
@@ -18,15 +21,17 @@ class EObjectReferenceParseTest extends AbstractIntegrationTest {
         return List.of("/models/eobject-ref.ecore");
     }
 
-    private void assertNoIssues(String query) {
-        var result = internalParse("""
+    private Pair<ViewTypeDefinition, List<Issue>> parse(String query) {
+        return internalParse("""
             export package to "http://example.com"
 
             import "http://vitruv.tools/eobjectref"
 
             """ + query);
+    }
 
-        assertThat(result).hasNoIssues();
+    private void assertNoIssues(String query) {
+        assertThat(parse(query)).hasNoIssues();
     }
 
     @Test
@@ -48,6 +53,47 @@ class EObjectReferenceParseTest extends AbstractIntegrationTest {
         assertNoIssues("""
             from Named n create { n.name }
             """);
+    }
+
+    @Test
+    void referenceToEcoreClassCanOverrideReferenceToEcoreClass() {
+        assertNoIssues("""
+            from Holder h create A { h.target }
+
+            from Holder h create B extends A { h.target }
+            """);
+    }
+
+    @Test
+    void referenceToTargetClassCannotOverrideReferenceToEcoreClass() {
+        var result = parse("""
+            from Leaf create LeafT
+
+            from Holder h create A { h.target }
+
+            from Holder h create B extends A {
+                target: LeafT := null
+            }
+            """);
+
+        assertThat(result).hasExactlyIssues(
+            "Reference 'target' to a target class cannot override a reference to an Ecore class"
+        );
+    }
+
+    @Test
+    void referenceToEcoreClassCannotOverrideReferenceToTargetClass() {
+        var result = parse("""
+            from Leaf create LeafT
+
+            abstract A { target: LeafT }
+
+            from Holder h create B extends A { h.target }
+            """);
+
+        assertThat(result).hasExactlyIssues(
+            "Reference 'target' to an Ecore class cannot override a reference to a target class"
+        );
     }
 
 }

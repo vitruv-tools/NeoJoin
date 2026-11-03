@@ -153,12 +153,17 @@ public class NeoJoinScopeProvider extends AbstractNeoJoinScopeProvider {
         return new SimpleScope(IScope.NULLSCOPE, candidates);
     }
 
+    /**
+     * Scope for the super classes of a class: all queries of the view type by the name of their target class.
+     */
     private IScope createSuperClassScope(ViewTypeDefinition viewType) {
-        var queryCandidates = AstUtils.getAllQueries(viewType)
+        return new SimpleScope(createQueryCandidates(viewType));
+    }
+
+    private List<IEObjectDescription> createQueryCandidates(ViewTypeDefinition viewType) {
+        return AstUtils.getAllQueries(viewType)
             .map(query -> EObjectDescription.create(AstUtils.getTargetName(query, expressionHelper), query))
             .toList();
-
-        return new SimpleScope(queryCandidates);
     }
 
     /**
@@ -169,11 +174,7 @@ public class NeoJoinScopeProvider extends AbstractNeoJoinScopeProvider {
         imports.put(Constants.EcoreAlias, EcorePackage.eINSTANCE); // ecore is always available
         var dataTypeScope = createImportedClassifierScope(imports, EDataType.class::isInstance);
 
-        var queryCandidates = AstUtils.getAllQueries(viewType)
-            .map(query -> EObjectDescription.create(AstUtils.getTargetName(query, expressionHelper), query))
-            .toList();
-
-        return new SimpleScope(dataTypeScope, queryCandidates);
+        return new SimpleScope(dataTypeScope, createQueryCandidates(viewType));
     }
 
     /**

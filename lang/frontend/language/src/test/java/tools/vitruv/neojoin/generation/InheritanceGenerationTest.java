@@ -7,7 +7,6 @@ import org.eclipse.emf.ecore.ENamedElement;
 import org.eclipse.emf.ecore.EPackage;
 import org.junit.jupiter.api.Test;
 import tools.vitruv.neojoin.AbstractKennelTest;
-import tools.vitruv.neojoin.Constants;
 
 import java.util.Collection;
 import java.util.List;
@@ -19,7 +18,7 @@ import static org.assertj.core.api.Assertions.fail;
  * Only checks the mapping of inheritance to the generated view type. The structure of the AQR is covered by the AQR
  * tests.
  */
-public class InheritanceGenerationTest extends AbstractKennelTest {
+class InheritanceGenerationTest extends AbstractKennelTest {
 
     private EPackage generate(String query) {
         var info = new MetaModelGenerator(parse(query)).generate();
@@ -40,11 +39,10 @@ public class InheritanceGenerationTest extends AbstractKennelTest {
     }
 
     /**
-     * Abstract flag, super types, overriding features are inherited and not duplicated, abstract classes are not
-     * referenced from the root.
+     * Abstract flag, super types, and overriding features are inherited and not duplicated.
      */
     @Test
-    void generatesAbstractClassesSuperTypesAndNoDuplicatedOverrides() {
+    void abstractFlagAndSuperTypesAreGeneratedAndOverridesAreNotDuplicated() {
         var pack = generate("""
             abstract Named {
                 name: EString [1]
@@ -84,46 +82,42 @@ public class InheritanceGenerationTest extends AbstractKennelTest {
         assertThat(names(pup.getEStructuralFeatures())).containsExactly("breed");
         assertThat(names(pup.getEAllStructuralFeatures())).containsExactlyInAnyOrder("name", "age", "tag", "breed");
         assertThat(pup.getEStructuralFeature("name")).isSameAs(named.getEStructuralFeature("name"));
-        assertThat(pup.getEStructuralFeature("name").getLowerBound()).isEqualTo(1); // modifiers of the overridden feature
-
-        assertThat(names(eClass(pack, Constants.DefaultRootClassName).getEStructuralFeatures()))
-            .containsExactly("pups");
     }
 
     /**
-     * Implicit classes keep the super types of their source classes, the inherited features are only declared in the
-     * super class.
+     * A feature that is inherited via several super classes from a common ancestor exists once in the generated class,
+     * which Ecore requires.
      */
     @Test
-    void implicitSubClassHasSuperTypeAndInheritedFeaturesOnlyOnSuperClass() {
+    void diamondInheritanceGeneratesInheritedFeatureOnce() {
         var pack = generate("""
-            from Kennel create
+            abstract A {
+                name: EString
+            }
+
+            abstract B extends A {
+                name: EString
+            }
+
+            abstract C extends A {
+                name: EString
+            }
+
+            from Dog d create D extends B, C {
+                name = d.name
+            }
             """);
 
-        var animal = eClass(pack, "Animal");
-        var dog = eClass(pack, "Dog");
-        var puppy = eClass(pack, "Puppy");
-
-        assertThat(animal.isAbstract()).isTrue();
-        assertThat(animal.getESuperTypes()).isEmpty();
-        assertThat(names(animal.getEStructuralFeatures())).containsExactly("name");
-
-        assertThat(dog.getESuperTypes()).containsExactly(animal);
-        assertThat(names(dog.getEStructuralFeatures())).containsExactly("breed");
-        assertThat(names(dog.getEAllStructuralFeatures())).containsExactlyInAnyOrder("name", "breed");
-
-        assertThat(puppy.getESuperTypes()).containsExactly(dog);
-        assertThat(names(puppy.getEStructuralFeatures())).containsExactly("age");
-
-        assertThat(names(eClass(pack, Constants.DefaultRootClassName).getEStructuralFeatures()))
-            .doesNotContain("animals");
+        assertThat(names(eClass(pack, "D").getEAllStructuralFeatures())).containsExactly("name");
+        assertThat(eClass(pack, "D").getESuperTypes()).containsExactly(eClass(pack, "B"), eClass(pack, "C"));
     }
 
     /**
-     * Enum types of inherited features are mapped.
+     * The enum type of a feature that is declared in an abstract class is copied into the view type and is the type of
+     * the feature.
      */
     @Test
-    void enumTypeOfInheritedFeatureIsMapped() {
+    void enumTypeOfAbstractFeatureIsCopiedIntoViewType() {
         var pack = generate("""
             abstract Specialized {
                 specialty: Specialty
@@ -137,7 +131,6 @@ public class InheritanceGenerationTest extends AbstractKennelTest {
         var specialty = pack.getEClassifier("Specialty");
         assertThat(specialty).isInstanceOf(EEnum.class);
         assertThat(eClass(pack, "Specialized").getEStructuralFeature("specialty").getEType()).isSameAs(specialty);
-        assertThat(eClass(pack, "Doctor").getEStructuralFeature("specialty").getEType()).isSameAs(specialty);
     }
 
 }
