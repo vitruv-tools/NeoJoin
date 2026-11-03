@@ -17,11 +17,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class NeoJoinFileSystemScannerTest {
 
-    private static List<String> scan(Path workspace, Set<String> excludedDirectories) {
+    private static List<Path> scan(Path workspace, Set<String> excludedDirectories) {
         var scanner = new NeoJoinFileSystemScanner(excludedDirectories);
         Guice.createInjector().injectMembers(scanner); // as Main's toInstance binding does
-        List<String> scanned = new ArrayList<>();
-        scanner.scan(URI.createFileURI(workspace.toString()), uri -> scanned.add(uri.toFileString()));
+        List<Path> scanned = new ArrayList<>();
+        // not toFileString(): it yields "//\C:\..." for file URIs with a Windows drive letter
+        scanner.scan(URI.createFileURI(workspace.toString()), uri -> scanned.add(Path.of(java.net.URI.create(uri.toString()))));
         return scanned;
     }
 
@@ -42,8 +43,8 @@ class NeoJoinFileSystemScannerTest {
 
         var scanned = scan(workspace, Set.of("target"));
 
-        assertThat(scanned).anyMatch(path -> Path.of(path).equals(source));
-        assertThat(scanned).noneMatch(path -> Path.of(path).startsWith(workspace.resolve("target")));
+        assertThat(scanned).anyMatch(path -> path.equals(source));
+        assertThat(scanned).noneMatch(path -> path.startsWith(workspace.resolve("target")));
     }
 
     @Test
@@ -52,7 +53,7 @@ class NeoJoinFileSystemScannerTest {
 
         var scanned = scan(workspace, Set.of());
 
-        assertThat(scanned).anyMatch(path -> Path.of(path).startsWith(workspace.resolve("target")));
+        assertThat(scanned).anyMatch(path -> path.startsWith(workspace.resolve("target")));
     }
 
     @Test
