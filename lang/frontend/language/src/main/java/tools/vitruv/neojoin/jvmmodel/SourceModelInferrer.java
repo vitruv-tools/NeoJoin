@@ -17,9 +17,11 @@ import tools.vitruv.neojoin.utils.EMFUtils;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import static tools.vitruv.neojoin.utils.Assertions.check;
 import static tools.vitruv.neojoin.utils.Assertions.fail;
+import static tools.vitruv.neojoin.utils.Utils.iter;
 
 /**
  * Generate a jvm model for all available source meta-models to allow Xbase expressions to reference their attributes.
@@ -52,15 +54,25 @@ public class SourceModelInferrer {
         this.references = references;
     }
 
-    public void infer() {
+    public void infer() throws ModelInferenceException {
+        check(typeRegistry.isEmpty(), "type registry is not empty");
+
         for (var pack : packages) {
             forEachEnumIn(pack, this::createEnum);
             forEachClassIn(pack, this::createClass);
         }
 
         for (var pack : packages) {
-            forEachClassIn(pack, this::populateClass);
+            for (var clazz : iter(getClasses(pack))) {
+                populateClass(clazz);
+            }
         }
+    }
+
+    private Stream<EClass> getClasses(EPackage pack) {
+        return pack.getEClassifiers().stream()
+            .filter(EClass.class::isInstance)
+            .map(EClass.class::cast);
     }
 
     private void forEachClassIn(EPackage pack, Consumer<EClass> consumer) {
@@ -107,7 +119,7 @@ public class SourceModelInferrer {
         typeRegistry.addClass(eClazz, type);
     }
 
-    private void populateClass(EClass eClazz) {
+    private void populateClass(EClass eClazz) throws ModelInferenceException {
         var type = typeRegistry.getClass(eClazz);
         check(type != null);
 
@@ -124,7 +136,7 @@ public class SourceModelInferrer {
         }
     }
 
-    private JvmTypeReference getFeatureType(EStructuralFeature feature) {
+    private JvmTypeReference getFeatureType(EStructuralFeature feature) throws ModelInferenceException {
         JvmTypeReference type;
         if (feature instanceof EAttribute attr) {
             type = getAttributeType(attr);
@@ -141,33 +153,35 @@ public class SourceModelInferrer {
         }
     }
 
-    private JvmTypeReference getAttributeType(EAttribute attr) {
+    private JvmTypeReference getAttributeType(EAttribute attr) throws ModelInferenceException {
         if (attr.getEAttributeType() instanceof EEnum eEnum) {
             var enumType = typeRegistry.getEnum(eEnum);
-            check(
-                enumType != null,
-                () -> "unknown attribute type '%s' in %s".formatted(attr.getEAttributeType(), getPackageUri(attr))
-            );
+            if (enumType == null)
+                throw new ModelInferenceException.UnknownAttributeType(
+                    attr.getEAttributeType(),
+                    getPackageUri(attr)
+                );
+
             return references.typeRef(enumType);
         } else {
             var type = attr.getEAttributeType().getInstanceClass();
-            check(
-                type != null,
-                () -> "unexpected attribute type without instance class '%s' in %s".formatted(
+            if (type == null)
+                throw new ModelInferenceException.AttributeTypeMissesInstanceClass(
                     attr.getEAttributeType(),
                     getPackageUri(attr)
-                )
-            );
+                );
             return references.typeRef(type);
         }
     }
 
-    private JvmTypeReference getReferenceType(EReference ref) {
+    private JvmTypeReference getReferenceType(EReference ref) throws ModelInferenceException {
         var type = typeRegistry.getClass(ref.getEReferenceType());
-        check(
-            type != null,
-            () -> "unknown reference type '%s' in %s".formatted(ref.getEReferenceType(), getPackageUri(ref))
-        );
+        if (type == null)
+            throw new ModelInferenceException.UnknownReferenceType(
+                ref.getEReferenceType(),
+                getPackageUri(ref)
+            );
+
         return references.typeRef(type);
     }
 

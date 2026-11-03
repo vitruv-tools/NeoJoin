@@ -3,6 +3,7 @@ package tools.vitruv.neojoin.transformation;
 import org.jspecify.annotations.Nullable;
 import tools.vitruv.neojoin.SourceLocation;
 
+
 /**
  * Thrown for user caused errors during transformation. This includes:
  * <ul>
@@ -11,7 +12,7 @@ import tools.vitruv.neojoin.SourceLocation;
  *     <li>Reference to an instance that is either missing in the target model or mapped multiple times</li>
  * </ul>
  */
-public class TransformatorException extends RuntimeException {
+public class TransformatorException extends Exception {
 
     private final @Nullable SourceLocation source;
 

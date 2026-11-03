@@ -4,10 +4,12 @@ import tools.vitruv.neojoin.transformation.InstanceTuple;
 
 import java.util.function.Supplier;
 import java.util.stream.Stream;
+import tools.vitruv.neojoin.transformation.TransformatorException;
+import tools.vitruv.neojoin.utils.Result;
 
 /**
  * An instance source provides a stream of {@link InstanceTuple instance tuples}.
  *
  * @see #get()
  */
-public interface InstanceSource extends Supplier<Stream<InstanceTuple>> {}
+public interface InstanceSource extends Supplier<Stream<Result<InstanceTuple, TransformatorException>>> {}

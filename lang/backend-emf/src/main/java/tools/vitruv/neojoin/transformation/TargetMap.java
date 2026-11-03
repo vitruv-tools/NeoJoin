@@ -31,7 +31,7 @@ public class TargetMap {
      *
      * @throws TransformatorException if none or multiple target instances are mapped to the given source instance and target class
      */
-    public EObject get(EObject source, AQRTargetClass targetClass) {
+    public EObject get(EObject source, AQRTargetClass targetClass) throws TransformatorException {
         return getUnique(source, targetClass);
     }
 
@@ -41,11 +41,11 @@ public class TargetMap {
      *
      * @throws TransformatorException if none or multiple target instances are mapped to the given source instance
      */
-    public EObject get(EObject source) {
+    public EObject get(EObject source) throws TransformatorException {
         return getUnique(source, null);
     }
 
-    private EObject getUnique(EObject source, @Nullable AQRTargetClass targetClass) {
+    private EObject getUnique(EObject source, @Nullable AQRTargetClass targetClass) throws TransformatorException {
         var targets = targetsBySource.getOrDefault(source, List.of()).stream()
             .filter(target -> targetClass == null || target.right() == targetClass)
             .toList();

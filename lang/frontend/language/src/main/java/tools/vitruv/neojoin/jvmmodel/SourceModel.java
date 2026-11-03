@@ -3,7 +3,7 @@ package tools.vitruv.neojoin.jvmmodel;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 
-import java.util.function.Consumer;
+import tools.vitruv.neojoin.utils.ThrowingConsumer;
 
 public class SourceModel {
     private static final URI SourceTypeRegistryURI = URI.createURI("SourceTypeRegistry");
@@ -12,7 +12,7 @@ public class SourceModel {
 
     }
 
-    public static TypeRegistry getOrCreateSourceTypeRegistry(ResourceSet resourceSet, Consumer<TypeRegistry> initializer) {
+    public static TypeRegistry getOrCreateSourceTypeRegistry(ResourceSet resourceSet, ThrowingConsumer<TypeRegistry, ModelInferenceException> initializer) throws ModelInferenceException {
         var typeRegistry = (TypeRegistry) resourceSet.getResource(SourceTypeRegistryURI, false);
         if (typeRegistry == null) {
             typeRegistry = new TypeRegistry(SourceTypeRegistryURI);

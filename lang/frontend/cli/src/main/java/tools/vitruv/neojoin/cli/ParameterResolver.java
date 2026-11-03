@@ -28,7 +28,7 @@ class ParameterResolver {
         List<AQRParameter> aqrParams,
         Map<String, String> inputParams,
         EPackage.Registry registry
-    ) {
+    ) throws ParameterResolutionException {
         if (aqrParams.isEmpty()) {
             return Map.of();
         }
@@ -63,7 +63,7 @@ class ParameterResolver {
         return result;
     }
 
-    private static Object getTypedParameter(String raw, EDataType type) {
+    private static Object getTypedParameter(String raw, EDataType type) throws ParameterResolutionException {
         var cls = type.getInstanceClass();
         if (cls == String.class) return raw;
         try {
@@ -82,7 +82,7 @@ class ParameterResolver {
         );
     }
 
-    private static EObject loadEClassParameter(String xmiPath, EClass expectedType, EPackage.Registry registry) {
+    private static EObject loadEClassParameter(String xmiPath, EClass expectedType, EPackage.Registry registry) throws ParameterResolutionException {
         var resource = loadXmiResource(xmiPath, registry);
 
         if (resource.getContents().isEmpty()) {
@@ -103,7 +103,7 @@ class ParameterResolver {
         return obj;
     }
 
-    private static List<EObject> loadEClassListParameter(String xmiPath, EClass expectedType, EPackage.Registry registry) {
+    private static List<EObject> loadEClassListParameter(String xmiPath, EClass expectedType, EPackage.Registry registry) throws ParameterResolutionException {
         var resource = loadXmiResource(xmiPath, registry);
 
         var matches = resource.getContents().stream()
@@ -119,7 +119,7 @@ class ParameterResolver {
         return matches;
     }
 
-    private static Resource loadXmiResource(String xmiPath, EPackage.Registry registry) {
+    private static Resource loadXmiResource(String xmiPath, EPackage.Registry registry) throws ParameterResolutionException {
         if (!Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().containsKey("xmi")) {
             Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap()
                 .put("xmi", new XMIResourceFactoryImpl());

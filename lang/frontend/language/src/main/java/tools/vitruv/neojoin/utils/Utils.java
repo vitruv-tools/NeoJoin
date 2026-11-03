@@ -1,16 +1,23 @@
 package tools.vitruv.neojoin.utils;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Spliterators;
 import java.util.function.BiConsumer;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+
+import java.util.stream.Collector.Characteristics;
 
 /**
  * Various generic java utilities.
@@ -22,19 +29,90 @@ public class Utils {
     /**
      * {@link Stream#collect(Collector) Collects} a stream of {@link Map.Entry} into a map.
      *
-     * @param throwOnDuplicate how to handle duplicates
      * @param <K>              key type of the map +entries
      * @param <V>              value type of the map entries
      * @return resulting map
      */
-    public static <K, V> Collector<Map.Entry<K, V>, ?, Map<K, V>> mapCollector(boolean throwOnDuplicate) {
+    public static <K, V> Collector<Map.Entry<K, V>, ?, Map<K, V>> toMapIgnoreDuplicates() {
         return Collectors.toMap(
             Map.Entry::getKey,
             Map.Entry::getValue,
-            throwOnDuplicate ? (a, b) -> {
-                throw new IllegalStateException("duplicate key");
-            } : (a, b) -> a
+            (a, b) -> a
         );
+    }
+
+    public static <T> Collector<T, ?, Boolean> allMatch(Predicate<T> predicate) {
+        return Collectors.mapping(it -> predicate.test(it), Collectors.reducing(true, (a, b) -> a && b));
+    }
+
+    /**
+     * {@link Stream#collect(Collector) Collects} a stream of {@link Map.Entry} into a map.
+     * Fail on duplicate keys.
+     *
+     * @param <K>              key type of the map +entries
+     * @param <V>              value type of the map entries
+     * @return resulting map
+     */
+    public static <K, V, E extends Exception> Collector<Pair<K, V>, ?, Result<Map<K, V>, E>> toMapFailOnDuplicates(
+            TriFunction<K, V, V, E> exception
+    ) {
+        return new ToMapFailOnDuplicates<>(exception);
+    }
+
+    public static <K, V, E extends Exception> Collector<Result<Pair<K, V>, E>, ?, Result<Map<K, List<V>>, E>> groupOrFail() {
+        return collectFailingFast(
+                Collectors.groupingBy(Pair::left, HashMap::new,
+                    Collectors.mapping(Pair::right, Collectors.toList()))
+                );
+    }
+
+   /* NOTE: Since the intermediate accumulation type of the [Collector] is often hidden
+    *      as an implementation detail, it's unfortunately necessary to omit for the
+    *      type of the collector argument and thus it is necessary to conduct unchecked type casts.
+    */
+	@SuppressWarnings("unchecked")
+    public static <T, D, E extends Exception> Collector<Result<T, E>, ?, Result<D, E>> collectFailingFast(
+            Collector<T, ?, D> collector
+    ) {
+        final var supplier = collector.supplier();
+        final var accumulator = (BiConsumer<Object, T>) collector.accumulator();
+        final var combiner = (BinaryOperator<Object>) collector.combiner();
+        final var finisher = (Function<Object, D>) collector.finisher();
+        final var characteristics = collector.characteristics().stream()
+            .filter(it -> it != Characteristics.IDENTITY_FINISH)
+            .toArray(Characteristics[]::new);
+
+        return Collector.of(
+            () -> {
+                final ArrayList<Result<Object, E>> container = new ArrayList<>(1);
+                container.add(Result.of(supplier.get()));
+                return container;
+            },
+            (container, next) ->
+                container.get(0).ifSuccess(sink ->
+                    next
+                        .ifSuccess(value -> accumulator.accept(sink, value))
+                        .ifFailure(e -> container.set(0, Result.fail(e)))
+                ),
+            (a, b) -> {
+                a.set(0, a.get(0).bind(valueOfA ->
+                        b.get(0).map(valueOfB -> combiner.apply(valueOfA, valueOfB))));
+                return a;
+            },
+            container -> container.get(0).map(finisher),
+            characteristics
+        );
+    }
+
+    /**
+     * This function converts a stream into an [Iterable].
+     * This allows to iterate over the stream using a normal for loop.
+     *
+     * @param stream the stream that should be turned into an iterator
+     * @return an iterator for the elements of the stream.
+     */
+    public static <T> Iterable<T> iter(Stream<T> stream) {
+        return () -> stream.iterator();
     }
 
     public static String removeSuffix(String string, String suffix) {
@@ -116,4 +194,5 @@ public class Utils {
             false
         );
     }
+
 }
