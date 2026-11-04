@@ -205,6 +205,24 @@
                     visualization.innerHTML = data.svg;
                     zoomHandler.autoZoom();
                 }
+
+                if (data.options) {
+                    const form = document.getElementById("options");
+
+                    const modeInput = form.querySelector(
+                        `input[type="radio"][name="mode"][value="${data.options.mode}"]`
+                    );
+                    if (modeInput) {
+                        modeInput.checked = true;
+                    }
+
+                    const orthogonalInput = form.querySelector(
+                        `input[type="checkbox"][name="orthogonal"]`
+                    );
+                    if (orthogonalInput) {
+                        orthogonalInput.checked = data.options.orthogonal;
+                    }
+                }
             }
             window.addEventListener("message", (event) => update(event.data));
 
