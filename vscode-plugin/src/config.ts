@@ -18,6 +18,19 @@ class Config {
     }
 
     /**
+     * Names of directories that the server does not search for queries.
+     */
+    get excludedDirectories() {
+        return this.#get<string[]>("excludedDirectories", [
+            "target",
+            "bin",
+            "build",
+            "node_modules",
+            ".git",
+        ]);
+    }
+
+    /**
      * Whether debug mode is enabled.
      */
     get debug() {
