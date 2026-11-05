@@ -44,6 +44,31 @@ jobs:
         name: framework-and-cli
         path: staging/
 
+  checkstyle:
+    name: Checkstyle
+    runs-on: ubuntu-latest
+    needs: build-maven
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v7.0.1
+
+    - name: Setup Java and Maven cache
+      uses: actions/setup-java@v6.1.0
+      with:
+        distribution: 'temurin'
+        java-version: '21'
+        check-latest: true
+        cache: 'maven'
+
+    # Violations are warnings and do not fail the job (see the profile "checkstyle" in pom.xml).
+    - name: Check code style
+      run: >
+        ./mvnw validate -P checkstyle
+        --batch-mode
+        --update-snapshots
+        --no-transfer-progress
+
   build-maven-other-platforms:
     name: Build Maven projects
     runs-on: ${{ matrix.os }}

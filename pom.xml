@@ -215,4 +215,31 @@
       </plugins>
     </pluginManagement>
   </build>
+
+  <!-- Optional style check: ./mvnw validate -P checkstyle
+       Runs maven-checkstyle-plugin (version, Checkstyle version and the validate execution come from the parent POM)
+       with checkstyle.xml in the repository root. By default, violations are warnings: they are printed and do not
+       fail the build. Add -Dcheckstyle.severity=error to make them fail the build. -->
+  <profiles>
+    <profile>
+      <id>checkstyle</id>
+      <properties>
+        <checkstyle.severity>warning</checkstyle.severity>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-checkstyle-plugin</artifactId>
+            <configuration>
+              <configLocation>${maven.multiModuleProjectDirectory}/checkstyle.xml</configLocation>
+              <propertyExpansion>org.checkstyle.google.severity=${checkstyle.severity}</propertyExpansion>
+              <includeTestSourceDirectory>true</includeTestSourceDirectory>
+              <excludes>**/src-gen/**,**/generated-sources/**</excludes>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>
