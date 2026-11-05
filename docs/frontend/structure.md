@@ -10,7 +10,7 @@ The **language frontend** parses the given query and together with the reference
 
 #### Frontend/Language
 
-* [Xtext grammar for NeoJoin](/lang/frontend/src/main/xtext/tools/vitruv/neojoin/NeoJoin.xtext) ([Xtext grammar reference](https://eclipse.dev/Xtext/documentation/301_grammarlanguage.html))
+* [Xtext grammar for NeoJoin](/frontend/language/src/main/xtext/tools/vitruv/neojoin/NeoJoin.xtext) ([Xtext grammar reference](https://eclipse.dev/Xtext/documentation/301_grammarlanguage.html))
 * `aqr` - AQR generation. Xtext provides an abstract representation of the input query file. The `AQRBuilder` performs various normalizations to generate the AQR from Xtext's query representation. These normalizations include:
     * inferring feature types based on the given expressions
     * transformation subqueries into top-level queries

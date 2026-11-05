@@ -5,9 +5,7 @@
 [![Issues](https://img.shields.io/github/issues/vitruv-tools/NeoJoin.svg)](https://github.com/vitruv-tools/NeoJoin/issues)
 [![License](https://img.shields.io/github/license/vitruv-tools/NeoJoin.svg)](https://raw.githubusercontent.com/vitruv-tools/NeoJoin/main/LICENSE)
 
-*NeoJoin* is a declarative query language for view-based model-driven software development. It allows to easily create views based on one or more source models using a declarative SQL-like syntax. It supports multiple backends for the model-view transformation, one of which is based on triple graph grammars (TGGs) and supports bidirectional and incremental transformations between models and views.
-
-*Note: The frontend is currently not connected to the TGG backend, so an automatic transformation of the queries in NeoJoin syntax is only possible with the EMF backend. We plan to add support for this in the future.*
+*NeoJoin* is a declarative query language for view-based model-driven software development. It allows to easily create views based on one or more source models using a declarative SQL-like syntax. It supports two backends for the model-view transformation: an EMF-based backend and a backend based on triple graph grammars (TGGs) that supports bidirectional and incremental transformations between models and views. Further tools that build on the language, such as an editor extension, and the TGG backend live in separate repositories (see [Related Repositories](#related-repositories)).
 
 ### Syntax Example
 
@@ -81,7 +79,7 @@ Classes that NeoJoin creates implicitly for referenced source classes (e.g. the 
 * Features in the view can be *copied* from the source models, *renamed* or *calculated* based on a custom expression
 * Query conditions and feature definition using [Xtend expressions](https://eclipse.dev/Xtext/xtend/documentation/203_xtend_expressions.html)
 * Parameterizable queries with typed parameters passed at transformation time
-* [VSCode](https://code.visualstudio.com/) plugin for syntax highlighting, code completion, and live visualization of the resulting view type
+* Language server (LSP) for syntax highlighting, code completion, and live visualization of the resulting view type
 * Input and output meta-models as `.ecore` and instance-models as `.xmi` files
 * Source meta-models may reference classes of the Ecore meta-model (e.g. `EObject`) without having Ecore on the meta-model path or importing it
 
@@ -89,7 +87,7 @@ Classes that NeoJoin creates implicitly for referenced source classes (e.g. the 
 
 Keywords of the query language are reserved everywhere in a query, including inside expressions, in addition to the
 keywords of [Xbase](https://eclipse.dev/Xtext/xtend/documentation/203_xtend_expressions.html). The
-[grammar](lang/frontend/language/src/main/xtext/tools/vitruv/neojoin/NeoJoin.xtext) defines the current set. To use a
+[grammar](frontend/language/src/main/xtext/tools/vitruv/neojoin/NeoJoin.xtext) defines the current set. To use a
 keyword as the name of a feature, an alias or a method, escape it with `^`, e.g. Xtend's `join` extension method:
 
 ```
@@ -100,32 +98,24 @@ create Foods {
 }
 ```
 
+## Related Repositories
+
+| Repository                                                                     | Content                                                                                                                                                                                                                                                                                  |
+|--------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [NeoJoin-for-VS-Code](https://github.com/vitruv-tools/NeoJoin-for-VS-Code)     | [VSCode](https://code.visualstudio.com/) extension for syntax highlighting, code completion, and live visualization of the resulting view type. It starts the language server built in this repository.                                                                                  |
+| [NeoJoin-TGG-Backend](https://github.com/vitruv-tools/NeoJoin-TGG-Backend)     | Backend based on triple graph grammars (TGGs) for bidirectional and incremental transformations between models and views, using [eMoflon::Neo](https://github.com/eMoflon/emoflon-neo) and [Neo4j](https://neo4j.com/). It is used through its Java API and is not available in the CLI. |
+| [NeoJoin-for-Vitruvius](https://github.com/vitruv-tools/NeoJoin-for-Vitruvius) | Integration of NeoJoin into [Vitruvius](https://github.com/vitruv-tools/Vitruv): generates Java code for the view types of NeoJoin queries and supports their use in change propagation specifications.                                                                                  |
+
 ## Usage
 
-NeoJoin comes with two frontends and two backends. The first frontend is the VSCode plugin, which provides IDE support and view type visualization. The second frontend is the CLI, which provides commands for generating the view type, as well as executing the model-level transformations, currently only with our unidirectional, state-based EMF backend. The other backend, currently in development, offers bidirectional, incremental model-level transformations by generating triple graph grammars (TGGs).
+NeoJoin comes with two frontends and two backends. The first frontend is the language server (LSP), which provides IDE support and view type visualization to editor extensions. The second frontend is the CLI, which provides commands for generating the view type, as well as executing the model-level transformations, currently only with our unidirectional, state-based EMF backend. The other backend offers bidirectional, incremental model-level transformations by generating triple graph grammars (TGGs).
 
-The VSCode plugin and the CLI executable can be downloaded from the build results of the last [successful nightly builds](https://github.com/vitruv-tools/NeoJoin/actions/workflows/ci.yml?query=branch%3Amain+event%3Aschedule+is%3Asuccess).
+The CLI executable and the language server can be downloaded from the build results of the last [successful nightly builds](https://github.com/vitruv-tools/NeoJoin/actions/workflows/ci.yml?query=branch%3Amain+event%3Aschedule+is%3Asuccess).
 
 ### Requirements
 
-* JDK 21+
-* [VSCode](https://code.visualstudio.com/) *(for the VSCode plugin)*
-* [Graphviz](https://plantuml.com/graphviz-dot) *(for the view type visualization in the VSCode plugin)*
-* [Neo4j](https://neo4j.com/) *(for the TGG backend)*
-* [eMoflon::Neo](https://github.com/eMoflon/emoflon-neo) installed in an Eclipse instance *(for the TGG backend)*
-
-### VSCode Plugin
-
-Provides basic IDE support (syntax highlighting, code-completion, etc.) and a side-by-side live visualization of queries. Can be installed from the `.vsix` file via **Extensions** > 3-dot menu > **Install from VSIX...**.
-
-#### Commands
-* **Show Query Visualization** - Show a live visualization of the queries in the currently active text editor.
-* **Generate View Type** - Generate the view type resulting from the queries in the currently active text editor and save it as an Ecore file next to the query file.
-* **Restart Server** - Restart the language server after configuration changes.
-
-#### Settings
-* **Meta Model Search Path** - Semicolon separted list of file URLs to search for source meta models.
-* **Debug** - Enable debug logging.
+* JDK 21+ *(the language server runs on JDK 17+)*
+* [Graphviz](https://plantuml.com/graphviz-dot) *(for the view type visualization in the language server)*
 
 ### Command Line Interface
 
@@ -200,88 +190,30 @@ strict conforms to "https://food-reference.example.com/"
 from Pizza create Food { type := "pizza" }
 ```
 
-The rules and their categories are documented in the [conformance validator readme](/lang/conformancevalidator/readme.md).
-
-### Transformation of Operators to Triple Graph Grammars
-
-1. Build view from operators directly: `var view = new View(); view.addQuery(...);`
-2. Resolve interdependent queries (see documentation in `Query`): `var queries = view.resolveQueries()`
-3. Get the TGG rules and constraints generated for a query: `var rules = query.getGeneratedRules(); var constraints = query.getGeneratedConstraints();`
-4. Build triple grammar from the TGG rules and constraints: `var grammar = new TripleGrammar(name, rules, constraints, sourceMetamodels, targetMetamodels);`
-5. Optional: generate eMoflon::Neo project: `new Scaffolding(...).create(...);`
-
-You can use the convenience function `API.generateProjectForView(...)` for steps 2 to 5.
-
-### Running the Generated Model-View Transformations
-
-Prerequisites:
-
-- Eclipse with [eMoflon::Neo](https://emoflon.org/download/#emoflonneo) set up
-- [Neo4j Desktop](https://neo4j.com/deployment-center/) **version 4.4.X**
-
-Make sure the Neo4j database is running and the Neo4j username/password is correctly configured in Eclipse. Additional
-information about how to set up Neo4j and eMoflon::Neo is
-available [here](https://emoflon.org/getting-started/#emoflonneo).
-
-The generated eMoflon::Neo project can be used for various model checking and transformation scenarios. The following
-steps describe how to execute the forward and sync transformations with an initial source model:
-
-1. Open the generated project folder with Eclipse
-    - The `src/*.msl` files contain the generated TGG project and (meta)models
-    - The `src/*Runner.java` files can be executed to sync the source and target models with Neo4j
-    - For each source model, a `src/*ForwardRunner.java` is available to generate the target model and establish correspondences
-2. Right-click the desired `src/*ForwardRunner.java` > `Run As` > `Java Application`
-    - This will clear the Neo4j database and run the ForwardRunner for this model
-3. Run `match (source {enamespace: "YOUR_SOURCE_MODEL_NAME"}), (target {enamespace: "Target"}) return source, target` in the Neo4j Browser
-    - This will output the graph with the source and target elements as well as the correspondences
-4. Update the source and/or target model with [Neo4j Clauses](https://neo4j.com/docs/cypher-manual/current/clauses/)
-    - Make sure the property `_cr_: true` is added to created nodes and edges
-    - Make sure the correct `enamespace: "YOUR_SOURCE_MODEL_NAME"` property is added to created nodes
-    - Make sure the property `_de_: true` is added to "deleted" nodes and edges
-5. Right-click the desired `src/*SyncRunner.java` > `Run As` > `Java Application`
-    - This will run the SyncRunner for this model
-    - Afterward, the source and target should be consistent again
-6. Optional: Dump the models using the [script](/scripts/dump/readme.md)
-    - Make sure the source and target model names are correctly configured
+The rules and their categories are documented in the [conformance validator readme](/conformancevalidator/readme.md).
 
 ## Repository Structure
 
-### Project
-| Directory     | Content                                                      |
-|---------------|--------------------------------------------------------------|
-| docs          | Project documentation                                        |
-| lang          | Prototype implementation *(see below)*                       |
-| scripts       | Helper scripts for the project                               |
-| scripts/dump  | Script for exporting models from a Neo4j graph database      |
-| vscode-plugin | VSCode plugin for NeoJoin language support and visualization |
-
-### Prototype Implementation
-| **Module** / Package       | Description                                                                                             |
-|----------------------------|---------------------------------------------------------------------------------------------------------|
-| **backend-emf**            | EMF-based transformation engine to derive instances of the view based on the query                      |
-| **backend-tgg**            | eMoflon::Neo-based transformation engine for bidirectional transformation between models and views      |
-| backend-tgg/**driver**     | Auxiliary logic for generating eMoflon::Neo Eclipse projects                                            |
-| backend-tgg/**operators**  | Primary operators for creating TGGs                                                                     |
-| backend-tgg/**transpiler** | The core logic and operators for creating TGGs from operators                                           |
-| **expression-parser**      | Parser for the reference expressions of features *(used by the TGG backend)*                            |
-| **conformancevalidator**   | Rule-based check whether a generated view type conforms to a reference meta-model                       |
-| frontend/**cli**           | CLI interface to execute meta-model generation and instance model transformation *(currently EMF-only)* |
-| frontend/**ide**           | IDE support via language server protocol (LSP)                                                          |
-| frontend/**language**      | Main language implementation and meta-model generator                                                   |
-| **model**                  | Abstract query representation (AQR)                                                                     |
+| **Module** / Package     | Description                                                                        |
+|--------------------------|------------------------------------------------------------------------------------|
+| docs                     | Project documentation                                                              |
+| **backend-emf**          | EMF-based transformation engine to derive instances of the view based on the query |
+| **expression-parser**    | Parser for the reference expressions of features                                   |
+| **conformancevalidator** | Rule-based check whether a generated view type conforms to a reference meta-model  |
+| frontend/**cli**         | CLI interface to execute meta-model generation and instance model transformation   |
+| frontend/**ide**         | IDE support via language server protocol (LSP)                                     |
+| frontend/**language**    | Main language implementation and meta-model generator                              |
+| **model**                | Abstract query representation (AQR)                                                |
 
 ## Build
 
 ### Requirements
 
 * JDK 21+
-* Node.js 20 (+ NPM)
 
 ### Maven Projects
 
 ```sh
-cd lang
-
 # either: re-generate and compile the code
 ./mvnw clean compile
 # or: skip the generation, compile the code and run the tests
@@ -292,35 +224,6 @@ cd lang
 
 We use [SonarQube](https://sonarcloud.io/project/overview?id=vitruv-tools_NeoJoin) to analyze our Maven projects.
 
-### VSCode Plugin
-
-* Open the `vscode-plugin` folder in VSCode (top-level in a workspace or add it to another workspace)
-* Run `npm install` to install dependencies
-* Go to `Run and Debug` > Select launch configuration `Launch Client` > Press `Start Debugging`
-    * The language server needs a few seconds to start up, so code completion / analysis will not work right at the start.
-    * The plugin requires that the `.jar` files have been generated and are at their default location.
-    * If you cannot find the launch configuration `Launch Client`, ensure that you have opened VSCode with the `vscode-plugin` folder as your workspace.
-* If you get the error message `Activating extension 'vitruv-tools.neojoin' failed: Cannot find module` check the build task for potential problems: Bottom Panel > Select tab `Terminal` > Select task `watch` (on the right)
-
-* for manual build do the following:
-    ```bash
-    npm clean-install                                                       # only required the first time
-    cp ../lang/frontend/ide/target/tools.vitruv.neojoin.frontend.ide.jar .  # provide lsp for vscode-plugin (this assumes your in the NeoJoin/vscode-plugin and that the lang folder lies beside it)
-    npx @vscode/vsce package
-    ```
-
-### Integration
-
-To integrate NeoJoin into other projects, such as a custom transpiler, the `NeoJoinStandaloneSetup` serves as a starting point.
-One can create a new setup which extends that setup and then use the `xtext-maven-plugin` to integrate the setup into the build process.
-To customize the behavior, overriding of the injection module is used.
-Overriding the `IGenerator` allows supplying a custom generator.
-A custom implementation of `QueryModelExpressionTypeConfiguration` allows customizing the type of the Java model holding the query expressions.
-By default, NeoJoin creates a Java function per XBase expression in a private `AllQueryExpressions` class.
-A custom implementation of `SourceTypeRegistryInitialization` allows customizing the types used in the source type registry.
-By default, NeoJoin infers the types of the source metamodel using the `SourceModelInferrer` class.
-This means it creates a Java class model for each type in the source metamodel.
-
 ### Notes
 
 * Xtext heavily uses generated classes which means that opening this repository in a Java IDE after cloning will look like a christmas tree. Run `maven compile` to generate all missing classes. To improve compile times afterwards you can skip re-generation of classes by activating the maven profile `skip-code-generation`.
@@ -330,6 +233,3 @@ This means it creates a Java class model for each type in the source metamodel.
 * [EMF](https://eclipse.dev/emf/) as modeling framework
 * [Xtext](https://eclipse.dev/Xtext/) as DSL framework
 * [Xbase](https://eclipse.dev/Xtext/documentation/305_xbase.html) as embedded expression language
-* [jte](https://jte.gg/) as templating engine
-* [eMoflon::Neo](https://github.com/eMoflon/emoflon-neo) as TGG engine
-* [Neo4j](https://neo4j.com/) as graph database
