@@ -8,7 +8,7 @@ updates:
     prefix: "GitHub Actions"
     include: "scope"
 - package-ecosystem: "maven"
-  directory: "/lang/"
+  directory: "/"
   schedule:
     interval: daily
   commit-message:

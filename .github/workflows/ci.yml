@@ -28,7 +28,6 @@ jobs:
         cache: 'maven'
 
     - name: Build projects
-      working-directory: lang
       run: >
         ./mvnw clean verify
         --batch-mode
@@ -67,7 +66,6 @@ jobs:
         cache: 'maven'
 
     - name: Build projects
-      working-directory: lang
       run: >
         ./mvnw clean verify
         --batch-mode
@@ -105,7 +103,6 @@ jobs:
     - name: Analyze projects
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      working-directory: lang
       run: >
         ./mvnw clean verify sonar:sonar -P coverage
         --batch-mode
