@@ -62,9 +62,11 @@ jobs:
         cache: 'maven'
 
     # Violations are warnings and do not fail the job (see the profile "checkstyle" in pom.xml).
+    # Only the Checkstyle execution runs: the validate phase would also run the enforcer rules, which need the
+    # jars of the other modules.
     - name: Check code style
       run: >
-        ./mvnw validate -P checkstyle
+        ./mvnw checkstyle:check@validate -P checkstyle
         --batch-mode
         --update-snapshots
         --no-transfer-progress
