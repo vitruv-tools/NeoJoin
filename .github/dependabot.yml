@@ -8,7 +8,7 @@ updates:
     prefix: "GitHub Actions"
     include: "scope"
 - package-ecosystem: "maven"
-  directory: "/lang/"
+  directory: "/"
   schedule:
     interval: daily
   commit-message:
@@ -23,26 +23,9 @@ updates:
     xtext:
       patterns:
       - "org.eclipse.xtext:*"
-    jte:
-      patterns:
-      - "gg.jte:*"
     lsp4j:
       patterns:
       - "org.eclipse.lsp4j:*"
     vitruv:
       patterns:
       - "tools.vitruv:*"
-- package-ecosystem: "npm"
-  directory: "/vscode-plugin/"
-  schedule:
-    interval: daily
-  commit-message:
-    prefix: "NPM"
-    include: "scope"
-  groups:
-    eslint:
-      patterns:
-      - "@eslint/js"
-      - "@stylistic/eslint-plugin"
-      - "eslint"
-      - "typescript-eslint"
