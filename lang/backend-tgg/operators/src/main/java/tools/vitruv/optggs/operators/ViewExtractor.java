@@ -37,6 +37,16 @@ public class ViewExtractor {
             AQRTargetClass targetClass,
             @NonNull PatternMatchingStrategy patternMatchingStrategy)
             throws UnsupportedReferenceExpressionException {
+        // inheritance is not supported: it would otherwise be dropped silently
+        if (targetClass.isAbstract()) {
+            throw new UnsupportedProjectionException(
+                    "The abstract class '%s' is not supported".formatted(targetClass.name()));
+        }
+        if (!targetClass.superClasses().isEmpty()) {
+            throw new UnsupportedProjectionException(
+                    "The class '%s' with super classes is not supported".formatted(targetClass.name()));
+        }
+
         final FQN source =
                 Optional.ofNullable(targetClass.source())
                         .map(AQRSource::from)

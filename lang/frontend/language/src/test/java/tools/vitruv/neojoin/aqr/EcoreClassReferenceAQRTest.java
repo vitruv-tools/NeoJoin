@@ -81,4 +81,27 @@ class EcoreClassReferenceAQRTest extends AbstractIntegrationTest implements Pack
             .hasNoMoreTargetClasses();
     }
 
+    @Test
+    void referenceToEcoreClassCanBeOverridden() {
+        var aqr = parse("""
+            from Holder h create A { h.target }
+
+            from Holder h create B extends A { h.target }
+            """);
+
+        assertThat(aqr)
+            .hasTargetClass(
+                "A", a -> assertThat(a)
+                    .hasCopiedEcoreReference("target", EcorePackage.Literals.EOBJECT, lookup("eobjectref", "Holder", "target"))
+                    .hasNoMoreFeatures()
+            )
+            .hasTargetClass(
+                "B", b -> assertThat(b)
+                    .hasSuperClasses("A")
+                    .hasOverridingCopiedEcoreReference("target", EcorePackage.Literals.EOBJECT, lookup("eobjectref", "Holder", "target"))
+                    .hasNoMoreFeatures()
+            )
+            .hasNoMoreTargetClasses();
+    }
+
 }

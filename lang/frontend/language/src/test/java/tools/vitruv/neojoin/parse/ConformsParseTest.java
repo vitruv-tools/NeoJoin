@@ -149,7 +149,7 @@ class ConformsParseTest extends AbstractIntegrationTest {
             conforms to "http://example.org/unknown"
             """);
 
-        assertThat(result).hasIssues("Reference metamodel not found: http://example.org/unknown");
+        assertThat(result).hasExactlyIssues("Reference metamodel not found: http://example.org/unknown");
     }
 
     @Test
@@ -159,7 +159,7 @@ class ConformsParseTest extends AbstractIntegrationTest {
             strict conforms to "http://example.org/unknown"
             """);
 
-        assertThat(result).hasIssues("Reference metamodel not found: http://example.org/unknown");
+        assertThat(result).hasExactlyIssues("Reference metamodel not found: http://example.org/unknown");
     }
 
     @Test
@@ -173,7 +173,7 @@ class ConformsParseTest extends AbstractIntegrationTest {
             from Unknown create Food
             """);
 
-        assertThat(result).hasIssues("Unknown cannot be resolved.");
+        assertThat(result).hasExactlyIssues("Unknown cannot be resolved.");
     }
 
     @Test
@@ -187,7 +187,7 @@ class ConformsParseTest extends AbstractIntegrationTest {
             from Food f create Food { name := f.unknown }
             """);
 
-        assertThat(result).hasIssues("The method or field unknown is undefined for the type Food");
+        assertThat(result).hasExactlyIssues("The method or field unknown is undefined for the type Food");
     }
 
 }

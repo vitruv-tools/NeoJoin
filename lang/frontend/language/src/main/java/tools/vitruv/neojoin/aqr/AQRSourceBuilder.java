@@ -38,10 +38,12 @@ public class AQRSourceBuilder {
     }
 
     /**
-     * Creates a source for the given class.
+     * Creates a source for the given class (the source of an implicit target class or a subquery).
+     *
+     * @param includeSubClasses whether the instances of sub classes of the class are selected, too
      */
-    public static AQRSource createSource(EClass source) {
-        return new AQRSource(createFrom(source), List.of(), List.of(), List.of());
+    public static AQRSource createSource(EClass source, boolean includeSubClasses) {
+        return new AQRSource(createFrom(source, includeSubClasses), List.of(), List.of(), List.of());
     }
 
     /**
@@ -70,14 +72,14 @@ public class AQRSourceBuilder {
      * Creates an AQR from for the given AST from.
      */
     private static AQRFrom createFrom(From from) {
-        return new AQRFrom(Objects.requireNonNull(from.getClazz()), from.getAlias());
+        return new AQRFrom(Objects.requireNonNull(from.getClazz()), from.getAlias(), from.isIncludeSubClasses());
     }
 
     /**
      * Creates an AQR from for the given source class.
      */
-    private static AQRFrom createFrom(EClass from) {
-        return new AQRFrom(from, null);
+    private static AQRFrom createFrom(EClass from, boolean includeSubClasses) {
+        return new AQRFrom(from, null, includeSubClasses);
     }
 
     /**

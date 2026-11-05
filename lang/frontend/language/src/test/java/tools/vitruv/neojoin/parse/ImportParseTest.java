@@ -85,7 +85,7 @@ class ImportParseTest extends AbstractIntegrationTest {
             import "http://example.org/restaurant"
             """);
 
-        assertThat(result).hasIssues("Duplicated import URI");
+        assertThat(result).hasExactlyIssues("Duplicated import URI");
     }
 
     @Test
@@ -97,7 +97,7 @@ class ImportParseTest extends AbstractIntegrationTest {
             import "http://example.org/reviewpage" as restaurant
             """);
 
-        assertThat(result).hasIssues("Duplicated import named 'restaurant'");
+        assertThat(result).hasExactlyIssues("Duplicated import named 'restaurant'");
     }
 
     @Test
@@ -109,7 +109,7 @@ class ImportParseTest extends AbstractIntegrationTest {
             import "http://example.org/reviewpage" as test
             """);
 
-        assertThat(result).hasIssues("Duplicated import named 'test'");
+        assertThat(result).hasExactlyIssues("Duplicated import named 'test'");
     }
 
     @Test
@@ -120,7 +120,7 @@ class ImportParseTest extends AbstractIntegrationTest {
             import "http://example.org/restaurant" as ecore
             """);
 
-        assertThat(result).hasIssues("Import alias 'ecore' is reserved for the Ecore package");
+        assertThat(result).hasExactlyIssues("Import alias 'ecore' is reserved for the Ecore package");
     }
 
 }

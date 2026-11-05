@@ -43,7 +43,7 @@ class GroupingParseTest extends AbstractParseTest {
             """);
 
         assertThat(result)
-            .hasIssues("Query with aggregation must have a body");
+            .hasExactlyIssues("Query with aggregation must have a body");
     }
 
 }

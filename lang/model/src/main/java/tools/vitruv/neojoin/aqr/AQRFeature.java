@@ -19,6 +19,8 @@ public sealed interface AQRFeature {
      * @see Kind.Calculate
      * @see Kind.Copy
      * @see Kind.Generate
+     * @see Kind.Override
+     * @see Kind.Abstract
      */
     sealed interface Kind {
 
@@ -48,7 +50,7 @@ public sealed interface AQRFeature {
          */
         sealed interface Copy extends Kind {
 
-            @Override
+            @java.lang.Override
             EStructuralFeature source();
 
             /**
@@ -65,7 +67,8 @@ public sealed interface AQRFeature {
             /**
              * Implicit copy.
              *
-             * @param source source feature (must be a feature of the containing target class)
+             * @param source source feature (must be a feature of the source class of the containing target class
+             *               or may be inherited from a source super class of it)
              */
             record Implicit(EStructuralFeature source) implements Copy {}
 
@@ -76,6 +79,31 @@ public sealed interface AQRFeature {
          * root class.
          */
         record Generate() implements Kind {}
+
+        /**
+         * The feature overrides a feature in a super class.
+         *
+         * @param overridden overridden feature in a super class
+         * @param overriding kind of the overriding feature itself (how its value is derived)
+         */
+        record Override(AQRFeature overridden, AQRFeature.Kind overriding) implements Kind {
+
+            @java.lang.Override
+            public @Nullable EStructuralFeature source() {
+                return overriding.source();
+            }
+
+            @java.lang.Override
+            public @Nullable XExpression expression() {
+                return overriding.expression();
+            }
+
+        }
+
+        /**
+         * The feature is declared in an abstract class and has no value. It must be overridden in every sub class.
+         */
+        record Abstract() implements Kind {}
 
     }
 
@@ -152,6 +180,14 @@ public sealed interface AQRFeature {
             return "Attribute[name='%s', type=%s, kind=%s, options=%s]".formatted(name, type.getName(), kind, options);
         }
 
+        Attribute withFeatureKind(Kind kind) {
+            return new Attribute(name, type, kind, options);
+        }
+
+        Attribute withOptions(Options options) {
+            return new Attribute(name, type, kind, options);
+        }
+
     }
 
     /**
@@ -172,6 +208,18 @@ public sealed interface AQRFeature {
         @Override
         public String toString() {
             return "Reference[name='%s', type=%s, kind=%s, options=%s]".formatted(name, type.name(), kind, options);
+        }
+
+        Reference withType(AQRTargetClass type) {
+            return new Reference(name, type, kind, options);
+        }
+
+        Reference withFeatureKind(Kind kind) {
+            return new Reference(name, type, kind, options);
+        }
+
+        Reference withOptions(Options options) {
+            return new Reference(name, type, kind, options);
         }
 
     }
@@ -195,6 +243,14 @@ public sealed interface AQRFeature {
         @Override
         public String toString() {
             return "EcoreReference[name='%s', type=%s, kind=%s, options=%s]".formatted(name, type.getName(), kind, options);
+        }
+
+        EcoreReference withFeatureKind(Kind kind) {
+            return new EcoreReference(name, type, kind, options);
+        }
+
+        EcoreReference withOptions(Options options) {
+            return new EcoreReference(name, type, kind, options);
         }
 
     }

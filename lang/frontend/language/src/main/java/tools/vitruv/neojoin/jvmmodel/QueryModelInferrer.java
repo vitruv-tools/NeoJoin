@@ -15,7 +15,15 @@ import org.eclipse.xtext.xbase.jvmmodel.JvmTypesBuilder;
 import org.jspecify.annotations.Nullable;
 import tools.vitruv.neojoin.Constants;
 import tools.vitruv.neojoin.QueryModelExpressionTypeConfiguration;
-import tools.vitruv.neojoin.ast.*;
+import tools.vitruv.neojoin.ast.CollectionParameterType;
+import tools.vitruv.neojoin.ast.ConcreteBody;
+import tools.vitruv.neojoin.ast.ConcreteMainQuery;
+import tools.vitruv.neojoin.ast.From;
+import tools.vitruv.neojoin.ast.Join;
+import tools.vitruv.neojoin.ast.MainQuery;
+import tools.vitruv.neojoin.ast.Parameter;
+import tools.vitruv.neojoin.ast.Source;
+import tools.vitruv.neojoin.ast.ViewTypeDefinition;
 import tools.vitruv.neojoin.utils.AstUtils;
 
 import java.util.List;
@@ -67,14 +75,16 @@ public class QueryModelInferrer {
 
         viewType.eResource().getContents().add(root); // otherwise type resolution fails
         for (MainQuery q : viewType.getQueries()) {
-            inferMainQuery(q);
+            if (q instanceof ConcreteMainQuery c) {
+                inferConcreteMainQuery(c);
+            }
         }
         viewType.eResource().getContents().remove(root);
 
         acceptor.accept(root);
     }
 
-    private void inferMainQuery(MainQuery mainQuery) {
+    private void inferConcreteMainQuery(ConcreteMainQuery mainQuery) {
         var targetName = AstUtils.getTargetName(mainQuery);
 
         if (mainQuery.getSource() != null) {
@@ -104,7 +114,7 @@ public class QueryModelInferrer {
         }
 
         if (mainQuery.getBody() != null) {
-            inferBody(
+            inferConcreteBody(
                 mainQuery.getBody(),
                 targetName,
                 paramsForSource(mainQuery.getSource(), AstUtils.isGrouping(mainQuery.getSource()), null)
@@ -112,7 +122,7 @@ public class QueryModelInferrer {
         }
     }
 
-    private void inferBody(Body body, String name, Consumer<JvmOperation> addParams) {
+    private void inferConcreteBody(ConcreteBody body, String name, Consumer<JvmOperation> addParams) {
         for (var feature : enumerate(body.getFeatures())) {
             var exprName = name + "_feature_" + feature.index();
             // expression type is validated using a custom validator
@@ -122,7 +132,7 @@ public class QueryModelInferrer {
                 var featureType = inferEClassFromExpressionOrNull(feature.value().getExpression());
                 if (featureType != null) {
                     var subQueryName = AstUtils.getTargetName(feature.value().getSubQuery(), featureType);
-                    inferBody(feature.value().getSubQuery().getBody(), subQueryName,
+                    inferConcreteBody(feature.value().getSubQuery().getBody(), subQueryName,
                             paramsForClass(featureType, feature.value().getSubQuery()));
                 }
             }
@@ -277,7 +287,7 @@ public class QueryModelInferrer {
         return typeReferences.typeRef(List.class, typeRef);
     }
 
-    private void addJoinExpressions(MainQuery mainQuery, Join join, int joinIndex) {
+    private void addJoinExpressions(ConcreteMainQuery mainQuery, Join join, int joinIndex) {
         var targetName = AstUtils.getTargetName(mainQuery);
 
         for (var condition : enumerate(join.getExpressionConditions())) {

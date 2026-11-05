@@ -123,26 +123,34 @@ public class VisualizationGenerator {
             packages(); // generate empty package stubs
 
             if (mode instanceof Mode.Full) {
-                showClasses(getAllSourceClasses());
-                showClasses(getAllTargetClasses());
+                showClasses(getAllSourceClasses(), false);
+                showClasses(getAllTargetClasses(), true);
             } else if (mode instanceof Mode.Selected selected) {
-                showClasses(selected.selectedClasses.stream());
+                showClasses(selected.selectedClasses.stream(), true);
             } else if (mode instanceof Mode.Referenced) {
-                showClasses(getAllTargetClasses());
+                showClasses(getAllTargetClasses(), true);
             }
         });
 
         return out.build();
     }
 
-    private void showClasses(Stream<? extends EClassifier> classifiers) {
+    /**
+     * @param target whether the classes are target classes (with arrows from their source classes)
+     */
+    private void showClasses(Stream<? extends EClassifier> classifiers, boolean target) {
         classifiers
             // Classifiers are sorted in the following sections to ensure a deterministic output, because otherwise
             // elements can jump around for example when reformatting the source file or adding spaces.
             .sorted(Comparator.comparing(EClassifier::getName))
             .forEach(classifier -> {
                 if (classifier instanceof EClass clazz) {
-                    targetClazz(clazz);
+                    // class might have already been generated as super class of another class
+                    if (target) {
+                        targetClazzIfNew(clazz);
+                    } else {
+                        clazzIfNew(clazz);
+                    }
                 } else if (classifier instanceof EEnum eEnum) {
                     // enum might have already been generated from a class attribute
                     enumerationIfNew(eEnum);
@@ -186,8 +194,14 @@ public class VisualizationGenerator {
         out.pack("\"Target: %s\" as %s".formatted(targetName, targetName), Empty);
     }
 
+    private void targetClazzIfNew(EClass target) {
+        if (!seenClazzes.contains(target)) {
+            targetClazz(target);
+        }
+    }
+
     private void targetClazz(EClass target) {
-        clazz(target);
+        clazz(target, true);
 
         // show arrow from source to target classes
         var sourceClasses = targetMetaModel.trace().getSourceClassesForTargetClass(target);
@@ -207,11 +221,11 @@ public class VisualizationGenerator {
 
     private void clazzIfNew(EClass clazz) {
         if (!seenClazzes.contains(clazz)) {
-            clazz(clazz);
+            clazz(clazz, false);
         }
     }
 
-    private void clazz(EClass clazz) {
+    private void clazz(EClass clazz, boolean target) {
         var isNew = seenClazzes.add(clazz);
         check(isNew);
 
@@ -219,7 +233,7 @@ public class VisualizationGenerator {
 
         // class with attributes
         out.clazz(
-            qualifiedName, () -> clazz.getEAttributes().forEach(attr -> {
+            qualifiedName, clazz.isAbstract(), () -> clazz.getEAttributes().forEach(attr -> {
                 var type = getQualifiedName(attr.getEType());
                 out.attribute(attr.getName(), type);
             })
@@ -236,7 +250,11 @@ public class VisualizationGenerator {
 
         // super types
         for (var superType : clazz.getESuperTypes()) {
-            clazzIfNew(superType);
+            if (target) {
+                targetClazzIfNew(superType);
+            } else {
+                clazzIfNew(superType);
+            }
             var superName = getQualifiedName(superType);
             out.arrow(qualifiedName, PlantUMLBuilder.ReferenceInheritanceUpwards, superName);
         }

@@ -66,6 +66,30 @@ public class InstanceModelAssertions extends AbstractAssert<InstanceModelAsserti
         return hasInstance(clazz, filter, obj -> {});
     }
 
+    /**
+     * Asserts that the single-valued reference points to an instance of exactly the given class.
+     */
+    public InstanceModelAssertions hasReferenceInstanceOf(String name, String className) {
+        return hasReference(
+            name, obj -> {
+                Assertions.assertThat(obj).isInstanceOf(EObject.class);
+                Assertions.assertThat(((EObject) obj).eClass().getName()).isEqualTo(className);
+            }
+        );
+    }
+
+    /**
+     * Asserts that the many-valued reference contains instances of exactly the given classes (in any order).
+     */
+    public InstanceModelAssertions hasManyReferenceInstancesOf(String name, String... classNames) {
+        return hasManyReference(
+            name, list -> {
+                Assertions.assertThat(list.stream().map(e -> e.eClass().getName()).toList())
+                    .containsExactlyInAnyOrder(classNames);
+            }
+        );
+    }
+
     public void hasNoMoreInstances() {
         hasNoMoreInstances(false);
     }

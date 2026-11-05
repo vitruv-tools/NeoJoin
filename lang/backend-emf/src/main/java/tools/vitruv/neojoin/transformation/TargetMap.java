@@ -12,8 +12,9 @@ import java.util.Map;
 
 /**
  * Mapping from source instances to target instances and their target classes. Given that one source class can be the
- * source for multiple target classes, a lookup can be restricted to a target class. When {@link #get queried} for a
- * target instance this class checks that there is exactly one such instance and throws otherwise.
+ * source for multiple target classes, a lookup can be restricted to a target class (including its sub classes). When
+ * {@link #get queried} for a target instance this class checks that there is exactly one such instance and throws
+ * otherwise.
  */
 public class TargetMap {
 
@@ -27,7 +28,8 @@ public class TargetMap {
     }
 
     /**
-     * Retrieve the target instance that is mapped to the given source instance and target class.
+     * Retrieve the target instance that is mapped to the given source instance and the target class or one of its
+     * sub classes.
      *
      * @throws TransformatorException if none or multiple target instances are mapped to the given source instance and target class
      */
@@ -47,7 +49,7 @@ public class TargetMap {
 
     private EObject getUnique(EObject source, @Nullable AQRTargetClass targetClass) {
         var targets = targetsBySource.getOrDefault(source, List.of()).stream()
-            .filter(target -> targetClass == null || target.right() == targetClass)
+            .filter(target -> targetClass == null || isSameOrSubClass(target.right(), targetClass))
             .toList();
         var classInfo = targetClass != null ? " of class '%s'".formatted(targetClass.name()) : "";
 
@@ -65,6 +67,10 @@ public class TargetMap {
             );
         }
         return targets.get(0).left();
+    }
+
+    private static boolean isSameOrSubClass(AQRTargetClass targetClass, AQRTargetClass superClass) {
+        return targetClass.equals(superClass) || targetClass.allSuperClasses().contains(superClass);
     }
 
 }

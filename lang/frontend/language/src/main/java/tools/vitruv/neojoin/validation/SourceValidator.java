@@ -2,9 +2,9 @@ package tools.vitruv.neojoin.validation;
 
 import org.eclipse.xtext.validation.Check;
 import tools.vitruv.neojoin.ast.AstPackage;
+import tools.vitruv.neojoin.ast.ConcreteMainQuery;
 import tools.vitruv.neojoin.ast.From;
 import tools.vitruv.neojoin.ast.JoinFeatureCondition;
-import tools.vitruv.neojoin.ast.MainQuery;
 import tools.vitruv.neojoin.ast.Source;
 import tools.vitruv.neojoin.utils.AstUtils;
 
@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 public class SourceValidator extends ComposableValidator {
 
     @Check
-    public void checkUniqueAliases(MainQuery mainQuery) {
+    public void checkUniqueAliases(ConcreteMainQuery mainQuery) {
         if (mainQuery.getSource() == null) {
             return;
         }
@@ -32,7 +32,7 @@ public class SourceValidator extends ComposableValidator {
     }
 
     @Check
-    public void checkFromAliasConflictsWithParameter(MainQuery mainQuery) {
+    public void checkFromAliasConflictsWithParameter(ConcreteMainQuery mainQuery) {
         if (mainQuery.getSource() == null) {
             return;
         }
@@ -64,20 +64,66 @@ public class SourceValidator extends ComposableValidator {
         }
     }
 
+    /**
+     * Warns about a {@code from} or {@code join} of an abstract class without {@code extends}.
+     * <p>
+     * Without {@code extends} only the direct instances of the class are selected, and an abstract class has none, so
+     * the query would silently select nothing.
+     */
     @Check
-    public void checkQueryWithoutSource(MainQuery mainQuery) {
-        if (mainQuery.getSource() == null) {
+    public void checkAbstractSourceClassWithoutExtends(From from) {
+        var clazz = from.getClazz();
+        if (!from.isIncludeSubClasses() && clazz != null && !clazz.eIsProxy() && clazz.isAbstract()) {
+            warning(
+                "Abstract class '%s' has no direct instances, use 'extends' to select the instances of its sub classes".formatted(
+                    clazz.getName()
+                ),
+                from,
+                AstPackage.Literals.FROM__CLAZZ
+            );
+        }
+    }
+
+    /**
+     * Checks that {@code create} is not used on its own.
+     * <p>
+     * A typical mistake is {@code create abstract A { ... }}: the correct syntax is {@code abstract A { ... }}. The
+     * parser reads such input as a query that consists of the keyword {@code create} only, followed by the abstract
+     * class.
+     */
+    @Check
+    public void checkLoneCreate(ConcreteMainQuery mainQuery) {
+        if (isLoneCreate(mainQuery)) {
+            error(
+                "Incomplete query: 'create' needs a source, or a target name and a body",
+                mainQuery,
+                null
+            );
+        }
+    }
+
+    private static boolean isLoneCreate(ConcreteMainQuery mainQuery) {
+        return mainQuery.getSource() == null
+            && !mainQuery.isRoot()
+            && mainQuery.getName() == null
+            && mainQuery.getSuperClasses().isEmpty()
+            && mainQuery.getBody() == null;
+    }
+
+    @Check
+    public void checkQueryWithoutSource(ConcreteMainQuery mainQuery) {
+        if (mainQuery.getSource() == null && !isLoneCreate(mainQuery)) { // lone create: see checkLoneCreate
             if (mainQuery.getName() == null) {
                 error("Query without source must have a target name", mainQuery, AstPackage.Literals.QUERY__NAME);
             }
             if (mainQuery.getBody() == null) {
-                error("Query without source must have a body", mainQuery, AstPackage.Literals.QUERY__BODY);
+                error("Query without source must have a body", mainQuery, AstPackage.Literals.CONCRETE_MAIN_QUERY__BODY);
             }
         }
     }
 
     @Check
-    public void checkQueryWithAggregation(MainQuery mainQuery) {
+    public void checkQueryWithAggregation(ConcreteMainQuery mainQuery) {
         if (mainQuery.getSource() == null || mainQuery.getSource().getGroupingExpressions().isEmpty()) {
             return;
         }

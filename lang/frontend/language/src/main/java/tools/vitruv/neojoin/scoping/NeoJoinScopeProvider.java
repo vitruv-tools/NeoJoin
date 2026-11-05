@@ -65,6 +65,8 @@ public class NeoJoinScopeProvider extends AbstractNeoJoinScopeProvider {
             var from = join.getFrom();
             if (source != null && from != null) {
                 return createJoinConditionOtherScope(source, from);
+            } else {
+                return IScope.NULLSCOPE;
             }
         } else if (reference == AstPackage.Literals.JOIN_FEATURE_CONDITION__FEATURES) {
             var condition = (JoinFeatureCondition) context;
@@ -79,14 +81,16 @@ public class NeoJoinScopeProvider extends AbstractNeoJoinScopeProvider {
             var right = join.getFrom().getClazz();
             if (left != null && right != null) {
                 return createJoinConditionFieldsScope(left, right);
+            } else {
+                return IScope.NULLSCOPE;
             }
+        } else if (reference == AstPackage.Literals.MAIN_QUERY__SUPER_CLASSES) {
+            return createSuperClassScope(AstUtils.getViewType(context));
         } else if (reference == AstPackage.Literals.FEATURE__TYPE) {
             return createFeatureTypeScope(AstUtils.getViewType(context));
         } else {
             return super.getScope(context, reference);
         }
-
-        return IScope.NULLSCOPE;
     }
 
     /**
@@ -150,6 +154,19 @@ public class NeoJoinScopeProvider extends AbstractNeoJoinScopeProvider {
     }
 
     /**
+     * Scope for the super classes of a class: all queries of the view type by the name of their target class.
+     */
+    private IScope createSuperClassScope(ViewTypeDefinition viewType) {
+        return new SimpleScope(createQueryCandidates(viewType));
+    }
+
+    private List<IEObjectDescription> createQueryCandidates(ViewTypeDefinition viewType) {
+        return AstUtils.getAllQueries(viewType)
+            .map(query -> EObjectDescription.create(AstUtils.getTargetName(query, expressionHelper), query))
+            .toList();
+    }
+
+    /**
      * Scope for available types when specifying an explicit type for a feature.
      */
     private IScope createFeatureTypeScope(ViewTypeDefinition viewType) {
@@ -157,11 +174,7 @@ public class NeoJoinScopeProvider extends AbstractNeoJoinScopeProvider {
         imports.put(Constants.EcoreAlias, EcorePackage.eINSTANCE); // ecore is always available
         var dataTypeScope = createImportedClassifierScope(imports, EDataType.class::isInstance);
 
-        var queryCandidates = AstUtils.getAllQueries(viewType)
-            .map(query -> EObjectDescription.create(AstUtils.getTargetName(query, expressionHelper), query))
-            .toList();
-
-        return new SimpleScope(dataTypeScope, queryCandidates);
+        return new SimpleScope(dataTypeScope, createQueryCandidates(viewType));
     }
 
     /**

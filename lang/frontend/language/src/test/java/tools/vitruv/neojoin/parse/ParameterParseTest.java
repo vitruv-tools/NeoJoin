@@ -33,7 +33,7 @@ public class ParameterParseTest extends AbstractParseTest {
             """);
 
         assertThat(result)
-            .hasIssues("SomeUnknownClass cannot be resolved.");
+            .hasExactlyIssues("SomeUnknownClass cannot be resolved.");
     }
 
     @Test
@@ -53,7 +53,7 @@ public class ParameterParseTest extends AbstractParseTest {
             """);
 
         assertThat(result)
-            .hasIssues("Store cannot be resolved.");
+            .hasExactlyIssues("Store cannot be resolved.");
     }
 
     @Test
@@ -119,7 +119,7 @@ public class ParameterParseTest extends AbstractParseTest {
             """);
 
         assertThat(result)
-            .hasIssues("Duplicate parameter name 'minPrice'");
+            .hasExactlyIssues("Duplicate parameter name 'minPrice'");
     }
 
     @Test
@@ -131,7 +131,7 @@ public class ParameterParseTest extends AbstractParseTest {
             """);
 
         assertThat(result)
-            .hasIssues("Alias 'r' conflicts with a parameter of the same name");
+            .hasExactlyIssues("Alias 'r' conflicts with a parameter of the same name");
     }
 
 }

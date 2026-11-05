@@ -60,8 +60,8 @@ public class PlantUMLBuilder {
         appendln(name);
     }
 
-    public void clazz(String name, Runnable content) {
-        block("class " + name, content);
+    public void clazz(String name, boolean isAbstract, Runnable content) {
+        block((isAbstract ? "abstract " : "") + "class " + name, content);
     }
 
     public void attribute(String name, String type) {

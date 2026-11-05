@@ -16,6 +16,9 @@ import tools.vitruv.neojoin.Constants;
 import tools.vitruv.neojoin.Formatting;
 import tools.vitruv.neojoin.aqr.AQRFeatureOptionsBuilder;
 import tools.vitruv.neojoin.ast.AstPackage;
+import tools.vitruv.neojoin.ast.ConcreteBody;
+import tools.vitruv.neojoin.ast.ConcreteFeature;
+import tools.vitruv.neojoin.ast.ConcreteMainQuery;
 import tools.vitruv.neojoin.ast.Feature;
 import tools.vitruv.neojoin.ast.FeatureOp;
 import tools.vitruv.neojoin.ast.MainQuery;
@@ -26,10 +29,16 @@ import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
 import tools.vitruv.neojoin.jvmmodel.TypeInfo;
 import tools.vitruv.neojoin.jvmmodel.TypeResolutionException;
 import tools.vitruv.neojoin.utils.AstUtils;
+import tools.vitruv.neojoin.utils.FeatureType.AmbiguousReferenceType;
+import tools.vitruv.neojoin.utils.FeatureType.ImplicitReferenceType;
+import tools.vitruv.neojoin.utils.FeatureType.QueryReferenceType;
+import tools.vitruv.neojoin.utils.FeatureTypeResolver;
 import tools.vitruv.neojoin.utils.TypeCasts;
 
-import java.util.*;
-import java.util.function.BiConsumer;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -38,32 +47,21 @@ public class FeatureValidator extends ComposableValidator {
     @Inject
     private ExpressionHelper expressionHelper;
 
-    private @Nullable String getFeatureNameOrNull(Feature feature) {
-        if (feature.getName() != null) {
-            return feature.getName();
-        }
-
-        try {
-            var eFeature = expressionHelper.getFeatureOrNull(feature.getExpression());
-            if (eFeature != null) {
-                return eFeature.getName();
-            } // else -> will be handled in checkCopyFeatureExpression
-        } catch (TypeResolutionException e) {
-            // ignore: will be handled by type checking
-        }
-
-        return null;
-    }
-
     @Check
     public void checkUniqueFeatureNames(Query query) {
-        if (query.getBody() == null || query.getBody().getFeatures().isEmpty()) {
+        var body = AstUtils.getBody(query);
+        if (body == null) {
             return;
         }
 
-        var groupedFeatures = query.getBody().getFeatures().stream()
+        var features = AstUtils.getFeatures(body);
+        if (features.isEmpty()) {
+            return;
+        }
+
+        var groupedFeatures = features.stream()
             .flatMap(feature -> {
-                var name = getFeatureNameOrNull(feature);
+                var name = AstUtils.getFeatureNameOrNull(feature, expressionHelper);
                 if (name != null) {
                     return Stream.of(Map.entry(name, feature));
                 } else {
@@ -88,7 +86,7 @@ public class FeatureValidator extends ComposableValidator {
     }
 
     @Check
-    public void checkCopyFeatureExpression(Feature feature) {
+    public void checkCopyFeatureExpression(ConcreteFeature feature) {
         if (feature.getOp() == FeatureOp.COPY) {
             try {
                 var eFeature = expressionHelper.getFeatureOrNull(feature.getExpression());
@@ -96,7 +94,7 @@ public class FeatureValidator extends ComposableValidator {
                     error(
                         "Copy feature expression does not reference a feature",
                         feature,
-                        AstPackage.Literals.FEATURE__EXPRESSION
+                        AstPackage.Literals.CONCRETE_FEATURE__EXPRESSION
                     );
                 }
             } catch (TypeResolutionException e) {
@@ -113,7 +111,7 @@ public class FeatureValidator extends ComposableValidator {
     }
 
     @Check
-    public void checkFeatureType(Feature feature) {
+    public void checkFeatureType(ConcreteFeature feature) {
         TypeInfo inferredType;
         try {
             inferredType = expressionHelper.inferEType(feature.getExpression());
@@ -124,7 +122,7 @@ public class FeatureValidator extends ComposableValidator {
             error(
                 "Unsupported type: " + getActualType(feature.getExpression()),
                 feature,
-                AstPackage.Literals.FEATURE__EXPRESSION
+                AstPackage.Literals.CONCRETE_FEATURE__EXPRESSION
             );
             return;
         }
@@ -142,7 +140,7 @@ public class FeatureValidator extends ComposableValidator {
             error(
                 "Cannot use a subquery with an attribute expression (%s)".formatted(dataType.getName()),
                 feature,
-                AstPackage.Literals.FEATURE__SUB_QUERY
+                AstPackage.Literals.CONCRETE_FEATURE__SUB_QUERY
             );
         }
 
@@ -155,14 +153,14 @@ public class FeatureValidator extends ComposableValidator {
         }
     }
 
-    private void checkEnumType(Feature feature, EEnum eEnum, TypeInfo inferredType) {
+    private void checkEnumType(ConcreteFeature feature, EEnum eEnum, TypeInfo inferredType) {
         if (inferredType.classifier() != feature.getType()) {
             error(
                 "Type mismatch: cannot convert from %s to %s".formatted(
                     inferredType.classifier().getName(), eEnum.getName()
                 ),
                 feature,
-                AstPackage.Literals.FEATURE__EXPRESSION
+                AstPackage.Literals.CONCRETE_FEATURE__EXPRESSION
             );
         }
     }
@@ -170,13 +168,13 @@ public class FeatureValidator extends ComposableValidator {
     /**
      * Checks whether the inferred type can be applied to the feature.
      * NOTE: This does not cover enums since they are handled separately
-     *       (see: {@link  FeatureValidator#checkEnumType(Feature feature, EEnum eEnum, TypeInfo inferredType)}).
+     *       (see: {@link  FeatureValidator#checkEnumType(ConcreteFeature feature, EEnum eEnum, TypeInfo inferredType)}).
      *
      * @param feature the feature to be checked against.
      * @param eDataType the type of the feature.
      * @param inferredType the inferred type for the feature.
      */
-    private void checkEDataType(Feature feature, EDataType eDataType, TypeInfo inferredType) {
+    private void checkEDataType(ConcreteFeature feature, EDataType eDataType, TypeInfo inferredType) {
         if (inferredType.classifier() instanceof EDataType && !(inferredType.classifier() instanceof EEnum)) {
             if (!TypeCasts.canCast(inferredType.classifier().getInstanceClass(), eDataType.getInstanceClass())) {
                 error(
@@ -185,7 +183,7 @@ public class FeatureValidator extends ComposableValidator {
                         eDataType.getName(), eDataType.getInstanceClass().getSimpleName()
                     ),
                     feature,
-                    AstPackage.Literals.FEATURE__EXPRESSION
+                    AstPackage.Literals.CONCRETE_FEATURE__EXPRESSION
                 );
             }
         } else {
@@ -194,26 +192,26 @@ public class FeatureValidator extends ComposableValidator {
                     inferredType.classifier().getName(), eDataType.getName()
                 ),
                 feature,
-                AstPackage.Literals.FEATURE__EXPRESSION
+                AstPackage.Literals.CONCRETE_FEATURE__EXPRESSION
             );
         }
     }
 
-    private void checkNullExpression(Feature feature) {
+    private void checkNullExpression(ConcreteFeature feature) {
         if (feature.getType() == null) { // no explicit type
-            error("Cannot infer type", feature, AstPackage.Literals.FEATURE__EXPRESSION);
+            error("Cannot infer type", feature, AstPackage.Literals.CONCRETE_FEATURE__EXPRESSION);
         }
         if (feature.getSubQuery() != null) {
-            error("Cannot use null expression for a subquery", feature, AstPackage.Literals.FEATURE__EXPRESSION);
+            error("Cannot use null expression for a subquery", feature, AstPackage.Literals.CONCRETE_FEATURE__EXPRESSION);
         }
     }
 
-    private void checkSubQuery(Feature feature, @Nullable EClassifier inferredClassifier) {
+    private void checkSubQuery(ConcreteFeature feature, @Nullable EClassifier inferredClassifier) {
         if (inferredClassifier instanceof EDataType dataType) {
             error(
                 "Cannot use a subquery with an attribute expression (%s)".formatted(dataType.getName()),
                 feature,
-                AstPackage.Literals.FEATURE__SUB_QUERY
+                AstPackage.Literals.CONCRETE_FEATURE__SUB_QUERY
             );
         }
         if (feature.getType() != null && feature.getType() != feature.getSubQuery()) {
@@ -225,55 +223,81 @@ public class FeatureValidator extends ComposableValidator {
         }
     }
 
-    private void checkQueryType(Feature feature, Query explicitType, EClassifier inferredClassifier) {
-        if (!isValidSourceTypeOfQuery(explicitType, inferredClassifier)) {
-            error(
-                "Type mismatch: cannot convert from %s to %s".formatted(
-                    inferredClassifier.getName(), AstUtils.getTargetName(explicitType, expressionHelper)
-                ),
-                feature,
-                AstPackage.Literals.FEATURE__EXPRESSION
-            );
+    private void checkQueryType(ConcreteFeature feature, Query explicitType, EClassifier inferredClassifier) {
+        if (inferredClassifier instanceof EClass inferredClass) {
+            var viewType = AstUtils.getViewType(feature);
+            var assignable = findQueriesSelectingAssignableToType(viewType, explicitType, inferredClass);
+            if (assignable.size() > 1) {
+                // the target class of the inferred type must be unambiguously assignable to the explicit type,
+                // otherwise the transformation could not decide which target instance to reference
+                error(
+                    "Ambiguous target class for source class '%s'. Possible candidates: %s".formatted(
+                        inferredClass.getName(),
+                        assignable.stream().map(q -> AstUtils.getTargetName(q, expressionHelper)).sorted()
+                            .collect(Collectors.joining(", "))
+                    ),
+                    feature,
+                    AstPackage.Literals.CONCRETE_FEATURE__EXPRESSION
+                );
+                return;
+            } else if (assignable.size() == 1 || isSelectedByQueryAssignableToType(viewType, explicitType, inferredClass)) {
+                return;
+            }
         }
-    }
 
-    private boolean isValidSourceTypeOfQuery(Query query, EClassifier inferredClassifier) {
-        if (!(inferredClassifier instanceof EClass inferClass)) return false;
-
-        if (query instanceof MainQuery mainQuery) {
-            return isValidSourceTypeOfMainQuery(mainQuery, inferClass);
-        } else {
-            return isValidSourceTypeSubQuery((SubQuery) query, inferClass);
+        if (explicitType instanceof SubQuery subQuery && AstUtils.inferSubQuerySourceType(subQuery, expressionHelper) == null) {
+            return; // will be handled elsewhere
         }
+
+        error(
+            "Type mismatch: cannot convert from %s to %s".formatted(
+                inferredClassifier.getName(), AstUtils.getTargetName(explicitType, expressionHelper)
+            ),
+            feature,
+            AstPackage.Literals.CONCRETE_FEATURE__EXPRESSION
+        );
     }
 
-    private boolean isValidSourceTypeOfMainQuery(MainQuery mainQuery, EClass inferredClass) {
-        return mainQuery.getSource() != null && AstUtils.checkSourceType(mainQuery.getSource(), inferredClass);
+    /**
+     * Finds the queries that select exactly the given class and whose target class is the explicit type or a sub class
+     * of it.
+     */
+    private List<Query> findQueriesSelectingAssignableToType(ViewTypeDefinition viewType, Query explicitType, EClass inferredClass) {
+        return AstUtils.mapSourceClassesToQueries(viewType, expressionHelper).getOrDefault(inferredClass, Set.of()).stream()
+            .filter(query -> AstUtils.isSameOrSuperClassOf(explicitType, query))
+            .toList();
     }
 
-    private boolean isValidSourceTypeSubQuery(SubQuery subQuery, EClass inferredClass) {
-        var subQuerySourceType = AstUtils.inferSubQuerySourceType(subQuery, expressionHelper);
-
-        // NOTE: subQuerySourceType == null is ok here, since it will be handled elsewhere.
-        if (subQuerySourceType == null) return true;
-
-        return AstUtils.checkSourceType(subQuerySourceType, inferredClass);
+    /**
+     * Whether no query selects exactly the inferred class with a matching target class, but a query that selects
+     * instances of the class otherwise ({@code from extends} of a super class) has a target class that is the explicit
+     * type or a sub class of it.
+     */
+    private boolean isSelectedByQueryAssignableToType(ViewTypeDefinition viewType, Query explicitType, EClass inferredClass) {
+        return AstUtils.getAllQueries(viewType).anyMatch(query ->
+            AstUtils.canSelectInstancesOf(query, inferredClass, expressionHelper)
+                && AstUtils.isSameOrSuperClassOf(explicitType, query)
+        );
     }
 
     @Check
-    public void checkFeatureNullability(Feature feature) {
+    public void checkFeatureNullability(ConcreteFeature feature) {
+        if (feature.eContainer().eContainer() instanceof MainQuery mainQuery && !mainQuery.getSuperClasses().isEmpty()) {
+            return; // checked by InheritanceValidator, because overriding features have the modifiers of the overridden feature
+        }
+
         if (feature.getExpression() instanceof XMemberFeatureCall featureCall) {
             if (featureCall.isNullSafe() && isRequired(feature)) {
                 warning(
                     "Nullable expression used to initialize non-nullable feature",
                     feature,
-                    AstPackage.Literals.FEATURE__EXPRESSION
+                    AstPackage.Literals.CONCRETE_FEATURE__EXPRESSION
                 );
             }
         }
     }
 
-    private boolean isRequired(Feature feature) {
+    private boolean isRequired(ConcreteFeature feature) {
         EStructuralFeature copyFrom = null;
         if (feature.getOp() == FeatureOp.COPY) {
             try {
@@ -289,122 +313,88 @@ public class FeatureValidator extends ComposableValidator {
 
     @Check
     public void checkAmbiguousImplicitFeatureTypes(ViewTypeDefinition viewType) {
-        var sourceMap = new HashMap<EClass, Set<Query>>();
-        BiConsumer<EClass, Query> register = (sourceType, query) ->
-            sourceMap.computeIfAbsent(sourceType, k -> new HashSet<>()).add(query);
-
-        // populate source mapping
-        AstUtils.getAllQueries(viewType).forEach(query -> {
-            if (query instanceof MainQuery mainQuery) {
-                if (mainQuery.getSource() != null) {
-                    AstUtils.getAllFroms(mainQuery.getSource()).forEach(f ->
-                        register.accept(f.getClazz(), mainQuery)
-                    );
-                }
-            } else if (query instanceof SubQuery subQuery) {
-                var sourceType = AstUtils.inferSubQuerySourceType(subQuery, expressionHelper);
-                if (sourceType != null) {
-                    register.accept(sourceType, subQuery);
-                }
-            }
-        });
+        var typeResolver = new FeatureTypeResolver(viewType, expressionHelper);
 
         var alreadyChecked = new HashSet<EClass>(); // to prevent infinite recursion because of cyclic references
         AstUtils.getAllQueries(viewType)
-            .forEach(q -> checkQuery(q, sourceMap, alreadyChecked));
+            .forEach(q -> checkQuery(q, typeResolver, alreadyChecked));
     }
 
-    private void checkQuery(Query query, Map<EClass, Set<Query>> sourceMap, HashSet<EClass> alreadyChecked) {
-        if (query.getBody() == null) {
-            if (query instanceof MainQuery mainQuery) {
-                // query without body and either no source or a source without joins, is not allowed,
-                // but skip here because this is handled elsewhere
-                if (mainQuery.getSource() != null && mainQuery.getSource().getJoins().isEmpty()) {
-                    checkCopiedClass(mainQuery.getSource().getFrom().getClazz(), sourceMap, query, alreadyChecked);
-                }
-            } else {
-                var subQuery = (SubQuery) query;
-                var sourceType = AstUtils.inferSubQuerySourceType(subQuery, expressionHelper);
-                if (sourceType != null) {
-                    checkCopiedClass(sourceType, sourceMap, query, alreadyChecked);
-                }
+    private void checkQuery(Query query, FeatureTypeResolver typeResolver, HashSet<EClass> alreadyChecked) {
+        var body = AstUtils.getBody(query);
+        if (body == null) {
+            // a query without body and either no source or a source with joins is not allowed,
+            // but skip here because this is handled elsewhere
+            var sourceType = AstUtils.getCopiedSourceClass(query, expressionHelper);
+            if (sourceType != null) {
+                checkCopiedClass(sourceType, typeResolver, query, alreadyChecked);
             }
-        } else {
-            query.getBody().getFeatures().stream()
+        } else if (body instanceof ConcreteBody concreteBody) {
+            concreteBody.getFeatures().stream()
                 .filter(f -> f.getType() == null) // explicit type -> not ambiguous
                 .filter(f -> f.getSubQuery() == null) // subquery -> not ambiguous
-                .forEach(f -> checkImplicitFeatureType(f, sourceMap, alreadyChecked));
+                .forEach(f -> checkImplicitFeatureType(f, typeResolver, alreadyChecked));
         }
     }
 
-    private void checkImplicitFeatureType(Feature feature, Map<EClass, Set<Query>> sourceMap, HashSet<EClass> alreadyChecked) {
-        try {
-            var inferredType = expressionHelper.inferEType(feature.getExpression());
-            if (inferredType == null || !(inferredType.classifier() instanceof EClass inferredClass)) {
-                return;
-            }
-
-            var candidates = sourceMap.get(inferredClass);
-            if (candidates == null) { // implicit copy of target class
-                checkCopiedClass(inferredClass, sourceMap, (Query) feature.eContainer().eContainer(), alreadyChecked);
-            } else if (candidates.size() > 1) {
-                error(
-                    "Ambiguous target class for source class '%s'. Possible candidates: %s".formatted(
-                        inferredClass.getName(),
-                        candidates.stream().map(q -> AstUtils.getTargetName(q, expressionHelper)).sorted()
-                            .collect(Collectors.joining(", "))
-                    ),
-                    feature,
-                    AstPackage.Literals.FEATURE__EXPRESSION
-                );
-            } else if (candidates.size() == 1) {
-                if (candidates.iterator().next() instanceof MainQuery mainQuery && mainQuery.getSource() != null) {
-                    if (!mainQuery.getSource().getJoins().isEmpty()) {
-                        warning(
-                            "Inferred type '%s' is a query with join which might be unintended and can lead to errors during transformation. Use explicit type to clarify the intended type.".formatted(
-                                AstUtils.getTargetName(mainQuery)),
-                            feature,
-                            AstPackage.Literals.FEATURE__EXPRESSION
-                        );
-                    } else if (!mainQuery.getSource().getGroupingExpressions().isEmpty()) {
-                        warning(
-                            "Inferred type '%s' is a query with group by which might be unintended and can lead to errors during transformation. Use explicit type to clarify the intended type.".formatted(
-                                AstUtils.getTargetName(mainQuery)),
-                            feature,
-                            AstPackage.Literals.FEATURE__EXPRESSION
-                        );
-                    }
+    private void checkImplicitFeatureType(ConcreteFeature feature, FeatureTypeResolver typeResolver, HashSet<EClass> alreadyChecked) {
+        var type = typeResolver.resolve(feature);
+        if (type instanceof ImplicitReferenceType implicitType) { // implicit copy of target class
+            checkCopiedClass(implicitType.sourceClass(), typeResolver, (Query) feature.eContainer().eContainer(), alreadyChecked);
+        } else if (type instanceof AmbiguousReferenceType ambiguousType) {
+            error(
+                "Ambiguous target class for source class '%s'. Possible candidates: %s".formatted(
+                    ambiguousType.sourceClass().getName(),
+                    ambiguousType.candidates().stream().map(q -> AstUtils.getTargetName(q, expressionHelper)).sorted()
+                        .collect(Collectors.joining(", "))
+                ),
+                feature,
+                AstPackage.Literals.CONCRETE_FEATURE__EXPRESSION
+            );
+        } else if (type instanceof QueryReferenceType queryType) {
+            if (queryType.query() instanceof ConcreteMainQuery mainQuery && mainQuery.getSource() != null) {
+                if (!mainQuery.getSource().getJoins().isEmpty()) {
+                    warning(
+                        "Inferred type '%s' is a query with join which might be unintended and can lead to errors during transformation. Use explicit type to clarify the intended type.".formatted(
+                            AstUtils.getTargetName(mainQuery)),
+                        feature,
+                        AstPackage.Literals.CONCRETE_FEATURE__EXPRESSION
+                    );
+                } else if (!mainQuery.getSource().getGroupingExpressions().isEmpty()) {
+                    warning(
+                        "Inferred type '%s' is a query with group by which might be unintended and can lead to errors during transformation. Use explicit type to clarify the intended type.".formatted(
+                            AstUtils.getTargetName(mainQuery)),
+                        feature,
+                        AstPackage.Literals.CONCRETE_FEATURE__EXPRESSION
+                    );
                 }
             }
-        } catch (TypeResolutionException e) {
-            // ignore: will be handled by type checking
         }
     }
 
-    private void checkCopiedClass(EClass clazz, Map<EClass, Set<Query>> sourceMap, Query cause, HashSet<EClass> alreadyChecked) {
+    private void checkCopiedClass(EClass clazz, FeatureTypeResolver typeResolver, Query cause, HashSet<EClass> alreadyChecked) {
         var wasAlreadyChecked = !alreadyChecked.add(clazz);
         if (wasAlreadyChecked) {
             return;
         }
 
-
         for (var reference : clazz.getEAllReferences()) {
-            var candidates = sourceMap.get(reference.getEReferenceType());
-            if (candidates == null) { // -> implicit copy of target class
-                checkCopiedClass(reference.getEReferenceType(), sourceMap, cause, alreadyChecked);
-            } else if (candidates.size() > 1) {
+            var type = typeResolver.resolveSourceClass(reference.getEReferenceType());
+            if (type instanceof ImplicitReferenceType) { // -> implicit copy of target class
+                checkCopiedClass(reference.getEReferenceType(), typeResolver, cause, alreadyChecked);
+            } else if (type instanceof AmbiguousReferenceType ambiguousType) {
                 error(
                     "Ambiguous target class for source class '%s' while copying reference '%s::%s'. Possible candidates: %s".formatted(
                         reference.getEReferenceType().getName(),
                         clazz.getName(), reference.getName(),
-                        candidates.stream().map(q -> AstUtils.getTargetName(q, expressionHelper)).sorted()
+                        ambiguousType.candidates().stream().map(q -> AstUtils.getTargetName(q, expressionHelper)).sorted()
                             .collect(Collectors.joining(", "))
                     ),
                     cause,
                     null
                 );
-            } else if (candidates.size() == 1) {
-                if (candidates.iterator().next() instanceof MainQuery mainQuery && mainQuery.getSource() != null) {
+            } else if (type instanceof QueryReferenceType queryType) {
+                if (queryType.query() instanceof ConcreteMainQuery mainQuery && mainQuery.getSource() != null) {
                     if (!mainQuery.getSource().getJoins().isEmpty()) {
                         warning(
                             ("Inferred target class '%s' for source class '%s' while copying reference '%s::%s' is " +
@@ -436,7 +426,7 @@ public class FeatureValidator extends ComposableValidator {
     }
 
     @Check
-    public void checkRootFeatureCollision(MainQuery mainQuery) {
+    public void checkRootFeatureCollision(ConcreteMainQuery mainQuery) {
         if (!mainQuery.isRoot() || mainQuery.getBody() == null) {
             return;
         }

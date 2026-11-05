@@ -1,6 +1,7 @@
 package tools.vitruv.optggs.driver;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
@@ -22,6 +23,7 @@ import tools.vitruv.neojoin.tgg.emsl_utils.EmslMetamodelGenerator;
 import tools.vitruv.neojoin.utils.EMFUtils;
 import tools.vitruv.optggs.operators.View;
 import tools.vitruv.optggs.operators.ViewExtractor;
+import tools.vitruv.optggs.operators.exception.UnsupportedProjectionException;
 import tools.vitruv.optggs.transpiler.LocalNameResolver;
 
 import java.io.IOException;
@@ -48,10 +50,7 @@ class GenerateTripleGraphGrammarProjectTest {
         // GIVEN a source meta-model, a valid query and a TGG project output path
         // Only the car meta-model is used, as other meta-models might define classes with the same
         // names, which cannot be resolved in a single TGG project
-        Files.copy(resource("models/car.ecore"), metaModelDirectory.resolve("car.ecore"));
-        final Path query = resource("queries/car.nj");
-        final EPackage.Registry registry =
-                new PackageModelCollector(metaModelDirectory.toString()).collect().right();
+        final EPackage.Registry registry = collectCarMetaModel(metaModelDirectory);
 
         // WHEN generating the Triple Graph Grammar project
         final ResourceSet sourceMetaModelResourceSet = new ResourceSetImpl();
@@ -61,12 +60,7 @@ class GenerateTripleGraphGrammarProjectTest {
                 .map(EPackage::eResource)
                 .forEach(sourceMetaModelResourceSet.getResources()::add);
 
-        final var parseResult =
-                new NeoJoinStandaloneSetup(registry)
-                        .getParser()
-                        .parse(URI.createFileURI(query.toString()));
-        assertThat(parseResult).isInstanceOf(Parser.Result.Success.class);
-        final AQR aqr = ((Parser.Result.Success) parseResult).aqr();
+        final AQR aqr = parseQuery("queries/car.nj", registry);
 
         final EPackage targetMetaModel = new MetaModelGenerator(aqr).generate().pack();
         // Saving the generated meta-model attaches it to a resource
@@ -113,6 +107,42 @@ class GenerateTripleGraphGrammarProjectTest {
         final List<EObject> parsedObjects =
                 EmslParser.parse(tripleGraphGrammarFile.toAbsolutePath().toString());
         assertThat(parsedObjects).isNotNull().isNotEmpty();
+    }
+
+    @Test
+    void abstractClassesAreRejected(@TempDir Path metaModelDirectory) throws Exception {
+        final AQR aqr =
+                parseQuery("queries/abstract-class.nj", collectCarMetaModel(metaModelDirectory));
+
+        assertThatThrownBy(() -> ViewExtractor.viewFromAQR(aqr, new ManualPatternMatchingStrategy()))
+                .isInstanceOf(UnsupportedProjectionException.class)
+                .hasMessageContaining("Vehicle");
+    }
+
+    @Test
+    void superClassesAreRejected(@TempDir Path metaModelDirectory) throws Exception {
+        final AQR aqr =
+                parseQuery("queries/super-class.nj", collectCarMetaModel(metaModelDirectory));
+
+        assertThatThrownBy(() -> ViewExtractor.viewFromAQR(aqr, new ManualPatternMatchingStrategy()))
+                .isInstanceOf(UnsupportedProjectionException.class)
+                .hasMessageContaining("TargetWheel");
+    }
+
+    private static EPackage.Registry collectCarMetaModel(Path metaModelDirectory)
+            throws IOException, URISyntaxException {
+        Files.copy(resource("models/car.ecore"), metaModelDirectory.resolve("car.ecore"));
+        return new PackageModelCollector(metaModelDirectory.toString()).collect().right();
+    }
+
+    private static AQR parseQuery(String queryResource, EPackage.Registry registry)
+            throws URISyntaxException {
+        final var parseResult =
+                new NeoJoinStandaloneSetup(registry)
+                        .getParser()
+                        .parse(URI.createFileURI(resource(queryResource).toString()));
+        assertThat(parseResult).isInstanceOf(Parser.Result.Success.class);
+        return ((Parser.Result.Success) parseResult).aqr();
     }
 
     private static Path resource(String name) throws URISyntaxException {

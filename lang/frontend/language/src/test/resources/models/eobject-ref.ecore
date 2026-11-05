@@ -15,4 +15,13 @@
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Named"
       eSuperTypes="http://www.eclipse.org/emf/2002/Ecore#//ENamedElement"/>
+  <eClassifiers xsi:type="ecore:EClass" name="SubHolder" eSuperTypes="#//Holder"/>
+  <eClassifiers xsi:type="ecore:EClass" name="Parent">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="child" eType="#//Leaf"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="SubParent" eSuperTypes="#//Parent"/>
+  <eClassifiers xsi:type="ecore:EClass" name="Box">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="parent" eType="#//SubParent"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="holder" eType="#//SubHolder"/>
+  </eClassifiers>
 </ecore:EPackage>

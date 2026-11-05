@@ -101,6 +101,7 @@ public class Transformator {
         // create other instances
         aqr.classes().stream()
             .filter(target -> target != aqr.root())
+            .filter(target -> !target.isAbstract())
             .forEach(target -> {
                 var instances = transformTargetClass(target);
                 var rootRef = root.eClass()
@@ -370,8 +371,12 @@ public class Transformator {
         if (featureKind.expression() != null) {
             return context.evaluateExpression(Objects.requireNonNull(featureKind.expression()));
         } else if (featureKind instanceof AQRFeature.Kind.Copy.Implicit(EStructuralFeature feature)) {
-            check(source != null && source.eClass() == feature.getEContainingClass());
+            // the source may be an instance of a sub class of the class declaring the feature
+            check(source != null && feature.getEContainingClass().isSuperTypeOf(source.eClass()));
             return source.eGet(feature);
+        } else if (featureKind instanceof AQRFeature.Kind.Override override) {
+            // the value is derived by the overriding kind, the overridden feature only provides type and modifiers
+            return evaluateFeature(override.overriding(), source, context);
         } else {
             return fail();
         }

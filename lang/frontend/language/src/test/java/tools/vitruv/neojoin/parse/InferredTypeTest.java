@@ -148,6 +148,6 @@ public class InferredTypeTest extends AbstractParseTest {
             }
             """);
 
-        assertThat(result).hasIssues("Cannot infer type");
+        assertThat(result).hasExactlyIssues("Cannot infer type");
     }
 }

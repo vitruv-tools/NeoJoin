@@ -13,7 +13,7 @@ class JoinParseTest extends AbstractParseTest {
             """);
 
         assertThat(result)
-            .hasIssues("Query with a join must have a body");
+            .hasExactlyIssues("Query with a join must have a body");
     }
 
     @Test
@@ -25,7 +25,7 @@ class JoinParseTest extends AbstractParseTest {
             """);
 
         assertThat(result)
-            .hasIssues("Duplicated alias: r");
+            .hasExactlyIssues("Duplicated alias: r");
     }
 
     @Test
@@ -91,7 +91,7 @@ class JoinParseTest extends AbstractParseTest {
             """);
 
         assertThat(result)
-            .hasIssues("Join condition in a query with multiple joins must specify which other class to join on");
+            .hasExactlyIssues("Join condition in a query with multiple joins must specify which other class to join on");
     }
 
     @Test
@@ -104,7 +104,7 @@ class JoinParseTest extends AbstractParseTest {
             """);
 
         assertThat(result)
-            .hasIssues("f cannot be resolved.", "name cannot be resolved.");
+            .hasExactlyIssues("f cannot be resolved.", "name cannot be resolved.");
     }
 
     @Test
@@ -132,7 +132,7 @@ class JoinParseTest extends AbstractParseTest {
             """);
 
         assertThat(result)
-            .hasIssues("The method or field f is undefined");
+            .hasExactlyIssues("The method or field f is undefined");
     }
 
 }

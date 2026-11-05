@@ -25,7 +25,7 @@ import tools.vitruv.neojoin.cli.Main;
 
 class TransformTest {
 
-    static List<String> validQueries = List.of("pizza");
+    static List<String> validQueries = List.of("pizza", "pizza2");
 
     @BeforeAll
     static void setupRegistry() {

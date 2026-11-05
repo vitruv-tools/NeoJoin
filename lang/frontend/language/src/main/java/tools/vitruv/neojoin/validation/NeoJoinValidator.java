@@ -13,7 +13,7 @@ import tools.vitruv.neojoin.aqr.AQR;
 import tools.vitruv.neojoin.aqr.AQRBuilder;
 import tools.vitruv.neojoin.aqr.AQRInvariantViolatedException;
 import tools.vitruv.neojoin.ast.AstPackage;
-import tools.vitruv.neojoin.ast.MainQuery;
+import tools.vitruv.neojoin.ast.ConcreteMainQuery;
 import tools.vitruv.neojoin.ast.ViewTypeDefinition;
 import tools.vitruv.neojoin.conformancevalidator.ConformanceValidator;
 import tools.vitruv.neojoin.conformancevalidator.Violation;
@@ -30,7 +30,14 @@ import java.util.stream.Collectors;
  * This class and the linked {@link ComposedChecks composed validators} contain custom validation rules.
  * See <a href="https://eclipse.dev/Xtext/documentation/303_runtime_concepts.html#validation">here</a>.
  */
-@ComposedChecks(validators = {ImportValidator.class, SourceValidator.class, FeatureValidator.class, FeatureModifierValidator.class})
+@ComposedChecks(validators = {
+    ImportValidator.class,
+    SourceValidator.class,
+    FeatureValidator.class,
+    FeatureModifierValidator.class,
+    InheritanceValidator.class,
+    ImplicitSuperClassValidator.class
+})
 public class NeoJoinValidator extends AbstractNeoJoinValidator {
 
     @Inject
@@ -72,7 +79,7 @@ public class NeoJoinValidator extends AbstractNeoJoinValidator {
                 }
             });
 
-        var hasImplicitRoot = viewType.getQueries().stream().noneMatch(MainQuery::isRoot);
+        var hasImplicitRoot = viewType.getQueries().stream().noneMatch(query -> query instanceof ConcreteMainQuery concreteMainQuery && concreteMainQuery.isRoot());
         if (hasImplicitRoot) {
             var conflicts = groupedTargets.get(Constants.DefaultRootClassName);
             if (conflicts != null) {
@@ -90,19 +97,19 @@ public class NeoJoinValidator extends AbstractNeoJoinValidator {
     }
 
     @Check
-    public void checkJoinWithoutBody(MainQuery mainQuery) {
+    public void checkJoinWithoutBody(ConcreteMainQuery mainQuery) {
         var hasJoin = mainQuery.getSource() != null && !mainQuery.getSource().getJoins().isEmpty();
         if (hasJoin && mainQuery.getBody() == null) {
-            error("Query with a join must have a body", mainQuery, AstPackage.Literals.QUERY__BODY);
+            error("Query with a join must have a body", mainQuery, AstPackage.Literals.CONCRETE_MAIN_QUERY__BODY);
         }
     }
 
     @Check
     public void checkSingleRoot(ViewTypeDefinition viewType) {
-        var allRoots = viewType.getQueries().stream().filter(MainQuery::isRoot).toList();
+        var allRoots = viewType.getQueries().stream().filter(query -> query instanceof ConcreteMainQuery concreteMainQuery && concreteMainQuery.isRoot()).toList();
         if (allRoots.size() > 1) {
             for (var query : allRoots) {
-                error("Multiple root queries", query, AstPackage.Literals.MAIN_QUERY__ROOT);
+                error("Multiple root queries", query, AstPackage.Literals.CONCRETE_MAIN_QUERY__ROOT);
             }
         }
     }

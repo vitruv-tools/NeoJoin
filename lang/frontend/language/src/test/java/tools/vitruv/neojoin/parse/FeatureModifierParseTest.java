@@ -27,7 +27,7 @@ class FeatureModifierParseTest extends AbstractParseTest {
             }
             """);
 
-        assertThat(result).hasIssues("Empty modifier list");
+        assertThat(result).hasExactlyIssues("Empty modifier list");
     }
 
     @Test
@@ -99,7 +99,7 @@ class FeatureModifierParseTest extends AbstractParseTest {
             }
             """);
 
-        assertThat(result).hasIssues("Duplicated modifier 'changeable'");
+        assertThat(result).hasExactlyIssues("Duplicated modifier 'changeable'");
     }
 
     @Test
@@ -111,7 +111,7 @@ class FeatureModifierParseTest extends AbstractParseTest {
             }
             """);
 
-        assertThat(result).hasIssues("Duplicated modifier 'multiplicity'");
+        assertThat(result).hasExactlyIssues("Duplicated modifier 'multiplicity'");
     }
 
     @Test
@@ -136,7 +136,7 @@ class FeatureModifierParseTest extends AbstractParseTest {
             }
             """);
 
-        assertThat(result).hasIssues(
+        assertThat(result).hasExactlyIssues(
             "Modifier 'containment' is not applicable to attributes",
             "Modifier 'id' is not applicable to references"
         );
@@ -151,7 +151,7 @@ class FeatureModifierParseTest extends AbstractParseTest {
             }
             """);
 
-        assertThat(result).hasIssues("Cannot assign a single value to a multi-valued feature");
+        assertThat(result).hasExactlyIssues("Cannot assign a single value to a multi-valued feature");
     }
 
     @Test
@@ -163,7 +163,7 @@ class FeatureModifierParseTest extends AbstractParseTest {
             }
             """);
 
-        assertThat(result).hasIssues("Cannot assign multiple values to a single-valued feature");
+        assertThat(result).hasExactlyIssues("Cannot assign multiple values to a single-valued feature");
     }
 
     @Test
@@ -187,7 +187,7 @@ class FeatureModifierParseTest extends AbstractParseTest {
             }
             """);
 
-        assertThat(result).hasIssues("Upper bound must be at least 1");
+        assertThat(result).hasExactlyIssues("Upper bound must be at least 1");
     }
 
     @Test
@@ -199,7 +199,7 @@ class FeatureModifierParseTest extends AbstractParseTest {
             }
             """);
 
-        assertThat(result).hasIssues("Lower bound must be less than upper bound");
+        assertThat(result).hasExactlyIssues("Lower bound must be less than upper bound");
     }
 
     @Test
@@ -211,7 +211,7 @@ class FeatureModifierParseTest extends AbstractParseTest {
             }
             """);
 
-        assertThat(result).hasIssues("Lower and upper bound are equal, consider using a single value instead");
+        assertThat(result).hasExactlyIssues("Lower and upper bound are equal, consider using a single value instead");
     }
 
     @Test
@@ -223,7 +223,7 @@ class FeatureModifierParseTest extends AbstractParseTest {
             }
             """);
 
-        assertThat(result).hasIssues("Lower bound is 0, consider using '*' instead");
+        assertThat(result).hasExactlyIssues("Lower bound is 0, consider using '*' instead");
     }
 
     @Test
@@ -235,7 +235,7 @@ class FeatureModifierParseTest extends AbstractParseTest {
             }
             """);
 
-        assertThat(result).hasIssues("Lower bound is 1, consider using '+' instead");
+        assertThat(result).hasExactlyIssues("Lower bound is 1, consider using '+' instead");
     }
 
     @Test
@@ -247,7 +247,7 @@ class FeatureModifierParseTest extends AbstractParseTest {
             }
             """);
 
-        assertThat(result).hasIssues("Exact multiplicity must be at least 1");
+        assertThat(result).hasExactlyIssues("Exact multiplicity must be at least 1");
     }
 
 }

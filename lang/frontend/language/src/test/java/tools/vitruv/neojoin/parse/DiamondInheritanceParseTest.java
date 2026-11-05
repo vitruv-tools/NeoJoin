@@ -1,0 +1,82 @@
+package tools.vitruv.neojoin.parse;
+
+import org.junit.jupiter.api.Test;
+
+import static tools.vitruv.neojoin.parse.ParseAssertions.assertThat;
+
+/**
+ * A feature that is inherited from several super classes is valid if all of them inherit it from the same
+ * declaration, because Ecore does not allow two features with the same name in a class, including inherited ones.
+ */
+class DiamondInheritanceParseTest extends AbstractParseTest {
+
+    @Test
+    void featureInheritedViaCommonAncestorIsAccepted() {
+        var result = parse("""
+            abstract A {
+                x: EString
+            }
+
+            abstract B extends A {
+                x: EString
+            }
+
+            abstract C extends A {
+                x: EString
+            }
+
+            from Restaurant r create D extends B, C {
+                x = r.name
+            }
+            """);
+
+        assertThat(result).hasNoIssues();
+    }
+
+    @Test
+    void featureDeclaredIndependentlyInSeveralSuperClassesConflicts() {
+        var result = parse("""
+            abstract A {
+                x: EString
+            }
+
+            abstract B {
+                x: EString
+            }
+
+            from Restaurant r create C extends A, B {
+                x = r.name
+            }
+            """);
+
+        assertThat(result).hasExactlyIssues(
+            "Feature 'x' is inherited from multiple super classes that declare it independently: A, B"
+        );
+    }
+
+    @Test
+    void featureInheritedAndFeatureDeclaredIndependentlyConflict() {
+        var result = parse("""
+            abstract A {
+                x: EString
+            }
+
+            abstract B extends A {
+                x: EString
+            }
+
+            abstract C {
+                x: EString
+            }
+
+            from Restaurant r create D extends B, C {
+                x = r.name
+            }
+            """);
+
+        assertThat(result).hasExactlyIssues(
+            "Feature 'x' is inherited from multiple super classes that declare it independently: B, C"
+        );
+    }
+
+}
