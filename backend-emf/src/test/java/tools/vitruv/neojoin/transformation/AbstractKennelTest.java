@@ -27,7 +27,7 @@ public abstract class AbstractKennelTest extends AbstractTransformationTest impl
 
     @Override
     protected List<String> getInstanceModelPaths() {
-        return List.of("/models/kennel.xmi");
+        return List.of("/instances/kennel.xmi");
     }
 
     protected EObject transform(String query) {

@@ -14,7 +14,7 @@ public abstract class DefaultTransformationTest extends AbstractTransformationTe
 
     @Override
     protected List<String> getInstanceModelPaths() {
-        return List.of("/models/restaurants.xmi", "/models/reviews.xmi", "/models/type-casts.xmi");
+        return List.of("/instances/restaurants.xmi", "/instances/reviews.xmi", "/instances/type-casts.xmi");
     }
 
     protected EObject transform(String query) {
