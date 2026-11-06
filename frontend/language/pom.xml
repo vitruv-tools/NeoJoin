@@ -31,10 +31,16 @@
       <version>${project.version}</version>
     </dependency>
 
-    <!-- for TextMate grammar generation -->
+    <!-- only needed by the Xtext generator (TextMateHighlightingFragment in workflow/generate.mwe2, the exec plugin runs
+    with the class path scope compile), so it is not shaded into the jars and not passed on to dependents -->
     <dependency>
       <groupId>com.google.code.gson</groupId>
       <artifactId>gson</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
     </dependency>
     <dependency>
       <groupId>com.google.inject</groupId>

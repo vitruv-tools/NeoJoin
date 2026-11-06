@@ -22,6 +22,10 @@
   <dependencies>
     <dependency>
       <groupId>org.eclipse.emf</groupId>
+      <artifactId>org.eclipse.emf.common</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.emf</groupId>
       <artifactId>org.eclipse.emf.ecore</artifactId>
     </dependency>
     <dependency>
@@ -32,7 +36,8 @@
       <groupId>org.jspecify</groupId>
       <artifactId>jspecify</artifactId>
     </dependency>
-    <!-- EMF Compare needs Guava at runtime, but the p2 wrapper does not declare it -->
+    <!-- EMF Compare needs Guava at runtime, but the p2 wrapper does not declare it (the code of this module does not use
+    Guava, so dependency:analyze reports it as unused) -->
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
