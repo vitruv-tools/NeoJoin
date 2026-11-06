@@ -198,6 +198,8 @@
               <goal>shade</goal>
             </goals>
             <configuration>
+              <!-- the parent POM enables this; the shaded sources jar (all dependencies) is not wanted -->
+              <createSourcesJar>false</createSourcesJar>
               <filters>
                 <filter>
                   <artifact>*:*</artifact>
