@@ -116,6 +116,9 @@ The CLI executable and the language server can be downloaded from the build resu
 
 * JDK 21+ *(the language server runs on JDK 17+)*
 * [Graphviz](https://plantuml.com/graphviz-dot) *(for the view type visualization in the language server)*
+* The PlantUML jar (`plantuml-<version>.jar` from the [PlantUML releases](https://github.com/plantuml/plantuml/releases)) *(for the view type visualization in the language server, see the note below)*
+
+**Note for projects that depend on the IDE module:** the shaded jar of the language server (`tools.vitruv.neojoin.frontend.ide`) does not contain PlantUML. Without it, the language server works, but visualization requests fail with the error "PlantUML was not found on the class path of the language server". Editor integrations that want to support the visualization have to ask their users for a PlantUML jar and start the language server with it on the class path. The version the language server is built against is managed in the root `pom.xml`.
 
 ### Command Line Interface
 
