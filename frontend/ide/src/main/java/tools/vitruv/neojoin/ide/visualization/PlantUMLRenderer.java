@@ -14,6 +14,20 @@ import java.io.OutputStream;
  */
 public class PlantUMLRenderer {
 
+    /**
+     * PlantUML is not part of the shaded jar of the language server and has to be put on the class path.
+     *
+     * @return whether PlantUML can be loaded
+     */
+    public static boolean isAvailable() {
+        try {
+            Class.forName("net.sourceforge.plantuml.SourceStringReader", false, PlantUMLRenderer.class.getClassLoader());
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
+
     private final String source;
     private final FileFormat format;
     private final boolean darkMode;

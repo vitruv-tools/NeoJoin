@@ -137,6 +137,10 @@ public class NeoJoinIdeServer extends LanguageServerImpl implements Visualizatio
         BiConsumer<Document, XtextResource> onRead,
         Function<ModelInfo, VisualizationGenerator.Mode> getMode
     ) {
+        if (!PlantUMLRenderer.isAvailable()) {
+            throw makeResponseErrorException("PlantUML was not found on the class path of the language server.");
+        }
+
         var uri = getURI(params.textDocument());
         var options = getOptions(params);
         return readAQR(uri, onRead).thenApply(aqr -> {

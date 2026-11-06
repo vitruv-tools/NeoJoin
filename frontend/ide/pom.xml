@@ -47,6 +47,8 @@
     <dependency>
       <groupId>net.sourceforge.plantuml</groupId>
       <artifactId>plantuml</artifactId>
+      <!-- not part of the shaded jar (about 25 MB): the IDE integration puts a PlantUML jar on the class path -->
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.antlr</groupId>
@@ -198,11 +200,20 @@
               <goal>shade</goal>
             </goals>
             <configuration>
+              <!-- the parent POM enables this; the shaded sources jar (all dependencies) is not wanted -->
+              <createSourcesJar>false</createSourcesJar>
+              <artifactSet>
+                <excludes>
+                  <!-- not needed at runtime: OSGi framework (pulled in by EMF Ecore) -->
+                  <exclude>org.eclipse.platform:org.eclipse.osgi</exclude>
+                </excludes>
+              </artifactSet>
               <filters>
                 <filter>
                   <artifact>*:*</artifact>
                   <excludes>
                     <exclude>**/*.java</exclude>
+                    <exclude>META-INF/maven/**</exclude>
                     <exclude>META-INF/INDEX.LIST</exclude>
                     <exclude>META-INF/*.SF</exclude>
                     <exclude>META-INF/*.DSA</exclude>

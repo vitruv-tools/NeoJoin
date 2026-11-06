@@ -36,12 +36,15 @@ jobs:
         --no-transfer-progress
 
     - name: Stage build results
-      run: mkdir staging && find . -path '*/target/*/*' -prune -o -path '*/target/*.jar' -exec cp {} staging/ \;
+      run: >
+        mkdir staging &&
+        cp frontend/cli/target/tools.vitruv.neojoin.frontend.cli-*-SNAPSHOT.jar staging/tools.vitruv.neojoin.frontend.cli.jar &&
+        cp frontend/ide/target/tools.vitruv.neojoin.frontend.ide.jar staging/
 
     - name: Upload build results
       uses: actions/upload-artifact@v7
       with:
-        name: framework-and-cli
+        name: cli-and-ide
         path: staging/
 
   checkstyle:
@@ -61,15 +64,28 @@ jobs:
         check-latest: true
         cache: 'maven'
 
-    # Violations are warnings and do not fail the job (see the profile "checkstyle" in pom.xml).
+    # Checks all modules and reports the violations as errors, but Maven itself does not fail because of them
+    # (a failing module would skip the modules that depend on it). The next step fails the job instead.
     # Only the Checkstyle execution runs: the validate phase would also run the enforcer rules, which need the
     # jars of the other modules.
     - name: Check code style
       run: >
         ./mvnw checkstyle:check@validate -P checkstyle
+        -Dcheckstyle.severity=error
+        -Dcheckstyle.failsOnError=false
+        -Dcheckstyle.failOnViolation=false
         --batch-mode
+        --fail-at-end
         --update-snapshots
         --no-transfer-progress
+
+    - name: Fail on violations
+      run: |
+        if grep -rlq --include=checkstyle-result.xml 'severity="error"' .; then
+          echo "Checkstyle violations per module:"
+          grep -rc --include=checkstyle-result.xml 'severity="error"' . | grep -v ':0$'
+          exit 1
+        fi
 
   build-maven-other-platforms:
     name: Build Maven projects
@@ -136,3 +152,44 @@ jobs:
         --update-snapshots
         --no-transfer-progress
         -Dsonar.projectKey=vitruv-tools_NeoJoin
+
+  # Publishes the snapshot versions of all modules to Maven Central (nightly build on main only, never for pull requests).
+  # Repository URL and the "snapshot" profile (GPG signing) come from the parent POM tools.vitruv:parent.
+  deploy-snapshot:
+    name: Deploy snapshot
+    if: >
+      (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+      && github.ref == 'refs/heads/main'
+      && github.repository_owner == 'vitruv-tools'
+    runs-on: ubuntu-latest
+    needs: [build-maven, build-maven-other-platforms]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v7.0.1
+
+    - name: Setup Java and Maven cache
+      uses: actions/setup-java@v6.1.0
+      with:
+        distribution: 'temurin'
+        java-version: '21'
+        check-latest: true
+        cache: 'maven'
+        server-id: central
+        server-username: CENTRAL_USERNAME
+        server-password: CENTRAL_PASSWORD
+        gpg-private-key: ${{ secrets.OSSRH_GPG_SECRET_KEY }}
+        gpg-passphrase: MAVEN_GPG_PASSPHRASE
+
+    # Tests already ran in build-maven. The CLI module skips its deployment itself (maven.deploy.skip in its POM).
+    - name: Deploy snapshot
+      run: >
+        ./mvnw clean deploy -P snapshot
+        -DskipTests
+        --batch-mode
+        --update-snapshots
+        --no-transfer-progress
+      env:
+        CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
+        CENTRAL_PASSWORD: ${{ secrets.CENTRAL_PASSWORD }}
+        MAVEN_GPG_PASSPHRASE: ${{ secrets.OSSRH_GPG_SECRET_KEY_PASSWORD }}
