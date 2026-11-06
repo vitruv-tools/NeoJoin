@@ -23,7 +23,7 @@ public class EcoreClassReferenceTest extends AbstractTransformationTest implemen
 
     @Override
     protected List<String> getInstanceModelPaths() {
-        return List.of("/models/eobject-ref.xmi");
+        return List.of("/instances/eobject-ref.xmi");
     }
 
     private void transformAndAssert(String query, Consumer<EObject> assertion) {
