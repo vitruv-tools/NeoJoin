@@ -93,6 +93,21 @@
         <artifactId>maven-dependency-plugin</artifactId>
         <executions>
           <execution>
+            <id>unpack-third-party-licenses</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>unpack-dependencies</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/third-party/licenses</outputDirectory>
+              <useSubDirectoryPerArtifact>true</useSubDirectoryPerArtifact>
+              <includeScope>runtime</includeScope>
+              <!-- not bundled, see the shade configuration -->
+              <excludeArtifactIds>org.eclipse.osgi</excludeArtifactIds>
+              <includes>**/LICENSE*,**/NOTICE*,**/license*,**/notice*,**/COPYING*,about.html,about.ini,about.mappings,about.properties,about_files/**</includes>
+            </configuration>
+          </execution>
+          <execution>
             <id>unpack-test-resources</id>
             <phase>generate-test-resources</phase>
             <goals>
@@ -102,6 +117,31 @@
               <includeArtifactIds>tools.vitruv.neojoin.test-resources</includeArtifactIds>
               <includes>models/**,instances/**</includes>
               <outputDirectory>${project.build.testOutputDirectory}</outputDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-third-party-licenses</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.outputDirectory}/META-INF/licenses</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${project.build.directory}/third-party/licenses</directory>
+                </resource>
+                <!-- license texts of dependencies that have none in their jars (see the files for the sources) -->
+                <resource>
+                  <directory>${maven.multiModuleProjectDirectory}/third-party-licenses</directory>
+                </resource>
+              </resources>
             </configuration>
           </execution>
         </executions>
@@ -156,6 +196,14 @@
               implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
               <resource>plugin.properties</resource>
             </transformer>
+            <!-- merges the NOTICE files of all dependencies into META-INF/NOTICE -->
+            <transformer
+              implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer">
+              <projectName>NeoJoin</projectName>
+              <addHeader>false</addHeader>
+              <!-- the default heading claims a copyright of the Apache Software Foundation for this project -->
+              <copyright>Notices of the third-party components in this jar.</copyright>
+            </transformer>
             <!-- the shade filters remove the license files of all jars, including the project's own: add it again -->
             <transformer
               implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
@@ -197,10 +245,11 @@
                     <exclude>META-INF/MANIFEST.MF</exclude>
                     <!-- EMF icon, defined by three jars -->
                     <exclude>modeling32.png</exclude>
-                    <!-- metadata of single dependencies: the jar would contain the license, notice and module
-                         descriptor of whichever dependency comes first, not those of this project -->
+                    <!-- metadata of single dependencies: the jar would contain the license and module descriptor of
+                         whichever dependency comes first, not those of this project. The license texts are in
+                         META-INF/licenses, the NOTICE files are merged by the notice transformer. -->
                     <exclude>META-INF/LICENSE*</exclude>
-                    <exclude>META-INF/NOTICE*</exclude>
+                    <exclude>LICENSE-*.txt</exclude>
                     <exclude>META-INF/DEPENDENCIES</exclude>
                     <exclude>META-INF/p2.inf</exclude>
                     <exclude>META-INF/MANIFEST.MF_gen</exclude>
