@@ -17,7 +17,7 @@
   <packaging>pom</packaging>
 
   <name>NeoJoin</name>
-  <description />
+  <description>NeoJoin is a declarative, SQL-like query language for view-based model-driven software development. This project contains the language, the language server, the command line tool and the EMF backend.</description>
   <url>https://github.com/vitruv-tools/NeoJoin</url>
 
   <!-- Organizational Information -->

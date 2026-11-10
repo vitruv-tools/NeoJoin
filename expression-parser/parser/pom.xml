@@ -12,7 +12,8 @@
   <artifactId>tools.vitruv.neojoin.expression-parser.parser</artifactId>
 
   <name>Expression Parser Logic</name>
-  <description/>
+  <description>Parser from Xbase expressions to reference operators.</description>
+
 
   <dependencies>
     <dependency>

@@ -12,6 +12,7 @@
 
   <artifactId>tools.vitruv.neojoin.frontend.cli</artifactId>
   <name>Command Line Interface</name>
+  <description>Command line interface to validate queries, generate view types and transform models.</description>
 
   <properties>
     <!-- the CLI jar is distributed through the CI artifacts, not through Maven Central -->

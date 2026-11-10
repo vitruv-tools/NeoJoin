@@ -12,6 +12,7 @@
 
   <artifactId>tools.vitruv.neojoin.conformancevalidator</artifactId>
   <name>Conformance Validator</name>
+  <description>Checks that a view type conforms to a reference meta-model (rules for non-breaking and breaking differences).</description>
 
   <properties>
     <maven.compiler.release>17</maven.compiler.release>

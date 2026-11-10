@@ -12,6 +12,7 @@
 
   <artifactId>tools.vitruv.neojoin.frontend.language</artifactId>
   <name>Language</name>
+  <description>Xtext grammar, validation and view type generation of the NeoJoin language.</description>
 
   <properties>
     <maven.compiler.release>17</maven.compiler.release>

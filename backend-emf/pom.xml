@@ -12,6 +12,7 @@
 
   <artifactId>tools.vitruv.neojoin.transformation.emf</artifactId>
   <name>EMF Backend</name>
+  <description>Unidirectional, state-based transformation of source models into a view instance with EMF.</description>
 
   <dependencies>
     <dependency>
