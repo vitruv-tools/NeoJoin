@@ -13,7 +13,7 @@
   <packaging>pom</packaging>
 
   <name>Expression Parser</name>
-  <description/>
+  <description>Parser from Xbase expressions of NeoJoin queries to a flat chain of reference operators (used by the TGG backend).</description>
 
   <modules>
     <module>model</module>

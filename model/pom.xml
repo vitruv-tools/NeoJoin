@@ -12,6 +12,7 @@
 
   <artifactId>tools.vitruv.neojoin.model</artifactId>
   <name>Query Model</name>
+  <description>The abstract query representation (AQR): the normalized form of a NeoJoin query.</description>
 
   <properties>
     <maven.compiler.release>17</maven.compiler.release>

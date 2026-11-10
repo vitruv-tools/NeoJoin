@@ -229,6 +229,8 @@ The rules and their categories are documented in the [conformance validator read
 
 We use [SonarQube](https://sonarcloud.io/project/overview?id=vitruv-tools_NeoJoin) to analyze our Maven projects.
 
+The license files, module names and third-party notices in the jars, and what to do when a dependency is added to the CLI or the language server, are described in [Jar Metadata and Licenses](docs/jar-metadata-and-licenses.md).
+
 ### Code Style
 
 The code style is checked with [Checkstyle](https://checkstyle.org/) (`checkstyle.xml`). The check is optional and part of the Maven profile `checkstyle`, which prints violations as warnings and does not fail the build. There are two ways to run it:

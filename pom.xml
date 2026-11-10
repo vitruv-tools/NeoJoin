@@ -17,7 +17,7 @@
   <packaging>pom</packaging>
 
   <name>NeoJoin</name>
-  <description />
+  <description>NeoJoin is a declarative, SQL-like query language for view-based model-driven software development. This project contains the language, the language server, the command line tool and the EMF backend.</description>
   <url>https://github.com/vitruv-tools/NeoJoin</url>
 
   <!-- Organizational Information -->
@@ -36,6 +36,8 @@
 
   <!-- Properties -->
   <properties>
+    <!-- must be a valid Java name, so modules with a hyphen in the artifact ID override it -->
+    <automatic.module.name>${project.artifactId}</automatic.module.name>
     <maven.compiler.release>21</maven.compiler.release>
     <maven.compiler.source>21</maven.compiler.source>
     <maven.compiler.target>21</maven.compiler.target>
@@ -178,6 +180,11 @@
   <build>
     <pluginManagement>
       <plugins>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>license-maven-plugin</artifactId>
+          <version>2.7.1</version>
+        </plugin>
         <!-- Xtext 2.43+ requires Java 21, but model, language and ide must stay on Java 17.
         The parent POM pins 2.43.0, so the Xtext tooling is pinned back to 2.42.0 here. -->
         <plugin>
@@ -215,6 +222,45 @@
         </plugin>
       </plugins>
     </pluginManagement>
+    <plugins>
+      <!-- the license of this project in every jar (META-INF/LICENSE) -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-license</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.outputDirectory}/META-INF</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${maven.multiModuleProjectDirectory}</directory>
+                  <includes>
+                    <include>LICENSE</include>
+                  </includes>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- stable module name for projects that use the jars on the module path -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifestEntries>
+              <Automatic-Module-Name>${automatic.module.name}</Automatic-Module-Name>
+            </manifestEntries>
+          </archive>
+        </configuration>
+      </plugin>
+    </plugins>
   </build>
 
   <!-- Optional style check, see the section "Code Style" in readme.md. Runs maven-checkstyle-plugin (version,

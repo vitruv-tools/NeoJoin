@@ -12,6 +12,7 @@
 
   <artifactId>tools.vitruv.neojoin.frontend.cli</artifactId>
   <name>Command Line Interface</name>
+  <description>Command line interface to validate queries, generate view types and transform models.</description>
 
   <properties>
     <!-- the CLI jar is distributed through the CI artifacts, not through Maven Central -->
@@ -60,6 +61,9 @@
       <artifactId>org.eclipse.xtext</artifactId>
     </dependency>
 
+    <!-- The integration tests use the shared models of this module. Its files are copied by the execution
+         copy-shared-test-models (see below); the dependency documents the relation and makes the reactor build this
+         module first. -->
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>tools.vitruv.neojoin.test-resources</artifactId>
@@ -92,15 +96,99 @@
         <artifactId>maven-dependency-plugin</artifactId>
         <executions>
           <execution>
-            <id>unpack-test-resources</id>
-            <phase>generate-test-resources</phase>
+            <id>unpack-third-party-licenses</id>
+            <phase>prepare-package</phase>
             <goals>
               <goal>unpack-dependencies</goal>
             </goals>
             <configuration>
-              <includeArtifactIds>tools.vitruv.neojoin.test-resources</includeArtifactIds>
-              <includes>models/**,instances/**</includes>
+              <outputDirectory>${project.build.directory}/third-party/licenses</outputDirectory>
+              <useSubDirectoryPerArtifact>true</useSubDirectoryPerArtifact>
+              <includeScope>runtime</includeScope>
+              <!-- not bundled, see the shade configuration -->
+              <excludeArtifactIds>org.eclipse.osgi</excludeArtifactIds>
+              <includes>**/LICENSE*,**/NOTICE*,**/license*,**/notice*,**/COPYING*,about.html,about.ini,about.mappings,about.properties,about_files/**</includes>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <executions>
+          <!-- The integration tests need the shared test models as files (the model path is a list of directories). They are
+               copied from the test-resources module, not unpacked from its jar: the jar does not exist in a build that stops
+               before the package phase (mvn test), and the dependency plugin cannot unpack the classes directory (MDEP-98). -->
+          <execution>
+            <id>copy-shared-test-models</id>
+            <phase>generate-test-resources</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
               <outputDirectory>${project.build.testOutputDirectory}</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${maven.multiModuleProjectDirectory}/test-resources/src/main/resources</directory>
+                  <includes>
+                    <include>models/**</include>
+                    <include>instances/**</include>
+                  </includes>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+          <execution>
+            <id>copy-third-party-licenses</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.outputDirectory}/META-INF/licenses</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${project.build.directory}/third-party/licenses</directory>
+                </resource>
+                <!-- license texts of dependencies that have none in their jars (see the files for the sources) -->
+                <resource>
+                  <directory>${maven.multiModuleProjectDirectory}/third-party-licenses</directory>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- lists the licenses of all dependencies that the shade plugin bundles (META-INF/THIRD-PARTY.txt). The build fails
+           for a dependency without a license; add it to third-party-licenses.properties then. -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>third-party-licenses</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>add-third-party</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/license</outputDirectory>
+              <thirdPartyFilename>THIRD-PARTY.txt</thirdPartyFilename>
+              <excludedScopes>test,provided</excludedScopes>
+              <!-- not bundled, see the shade configuration -->
+              <excludedArtifacts>org\.eclipse\.osgi</excludedArtifacts>
+              <licenseMerges>
+                <licenseMerge>Apache License, Version 2.0|The Apache Software License, Version 2.0|The Apache Software License, version 2.0|The Apache License, Version 2.0|Apache 2.0|Apache-2.0</licenseMerge>
+                <licenseMerge>Eclipse Public License - v 2.0|Eclipse Public License, Version 2.0|The Eclipse Public License Version 2.0|EPL-2.0</licenseMerge>
+                <licenseMerge>BSD-3-Clause|BSD License|BSD licence</licenseMerge>
+              </licenseMerges>
+              <useMissingFile>true</useMissingFile>
+              <missingFile>${maven.multiModuleProjectDirectory}/third-party-licenses.properties</missingFile>
+              <failOnMissing>true</failOnMissing>
+              <!-- do not attach and deploy the missing file as an extra artifact -->
+              <deployMissingFile>false</deployMissingFile>
+              <!-- the file is only added to the jar by the shade plugin as META-INF/THIRD-PARTY.txt, not also to its root -->
+              <addOutputDirectoryAsResourceDir>false</addOutputDirectoryAsResourceDir>
             </configuration>
           </execution>
         </executions>
@@ -113,10 +201,32 @@
             <transformer
               implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
               <mainClass>tools.vitruv.neojoin.frontend.cli.Main</mainClass>
+              <manifestEntries>
+                <Automatic-Module-Name>${automatic.module.name}</Automatic-Module-Name>
+              </manifestEntries>
             </transformer>
             <transformer
               implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
               <resource>plugin.properties</resource>
+            </transformer>
+            <!-- merges the NOTICE files of all dependencies into META-INF/NOTICE -->
+            <transformer
+              implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer">
+              <projectName>NeoJoin</projectName>
+              <addHeader>false</addHeader>
+              <!-- the default heading claims a copyright of the Apache Software Foundation for this project -->
+              <copyright>Notices of the third-party components in this jar.</copyright>
+            </transformer>
+            <!-- the shade filters remove the license files of all jars, including the project's own: add it again -->
+            <transformer
+              implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
+              <resource>META-INF/LICENSE</resource>
+              <file>${maven.multiModuleProjectDirectory}/LICENSE</file>
+            </transformer>
+            <transformer
+              implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
+              <resource>META-INF/THIRD-PARTY.txt</resource>
+              <file>${project.build.directory}/license/THIRD-PARTY.txt</file>
             </transformer>
           </transformers>
           <minimizeJar>false</minimizeJar>
@@ -144,6 +254,21 @@
                     <exclude>**/*.java</exclude>
                     <exclude>META-INF/maven/**</exclude>
                     <exclude>META-INF/INDEX.LIST</exclude>
+                    <!-- the manifest of the fat jar comes from the manifest transformer -->
+                    <exclude>META-INF/MANIFEST.MF</exclude>
+                    <!-- EMF icon, defined by three jars -->
+                    <exclude>modeling32.png</exclude>
+                    <!-- metadata of single dependencies: the jar would contain the license and module descriptor of
+                         whichever dependency comes first, not those of this project. The license texts are in
+                         META-INF/licenses, the NOTICE files are merged by the notice transformer. -->
+                    <exclude>META-INF/LICENSE*</exclude>
+                    <exclude>LICENSE-*.txt</exclude>
+                    <exclude>META-INF/DEPENDENCIES</exclude>
+                    <exclude>META-INF/p2.inf</exclude>
+                    <exclude>META-INF/MANIFEST.MF_gen</exclude>
+                    <exclude>META-INF/*.kotlin_module</exclude>
+                    <exclude>module-info.class</exclude>
+                    <exclude>META-INF/versions/*/module-info.class</exclude>
                     <exclude>META-INF/*.SF</exclude>
                     <exclude>META-INF/*.DSA</exclude>
                     <exclude>META-INF/*.RSA</exclude>

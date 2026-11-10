@@ -12,7 +12,11 @@
   <artifactId>tools.vitruv.neojoin.expression-parser.model</artifactId>
 
   <name>Expression Parser Model</name>
-  <description />
+  <description>Reference operators that represent a parsed expression.</description>
+
+  <properties>
+    <automatic.module.name>tools.vitruv.neojoin.expression_parser.model</automatic.module.name>
+  </properties>
 
   <dependencies>
     <dependency>

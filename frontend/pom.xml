@@ -14,7 +14,7 @@
   <packaging>pom</packaging>
 
   <name>Frontend</name>
-  <description />
+  <description>Language, language server and command line interface of NeoJoin.</description>
 
   <modules>
     <module>cli</module>
