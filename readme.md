@@ -242,6 +242,8 @@ The code style is checked with [Checkstyle](https://checkstyle.org/) (`checkstyl
 
 Use the first command to check only the style. It runs the execution `validate` directly instead of the Maven phase `validate`, because that phase would also run the enforcer rules of the module `frontend/ide`, which need the jars of the other modules. Add `-Dcheckstyle.severity=error` to print the violations as errors and fail the build at the first module with violations. The CI job `Checkstyle` checks all modules and fails while there are violations.
 
+Commits that only change the formatting of the code are listed in `.git-blame-ignore-revs`, so that `git blame` skips them. GitHub applies the file automatically; locally, run `git config blame.ignoreRevsFile .git-blame-ignore-revs` once.
+
 ### Notes
 
 * Xtext heavily uses generated classes which means that opening this repository in a Java IDE after cloning will look like a christmas tree. Run `maven compile` to generate all missing classes. To improve compile times afterwards you can skip re-generation of classes by activating the maven profile `skip-code-generation`.

@@ -1,0 +1,9 @@
+# Commits that git blame should skip: changes of the formatting only (no change of public methods).
+# One commit per entry. GitHub applies this file automatically.
+# Locally: git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# Change tabs to spaces (2025-08-08)
+e17b6aa8a3c9126d640dc15306bdd62ab1ba7c5f
+
+# Fix the Checkstyle violations (#397)
+b9793ecea8b585fae7e001279ce75e667293a373
