@@ -31,8 +31,8 @@ class ImplicitSuperClassTest extends AbstractKennelTest {
     }
 
     /**
-     * The references {@code animals}, {@code dogs}, {@code star} and {@code puppy} of the kennel are copied, so implicit
-     * target classes exist for Animal (abstract), Dog (extends Animal) and Puppy (extends Dog). The reference
+     * The references {@code animals}, {@code dogs}, {@code star} and {@code puppy} of the kennel are copied, so
+     * implicit target classes exist for Animal (abstract), Dog (extends Animal) and Puppy (extends Dog). The reference
      * {@code animals} is typed Animal and resolves to the Dog instance Rex and the Puppy instance Bello, which
      * requires the super class links.
      */
@@ -61,7 +61,11 @@ class ImplicitSuperClassTest extends AbstractKennelTest {
             )
             .hasInstance("KennelT", named("South"))
             .hasInstance("Dog", named("Rex"), dog -> assertThat(dog).hasAttribute("breed", "Lab"))
-            .hasInstance("Puppy", named("Bello"), puppy -> assertThat(puppy).hasAttribute("breed", "Pug").hasAttribute("age", 1))
+            .hasInstance(
+                "Puppy",
+                named("Bello"),
+                puppy -> assertThat(puppy).hasAttribute("breed", "Pug").hasAttribute("age", 1)
+            )
             .hasNoMoreInstances();
     }
 

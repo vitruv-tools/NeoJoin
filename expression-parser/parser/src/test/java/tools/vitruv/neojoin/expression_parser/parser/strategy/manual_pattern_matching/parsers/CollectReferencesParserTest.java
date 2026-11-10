@@ -1,6 +1,7 @@
 package tools.vitruv.neojoin.expression_parser.parser.strategy.manual_pattern_matching.parsers;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.eclipse.xtext.common.types.JvmOperation;
 import org.eclipse.xtext.xbase.XClosure;

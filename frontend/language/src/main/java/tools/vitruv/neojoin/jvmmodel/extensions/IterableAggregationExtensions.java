@@ -57,6 +57,7 @@ class IterableAggregationExtensions {
     /**
      * Concatenates two lists.
      */
+    // CHECKSTYLE.SUPPRESS: MethodName for +1 lines
     public static <T> List<T> operator_plus(List<? extends T> first, List<? extends T> second) {
         return Stream.concat(first.stream(), second.stream()).toList();
     }

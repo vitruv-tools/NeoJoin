@@ -27,13 +27,15 @@ import java.util.stream.Collectors;
 /**
  * Validates the inheritance relations between target classes (see {@code extends} in queries).
  * <p>
- * The checks mirror the invariants of {@link tools.vitruv.neojoin.aqr.AQRBuilder} (wiring of the super classes,
+ * The checks mirror the invariants of {@link tools.vitruv.neojoin.aqr.AQRBuilder} (wiring of the
+ * super classes,
  * application of inheritance, and determination of reference types) so that invalid queries are reported as issues
  * instead of failing with an {@code AQRInvariantViolatedException} during AQR construction. They also protect the
  * later stages, which rely on a well-formed class hierarchy:
- * {@link tools.vitruv.neojoin.generation.MetaModelGenerator} maps the super classes to {@code eSuperTypes} (which
- * must be acyclic and duplicate free), and the transformation resolves references to instances of sub classes via
- * the transitive super classes of the target classes and evaluates overriding features via their overriding kind.
+ * {@link tools.vitruv.neojoin.generation.MetaModelGenerator} maps the super classes to
+ * {@code eSuperTypes} (which must be acyclic and duplicate free), and the transformation resolves references to
+ * instances of sub classes via the transitive super classes of the target classes and evaluates overriding
+ * features via their overriding kind.
  * <p>
  * Note that the rules only handle inheritance. The validation of features and types in general is done by
  * {@link FeatureValidator} and {@link FeatureModifierValidator}.
@@ -66,7 +68,8 @@ public class InheritanceValidator extends ComposableValidator {
             } else if (AstUtils.isSameOrSuperClassOf(query, superClass)) {
                 error(
                     "Cyclic inheritance: '%s' is a sub class of '%s'".formatted(
-                        AstUtils.getTargetName(superClass, expressionHelper), AstUtils.getTargetName(query, expressionHelper)
+                        AstUtils.getTargetName(superClass, expressionHelper),
+                        AstUtils.getTargetName(query, expressionHelper)
                     ),
                     query,
                     AstPackage.Literals.MAIN_QUERY__SUPER_CLASSES,
@@ -148,7 +151,8 @@ public class InheritanceValidator extends ComposableValidator {
                     .collect(Collectors.joining(", "));
                 for (var superClass : superClasses) {
                     errorAtSuperClass(
-                        "Feature '%s' is inherited from multiple super classes that declare it independently: %s".formatted(entry.getKey(), classNames),
+                        ("Feature '%s' is inherited from multiple super classes "
+                            + "that declare it independently: %s").formatted(entry.getKey(), classNames),
                         query,
                         superClass
                     );
@@ -203,7 +207,9 @@ public class InheritanceValidator extends ComposableValidator {
         }
 
         for (var feature : own) {
-            if (overriddenNames.contains(feature.name()) && feature.node() != null && !feature.node().getModifiers().isEmpty()) {
+            if (overriddenNames.contains(feature.name())
+                && feature.node() != null
+                && !feature.node().getModifiers().isEmpty()) {
                 warning(
                     "Modifiers of overriding feature '%s' are ignored".formatted(feature.name()),
                     feature.node(),
@@ -284,7 +290,12 @@ public class InheritanceValidator extends ComposableValidator {
             }
 
             var hasExplicitType = concreteFeature.getType() != null;
-            if (getOverrideViolation(feature.name(), feature.type(), hasExplicitType, overridden.right().type()) != null) {
+            if (getOverrideViolation(
+                feature.name(),
+                feature.type(),
+                hasExplicitType,
+                overridden.right().type()
+            ) != null) {
                 continue; // incompatible override, reported by checkOverridingFeatureTypes
             }
 
@@ -430,11 +441,10 @@ public class InheritanceValidator extends ComposableValidator {
     }
 
     private static boolean isSameOrSubReferenceType(ReferenceType subType, ReferenceType superType) {
-        return subType.equals(superType) || (
-            subType instanceof QueryReferenceType sub
+        return subType.equals(superType)
+            || (subType instanceof QueryReferenceType sub
                 && superType instanceof QueryReferenceType sup
-                && AstUtils.isSameOrSuperClassOf(sup.query(), sub.query())
-        );
+                && AstUtils.isSameOrSuperClassOf(sup.query(), sub.query()));
     }
 
 }

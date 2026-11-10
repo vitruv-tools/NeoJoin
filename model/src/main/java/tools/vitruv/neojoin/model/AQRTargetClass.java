@@ -11,12 +11,12 @@ import java.util.List;
  * Class within the target model.
  *
  * @implNote This class is not a record because it requires identity and a record's
- * {@link Record#equals(Object) equals()} and {@link Record#hashCode() hashCode()}
- * explicitly forbid it.
- * Identity is required on a conceptional level, because a target class should not be equal to
- * any other target class even if all properties are equal (e.g. by creating an exact copy of a query).
- * Additionally, it helps to prevent errors with self references in the {@link #features() features}
- * that would lead to endless recursion in {@link #equals(Object) equals()} and {@link #hashCode()}.
+ *     {@link Record#equals(Object) equals()} and {@link Record#hashCode() hashCode()}
+ *     explicitly forbid it.
+ *     Identity is required on a conceptional level, because a target class should not be equal to
+ *     any other target class even if all properties are equal (e.g. by creating an exact copy of a query).
+ *     Additionally, it helps to prevent errors with self references in the {@link #features() features}
+ *     that would lead to endless recursion in {@link #equals(Object) equals()} and {@link #hashCode()}.
  */
 @SuppressWarnings("ClassCanBeRecord")
 public final class AQRTargetClass {

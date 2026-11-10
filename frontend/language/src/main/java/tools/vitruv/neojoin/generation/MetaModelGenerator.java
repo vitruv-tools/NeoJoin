@@ -47,11 +47,12 @@ public class MetaModelGenerator {
     }
 
     /**
-     * Generates an {@link EPackage} from the given {@link AQR}. The generated package may contain problems, see {@link ModelInfo#diagnostic()}.
+     * Generates an {@link EPackage} from the given {@link AQR}. The generated package may contain problems, see
+     * {@link ModelInfo#diagnostic()}.
      *
      * @implNote Generation is performed in a 2 phase process: First all classes are generated and afterward the classes
-     * are populated with features. This is required because the type of a reference can be another class
-     * that has not been generated yet.
+     *     are populated with features. This is required because the type of a reference can be another class
+     *     that has not been generated yet.
      */
     public ModelInfo generate() {
         check(trace.aqrToTarget().isEmpty(), "meta-model already generated");
@@ -106,10 +107,15 @@ public class MetaModelGenerator {
     private void populateClass(AQRTargetClass targetClass) {
         var target = Objects.requireNonNull(trace.aqrToTarget().get(targetClass));
 
-        var superTypes = targetClass.superClasses().stream().map(superClass -> trace.aqrToTarget().get(superClass)).toList();
+        var superTypes = targetClass.superClasses().stream()
+            .map(superClass -> trace.aqrToTarget().get(superClass))
+            .toList();
         target.getESuperTypes().addAll(superTypes);
 
-        var features = targetClass.features().stream().filter(feature -> !(feature.kind() instanceof AQRFeature.Kind.Override)).map(this::createFeature).toList();
+        var features = targetClass.features().stream()
+            .filter(feature -> !(feature.kind() instanceof AQRFeature.Kind.Override))
+            .map(this::createFeature)
+            .toList();
         target.getEStructuralFeatures().addAll(features);
     }
 

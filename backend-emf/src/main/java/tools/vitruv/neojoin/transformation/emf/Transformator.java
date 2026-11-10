@@ -51,7 +51,8 @@ public class Transformator {
      * @param expressionHelper     for evaluating feature expressions and conditions
      * @param aqr                  query representation
      * @param targetMetaModel      target meta-model that corresponds to the given query representation
-     * @param sourceInstanceModels map from {@link EPackage package} to the corresponding instance model {@link Resource resource}
+     * @param sourceInstanceModels map from {@link EPackage package} to the corresponding instance model
+     *                             {@link Resource resource}
      * @param parameters           map from parameter name to parameter value
      */
     public Transformator(
@@ -80,9 +81,9 @@ public class Transformator {
      *
      * @throws TransformatorException if a user caused error arises during transformation
      *                                (e.g. exception while evaluating an expression)
-     * @implNote Transformation is performed in 2 phases: First all instances in the target model are created but its features
-     * not yet populated because an instance could reference another instance that has not been created yet. In the
-     * second phase, the features for all instances are populated.
+     * @implNote Transformation is performed in 2 phases: First all instances in the target model are created but its
+     *     features not yet populated because an instance could reference another instance that has not been created
+     *     yet. In the second phase, the features for all instances are populated.
      */
     public EObject transform() throws TransformatorException {
         check(root == null, "model already transformed");
@@ -354,7 +355,8 @@ public class Transformator {
     private void checkNotAlreadyContained(EObject value, EObject target, AQRFeature ref) {
         if (value.eContainer() != null && value.eContainer() != root) {
             throw new TransformatorException(
-                "cannot add target instance of class '%s' to containment reference '%s.%s' because it is already contained in another instance of class '%s'".formatted(
+                ("cannot add target instance of class '%s' to containment reference '%s.%s' "
+                    + "because it is already contained in another instance of class '%s'").formatted(
                     value.eClass().getName(),
                     target.eClass().getName(),
                     ref.name(),

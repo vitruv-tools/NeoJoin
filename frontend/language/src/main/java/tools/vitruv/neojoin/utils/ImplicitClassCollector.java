@@ -12,7 +12,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * Determines the source classes for which {@link tools.vitruv.neojoin.aqr.AQRBuilder} creates an implicit target
+ * Determines the source classes for which {@link tools.vitruv.neojoin.aqr.AQRBuilder} creates an
+ * implicit target
  * class, from the AST: the classes of references (copied or inferred) for which no query selects the referenced source
  * class, and (transitively) the classes of their references.
  */
@@ -28,7 +29,7 @@ public class ImplicitClassCollector {
 
     /**
      * @return the implicit source classes, each with the first AST element that causes it: the feature that
-     * references it, or the query if the references are copied
+     *     references it, or the query if the references are copied
      */
     public Map<EClass, EObject> collectImplicitClasses(ViewTypeDefinition viewType) {
         var implicitClasses = new LinkedHashMap<EClass, EObject>();
@@ -59,7 +60,11 @@ public class ImplicitClassCollector {
         }
     }
 
-    private void collectImplicitReferenceTypes(EClass copiedClass, EObject cause, Map<EClass, EObject> implicitClasses) {
+    private void collectImplicitReferenceTypes(
+        EClass copiedClass,
+        EObject cause,
+        Map<EClass, EObject> implicitClasses
+    ) {
         for (var reference : copiedClass.getEAllReferences()) {
             if (typeResolver.resolveSourceClass(reference.getEReferenceType()) instanceof ImplicitReferenceType) {
                 addImplicitClass(reference.getEReferenceType(), cause, implicitClasses);

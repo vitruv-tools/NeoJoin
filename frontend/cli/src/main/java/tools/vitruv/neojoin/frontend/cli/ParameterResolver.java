@@ -65,13 +65,25 @@ class ParameterResolver {
 
     private static Object getTypedParameter(String raw, EDataType type) {
         var cls = type.getInstanceClass();
-        if (cls == String.class) return raw;
+        if (cls == String.class) {
+            return raw;
+        }
         try {
-            if (cls == int.class || cls == Integer.class) return Integer.parseInt(raw);
-            if (cls == double.class || cls == Double.class) return Double.parseDouble(raw);
-            if (cls == boolean.class || cls == Boolean.class) return Boolean.parseBoolean(raw);
-            if (cls == long.class || cls == Long.class) return Long.parseLong(raw);
-            if (cls == float.class || cls == Float.class) return Float.parseFloat(raw);
+            if (cls == int.class || cls == Integer.class) {
+                return Integer.parseInt(raw);
+            }
+            if (cls == double.class || cls == Double.class) {
+                return Double.parseDouble(raw);
+            }
+            if (cls == boolean.class || cls == Boolean.class) {
+                return Boolean.parseBoolean(raw);
+            }
+            if (cls == long.class || cls == Long.class) {
+                return Long.parseLong(raw);
+            }
+            if (cls == float.class || cls == Float.class) {
+                return Float.parseFloat(raw);
+            }
         } catch (NumberFormatException e) {
             throw new ParameterResolutionException(
                 "Invalid value '%s' for parameter of type '%s'".formatted(raw, type.getName()), e
@@ -103,7 +115,11 @@ class ParameterResolver {
         return obj;
     }
 
-    private static List<EObject> loadEClassListParameter(String xmiPath, EClass expectedType, EPackage.Registry registry) {
+    private static List<EObject> loadEClassListParameter(
+        String xmiPath,
+        EClass expectedType,
+        EPackage.Registry registry
+    ) {
         var resource = loadXmiResource(xmiPath, registry);
 
         var matches = resource.getContents().stream()

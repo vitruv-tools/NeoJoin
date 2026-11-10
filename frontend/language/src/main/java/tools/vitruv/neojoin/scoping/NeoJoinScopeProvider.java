@@ -122,7 +122,8 @@ public class NeoJoinScopeProvider extends AbstractNeoJoinScopeProvider {
     }
 
     /**
-     * Scope for the other class to compare with in a join feature condition (e.g. {@code join ... with other using attr})
+     * Scope for the other class to compare with in a join feature condition (e.g. {@code join ... with other using
+     * attr})
      */
     private IScope createJoinConditionOtherScope(Source source, From from) {
         var candidates = AstUtils.getAllFroms(source)
@@ -141,9 +142,11 @@ public class NeoJoinScopeProvider extends AbstractNeoJoinScopeProvider {
             .filter(leftFeature -> {
                 var rightFeature = right.getEStructuralFeature(leftFeature.getName());
                 if (leftFeature instanceof EAttribute leftAttr) {
-                    return rightFeature instanceof EAttribute rightAttr && leftAttr.getEAttributeType() == rightAttr.getEAttributeType();
+                    return rightFeature instanceof EAttribute rightAttr
+                        && leftAttr.getEAttributeType() == rightAttr.getEAttributeType();
                 } else if (leftFeature instanceof EReference leftRef) {
-                    return rightFeature instanceof EReference rightRef && leftRef.getEReferenceType() == rightRef.getEReferenceType();
+                    return rightFeature instanceof EReference rightRef
+                        && leftRef.getEReferenceType() == rightRef.getEReferenceType();
                 } else {
                     return fail();
                 }

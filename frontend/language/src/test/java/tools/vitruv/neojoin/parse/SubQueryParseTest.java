@@ -86,8 +86,8 @@ class SubQueryParseTest extends AbstractParseTest {
             "Duplicated feature name: name",
             "Copy feature expression does not reference a feature",
             "Nullable expression used to initialize non-nullable feature",
-            "Inferred type 'MixedFoods' is a query with join which might be unintended and " +
-                "can lead to errors during transformation. Use explicit type to clarify the intended type."
+            "Inferred type 'MixedFoods' is a query with join which might be unintended and "
+                + "can lead to errors during transformation. Use explicit type to clarify the intended type."
         );
     }
 

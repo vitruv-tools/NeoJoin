@@ -153,7 +153,10 @@ class ImplicitSuperClassAQRTest extends AbstractKennelTest {
             """);
 
         assertThat(aqr)
-            .hasTargetClass("KennelT", kennel -> assertThat(kennel).hasCopiedReference("dogs", "Dog", lookup("kennel", "Kennel", "dogs")))
+            .hasTargetClass(
+                "KennelT",
+                kennel -> assertThat(kennel).hasCopiedReference("dogs", "Dog", lookup("kennel", "Kennel", "dogs"))
+            )
             .hasTargetClass(
                 "Puppy", puppy -> {
                     assertThat(puppy)

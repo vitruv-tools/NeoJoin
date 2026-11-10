@@ -31,7 +31,8 @@ public class TargetMap {
      * Retrieve the target instance that is mapped to the given source instance and the target class or one of its
      * sub classes.
      *
-     * @throws TransformatorException if none or multiple target instances are mapped to the given source instance and target class
+     * @throws TransformatorException if none or multiple target instances are mapped to the given source instance
+     *                                and target class
      */
     public EObject get(EObject source, AQRTargetClass targetClass) {
         return getUnique(source, targetClass);

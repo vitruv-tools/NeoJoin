@@ -97,7 +97,10 @@ public class InheritedFeatures {
     }
 
     private FeatureInfo find(Query superClass, String name) {
-        return bySuperClass.get(superClass).stream().filter(feature -> feature.name().equals(name)).findFirst().orElseThrow();
+        return bySuperClass.get(superClass).stream()
+            .filter(feature -> feature.name().equals(name))
+            .findFirst()
+            .orElseThrow();
     }
 
 }

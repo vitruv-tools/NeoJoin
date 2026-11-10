@@ -28,12 +28,13 @@ public class ImplicitSuperClassFinder {
         this.expressionHelper = expressionHelper;
         this.queriesBySourceClass = AstUtils.mapSourceClassesToQueries(viewType, expressionHelper);
         this.typeResolver = new FeatureTypeResolver(viewType, queriesBySourceClass, expressionHelper);
-        this.implicitClasses = new ImplicitClassCollector(typeResolver, expressionHelper).collectImplicitClasses(viewType);
+        this.implicitClasses = new ImplicitClassCollector(typeResolver, expressionHelper)
+            .collectImplicitClasses(viewType);
     }
 
     /**
      * @return the source classes of the implicit target classes, each with the first AST element that causes it (see
-     * {@link ImplicitClassCollector})
+     *     {@link ImplicitClassCollector})
      */
     public Map<EClass, EObject> getImplicitClasses() {
         return Map.copyOf(implicitClasses);

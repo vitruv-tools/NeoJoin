@@ -62,7 +62,12 @@ public class AQRTargetClassAssertions extends AbstractAssert<AQRTargetClassAsser
             .filter(join -> join.from().clazz() == source && Objects.equals(join.from().alias(), alias))
             .toList();
         Assertions.assertThat(results.size())
-            .as("Expected a join with source class %s and alias %s, but found %d", source.getName(), alias, results.size())
+            .as(
+                "Expected a join with source class %s and alias %s, but found %d",
+                source.getName(),
+                alias,
+                results.size()
+            )
             .isSameAs(1);
         var join = results.get(0);
         Assertions.assertThat(join.type()).isSameAs(type);
@@ -177,10 +182,15 @@ public class AQRTargetClassAssertions extends AbstractAssert<AQRTargetClassAsser
             actual.name(),
             expected
         );
-        if (kind instanceof AQRFeature.Kind.Copy copy) { failWithMessage(message + "copied from '%s'", copy.source()); }
-        else if (kind instanceof AQRFeature.Kind.Calculate) { failWithMessage(message + "calculated"); }
-        else if (kind instanceof AQRFeature.Kind.Generate) { failWithMessage(message + "generated"); }
-        else { fail(); }
+        if (kind instanceof AQRFeature.Kind.Copy copy) {
+            failWithMessage(message + "copied from '%s'", copy.source());
+        } else if (kind instanceof AQRFeature.Kind.Calculate) {
+            failWithMessage(message + "calculated");
+        } else if (kind instanceof AQRFeature.Kind.Generate) {
+            failWithMessage(message + "generated");
+        } else {
+            fail();
+        }
     }
 
     private void checkCopied(AQRFeature feature, EStructuralFeature source) {
@@ -381,8 +391,14 @@ public class AQRTargetClassAssertions extends AbstractAssert<AQRTargetClassAsser
     private AQRFeature.Kind.Override getOverride(AQRFeature feature) {
         if (feature.kind() instanceof AQRFeature.Kind.Override override) {
             Assertions.assertThat(override.overridden().name()).isEqualTo(feature.name());
-            Assertions.assertThat(actual.superClasses().stream().flatMap(c -> c.features().stream()).map(AQRFeature::name))
-                .as("Expected '%s' to override a feature of a direct super class of '%s'", feature.name(), actual.name())
+            Assertions.assertThat(actual.superClasses().stream()
+                    .flatMap(c -> c.features().stream())
+                    .map(AQRFeature::name))
+                .as(
+                    "Expected '%s' to override a feature of a direct super class of '%s'",
+                    feature.name(),
+                    actual.name()
+                )
                 .contains(feature.name());
             // modifiers must be those of the overridden feature
             Assertions.assertThat(feature.options())
@@ -550,7 +566,11 @@ public class AQRTargetClassAssertions extends AbstractAssert<AQRTargetClassAsser
     }
 
     @SuppressWarnings("DataFlowIssue")
-    public AQRTargetClassAssertions hasOverridingCopiedEcoreReference(String name, EClass type, EStructuralFeature copyOf) {
+    public AQRTargetClassAssertions hasOverridingCopiedEcoreReference(
+        String name,
+        EClass type,
+        EStructuralFeature copyOf
+    ) {
         isNotNull();
         var feature = getFeature(name);
         if (feature instanceof AQRFeature.EcoreReference ref) {

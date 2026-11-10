@@ -48,7 +48,8 @@ public final class EMFUtils {
      * to which all {@link EPackage.Registry#getEPackage(String)} requests are forwarded if no corresponding package
      * is found within the registry itself. However, all methods inherited from the map super class only operate on the
      * directly contained packages and a package registry provides no functionality for retrieving all
-     * (directly or indirectly) contained packages. The solution implemented here is to use Reflection to get the contained
+     * (directly or indirectly) contained packages. The solution implemented here is to use Reflection to get the
+     * contained
      * delegate registry.
      */
     private static void collectAvailablePackagesImpl(EPackage.Registry registry, Set<EPackage> results) {
@@ -78,7 +79,10 @@ public final class EMFUtils {
      * @param lookup finds the elements that belong to a class (for example, the target classes of a source class)
      * @return the distinct elements of the nearest level in the order of discovery, empty if no super class has any
      */
-    public static <T> List<T> findInNearestSuperClasses(EClass clazz, Function<EClass, ? extends Collection<T>> lookup) {
+    public static <T> List<T> findInNearestSuperClasses(
+        EClass clazz,
+        Function<EClass, ? extends Collection<T>> lookup
+    ) {
         var visited = new HashSet<EClass>();
         visited.add(clazz);
         List<EClass> level = clazz.getESuperTypes();
@@ -142,7 +146,8 @@ public final class EMFUtils {
     }
 
     /**
-     * Returns a stream of all {@link EClassifier classifiers} contained in the given package and its subpackages recursively.
+     * Returns a stream of all {@link EClassifier classifiers} contained in the given package and its subpackages
+     * recursively.
      *
      * @param pack package to search
      * @return stream of all classifiers in the package and its subpackages
@@ -204,7 +209,8 @@ public final class EMFUtils {
     }
 
     /**
-     * Write the given {@link EObject} to a file specified by the given {@link URI}. Requires a registered resource factory
+     * Write the given {@link EObject} to a file specified by the given {@link URI}. Requires a registered resource
+     * factory
      * for the file extension of the given {@link URI}.
      *
      * @param uri    URI of the output file

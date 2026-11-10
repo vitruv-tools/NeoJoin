@@ -8,7 +8,7 @@ public class XNumberLiteralFixtures {
         return XbaseFactory.eINSTANCE.createXNumberLiteral();
     }
 
-    public static XNumberLiteral XNumberLiteralWithValue(String value) {
+    public static XNumberLiteral createXNumberLiteralWithValue(String value) {
         final XNumberLiteral numberLiteral = createXNumberLiteral();
         numberLiteral.setValue(value);
         return numberLiteral;

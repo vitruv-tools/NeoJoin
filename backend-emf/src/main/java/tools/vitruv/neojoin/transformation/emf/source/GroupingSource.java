@@ -20,8 +20,9 @@ import static tools.vitruv.neojoin.utils.Assertions.check;
 
 /**
  * Mimics the {@link InstanceSource instance source interface} for a {@code group by} clause. However, this class does
- * not implement the interface because it cannot conform to it, because an {@link InstanceTuple} can only hold {@link EObject}s
- * and the result of a {@code group by} is not a tuple of objects but instead a tuple of lists of objects.
+ * not implement the interface because it cannot conform to it, because an {@link InstanceTuple} can only hold
+ * {@link EObject}s and the result of a {@code group by} is not a tuple of objects but instead a tuple of lists of
+ * objects.
  */
 public class GroupingSource {
 

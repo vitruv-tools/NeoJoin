@@ -1,6 +1,9 @@
 package tools.vitruv.neojoin.expression_parser.parser.strategy.manual_pattern_matching.parsers;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.eclipse.xtext.common.types.JvmOperation;
 import org.eclipse.xtext.xbase.XBinaryOperation;
@@ -31,7 +34,7 @@ class FilterParserTest implements ExpressionParserTest {
                 XMemberFeatureCallFixtures.simpleFieldXMemberFeatureCall("someField");
         JvmOperation comparisonOperator = JvmOperationFixtures.createJvmOperation();
         comparisonOperator.setSimpleName("operator_lessThan");
-        XNumberLiteral rightOperand = XNumberLiteralFixtures.XNumberLiteralWithValue("2.1");
+        XNumberLiteral rightOperand = XNumberLiteralFixtures.createXNumberLiteralWithValue("2.1");
 
         XBinaryOperation binaryOperation =
                 XBinaryOperationFixtures.binaryOperation(

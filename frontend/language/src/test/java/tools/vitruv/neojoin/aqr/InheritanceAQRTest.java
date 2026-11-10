@@ -265,7 +265,9 @@ class InheritanceAQRTest extends AbstractKennelTest {
                     assertThat(kennel)
                         .hasOverridingCopiedReference(
                             "residents", "Pet", lookup("kennel", "Kennel", "dogs"), options -> {
-                                assertThat(options).hasBounds(0, ETypedElement.UNBOUNDED_MULTIPLICITY).isNot(Mod.Ordered);
+                                assertThat(options)
+                                    .hasBounds(0, ETypedElement.UNBOUNDED_MULTIPLICITY)
+                                    .isNot(Mod.Ordered);
                             }
                         )
                         .hasNoMoreFeatures();
@@ -385,7 +387,10 @@ class InheritanceAQRTest extends AbstractKennelTest {
                         .hasNoMoreFeatures();
                 }
             )
-            .hasTargetClass("KT", kt -> assertThat(kt).hasCopiedReference("animals", "AnimalS", lookup("kennel", "Kennel", "animals")))
+            .hasTargetClass(
+                "KT",
+                kt -> assertThat(kt).hasCopiedReference("animals", "AnimalS", lookup("kennel", "Kennel", "animals"))
+            )
             .hasNoMoreTargetClasses();
     }
 
@@ -439,7 +444,10 @@ class InheritanceAQRTest extends AbstractKennelTest {
 
         assertThat(aqr.dataTypes()).containsExactly((EDataType) lookup("kennel", "Specialty"));
         assertThat(aqr)
-            .hasTargetClass("Specialized", specialized -> assertThat(specialized).hasAbstractAttribute("specialty", "Specialty"))
+            .hasTargetClass(
+                "Specialized",
+                specialized -> assertThat(specialized).hasAbstractAttribute("specialty", "Specialty")
+            )
             .hasTargetClass(
                 "Doctor", doctor -> {
                     assertThat(doctor)
@@ -452,8 +460,8 @@ class InheritanceAQRTest extends AbstractKennelTest {
     }
 
     /**
-     * The modifiers of an overriding feature are those of the root of the override chain ({@code A.name} is {@code [1]},
-     * so {@code C.name} is {@code [1]}).
+     * The modifiers of an overriding feature are those of the root of the override chain ({@code A.name} is
+     * {@code [1]}, so {@code C.name} is {@code [1]}).
      */
     @Test
     void transitiveOverrideInheritsModifiersOfRootDeclaration() {

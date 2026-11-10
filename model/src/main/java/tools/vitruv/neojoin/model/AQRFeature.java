@@ -36,8 +36,6 @@ public sealed interface AQRFeature {
 
         /**
          * The feature is calculated from the source model by the given expression.
-         *
-         * @param expression
          */
         record Calculate(XExpression expression) implements Kind {}
 
@@ -112,16 +110,7 @@ public sealed interface AQRFeature {
      * <a href="https://download.eclipse.org/modeling/emf/emf/javadoc/2.10.0/org/eclipse/emf/ecore/package-summary.html">here</a> or
      * <a href="https://www.philmann-dark.de/EMFDocs/tutorial.html#:~:text=in%20Java%20itself.-,Property,-Description">here</a>).
      *
-     * @param lowerBound
-     * @param upperBound
-     * @param isOrdered
-     * @param isUnique
-     * @param isChangeable
-     * @param isTransient
-     * @param isVolatile
-     * @param isUnsettable
-     * @param isDerived
-     * @param isID          (only for attributes)
+     * @param isID (only for attributes)
      * @param isContainment (only for references)
      */
     record Options(
@@ -163,10 +152,7 @@ public sealed interface AQRFeature {
     /**
      * Represents an attribute.
      *
-     * @param name
      * @param type    data type of the attribute
-     * @param kind
-     * @param options
      */
     record Attribute(
         String name,
@@ -193,10 +179,7 @@ public sealed interface AQRFeature {
     /**
      * Represents a reference.
      *
-     * @param name
      * @param type    referenced target class
-     * @param kind
-     * @param options
      */
     record Reference(
         String name,
@@ -228,10 +211,7 @@ public sealed interface AQRFeature {
      * Represents a reference to a class of the Ecore meta-model (e.g. {@code EObject}). Such classes are not copied
      * into the view type, so the reference keeps pointing to the Ecore class and has no target class.
      *
-     * @param name
      * @param type    referenced Ecore class
-     * @param kind
-     * @param options
      */
     record EcoreReference(
         String name,
@@ -242,7 +222,12 @@ public sealed interface AQRFeature {
 
         @Override
         public String toString() {
-            return "EcoreReference[name='%s', type=%s, kind=%s, options=%s]".formatted(name, type.getName(), kind, options);
+            return "EcoreReference[name='%s', type=%s, kind=%s, options=%s]".formatted(
+                name,
+                type.getName(),
+                kind,
+                options
+            );
         }
 
         public EcoreReference withFeatureKind(Kind kind) {

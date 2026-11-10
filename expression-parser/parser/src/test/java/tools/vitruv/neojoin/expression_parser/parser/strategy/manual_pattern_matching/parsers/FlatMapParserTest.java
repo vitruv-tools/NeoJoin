@@ -1,6 +1,9 @@
 package tools.vitruv.neojoin.expression_parser.parser.strategy.manual_pattern_matching.parsers;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.eclipse.xtext.common.types.JvmOperation;
 import org.eclipse.xtext.xbase.XBinaryOperation;
@@ -176,7 +179,7 @@ class FlatMapParserTest implements ExpressionParserTest {
         final JvmOperation comparisonOperator = JvmOperationFixtures.createJvmOperation();
         comparisonOperator.setSimpleName("operator_lessThan");
         final XNumberLiteral filterRightOperand =
-                XNumberLiteralFixtures.XNumberLiteralWithValue("2.1");
+                XNumberLiteralFixtures.createXNumberLiteralWithValue("2.1");
         final XBinaryOperation binaryOperation =
                 XBinaryOperationFixtures.binaryOperation(
                         filterLeftOperand, comparisonOperator, filterRightOperand);

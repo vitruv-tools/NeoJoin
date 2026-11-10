@@ -78,10 +78,10 @@ public class ReferenceFilter implements ReferenceOperator {
         if (!(o instanceof ReferenceFilter that)) {
             return false;
         }
-        return Objects.equals(feature, that.feature) &&
-                Objects.equals(operator, that.operator) &&
-                Objects.equals(constantValue, that.constantValue) &&
-                Objects.equals(followingOperator, that.followingOperator);
+        return Objects.equals(feature, that.feature)
+                && Objects.equals(operator, that.operator)
+                && Objects.equals(constantValue, that.constantValue)
+                && Objects.equals(followingOperator, that.followingOperator);
     }
 
     @Override

@@ -21,7 +21,8 @@ import java.util.Set;
 
 /**
  * Determines the {@link FeatureInfo features} that the target class of a query has from the AST, without creating
- * anything. The rules are the ones that {@link tools.vitruv.neojoin.aqr.AQRBuilder} applies when it creates the
+ * anything. The rules are the ones that {@link tools.vitruv.neojoin.aqr.AQRBuilder} applies when it
+ * creates the
  * features of a target class.
  */
 public class FeatureInfoResolver {
@@ -125,7 +126,11 @@ public class FeatureInfoResolver {
     private List<FeatureInfo> getCopiedFeatureInfos(@Nullable Query query, EClass sourceClass) {
         return sourceClass.getEAllStructuralFeatures().stream()
             .map(feature -> new FeatureInfo(
-                feature.getName(), typeResolver.resolveCopied(feature), null, AQRFeatureOptionsBuilder.build(feature), query
+                feature.getName(),
+                typeResolver.resolveCopied(feature),
+                null,
+                AQRFeatureOptionsBuilder.build(feature),
+                query
             ))
             .toList();
     }

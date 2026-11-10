@@ -32,13 +32,13 @@ public final class Enumerated<T> implements Iterable<IndexedValue<T>> {
         };
     }
 
-	public static <T> Enumerated<T> enumerate(final Iterable<T> elements) {
-		return new Enumerated<>(elements);
-	}
+    public static <T> Enumerated<T> enumerate(final Iterable<T> elements) {
+        return new Enumerated<>(elements);
+    }
 
-	public static <T> Enumerated<T> enumerate(final Iterator<T> elements) {
-		return enumerate(() -> elements);
-	}
+    public static <T> Enumerated<T> enumerate(final Iterator<T> elements) {
+        return enumerate(() -> elements);
+    }
 
     public static <T> Enumerated<T> enumerate(final Stream<T> elements) {
         return enumerate(elements::iterator);
@@ -51,18 +51,18 @@ public final class Enumerated<T> implements Iterable<IndexedValue<T>> {
      *
      * NOTE: This implementation is not threadsafe.
      *
-     * @return closure adding an index to elements.
      * @param <T> type of elements
+     * @return closure adding an index to elements.
      */
     public static <T> Function<T, IndexedValue<T>> enumerated() {
         final int[] index = {0};
         return it -> IndexedValue.of(index[0]++, it);
     }
 
-	public record IndexedValue<T> (int index, T value) {
+    public record IndexedValue<T>(int index, T value) {
 
-		public static <T> IndexedValue<T> of(int index, T value) {
-			return new IndexedValue<>(index, value);
-		}
-	}
+        public static <T> IndexedValue<T> of(int index, T value) {
+            return new IndexedValue<>(index, value);
+        }
+    }
 }

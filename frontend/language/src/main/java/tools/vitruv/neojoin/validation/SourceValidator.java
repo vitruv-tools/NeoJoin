@@ -75,7 +75,8 @@ public class SourceValidator extends ComposableValidator {
         var clazz = from.getClazz();
         if (!from.isIncludeSubClasses() && clazz != null && !clazz.eIsProxy() && clazz.isAbstract()) {
             warning(
-                "Abstract class '%s' has no direct instances, use 'extends' to select the instances of its sub classes".formatted(
+                ("Abstract class '%s' has no direct instances, "
+                    + "use 'extends' to select the instances of its sub classes").formatted(
                     clazz.getName()
                 ),
                 from,
@@ -117,7 +118,11 @@ public class SourceValidator extends ComposableValidator {
                 error("Query without source must have a target name", mainQuery, AstPackage.Literals.QUERY__NAME);
             }
             if (mainQuery.getBody() == null) {
-                error("Query without source must have a body", mainQuery, AstPackage.Literals.CONCRETE_MAIN_QUERY__BODY);
+                error(
+                    "Query without source must have a body",
+                    mainQuery,
+                    AstPackage.Literals.CONCRETE_MAIN_QUERY__BODY
+                );
             }
         }
     }

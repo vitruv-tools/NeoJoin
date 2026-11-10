@@ -120,8 +120,8 @@ class FeatureParseTest extends AbstractParseTest {
             """);
 
         assertThat(result).hasExactlyIssues(
-            "Inferred type 'MixedFoods' is a query with join which might be unintended and " +
-                "can lead to errors during transformation. Use explicit type to clarify the intended type."
+            "Inferred type 'MixedFoods' is a query with join which might be unintended and "
+                + "can lead to errors during transformation. Use explicit type to clarify the intended type."
         );
     }
 
@@ -138,8 +138,8 @@ class FeatureParseTest extends AbstractParseTest {
             """);
 
         assertThat(result).hasExactlyIssues(
-            "Inferred type 'MixedFoods' is a query with group by which might be unintended and " +
-                "can lead to errors during transformation. Use explicit type to clarify the intended type."
+            "Inferred type 'MixedFoods' is a query with group by which might be unintended and "
+                + "can lead to errors during transformation. Use explicit type to clarify the intended type."
         );
     }
 

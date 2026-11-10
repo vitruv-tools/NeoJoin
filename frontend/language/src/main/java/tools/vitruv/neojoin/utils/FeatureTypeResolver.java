@@ -26,7 +26,8 @@ import java.util.Set;
 
 /**
  * Determines the {@link FeatureType type} of features from the AST, without creating anything. The rules are the ones
- * that {@link tools.vitruv.neojoin.aqr.AQRBuilder} applies when it creates the features of a target class.
+ * that {@link tools.vitruv.neojoin.aqr.AQRBuilder} applies when it creates the features of a target
+ * class.
  */
 public class FeatureTypeResolver {
 
@@ -94,7 +95,9 @@ public class FeatureTypeResolver {
                 return new EcoreReferenceType(sourceClass);
             }
             var abstractQuery = findExplicitAbstractQuery(sourceClass);
-            return abstractQuery != null ? new QueryReferenceType(abstractQuery) : new ImplicitReferenceType(sourceClass);
+            return abstractQuery != null
+                ? new QueryReferenceType(abstractQuery)
+                : new ImplicitReferenceType(sourceClass);
         } else if (candidates.size() == 1) {
             return new QueryReferenceType(candidates.iterator().next());
         } else {
@@ -108,7 +111,7 @@ public class FeatureTypeResolver {
      * is the target class of the source class, so that no second class with the same name is created.
      *
      * @return the abstract query or {@code null} if the source class is selected by a query or if there is no such
-     * abstract class
+     *     abstract class
      */
     public @Nullable Query findExplicitAbstractQuery(EClass sourceClass) {
         var candidates = queriesBySourceClass.get(sourceClass);
