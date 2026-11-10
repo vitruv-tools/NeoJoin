@@ -1,0 +1,40 @@
+name: Bug report
+description: Something does not work as expected
+type: Bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please reduce the problem to a minimal example (the smallest query and meta-models that still show it) instead of attaching your whole project.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened
+      description: Describe the problem and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: How to reproduce
+      description: 'The query (`.nj` file), the source meta-models (or their namespace URIs) and the command or tool that you used (CLI, language server, API).'
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: 'Nightly build date, release or commit'
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: 'Java version and operating system'
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: 'Paste the relevant lines, for example a stack trace or error message.'
+      render: text
