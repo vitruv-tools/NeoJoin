@@ -12,7 +12,10 @@ public class SourceModel {
 
     }
 
-    public static TypeRegistry getOrCreateSourceTypeRegistry(ResourceSet resourceSet, Consumer<TypeRegistry> initializer) {
+    public static TypeRegistry getOrCreateSourceTypeRegistry(
+        ResourceSet resourceSet,
+        Consumer<TypeRegistry> initializer
+    ) {
         var typeRegistry = (TypeRegistry) resourceSet.getResource(SourceTypeRegistryURI, false);
         if (typeRegistry == null) {
             typeRegistry = new TypeRegistry(SourceTypeRegistryURI);

@@ -21,7 +21,11 @@ public class PlantUMLRenderer {
      */
     public static boolean isAvailable() {
         try {
-            Class.forName("net.sourceforge.plantuml.SourceStringReader", false, PlantUMLRenderer.class.getClassLoader());
+            Class.forName(
+                "net.sourceforge.plantuml.SourceStringReader",
+                false,
+                PlantUMLRenderer.class.getClassLoader()
+            );
             return true;
         } catch (ClassNotFoundException e) {
             return false;

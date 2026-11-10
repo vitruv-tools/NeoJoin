@@ -73,9 +73,9 @@ public class FeatureCall implements ReferenceOperator {
         if (!(o instanceof FeatureCall that)) {
             return false;
         }
-        return Objects.equals(identifier, that.identifier) &&
-                Objects.equals(simpleName, that.simpleName) &&
-                Objects.equals(followingOperator, that.followingOperator);
+        return Objects.equals(identifier, that.identifier)
+                && Objects.equals(simpleName, that.simpleName)
+                && Objects.equals(followingOperator, that.followingOperator);
     }
 
     @Override

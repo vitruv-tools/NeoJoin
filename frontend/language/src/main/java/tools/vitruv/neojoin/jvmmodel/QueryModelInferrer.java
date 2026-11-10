@@ -33,7 +33,8 @@ import static tools.vitruv.neojoin.utils.Assertions.check;
 import static tools.vitruv.neojoin.utils.Enumerated.enumerate;
 
 /**
- * Embeds all expression of the given query into methods to define available local variables and the expected return type.
+ * Embeds all expression of the given query into methods to define available local variables and the expected return
+ * type.
  */
 public class QueryModelInferrer {
 
@@ -71,7 +72,8 @@ public class QueryModelInferrer {
         root = types.toClass(viewType, "NeoJoinQueryExpressionType");
         configuration.configure(root, viewType);
 
-        DisableCodeGenerationAdapter.disableCodeGeneration(root); // otherwise Xtext generates java files in our working directory
+        // otherwise Xtext generates java files in our working directory
+        DisableCodeGenerationAdapter.disableCodeGeneration(root);
 
         viewType.eResource().getContents().add(root); // otherwise type resolution fails
         for (MainQuery q : viewType.getQueries()) {
@@ -90,7 +92,7 @@ public class QueryModelInferrer {
         if (mainQuery.getSource() != null) {
             for (var join : enumerate(mainQuery.getSource().getJoins())) {
                 addJoinExpressions(mainQuery, join.value(), join.index());
-        }
+            }
 
             for (var condition : enumerate(mainQuery.getSource().getConditions())) {
                 addExpression(
@@ -141,7 +143,8 @@ public class QueryModelInferrer {
 
     private @Nullable EClass inferEClassFromExpressionOrNull(XExpression expression) {
         // Type resolution in Xbase is caching by default. This is problematic because the generated query model is
-        // potentially still incomplete at this point if further expressions follow. If we were to trigger type resolution
+        // potentially still incomplete at this point if further expressions follow. If we were to trigger type
+        // resolution
         // with caching here, the types of all following expressions would never be resolved because there would already
         // exist a cache entry for the current resource.
         var typeInfo = expressionHelper.<@Nullable TypeInfo>execUncached(expression.eResource(), () -> {
@@ -160,10 +163,12 @@ public class QueryModelInferrer {
     }
 
     /**
-     * Expose an expression to Xtext by defining a method with the available local variables as parameters and the expected
+     * Expose an expression to Xtext by defining a method with the available local variables as parameters and the
+     * expected
      * expression type as return type of the method.
      *
-     * @param source     the {@link JvmTypesBuilder} requires a source element to associate with the newly generated method
+     * @param source     the {@link JvmTypesBuilder} requires a source element to associate with the newly generated
+     *     method
      * @param name       name of the expression
      * @param type       expected type of the expression
      * @param expression expression
@@ -182,7 +187,7 @@ public class QueryModelInferrer {
                 op.setStatic(true);
                 addParams.accept(op);
                 types.setBody(op, expression);
-        }));
+            }));
     }
 
     /**
@@ -194,7 +199,9 @@ public class QueryModelInferrer {
      * @return lambda that creates parameters
      */
     private Consumer<JvmOperation> paramsForSource(@Nullable Source source, boolean isGrouping, @Nullable From limit) {
-        if (source == null) return op -> {};
+        if (source == null) {
+            return op -> {};
+        }
 
         return op -> {
             if (AstUtils.getAllFroms(source).count() <= 1 && source.getFrom().getAlias() == null) {
@@ -205,12 +212,20 @@ public class QueryModelInferrer {
             for (var from : allFroms) {
                 addFromAliasToParameters(op, from, from.getAlias(), isGrouping);
 
-                if (from == limit) break;
+                if (from == limit) {
+                    break;
+                }
             }
 
             //add declared parameters
             for (var param : viewType.getParameters()) {
-                addParam(op, param, param.getAlias(), paramBaseTypeRef(param), param.getType() instanceof CollectionParameterType);
+                addParam(
+                    op,
+                    param,
+                    param.getAlias(),
+                    paramBaseTypeRef(param),
+                    param.getType() instanceof CollectionParameterType
+                );
             }
         };
     }
@@ -228,7 +243,8 @@ public class QueryModelInferrer {
     }
 
     /**
-     * Returns a lambda that creates a single parameter named {@link Constants#ExpressionSelfReference} for the given class.
+     * Returns a lambda that creates a single parameter named {@link Constants#ExpressionSelfReference} for the given
+     * class.
      *
      * @param source source element
      * @return lambda that creates the parameter
@@ -239,7 +255,13 @@ public class QueryModelInferrer {
 
             //add declared parameters
             for (var param : viewType.getParameters()) {
-                addParam(op, param, param.getAlias(), paramBaseTypeRef(param), param.getType() instanceof CollectionParameterType);
+                addParam(
+                    op,
+                    param,
+                    param.getAlias(),
+                    paramBaseTypeRef(param),
+                    param.getType() instanceof CollectionParameterType
+                );
             }
         };
     }
@@ -260,12 +282,14 @@ public class QueryModelInferrer {
      * Adds a parameter to the given {@link JvmOperation} (= method).
      *
      * @param op         jvm operation
-     * @param source     the {@link JvmTypesBuilder} requires a source element to associate with the newly generated parameter
+     * @param source     the {@link JvmTypesBuilder} requires a source element to associate with the newly generated
+     *     parameter
      * @param name       name of the parameter
      * @param type       type of the parameter
      * @param isGrouping whether the parameter is grouping -> list type
-     * @implNote I'm not sure how the given source element is used internally within Xtext. But it seems to allow IDE actions like
-     * go-to-definition.
+     * @implNote I'm not sure how the given source element is used internally within Xtext. But it seems to allow IDE
+     *     actions like
+     *     go-to-definition.
      */
     private void addParam(JvmOperation op, EObject source, String name, @Nullable JvmType type, boolean isGrouping) {
         addParam(op, source, name, typeRef(type), isGrouping);

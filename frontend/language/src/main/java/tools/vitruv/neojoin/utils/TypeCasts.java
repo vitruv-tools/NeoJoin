@@ -2,7 +2,8 @@ package tools.vitruv.neojoin.utils;
 
 import com.google.common.primitives.Primitives;
 
-import static tools.vitruv.neojoin.utils.Assertions.*;
+import static tools.vitruv.neojoin.utils.Assertions.check;
+import static tools.vitruv.neojoin.utils.Assertions.fail;
 
 /**
  * Contains static methods for casting java types.
@@ -20,7 +21,8 @@ public final class TypeCasts {
      * @return true if the cast is possible, false otherwise
      */
     public static boolean canCast(Class<?> from, Class<?> to) {
-        //noinspection ConstantValue - sanity check because `type.getInstanceClass()` can return null which is not caught by nullability checks
+        // sanity check because `type.getInstanceClass()` can return null which is not caught by nullability checks
+        //noinspection ConstantValue
         check(from != null && to != null);
         var wrappedFrom = Primitives.wrap(from);
         var wrappedTo = Primitives.wrap(to);

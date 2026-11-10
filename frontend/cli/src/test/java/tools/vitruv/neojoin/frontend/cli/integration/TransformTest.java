@@ -35,11 +35,15 @@ class TransformTest {
     }
 
     /**
-     * {@code java -jar cli.jar --meta-model-path=<meta-model-path> --instance-model-path=<instance-model-path> --transform=<output> <query>}
+     * {@code java -jar cli.jar --meta-model-path=<meta-model-path> --instance-model-path=<instance-model-path>
+     * --transform=<output> <query>}
      */
     @ParameterizedTest
     @FieldSource("validQueries")
-    void testTransformInputModels(String queryName, @TempDir Path outputDirectory) throws URISyntaxException, IOException {
+    void testTransformInputModels(
+        String queryName,
+        @TempDir Path outputDirectory
+    ) throws URISyntaxException, IOException {
         // GIVEN meta-models, instance models, a valid query and an output path
         var metaModelPath = getResource(Utils.MODELS);
         var instanceModelPath = getResource(Utils.INSTANCES);
@@ -53,7 +57,9 @@ class TransformTest {
         String queryArg = query.toString();
 
         // WHEN transforming the instance models
-        int exitCode = new CommandLine(new Main()).execute(new String[] { metaModelPathArg, instanceModelPathArg, transformArg, queryArg });
+        int exitCode = new CommandLine(new Main()).execute(
+            new String[] { metaModelPathArg, instanceModelPathArg, transformArg, queryArg }
+        );
 
         // THEN the correct view is generated (ignoring the order of view elements)
         assertEquals(0, exitCode);

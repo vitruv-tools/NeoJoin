@@ -34,10 +34,20 @@ import java.util.concurrent.ExecutionException;
 @Command(name = "NeoJoin IDE", mixinStandardHelpOptions = true)
 public class Main implements Runnable {
 
-    @Option(names = {"-m", "--meta-model-path"}, paramLabel = "MODEL-PATH", required = true, description = "Path specification to find referenced meta-models.")
+    @Option(
+            names = {"-m", "--meta-model-path"},
+            paramLabel = "MODEL-PATH",
+            required = true,
+            description = "Path specification to find referenced meta-models."
+    )
     String metaModelPath;
 
-    @Option(names = {"--excluded-directories"}, paramLabel = "NAMES", split = ";", description = "Names of directories that are not indexed (e.g. build output), separated by semicolons.")
+    @Option(
+            names = {"--excluded-directories"},
+            paramLabel = "NAMES",
+            split = ";",
+            description = "Names of directories that are not indexed (e.g. build output), separated by semicolons."
+    )
     List<String> excludedDirectories = new ArrayList<>();
 
     @ArgGroup(exclusive = false)
@@ -45,10 +55,20 @@ public class Main implements Runnable {
 
     static class Logging {
 
-        @Option(names = {"--log"}, paramLabel = "LOG-FILE", required = true, arity = "0..1", fallbackValue = "neojoin-ide-debug.log", description = "Enable logging.")
+        @Option(
+                names = {"--log"},
+                paramLabel = "LOG-FILE",
+                required = true,
+                arity = "0..1",
+                fallbackValue = "neojoin-ide-debug.log",
+                description = "Enable logging."
+        )
         Path logFile;
 
-        @Option(names = {"--trace"}, description = "Enable trace logging for the language server (requires logging enabled).")
+        @Option(
+                names = {"--trace"},
+                description = "Enable trace logging for the language server (requires logging enabled)."
+        )
         boolean trace;
 
     }
@@ -80,7 +100,8 @@ public class Main implements Runnable {
         System.out.println("Starting NeoJoin IDE server...");
 
         var serverModule = Modules.override(new ServerModule()).with(binder ->
-            binder.bind(IFileSystemScanner.class).toInstance(new NeoJoinFileSystemScanner(Set.copyOf(excludedDirectories)))
+            binder.bind(IFileSystemScanner.class)
+                .toInstance(new NeoJoinFileSystemScanner(Set.copyOf(excludedDirectories)))
         );
         var languageServer = Guice.createInjector(serverModule).getInstance(NeoJoinIdeServer.class);
         var launcher = Launcher.createLauncher(
@@ -122,7 +143,7 @@ public class Main implements Runnable {
     private LanguageServerIoConfig redirectIo() {
         var logStream = getLogOutputStream();
 
-        var config = new LanguageServerIoConfig(
+        final var config = new LanguageServerIoConfig(
             System.in,
             System.out,
             logStream != null && isTraceLoggingEnabled() ? new PrintWriter(logStream, true) : null

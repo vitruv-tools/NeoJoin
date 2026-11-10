@@ -93,13 +93,21 @@ class EcoreClassReferenceAQRTest extends AbstractIntegrationTest implements Pack
         assertThat(aqr)
             .hasTargetClass(
                 "A", a -> assertThat(a)
-                    .hasCopiedEcoreReference("target", EcorePackage.Literals.EOBJECT, lookup("eobjectref", "Holder", "target"))
+                    .hasCopiedEcoreReference(
+                        "target",
+                        EcorePackage.Literals.EOBJECT,
+                        lookup("eobjectref", "Holder", "target")
+                    )
                     .hasNoMoreFeatures()
             )
             .hasTargetClass(
                 "B", b -> assertThat(b)
                     .hasSuperClasses("A")
-                    .hasOverridingCopiedEcoreReference("target", EcorePackage.Literals.EOBJECT, lookup("eobjectref", "Holder", "target"))
+                    .hasOverridingCopiedEcoreReference(
+                        "target",
+                        EcorePackage.Literals.EOBJECT,
+                        lookup("eobjectref", "Holder", "target")
+                    )
                     .hasNoMoreFeatures()
             )
             .hasNoMoreTargetClasses();

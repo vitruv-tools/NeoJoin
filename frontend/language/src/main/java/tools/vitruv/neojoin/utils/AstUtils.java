@@ -80,7 +80,8 @@ public final class AstUtils {
     }
 
     /**
-     * Returns the name of the target class of the given subquery by inferring its source class with the given expression helper.
+     * Returns the name of the target class of the given subquery by inferring its source class with the given
+     * expression helper.
      *
      * @return name of the target class or {@link #UnknownTargetName} if unknown
      */
@@ -188,9 +189,12 @@ public final class AstUtils {
      * Get the feature that the expression references, if it references one.
      *
      * @return the feature or {@code null} if the expression does not reference a feature or its type cannot be
-     * resolved (this is handled by type checking)
+     *     resolved (this is handled by type checking)
      */
-    public static @Nullable EStructuralFeature getReferencedFeatureOrNull(XExpression expression, ExpressionHelper expressionHelper) {
+    public static @Nullable EStructuralFeature getReferencedFeatureOrNull(
+        XExpression expression,
+        ExpressionHelper expressionHelper
+    ) {
         try {
             return expressionHelper.getFeatureOrNull(expression);
         } catch (TypeResolutionException e) {
@@ -264,7 +268,9 @@ public final class AstUtils {
                     getAllFroms(mainQuery.getSource())
                         .map(From::getClazz)
                         .filter(clazz -> clazz != null && !clazz.eIsProxy())
-                        .forEach(clazz -> queriesBySourceClass.computeIfAbsent(clazz, k -> new HashSet<>()).add(mainQuery));
+                        .forEach(clazz -> queriesBySourceClass
+                            .computeIfAbsent(clazz, k -> new HashSet<>())
+                            .add(mainQuery));
                 }
             } else if (query instanceof SubQuery subQuery) {
                 var sourceClass = inferSubQuerySourceType(subQuery, expressionHelper);
@@ -280,7 +286,10 @@ public final class AstUtils {
      * Maps the name of each abstract class (an {@code abstract} query, which has no source) to its query. If several
      * abstract classes have the same name, the first one is used.
      */
-    public static Map<String, Query> mapAbstractQueriesByName(ViewTypeDefinition viewType, ExpressionHelper expressionHelper) {
+    public static Map<String, Query> mapAbstractQueriesByName(
+        ViewTypeDefinition viewType,
+        ExpressionHelper expressionHelper
+    ) {
         var abstractQueries = new HashMap<String, Query>();
         getAllQueries(viewType)
             .filter(AbstractMainQuery.class::isInstance)
@@ -300,7 +309,8 @@ public final class AstUtils {
                 var sourceClass = from.getClazz();
                 return sourceClass != null
                     && !sourceClass.eIsProxy()
-                    && (clazz.isSuperTypeOf(sourceClass) || (from.isIncludeSubClasses() && sourceClass.isSuperTypeOf(clazz)));
+                    && (clazz.isSuperTypeOf(sourceClass)
+                        || (from.isIncludeSubClasses() && sourceClass.isSuperTypeOf(clazz)));
             });
         } else if (query instanceof SubQuery subQuery) {
             var sourceClass = inferSubQuerySourceType(subQuery, expressionHelper);
@@ -331,7 +341,7 @@ public final class AstUtils {
      * Get the source class whose features are copied by a query without body.
      *
      * @return the source class or {@code null} if the query has no source or a source with joins (which is not
-     * allowed without body, but handled elsewhere) or if the source class of a subquery cannot be inferred
+     *     allowed without body, but handled elsewhere) or if the source class of a subquery cannot be inferred
      */
     public static @Nullable EClass getCopiedSourceClass(Query query, ExpressionHelper expressionHelper) {
         if (query instanceof ConcreteMainQuery mainQuery) {
@@ -370,7 +380,8 @@ public final class AstUtils {
     }
 
     /**
-     * Get all {@link From froms} contained in {@code source} including the one {@link Source#getFrom() directly contained} as well as those contained in {@link Source#getJoins() joins}.
+     * Get all {@link From froms} contained in {@code source} including the one {@link Source#getFrom() directly
+     * contained} as well as those contained in {@link Source#getJoins() joins}.
      *
      * @param source the source to get the froms from
      * @return a stream of all froms in the source
@@ -384,7 +395,8 @@ public final class AstUtils {
     }
 
     /**
-     * Returns whether the given source contains any grouping expressions. Returns {@code false} if no source was provided.
+     * Returns whether the given source contains any grouping expressions. Returns {@code false} if no source was
+     * provided.
      */
     public static boolean isGrouping(@Nullable Source source) {
         if (source == null) {
@@ -395,7 +407,8 @@ public final class AstUtils {
     }
 
     /**
-     * Returns the first {@link MultiplicityExpr multiplicity expression} contained in the given features modifiers or {@code null} if none is found.
+     * Returns the first {@link MultiplicityExpr multiplicity expression} contained in the given features modifiers or
+     * {@code null} if none is found.
      */
     public static @Nullable MultiplicityExpr findMultiplicityExpression(Feature feature) {
         return feature.getModifiers().stream()

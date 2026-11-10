@@ -104,7 +104,7 @@ public class ParameterParseTest extends AbstractParseTest {
             param minEmployees : EInt
             from Restaurant r
             where r.numEmployees > minEmployees
-            create { }
+            create {}
             """);
 
         assertThat(result)
@@ -127,7 +127,7 @@ public class ParameterParseTest extends AbstractParseTest {
         var result = parse("""
             param r : EInt
             from Restaurant r
-            create { }
+            create {}
             """);
 
         assertThat(result)

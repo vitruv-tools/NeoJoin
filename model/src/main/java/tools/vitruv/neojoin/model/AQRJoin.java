@@ -28,7 +28,8 @@ public record AQRJoin(
      * A join condition based on the given common features between the class of the current join
      * and another class as specified by {@link #otherIndex}.
      *
-     * @param otherIndex the index of the other source class that this join condition applies to in the order defined by {@link AQRSource#allFroms()}
+     * @param otherIndex the index of the other source class that this join condition applies to in the order
+     *                   defined by {@link AQRSource#allFroms()}
      * @param features   the features to join on
      */
     public record FeatureCondition(

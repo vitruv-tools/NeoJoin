@@ -91,7 +91,9 @@ class JoinParseTest extends AbstractParseTest {
             """);
 
         assertThat(result)
-            .hasExactlyIssues("Join condition in a query with multiple joins must specify which other class to join on");
+            .hasExactlyIssues(
+                "Join condition in a query with multiple joins must specify which other class to join on"
+            );
     }
 
     @Test

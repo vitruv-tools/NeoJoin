@@ -181,7 +181,8 @@ public class BasicTest extends DefaultTransformationTest {
                 create TastyFood {}
                 """)
         ).hasMessage(
-            "Failed to transform models: no target instance of class 'TastyFood' found for source instance of class 'Food'"
+            "Failed to transform models: no target instance of class 'TastyFood' found for source instance of class "
+                + "'Food'"
         );
     }
 
@@ -196,7 +197,8 @@ public class BasicTest extends DefaultTransformationTest {
                 create TastyFood {}
                 """)
         ).hasMessage(
-            "Failed to transform models: multiple target instances of class 'TastyFood' found for source instance of class 'Food'"
+            "Failed to transform models: multiple target instances of class 'TastyFood' found for source instance "
+                + "of class 'Food'"
         );
     }
 
@@ -311,7 +313,8 @@ public class BasicTest extends DefaultTransformationTest {
                 }
                 """)
         ).hasMessage(
-            "Failed to transform models: cannot add target instance of class 'Food' to containment reference 'Restaurant.sells' because it is already contained in another instance of class 'Restaurant'"
+            "Failed to transform models: cannot add target instance of class 'Food' to containment reference "
+                + "'Restaurant.sells' because it is already contained in another instance of class 'Restaurant'"
         );
     }
 

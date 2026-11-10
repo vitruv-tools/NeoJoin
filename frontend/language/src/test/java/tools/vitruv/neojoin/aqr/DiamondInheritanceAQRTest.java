@@ -39,10 +39,28 @@ class DiamondInheritanceAQRTest extends AbstractKennelTest {
             """);
 
         assertThat(aqr)
-            .hasRootTargetClass(Constants.DefaultRootClassName, root -> assertThat(root).hasGeneratedReference("ds", "D").hasNoMoreFeatures())
-            .hasTargetClass("A", a -> assertThat(a).isAbstract().hasAbstractAttribute("name", "EString").hasNoMoreFeatures())
-            .hasTargetClass("B", b -> assertThat(b).hasSuperClasses("A").hasOverridingAbstractAttribute("name", "EString").hasNoMoreFeatures())
-            .hasTargetClass("C", c -> assertThat(c).hasSuperClasses("A").hasOverridingAbstractAttribute("name", "EString").hasNoMoreFeatures())
+            .hasRootTargetClass(
+                Constants.DefaultRootClassName,
+                root -> assertThat(root).hasGeneratedReference("ds", "D").hasNoMoreFeatures()
+            )
+            .hasTargetClass(
+                "A",
+                a -> assertThat(a).isAbstract().hasAbstractAttribute("name", "EString").hasNoMoreFeatures()
+            )
+            .hasTargetClass(
+                "B",
+                b -> assertThat(b)
+                    .hasSuperClasses("A")
+                    .hasOverridingAbstractAttribute("name", "EString")
+                    .hasNoMoreFeatures()
+            )
+            .hasTargetClass(
+                "C",
+                c -> assertThat(c)
+                    .hasSuperClasses("A")
+                    .hasOverridingAbstractAttribute("name", "EString")
+                    .hasNoMoreFeatures()
+            )
             .hasTargetClass(
                 "D", d -> assertThat(d)
                     .hasSuperClasses("B", "C")

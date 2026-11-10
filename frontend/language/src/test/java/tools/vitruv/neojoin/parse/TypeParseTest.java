@@ -121,7 +121,9 @@ class TypeParseTest extends AbstractParseTest {
             """);
 
         assertThat(result)
-            .hasExactlyIssues("Ambiguous target class for source class 'Food'. Possible candidates: NotSoTastyFood, TastyFood");
+            .hasExactlyIssues(
+                "Ambiguous target class for source class 'Food'. Possible candidates: NotSoTastyFood, TastyFood"
+            );
     }
 
     @Test
@@ -134,7 +136,10 @@ class TypeParseTest extends AbstractParseTest {
             """);
 
         assertThat(result)
-            .hasExactlyIssues("Ambiguous target class for source class 'Food' while copying reference 'Restaurant::sells'. Possible candidates: NotSoTastyFood, TastyFood");
+            .hasExactlyIssues(
+                "Ambiguous target class for source class 'Food' while copying reference 'Restaurant::sells'. "
+                    + "Possible candidates: NotSoTastyFood, TastyFood"
+            );
     }
 
     @Test
@@ -148,9 +153,9 @@ class TypeParseTest extends AbstractParseTest {
             """);
 
         assertThat(result).hasExactlyIssues(
-            "Inferred target class 'MixedFoods' for source class 'Food' while copying reference 'Restaurant::sells' " +
-                "is a query with join which might be unintended and can lead to errors during transformation. " +
-                "Use explicit type to clarify the intended type."
+            "Inferred target class 'MixedFoods' for source class 'Food' while copying reference 'Restaurant::sells' "
+                + "is a query with join which might be unintended and can lead to errors during transformation. "
+                + "Use explicit type to clarify the intended type."
         );
     }
 
@@ -165,9 +170,9 @@ class TypeParseTest extends AbstractParseTest {
             """);
 
         assertThat(result).hasExactlyIssues(
-            "Inferred target class 'MixedFoods' for source class 'Food' while copying reference 'Restaurant::sells' " +
-                "is a query with group by which might be unintended and can lead to errors during transformation. " +
-                "Use explicit type to clarify the intended type."
+            "Inferred target class 'MixedFoods' for source class 'Food' while copying reference 'Restaurant::sells' "
+                + "is a query with group by which might be unintended and can lead to errors during transformation. "
+                + "Use explicit type to clarify the intended type."
         );
     }
 
@@ -182,8 +187,10 @@ class TypeParseTest extends AbstractParseTest {
 
         assertThat(result)
             .hasExactlyIssues(
-                "Ambiguous target class for source class 'Food' while copying reference 'Store::foods'. Possible candidates: NotSoTastyFood, TastyFood",
-                "Ambiguous target class for source class 'Food' while copying reference 'Restaurant::sells'. Possible candidates: NotSoTastyFood, TastyFood"
+                "Ambiguous target class for source class 'Food' while copying reference 'Store::foods'. "
+                    + "Possible candidates: NotSoTastyFood, TastyFood",
+                "Ambiguous target class for source class 'Food' while copying reference 'Restaurant::sells'. "
+                    + "Possible candidates: NotSoTastyFood, TastyFood"
             );
     }
 
@@ -215,7 +222,10 @@ class TypeParseTest extends AbstractParseTest {
             """);
 
         assertThat(result)
-            .hasExactlyIssues("Ambiguous target class for source class 'Child' while copying reference 'Parent::child'. Possible candidates: Child1, Child2");
+            .hasExactlyIssues(
+                "Ambiguous target class for source class 'Child' while copying reference 'Parent::child'. "
+                    + "Possible candidates: Child1, Child2"
+            );
     }
 
     @Test

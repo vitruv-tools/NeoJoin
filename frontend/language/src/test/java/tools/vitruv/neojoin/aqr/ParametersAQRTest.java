@@ -42,7 +42,7 @@ public class ParametersAQRTest extends AbstractAQRTest {
             .hasParameter("listFoods", "Food", true);
     }
 
-        @Test
+    @Test
     void listEClassParameter() {
         var aqr = parse("""
             param food : EList<Food>

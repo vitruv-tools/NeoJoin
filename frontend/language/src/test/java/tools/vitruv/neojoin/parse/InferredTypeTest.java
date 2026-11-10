@@ -17,7 +17,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import static tools.vitruv.neojoin.parse.ParseAssertions.assertThat;
 import static tools.vitruv.neojoin.parse.testutils.FeatureTestUtils.getFeatureOrFail;
-import static tools.vitruv.neojoin.parse.testutils.TypeTestUtils.*;
+import static tools.vitruv.neojoin.parse.testutils.TypeTestUtils.getClassifierOrFail;
+import static tools.vitruv.neojoin.parse.testutils.TypeTestUtils.inferredTypeOrFail;
 
 @SuppressWarnings("HttpUrlsUsage")
 public class InferredTypeTest extends AbstractParseTest {

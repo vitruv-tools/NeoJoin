@@ -72,7 +72,8 @@ class ReferenceInheritanceTest extends AbstractKennelTest {
     }
 
     /**
-     * Rex is mapped to an instance of AllDogs and one of DirectDogs, which are both instances of the reference type Pet.
+     * Rex is mapped to an instance of AllDogs and one of DirectDogs, which are both instances of the reference type
+     * Pet.
      */
     @Test
     void multipleTargetsAssignableToReferenceTypeAreAmbiguous() {
@@ -100,7 +101,8 @@ class ReferenceInheritanceTest extends AbstractKennelTest {
                 }
                 """);
         }).hasMessage(
-            "Failed to transform models: multiple target instances of class 'Pet' found for source instance of class 'Dog'"
+            "Failed to transform models: multiple target instances of class 'Pet' found for source instance of class "
+                + "'Dog'"
         );
     }
 

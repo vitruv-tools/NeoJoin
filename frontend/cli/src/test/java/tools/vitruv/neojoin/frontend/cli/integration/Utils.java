@@ -41,7 +41,10 @@ public class Utils {
         ResourceSet packageResourceSet = new ResourceSetImpl();
 
         for (Path path : metaModelPaths) {
-            Resource resource = packageResourceSet.getResource(org.eclipse.emf.common.util.URI.createURI(path.toUri().toString()), true);
+            Resource resource = packageResourceSet.getResource(
+                org.eclipse.emf.common.util.URI.createURI(path.toUri().toString()),
+                true
+            );
             EPackage pack = (EPackage) resource.getContents().getFirst();
 
             registry.put(pack.getNsURI(), pack);

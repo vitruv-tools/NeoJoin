@@ -79,14 +79,17 @@ public class NeoJoinValidator extends AbstractNeoJoinValidator {
                 }
             });
 
-        var hasImplicitRoot = viewType.getQueries().stream().noneMatch(query -> query instanceof ConcreteMainQuery concreteMainQuery && concreteMainQuery.isRoot());
+        var hasImplicitRoot = viewType.getQueries().stream().noneMatch(
+            query -> query instanceof ConcreteMainQuery concreteMainQuery && concreteMainQuery.isRoot()
+        );
         if (hasImplicitRoot) {
             var conflicts = groupedTargets.get(Constants.DefaultRootClassName);
             if (conflicts != null) {
                 conflicts.forEach(query ->
                     error(
-                        ("Target class name '%s' collides with name of the implicit root class. " +
-                            "Either choose a different name for this class or explicitly create a root class with a different name.")
+                        ("Target class name '%s' collides with name of the implicit root class. "
+                            + "Either choose a different name for this class "
+                            + "or explicitly create a root class with a different name.")
                             .formatted(Constants.DefaultRootClassName),
                         query,
                         query.getName() != null ? AstPackage.Literals.QUERY__NAME : null
@@ -106,7 +109,9 @@ public class NeoJoinValidator extends AbstractNeoJoinValidator {
 
     @Check
     public void checkSingleRoot(ViewTypeDefinition viewType) {
-        var allRoots = viewType.getQueries().stream().filter(query -> query instanceof ConcreteMainQuery concreteMainQuery && concreteMainQuery.isRoot()).toList();
+        var allRoots = viewType.getQueries().stream()
+            .filter(query -> query instanceof ConcreteMainQuery concreteMainQuery && concreteMainQuery.isRoot())
+            .toList();
         if (allRoots.size() > 1) {
             for (var query : allRoots) {
                 error("Multiple root queries", query, AstPackage.Literals.CONCRETE_MAIN_QUERY__ROOT);
@@ -116,7 +121,9 @@ public class NeoJoinValidator extends AbstractNeoJoinValidator {
 
     @Check(CheckType.EXPENSIVE)
     public void checkConformance(ViewTypeDefinition viewType) {
-        if (viewType.getConforms() == null) return;
+        if (viewType.getConforms() == null) {
+            return;
+        }
 
         String uri = viewType.getConforms().getUri();
         EPackage referencePackage = registry.getEPackage(uri);
@@ -127,7 +134,9 @@ public class NeoJoinValidator extends AbstractNeoJoinValidator {
         }
 
         // the AQR can only be built from a valid query, other checks report the errors of an invalid one
-        if (!viewType.eResource().getErrors().isEmpty()) return;
+        if (!viewType.eResource().getErrors().isEmpty()) {
+            return;
+        }
         AQR aqr;
         try {
             aqr = new AQRBuilder(viewType, expressionHelper).build();
@@ -137,7 +146,11 @@ public class NeoJoinValidator extends AbstractNeoJoinValidator {
         EPackage viewTypePackage = new MetaModelGenerator(aqr).generate().pack();
 
         Strictness strictness = viewType.getConforms().isStrict() ? Strictness.EXACT_MATCH : Strictness.SUBTYPE;
-        List<Violation> violations = conformanceValidator.validatePackages(viewTypePackage, referencePackage, strictness);
+        List<Violation> violations = conformanceValidator.validatePackages(
+            viewTypePackage,
+            referencePackage,
+            strictness
+        );
         for (Violation v : violations) {
             error(v.toString(), AstPackage.Literals.VIEW_TYPE_DEFINITION__CONFORMS);
         }

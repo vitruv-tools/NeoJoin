@@ -70,8 +70,9 @@ class RootParseTest extends AbstractParseTest {
             """);
 
         assertThat(result)
-            .hasExactlyIssues("Target class name 'Root' collides with name of the implicit root class. " +
-                "Either choose a different name for this class or explicitly create a root class with a different name.");
+            .hasExactlyIssues("Target class name 'Root' collides with name of the implicit root class. "
+                + "Either choose a different name for this class "
+                + "or explicitly create a root class with a different name.");
     }
 
     @Test
@@ -85,8 +86,9 @@ class RootParseTest extends AbstractParseTest {
             """);
 
         assertThat(result)
-            .hasExactlyIssues("Target class name 'Root' collides with name of the implicit root class. " +
-                "Either choose a different name for this class or explicitly create a root class with a different name.");
+            .hasExactlyIssues("Target class name 'Root' collides with name of the implicit root class. "
+                + "Either choose a different name for this class "
+                + "or explicitly create a root class with a different name.");
     }
 
 }

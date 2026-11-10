@@ -162,6 +162,13 @@ public class NeoJoinIdeServer extends LanguageServerImpl implements Visualizatio
         });
     }
 
+    private CompletableFuture<TargetModelResponse> makeResponse(
+        VisualizationService.Params params,
+        VisualizationGenerator.Mode mode
+    ) {
+        return makeResponse(params, (doc, res) -> {}, targetMetaModel -> mode);
+    }
+
     private void checkError(Diagnostic diagnostic) {
         if ((diagnostic.getSeverity() & Diagnostic.ERROR) == 0) {
             return;
@@ -190,10 +197,11 @@ public class NeoJoinIdeServer extends LanguageServerImpl implements Visualizatio
 
     /**
      * PlantUML rendering can take an excessive amount of time for large models. At this point the visualization becomes
-     * pretty useless anyway, so we stop waiting after a timeout of 10 seconds to at least show the user what the problem is.
+     * pretty useless anyway, so we stop waiting after a timeout of 10 seconds to at least show the user what the
+     * problem is.
      *
-     * @implNote The timeout does not abort rendering, it just stops waiting for the result. So this method leaks rendering
-     * threads and the started dot executable can even outlive the program itself.
+     * @implNote The timeout does not abort rendering, it just stops waiting for the result. So this method leaks
+     *     rendering threads and the started dot executable can even outlive the program itself.
      */
     private String renderWithTimeout(String plantUMLSource, Options options) {
         try {
@@ -210,10 +218,6 @@ public class NeoJoinIdeServer extends LanguageServerImpl implements Visualizatio
         } catch (InterruptedException e) {
             throw makeResponseErrorException("Rendering was interrupted.");
         }
-    }
-
-    private CompletableFuture<TargetModelResponse> makeResponse(VisualizationService.Params params, VisualizationGenerator.Mode mode) {
-        return makeResponse(params, (doc, res) -> {}, targetMetaModel -> mode);
     }
 
     private static Options getOptions(VisualizationService.Params params) {

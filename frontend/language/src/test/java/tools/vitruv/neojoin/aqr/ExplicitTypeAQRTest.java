@@ -51,7 +51,10 @@ class ExplicitTypeAQRTest extends AbstractKennelTest {
                         .hasNoMoreFeatures();
                 }
             )
-            .hasTargetClass("Animal", animal -> assertThat(animal).isAbstract().hasAbstractAttribute("name", "EString").hasNoMoreFeatures())
+            .hasTargetClass(
+                "Animal",
+                animal -> assertThat(animal).isAbstract().hasAbstractAttribute("name", "EString").hasNoMoreFeatures()
+            )
             .hasTargetClass(
                 "D", d -> assertThat(d)
                     .hasSuperClasses("Animal")
@@ -64,7 +67,12 @@ class ExplicitTypeAQRTest extends AbstractKennelTest {
                     .hasCalculatedReference("animals", "Animal")
                     .hasNoMoreFeatures()
             )
-            .hasTargetClass("Pet", pet -> assertThat(pet).hasCopiedAttribute("name", lookup("kennel", "Animal", "name")).hasNoMoreFeatures())
+            .hasTargetClass(
+                "Pet",
+                pet -> assertThat(pet)
+                    .hasCopiedAttribute("name", lookup("kennel", "Animal", "name"))
+                    .hasNoMoreFeatures()
+            )
             .hasTargetClass(
                 "L", l -> assertThat(l)
                     .hasCopiedAttribute("name", lookup("kennel", "Kennel", "name"))

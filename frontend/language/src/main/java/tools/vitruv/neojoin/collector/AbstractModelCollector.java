@@ -51,22 +51,22 @@ public abstract class AbstractModelCollector {
             .map(uri -> resourceSet.getResource(uri, true));
     }
 
-	private List<URI> getContainedFiles(Path fileOrDirectory) {
-		var extension = fileExtension();
+    private List<URI> getContainedFiles(Path fileOrDirectory) {
+        var extension = fileExtension();
 
-		try (var paths = Files.walk(fileOrDirectory)) {
-			return paths
-				.filter(Files::isRegularFile)
+        try (var paths = Files.walk(fileOrDirectory)) {
+            return paths
+                .filter(Files::isRegularFile)
                 .flatMap(file -> isSupportedArchive(file) ? getContainedFilesInArchive(file).stream() : Stream.of(file))
-				.map(AbstractModelCollector::toEmfUri)
-				.filter(uri -> Objects.equals(uri.fileExtension(), extension))
-				.toList();
-		} catch (NoSuchFileException e) {
-			throw new IllegalArgumentException("File or directory does not exist: " + fileOrDirectory);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-	}
+                .map(AbstractModelCollector::toEmfUri)
+                .filter(uri -> Objects.equals(uri.fileExtension(), extension))
+                .toList();
+        } catch (NoSuchFileException e) {
+            throw new IllegalArgumentException("File or directory does not exist: " + fileOrDirectory);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     /**
      * Entries of an archive have {@code jar:} URIs. EMF loads those through {@code java.net.JarURLConnection}, which
@@ -94,7 +94,8 @@ public abstract class AbstractModelCollector {
                         throw new RuntimeException(e);
                     }
                 })
-                // directory entries can look like models too, e.g. META-INF/maven/org.eclipse.emf/org.eclipse.emf.ecore/
+                // directory entries can look like models too, e.g.
+                // META-INF/maven/org.eclipse.emf/org.eclipse.emf.ecore/
                 .filter(Files::isRegularFile)
                 .toList();
         } catch (IOException | ProviderNotFoundException e) {

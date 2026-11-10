@@ -74,8 +74,17 @@ public class AQRAssertions extends AbstractAssert<AQRAssertions, AQR> {
         Assertions.assertThat(results.size())
             .as("Expected a parameter with alias %s, but found %d", alias, results.size()).isSameAs(1);
         var parameter = results.get(0);
-        Assertions.assertThat(parameter.type().getName()).as("Expected the parameter to have type %s, but it was of type %s", type, parameter.type().getName()).isEqualTo(type);
-        Assertions.assertThat(parameter.isList()).as("Expected the parameter %s to be %s, but it is %s", parameter.alias(), isList ? "a list" : "a single value", parameter.isList() ? "a list" : "a single value").isEqualTo(isList);
+        Assertions.assertThat(parameter.type().getName())
+            .as("Expected the parameter to have type %s, but it was of type %s", type, parameter.type().getName())
+            .isEqualTo(type);
+        Assertions.assertThat(parameter.isList())
+            .as(
+                "Expected the parameter %s to be %s, but it is %s",
+                parameter.alias(),
+                isList ? "a list" : "a single value",
+                parameter.isList() ? "a list" : "a single value"
+            )
+            .isEqualTo(isList);
         return this;
     }
 

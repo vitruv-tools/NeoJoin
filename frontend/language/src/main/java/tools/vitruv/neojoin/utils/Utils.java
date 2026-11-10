@@ -72,7 +72,8 @@ public class Utils {
     }
 
     /**
-     * Returns a stream which contains all elements from the given stream if there are any. If the given stream is empty,
+     * Returns a stream which contains all elements from the given stream if there are any. If the given stream is
+     * empty,
      * returns a stream with a single value retrieved from the given default value supplier.
      *
      * @param stream       input stream of elements

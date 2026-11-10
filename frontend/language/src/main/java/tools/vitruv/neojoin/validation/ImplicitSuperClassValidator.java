@@ -15,7 +15,8 @@ import tools.vitruv.neojoin.utils.Pair;
 import java.util.stream.Collectors;
 
 /**
- * Validates the super classes that {@link tools.vitruv.neojoin.aqr.AQRBuilder} links to implicit target classes
+ * Validates the super classes that {@link tools.vitruv.neojoin.aqr.AQRBuilder} links to implicit
+ * target classes
  * (they cannot declare {@code extends}): the nearest source super class that has a target class is the candidate.
  * <p>
  * The implicit classes are determined from the AST like in {@link FeatureValidator#checkAmbiguousImplicitFeatureTypes}:
@@ -42,7 +43,8 @@ public class ImplicitSuperClassValidator extends ComposableValidator {
             var candidates = finder.findCandidates(sourceClass);
             if (candidates.size() > 1) {
                 error(
-                    "Ambiguous super class for implicit target class of source class '%s'. Possible candidates: %s".formatted(
+                    ("Ambiguous super class for implicit target class of source class '%s'. "
+                        + "Possible candidates: %s").formatted(
                         sourceClass.getName(), candidates.stream().map(Pair::left).collect(Collectors.joining(", "))
                     ),
                     cause,
@@ -97,7 +99,8 @@ public class ImplicitSuperClassValidator extends ComposableValidator {
             .toList();
         if (!missingNames.isEmpty()) {
             warning(
-                "Implicit target class of source class '%s' is not linked to super class '%s', because it has no matching feature (same name, type and modifiers) for: %s".formatted(
+                ("Implicit target class of source class '%s' is not linked to super class '%s', "
+                    + "because it has no matching feature (same name, type and modifiers) for: %s").formatted(
                     sourceClass.getName(), superClassName, String.join(", ", missingNames)
                 ),
                 cause,

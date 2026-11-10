@@ -62,9 +62,9 @@ public class MemberFeatureCall implements ReferenceOperator {
         if (!(o instanceof MemberFeatureCall that)) {
             return false;
         }
-        return Objects.equals(featureInformation, that.featureInformation) &&
-                isCollection == that.isCollection &&
-                Objects.equals(followingOperator, that.followingOperator);
+        return Objects.equals(featureInformation, that.featureInformation)
+                && isCollection == that.isCollection
+                && Objects.equals(followingOperator, that.followingOperator);
     }
 
     @Override

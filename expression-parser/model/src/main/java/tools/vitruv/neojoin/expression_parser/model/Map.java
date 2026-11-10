@@ -56,8 +56,8 @@ public class Map implements ReferenceOperator {
         if (!(o instanceof Map that)) {
             return false;
         }
-        return Objects.equals(featureInformation, that.featureInformation) &&
-                Objects.equals(followingOperator, that.followingOperator);
+        return Objects.equals(featureInformation, that.featureInformation)
+                && Objects.equals(followingOperator, that.followingOperator);
     }
 
     @Override

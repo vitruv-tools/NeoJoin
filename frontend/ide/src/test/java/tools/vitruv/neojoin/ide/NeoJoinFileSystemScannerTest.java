@@ -22,7 +22,10 @@ class NeoJoinFileSystemScannerTest {
         Guice.createInjector().injectMembers(scanner); // as Main's toInstance binding does
         List<Path> scanned = new ArrayList<>();
         // not toFileString(): it yields "//\C:\..." for file URIs with a Windows drive letter
-        scanner.scan(URI.createFileURI(workspace.toString()), uri -> scanned.add(Path.of(java.net.URI.create(uri.toString()))));
+        scanner.scan(
+            URI.createFileURI(workspace.toString()),
+            uri -> scanned.add(Path.of(java.net.URI.create(uri.toString())))
+        );
         return scanned;
     }
 

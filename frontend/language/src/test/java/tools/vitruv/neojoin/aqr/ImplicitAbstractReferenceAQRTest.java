@@ -89,7 +89,10 @@ class ImplicitAbstractReferenceAQRTest extends AbstractKennelTest {
                 }
             )
             .hasNoMoreTargetClasses();
-        var animals = find(aqr, "K").features().stream().filter(f -> f.name().equals("animals")).findFirst().orElseThrow();
+        var animals = find(aqr, "K").features().stream()
+            .filter(f -> f.name().equals("animals"))
+            .findFirst()
+            .orElseThrow();
         assertThat(((AQRFeature.Reference) animals).type().source()).isNull();
     }
 
@@ -124,7 +127,10 @@ class ImplicitAbstractReferenceAQRTest extends AbstractKennelTest {
             )
             .hasTargetClass("Animal", animal -> assertThat(animal).isAbstract().hasNoSource())
             .hasTargetClass("C", c -> assertThat(c).hasSuperClasses("Animal"))
-            .hasTargetClass("K", k -> assertThat(k).hasCopiedReference("animals", "Animal", lookup("kennel", "Kennel", "animals")))
+            .hasTargetClass(
+                "K",
+                k -> assertThat(k).hasCopiedReference("animals", "Animal", lookup("kennel", "Kennel", "animals"))
+            )
             .hasTargetClass("Dog", dog -> assertThat(dog).hasSuperClasses("Animal"))
             .hasNoMoreTargetClasses();
     }
@@ -158,7 +164,10 @@ class ImplicitAbstractReferenceAQRTest extends AbstractKennelTest {
                     .hasCopiedReference("puppy", "Puppy", lookup("kennel", "Kennel", "puppy"))
                     .hasNoMoreFeatures()
             );
-        var animals = find(aqr, "K").features().stream().filter(f -> f.name().equals("animals")).findFirst().orElseThrow();
+        var animals = find(aqr, "K").features().stream()
+            .filter(f -> f.name().equals("animals"))
+            .findFirst()
+            .orElseThrow();
         assertThat(((AQRFeature.Reference) animals).type().source()).isNull();
     }
 

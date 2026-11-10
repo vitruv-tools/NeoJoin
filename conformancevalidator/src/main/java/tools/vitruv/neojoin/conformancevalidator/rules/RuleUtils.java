@@ -147,7 +147,7 @@ public final class RuleUtils {
      *
      * @param pack the package whose classifiers are required
      * @return a phrase of the feature and its required classifier, or a generic
-     * phrase if no such feature is found
+     *     phrase if no such feature is found
      */
     public static String requiredFromOutside(EPackage pack) {
         return allClasses(rootOf(pack))

@@ -168,7 +168,8 @@ public class FeatureValidator extends ComposableValidator {
     /**
      * Checks whether the inferred type can be applied to the feature.
      * NOTE: This does not cover enums since they are handled separately
-     *       (see: {@link  FeatureValidator#checkEnumType(ConcreteFeature feature, EEnum eEnum, TypeInfo inferredType)}).
+     *       (see: {@link  FeatureValidator#checkEnumType(ConcreteFeature feature, EEnum eEnum, TypeInfo
+     *       inferredType)}).
      *
      * @param feature the feature to be checked against.
      * @param eDataType the type of the feature.
@@ -179,8 +180,10 @@ public class FeatureValidator extends ComposableValidator {
             if (!TypeCasts.canCast(inferredType.classifier().getInstanceClass(), eDataType.getInstanceClass())) {
                 error(
                     "Type mismatch: cannot convert from %s (%s) to %s (%s)".formatted(
-                        inferredType.classifier().getName(), inferredType.classifier().getInstanceClass().getSimpleName(),
-                        eDataType.getName(), eDataType.getInstanceClass().getSimpleName()
+                        inferredType.classifier().getName(),
+                        inferredType.classifier().getInstanceClass().getSimpleName(),
+                        eDataType.getName(),
+                        eDataType.getInstanceClass().getSimpleName()
                     ),
                     feature,
                     AstPackage.Literals.CONCRETE_FEATURE__EXPRESSION
@@ -202,7 +205,11 @@ public class FeatureValidator extends ComposableValidator {
             error("Cannot infer type", feature, AstPackage.Literals.CONCRETE_FEATURE__EXPRESSION);
         }
         if (feature.getSubQuery() != null) {
-            error("Cannot use null expression for a subquery", feature, AstPackage.Literals.CONCRETE_FEATURE__EXPRESSION);
+            error(
+                "Cannot use null expression for a subquery",
+                feature,
+                AstPackage.Literals.CONCRETE_FEATURE__EXPRESSION
+            );
         }
     }
 
@@ -240,12 +247,14 @@ public class FeatureValidator extends ComposableValidator {
                     AstPackage.Literals.CONCRETE_FEATURE__EXPRESSION
                 );
                 return;
-            } else if (assignable.size() == 1 || isSelectedByQueryAssignableToType(viewType, explicitType, inferredClass)) {
+            } else if (assignable.size() == 1
+                || isSelectedByQueryAssignableToType(viewType, explicitType, inferredClass)) {
                 return;
             }
         }
 
-        if (explicitType instanceof SubQuery subQuery && AstUtils.inferSubQuerySourceType(subQuery, expressionHelper) == null) {
+        if (explicitType instanceof SubQuery subQuery
+            && AstUtils.inferSubQuerySourceType(subQuery, expressionHelper) == null) {
             return; // will be handled elsewhere
         }
 
@@ -262,8 +271,14 @@ public class FeatureValidator extends ComposableValidator {
      * Finds the queries that select exactly the given class and whose target class is the explicit type or a sub class
      * of it.
      */
-    private List<Query> findQueriesSelectingAssignableToType(ViewTypeDefinition viewType, Query explicitType, EClass inferredClass) {
-        return AstUtils.mapSourceClassesToQueries(viewType, expressionHelper).getOrDefault(inferredClass, Set.of()).stream()
+    private List<Query> findQueriesSelectingAssignableToType(
+        ViewTypeDefinition viewType,
+        Query explicitType,
+        EClass inferredClass
+    ) {
+        return AstUtils.mapSourceClassesToQueries(viewType, expressionHelper)
+            .getOrDefault(inferredClass, Set.of())
+            .stream()
             .filter(query -> AstUtils.isSameOrSuperClassOf(explicitType, query))
             .toList();
     }
@@ -273,7 +288,11 @@ public class FeatureValidator extends ComposableValidator {
      * instances of the class otherwise ({@code from extends} of a super class) has a target class that is the explicit
      * type or a sub class of it.
      */
-    private boolean isSelectedByQueryAssignableToType(ViewTypeDefinition viewType, Query explicitType, EClass inferredClass) {
+    private boolean isSelectedByQueryAssignableToType(
+        ViewTypeDefinition viewType,
+        Query explicitType,
+        EClass inferredClass
+    ) {
         return AstUtils.getAllQueries(viewType).anyMatch(query ->
             AstUtils.canSelectInstancesOf(query, inferredClass, expressionHelper)
                 && AstUtils.isSameOrSuperClassOf(explicitType, query)
@@ -282,8 +301,10 @@ public class FeatureValidator extends ComposableValidator {
 
     @Check
     public void checkFeatureNullability(ConcreteFeature feature) {
-        if (feature.eContainer().eContainer() instanceof MainQuery mainQuery && !mainQuery.getSuperClasses().isEmpty()) {
-            return; // checked by InheritanceValidator, because overriding features have the modifiers of the overridden feature
+        if (feature.eContainer().eContainer() instanceof MainQuery mainQuery
+            && !mainQuery.getSuperClasses().isEmpty()) {
+            // checked by InheritanceValidator, because overriding features have the modifiers of the overridden feature
+            return;
         }
 
         if (feature.getExpression() instanceof XMemberFeatureCall featureCall) {
@@ -337,15 +358,26 @@ public class FeatureValidator extends ComposableValidator {
         }
     }
 
-    private void checkImplicitFeatureType(ConcreteFeature feature, FeatureTypeResolver typeResolver, HashSet<EClass> alreadyChecked) {
+    private void checkImplicitFeatureType(
+        ConcreteFeature feature,
+        FeatureTypeResolver typeResolver,
+        HashSet<EClass> alreadyChecked
+    ) {
         var type = typeResolver.resolve(feature);
         if (type instanceof ImplicitReferenceType implicitType) { // implicit copy of target class
-            checkCopiedClass(implicitType.sourceClass(), typeResolver, (Query) feature.eContainer().eContainer(), alreadyChecked);
+            checkCopiedClass(
+                implicitType.sourceClass(),
+                typeResolver,
+                (Query) feature.eContainer().eContainer(),
+                alreadyChecked
+            );
         } else if (type instanceof AmbiguousReferenceType ambiguousType) {
             error(
                 "Ambiguous target class for source class '%s'. Possible candidates: %s".formatted(
                     ambiguousType.sourceClass().getName(),
-                    ambiguousType.candidates().stream().map(q -> AstUtils.getTargetName(q, expressionHelper)).sorted()
+                    ambiguousType.candidates().stream()
+                        .map(q -> AstUtils.getTargetName(q, expressionHelper))
+                        .sorted()
                         .collect(Collectors.joining(", "))
                 ),
                 feature,
@@ -355,14 +387,18 @@ public class FeatureValidator extends ComposableValidator {
             if (queryType.query() instanceof ConcreteMainQuery mainQuery && mainQuery.getSource() != null) {
                 if (!mainQuery.getSource().getJoins().isEmpty()) {
                     warning(
-                        "Inferred type '%s' is a query with join which might be unintended and can lead to errors during transformation. Use explicit type to clarify the intended type.".formatted(
+                        ("Inferred type '%s' is a query with join which might be unintended "
+                            + "and can lead to errors during transformation. "
+                            + "Use explicit type to clarify the intended type.").formatted(
                             AstUtils.getTargetName(mainQuery)),
                         feature,
                         AstPackage.Literals.CONCRETE_FEATURE__EXPRESSION
                     );
                 } else if (!mainQuery.getSource().getGroupingExpressions().isEmpty()) {
                     warning(
-                        "Inferred type '%s' is a query with group by which might be unintended and can lead to errors during transformation. Use explicit type to clarify the intended type.".formatted(
+                        ("Inferred type '%s' is a query with group by which might be unintended "
+                            + "and can lead to errors during transformation. "
+                            + "Use explicit type to clarify the intended type.").formatted(
                             AstUtils.getTargetName(mainQuery)),
                         feature,
                         AstPackage.Literals.CONCRETE_FEATURE__EXPRESSION
@@ -372,7 +408,12 @@ public class FeatureValidator extends ComposableValidator {
         }
     }
 
-    private void checkCopiedClass(EClass clazz, FeatureTypeResolver typeResolver, Query cause, HashSet<EClass> alreadyChecked) {
+    private void checkCopiedClass(
+        EClass clazz,
+        FeatureTypeResolver typeResolver,
+        Query cause,
+        HashSet<EClass> alreadyChecked
+    ) {
         var wasAlreadyChecked = !alreadyChecked.add(clazz);
         if (wasAlreadyChecked) {
             return;
@@ -384,10 +425,13 @@ public class FeatureValidator extends ComposableValidator {
                 checkCopiedClass(reference.getEReferenceType(), typeResolver, cause, alreadyChecked);
             } else if (type instanceof AmbiguousReferenceType ambiguousType) {
                 error(
-                    "Ambiguous target class for source class '%s' while copying reference '%s::%s'. Possible candidates: %s".formatted(
+                    ("Ambiguous target class for source class '%s' while copying reference '%s::%s'. "
+                        + "Possible candidates: %s").formatted(
                         reference.getEReferenceType().getName(),
                         clazz.getName(), reference.getName(),
-                        ambiguousType.candidates().stream().map(q -> AstUtils.getTargetName(q, expressionHelper)).sorted()
+                        ambiguousType.candidates().stream()
+                            .map(q -> AstUtils.getTargetName(q, expressionHelper))
+                            .sorted()
                             .collect(Collectors.joining(", "))
                     ),
                     cause,
@@ -397,9 +441,10 @@ public class FeatureValidator extends ComposableValidator {
                 if (queryType.query() instanceof ConcreteMainQuery mainQuery && mainQuery.getSource() != null) {
                     if (!mainQuery.getSource().getJoins().isEmpty()) {
                         warning(
-                            ("Inferred target class '%s' for source class '%s' while copying reference '%s::%s' is " +
-                                "a query with join which might be unintended and can lead to errors during transformation. " +
-                                "Use explicit type to clarify the intended type.").formatted(
+                            ("Inferred target class '%s' for source class '%s' while copying reference '%s::%s' is "
+                                + "a query with join which might be unintended "
+                                + "and can lead to errors during transformation. "
+                                + "Use explicit type to clarify the intended type.").formatted(
                                 AstUtils.getTargetName(mainQuery),
                                 mainQuery.getSource().getFrom().getClazz().getName(),
                                 clazz.getName(), reference.getName()
@@ -409,9 +454,10 @@ public class FeatureValidator extends ComposableValidator {
                         );
                     } else if (!mainQuery.getSource().getGroupingExpressions().isEmpty()) {
                         warning(
-                            ("Inferred target class '%s' for source class '%s' while copying reference '%s::%s' is " +
-                                "a query with group by which might be unintended and can lead to errors during transformation. " +
-                                "Use explicit type to clarify the intended type.").formatted(
+                            ("Inferred target class '%s' for source class '%s' while copying reference '%s::%s' is "
+                                + "a query with group by which might be unintended "
+                                + "and can lead to errors during transformation. "
+                                + "Use explicit type to clarify the intended type.").formatted(
                                 AstUtils.getTargetName(mainQuery),
                                 mainQuery.getSource().getFrom().getClazz().getName(),
                                 clazz.getName(), reference.getName()

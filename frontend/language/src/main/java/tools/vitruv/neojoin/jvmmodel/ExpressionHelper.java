@@ -10,7 +10,11 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.emf.ecore.resource.Resource;
-import org.eclipse.xtext.common.types.*;
+import org.eclipse.xtext.common.types.JvmEnumerationType;
+import org.eclipse.xtext.common.types.JvmField;
+import org.eclipse.xtext.common.types.JvmGenericType;
+import org.eclipse.xtext.common.types.JvmType;
+import org.eclipse.xtext.common.types.JvmVoid;
 import org.eclipse.xtext.common.types.util.TypeReferences;
 import org.eclipse.xtext.conversion.IValueConverterService;
 import org.eclipse.xtext.naming.QualifiedName;
@@ -87,7 +91,8 @@ public class ExpressionHelper {
 
     /**
      * Creates an evaluation context taking variable names from the given {@link AQRFrom} iterator and
-     * values from the given value iterator. Optionally takes a limit that makes variables encountered after the limit inaccessible.
+     * values from the given value iterator. Optionally takes a limit that makes variables encountered after the limit
+     * inaccessible.
      *
      * @param fromIterator  iterator of {@link AQRFrom} for variable names
      * @param valueIterator iterator of {@link Object} for variable values
@@ -144,7 +149,7 @@ public class ExpressionHelper {
      * @param expression expression to evaluate
      * @param context    context, i.e. accessible local variables
      * @return {@link Result.Success} with the returned value if execution was successful,
-     * or {@link Result.Failure} with the thrown exception otherwise
+     *     or {@link Result.Failure} with the thrown exception otherwise
      * @see #createContext(Iterator, Iterator, AQRFrom) creating the context
      */
     public Result<@Nullable Object> evaluate(XExpression expression, IEvaluationContext context) {
@@ -166,8 +171,8 @@ public class ExpressionHelper {
      * @return resolved type
      * @throws TypeResolutionException if type resolution failed
      * @implNote The {@link #typeResolver used type resolver} is caching which means that types are only computed once.
-     * Type resolution works only if the given expression is part of a resource which is normally the case after
-     * jvm model inference is complete (see {@link QueryModelInferrer}).
+     *     Type resolution works only if the given expression is part of a resource which is normally the case after
+     *     jvm model inference is complete (see {@link QueryModelInferrer}).
      */
     private LightweightTypeReference resolve(XExpression expression) throws TypeResolutionException {
         var resolved = typeResolver.resolveTypes(expression).getActualType(expression);
@@ -181,7 +186,8 @@ public class ExpressionHelper {
     private IValueConverterService valueConverterService;
 
     /**
-     * If the expression is a field access on an ecore object from a source model, returns the corresponding structural feature, otherwise returns {@code null}.
+     * If the expression is a field access on an ecore object from a source model, returns the corresponding structural
+     * feature, otherwise returns {@code null}.
      *
      * @param expression the expression to check
      * @return the structural feature or {@code null}
@@ -198,7 +204,11 @@ public class ExpressionHelper {
                 if (receiverType.getType() != null) {
                     var receiverClassifier = getClassifier(expression, receiverType.getType());
                     if (receiverClassifier instanceof EClass receiverClass) {
-                        var featureName = valueConverterService.toValue(featureCall.getConcreteSyntaxFeatureName(), "ID", null);
+                        var featureName = valueConverterService.toValue(
+                            featureCall.getConcreteSyntaxFeatureName(),
+                            "ID",
+                            null
+                        );
                         return receiverClass.getEStructuralFeature((String) featureName);
                     }
                 }
@@ -214,8 +224,8 @@ public class ExpressionHelper {
      *
      * @param expression expression to resolve types
      * @return {@link TypeInfo}, or {@code null} if Xbase type resolution succeeds but the returned java type
-     * cannot be mapped to an {@link EClassifier}, e.g. when the type is unsupported like
-     * {@link AtomicInteger}
+     *     cannot be mapped to an {@link EClassifier}, e.g. when the type is unsupported like
+     *     {@link AtomicInteger}
      * @throws TypeResolutionException if Xbase type resolution fails
      */
     public @Nullable TypeInfo inferEType(XExpression expression) throws TypeResolutionException {
