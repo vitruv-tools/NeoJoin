@@ -145,6 +145,16 @@
                     <exclude>**/*.java</exclude>
                     <exclude>META-INF/maven/**</exclude>
                     <exclude>META-INF/INDEX.LIST</exclude>
+                    <!-- metadata of single dependencies: the jar would contain the license, notice and module
+                         descriptor of whichever dependency comes first, not those of this project -->
+                    <exclude>META-INF/LICENSE*</exclude>
+                    <exclude>META-INF/NOTICE*</exclude>
+                    <exclude>META-INF/DEPENDENCIES</exclude>
+                    <exclude>META-INF/p2.inf</exclude>
+                    <exclude>META-INF/MANIFEST.MF_gen</exclude>
+                    <exclude>META-INF/*.kotlin_module</exclude>
+                    <exclude>module-info.class</exclude>
+                    <exclude>META-INF/versions/*/module-info.class</exclude>
                     <exclude>META-INF/*.SF</exclude>
                     <exclude>META-INF/*.DSA</exclude>
                     <exclude>META-INF/*.RSA</exclude>
