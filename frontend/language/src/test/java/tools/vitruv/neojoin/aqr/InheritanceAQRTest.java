@@ -5,6 +5,8 @@ import org.eclipse.emf.ecore.ETypedElement;
 import org.junit.jupiter.api.Test;
 import tools.vitruv.neojoin.AbstractKennelTest;
 import tools.vitruv.neojoin.aqr.AQRFeatureOptionsAssertions.Mod;
+import tools.vitruv.neojoin.model.AQRFeature;
+import tools.vitruv.neojoin.model.AQRTargetClass;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static tools.vitruv.neojoin.aqr.AQRAssertions.assertThat;

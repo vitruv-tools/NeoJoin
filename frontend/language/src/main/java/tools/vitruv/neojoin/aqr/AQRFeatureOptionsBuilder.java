@@ -15,6 +15,7 @@ import tools.vitruv.neojoin.ast.MultiplicityMany;
 import tools.vitruv.neojoin.ast.MultiplicityManyAtLeast;
 import tools.vitruv.neojoin.ast.MultiplicityManyRequired;
 import tools.vitruv.neojoin.ast.MultiplicityOptional;
+import tools.vitruv.neojoin.model.AQRFeature;
 import tools.vitruv.neojoin.utils.Pair;
 
 import java.util.List;

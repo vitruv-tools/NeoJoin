@@ -2,6 +2,7 @@ package tools.vitruv.neojoin.aqr;
 
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
+import tools.vitruv.neojoin.model.AQRFeature;
 
 import java.util.HashSet;
 import java.util.Set;

@@ -2,7 +2,6 @@ package tools.vitruv.neojoin.utils;
 
 import org.eclipse.emf.ecore.EClass;
 import org.jspecify.annotations.Nullable;
-import tools.vitruv.neojoin.aqr.AQRFeature;
 import tools.vitruv.neojoin.aqr.AQRFeatureOptionsBuilder;
 import tools.vitruv.neojoin.ast.Body;
 import tools.vitruv.neojoin.ast.ConcreteFeature;
@@ -12,6 +11,7 @@ import tools.vitruv.neojoin.ast.MainQuery;
 import tools.vitruv.neojoin.ast.Query;
 import tools.vitruv.neojoin.ast.ViewTypeDefinition;
 import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
+import tools.vitruv.neojoin.model.AQRFeature;
 
 import java.util.ArrayList;
 import java.util.HashSet;

@@ -3,6 +3,7 @@ package tools.vitruv.neojoin.aqr;
 import org.junit.jupiter.api.Test;
 import tools.vitruv.neojoin.AbstractKennelTest;
 import tools.vitruv.neojoin.Constants;
+import tools.vitruv.neojoin.model.AQRFeature;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static tools.vitruv.neojoin.aqr.AQRAssertions.assertThat;

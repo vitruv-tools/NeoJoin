@@ -11,10 +11,10 @@ import org.eclipse.emf.ecore.EcoreFactory;
 import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.emf.ecore.util.Diagnostician;
 import org.eclipse.emf.ecore.util.EcoreUtil;
-import tools.vitruv.neojoin.aqr.AQR;
-import tools.vitruv.neojoin.aqr.AQRFeature;
-import tools.vitruv.neojoin.aqr.AQRFrom;
-import tools.vitruv.neojoin.aqr.AQRTargetClass;
+import tools.vitruv.neojoin.model.AQR;
+import tools.vitruv.neojoin.model.AQRFeature;
+import tools.vitruv.neojoin.model.AQRFrom;
+import tools.vitruv.neojoin.model.AQRTargetClass;
 import tools.vitruv.neojoin.utils.EMFUtils;
 
 import java.util.HashMap;

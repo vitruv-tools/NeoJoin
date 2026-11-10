@@ -5,7 +5,7 @@ import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EEnum;
 import org.eclipse.emf.ecore.EPackage;
 import org.jspecify.annotations.Nullable;
-import tools.vitruv.neojoin.aqr.AQRTargetClass;
+import tools.vitruv.neojoin.model.AQRTargetClass;
 
 import java.util.HashMap;
 import java.util.List;

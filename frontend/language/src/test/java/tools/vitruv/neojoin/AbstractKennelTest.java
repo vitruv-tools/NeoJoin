@@ -1,7 +1,7 @@
 package tools.vitruv.neojoin;
 
-import tools.vitruv.neojoin.aqr.AQR;
-import tools.vitruv.neojoin.aqr.AQRTargetClass;
+import tools.vitruv.neojoin.model.AQR;
+import tools.vitruv.neojoin.model.AQRTargetClass;
 
 import java.util.List;
 
