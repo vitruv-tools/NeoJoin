@@ -26,7 +26,7 @@ import org.eclipse.xtext.xbase.typesystem.references.LightweightTypeReference;
 import org.eclipse.xtext.xbase.typesystem.references.UnknownTypeReference;
 import org.jspecify.annotations.Nullable;
 import tools.vitruv.neojoin.Constants;
-import tools.vitruv.neojoin.aqr.AQRFrom;
+import tools.vitruv.neojoin.model.AQRFrom;
 import tools.vitruv.neojoin.utils.EMFUtils;
 import tools.vitruv.neojoin.utils.Result;
 

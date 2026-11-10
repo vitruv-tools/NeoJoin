@@ -9,7 +9,6 @@ import org.eclipse.xtext.validation.Check;
 import org.eclipse.xtext.validation.CheckType;
 import org.eclipse.xtext.validation.ComposedChecks;
 import tools.vitruv.neojoin.Constants;
-import tools.vitruv.neojoin.aqr.AQR;
 import tools.vitruv.neojoin.aqr.AQRBuilder;
 import tools.vitruv.neojoin.aqr.AQRInvariantViolatedException;
 import tools.vitruv.neojoin.ast.AstPackage;
@@ -20,6 +19,7 @@ import tools.vitruv.neojoin.conformancevalidator.Violation;
 import tools.vitruv.neojoin.conformancevalidator.rules.Strictness;
 import tools.vitruv.neojoin.generation.MetaModelGenerator;
 import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
+import tools.vitruv.neojoin.model.AQR;
 import tools.vitruv.neojoin.utils.AstUtils;
 
 import java.util.HashSet;

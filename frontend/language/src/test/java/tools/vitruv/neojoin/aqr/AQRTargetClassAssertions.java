@@ -5,6 +5,10 @@ import org.assertj.core.api.Assertions;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EStructuralFeature;
+import tools.vitruv.neojoin.model.AQRFeature;
+import tools.vitruv.neojoin.model.AQRJoin;
+import tools.vitruv.neojoin.model.AQRSource;
+import tools.vitruv.neojoin.model.AQRTargetClass;
 
 import java.util.HashSet;
 import java.util.List;

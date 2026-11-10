@@ -2,6 +2,7 @@ package tools.vitruv.neojoin.aqr;
 
 import tools.vitruv.neojoin.AbstractIntegrationTest;
 import tools.vitruv.neojoin.PackageRegistryUtils;
+import tools.vitruv.neojoin.model.AQR;
 
 import java.util.List;
 

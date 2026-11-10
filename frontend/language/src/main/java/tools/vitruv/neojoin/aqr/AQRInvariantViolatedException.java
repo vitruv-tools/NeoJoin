@@ -1,6 +1,7 @@
 package tools.vitruv.neojoin.aqr;
 
 import org.jetbrains.annotations.Contract;
+import tools.vitruv.neojoin.model.AQR;
 
 import java.util.function.Supplier;
 

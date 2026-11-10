@@ -6,9 +6,9 @@ import org.eclipse.emf.ecore.EEnum;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EcorePackage;
 import org.jspecify.annotations.Nullable;
-import tools.vitruv.neojoin.aqr.AQR;
-import tools.vitruv.neojoin.aqr.AQRImport;
 import tools.vitruv.neojoin.generation.ModelInfo;
+import tools.vitruv.neojoin.model.AQR;
+import tools.vitruv.neojoin.model.AQRImport;
 import tools.vitruv.neojoin.utils.EMFUtils;
 
 import static tools.vitruv.neojoin.utils.Enumerated.enumerated;

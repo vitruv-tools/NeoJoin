@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import tools.vitruv.neojoin.AbstractIntegrationTest;
 import tools.vitruv.neojoin.PackageRegistryUtils;
 import tools.vitruv.neojoin.generation.MetaModelGenerator;
+import tools.vitruv.neojoin.model.AQR;
 
 import java.util.List;
 

@@ -2,6 +2,7 @@ package tools.vitruv.neojoin.aqr;
 
 import org.junit.jupiter.api.Test;
 import tools.vitruv.neojoin.AbstractKennelTest;
+import tools.vitruv.neojoin.model.AQRJoin;
 
 import static tools.vitruv.neojoin.aqr.AQRAssertions.assertThat;
 import static tools.vitruv.neojoin.aqr.AQRTargetClassAssertions.assertThat;

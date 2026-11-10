@@ -1,9 +1,9 @@
 package tools.vitruv.neojoin.utils;
 
 import org.jspecify.annotations.Nullable;
-import tools.vitruv.neojoin.aqr.AQRFeature;
 import tools.vitruv.neojoin.ast.Feature;
 import tools.vitruv.neojoin.ast.Query;
+import tools.vitruv.neojoin.model.AQRFeature;
 
 /**
  * A feature of a target class as determined from the AST, see {@link FeatureInfoResolver}.
