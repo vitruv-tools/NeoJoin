@@ -218,6 +218,31 @@
       </plugins>
     </pluginManagement>
     <plugins>
+      <!-- the license of this project in every jar (META-INF/LICENSE) -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-license</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.outputDirectory}/META-INF</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${maven.multiModuleProjectDirectory}</directory>
+                  <includes>
+                    <include>LICENSE</include>
+                  </includes>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <!-- stable module name for projects that use the jars on the module path -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
