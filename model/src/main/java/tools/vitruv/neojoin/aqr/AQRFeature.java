@@ -180,11 +180,11 @@ public sealed interface AQRFeature {
             return "Attribute[name='%s', type=%s, kind=%s, options=%s]".formatted(name, type.getName(), kind, options);
         }
 
-        Attribute withFeatureKind(Kind kind) {
+        public Attribute withFeatureKind(Kind kind) {
             return new Attribute(name, type, kind, options);
         }
 
-        Attribute withOptions(Options options) {
+        public Attribute withOptions(Options options) {
             return new Attribute(name, type, kind, options);
         }
 
@@ -210,15 +210,15 @@ public sealed interface AQRFeature {
             return "Reference[name='%s', type=%s, kind=%s, options=%s]".formatted(name, type.name(), kind, options);
         }
 
-        Reference withType(AQRTargetClass type) {
+        public Reference withType(AQRTargetClass type) {
             return new Reference(name, type, kind, options);
         }
 
-        Reference withFeatureKind(Kind kind) {
+        public Reference withFeatureKind(Kind kind) {
             return new Reference(name, type, kind, options);
         }
 
-        Reference withOptions(Options options) {
+        public Reference withOptions(Options options) {
             return new Reference(name, type, kind, options);
         }
 
@@ -245,11 +245,11 @@ public sealed interface AQRFeature {
             return "EcoreReference[name='%s', type=%s, kind=%s, options=%s]".formatted(name, type.getName(), kind, options);
         }
 
-        EcoreReference withFeatureKind(Kind kind) {
+        public EcoreReference withFeatureKind(Kind kind) {
             return new EcoreReference(name, type, kind, options);
         }
 
-        EcoreReference withOptions(Options options) {
+        public EcoreReference withOptions(Options options) {
             return new EcoreReference(name, type, kind, options);
         }
 

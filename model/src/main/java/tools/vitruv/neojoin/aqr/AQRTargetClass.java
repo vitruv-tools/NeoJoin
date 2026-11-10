@@ -98,21 +98,21 @@ public final class AQRTargetClass {
     /**
      * Adds a direct super class. Only used while building the AQR.
      */
-    void addSuperClass(AQRTargetClass superClass) {
+    public void addSuperClass(AQRTargetClass superClass) {
         superClasses.add(superClass);
     }
 
     /**
      * Adds a feature. Only used while building the AQR.
      */
-    void addFeature(AQRFeature feature) {
+    public void addFeature(AQRFeature feature) {
         features.add(feature);
     }
 
     /**
      * Replaces all features. Only used while building the AQR.
      */
-    void replaceFeatures(List<AQRFeature> newFeatures) {
+    public void replaceFeatures(List<AQRFeature> newFeatures) {
         features.clear();
         features.addAll(newFeatures);
     }
