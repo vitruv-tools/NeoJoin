@@ -100,6 +100,8 @@ create Foods {
 
 ## Related Repositories
 
+Tools that build on NeoJoin live in separate repositories; all repositories of the project are listed under the [neojoin topic](https://github.com/topics/neojoin) on GitHub.
+
 | Repository                                                                     | Content                                                                                                                                                                                                                                                                                  |
 |--------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [NeoJoin-for-VS-Code](https://github.com/vitruv-tools/NeoJoin-for-VS-Code)     | [VSCode](https://code.visualstudio.com/) extension for syntax highlighting, code completion, and live visualization of the resulting view type. It starts the language server built in this repository.                                                                                  |
