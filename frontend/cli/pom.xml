@@ -61,6 +61,9 @@
       <artifactId>org.eclipse.xtext</artifactId>
     </dependency>
 
+    <!-- The integration tests use the shared models of this module. Its files are copied by the execution
+         copy-shared-test-models (see below); the dependency documents the relation and makes the reactor build this
+         module first. -->
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>tools.vitruv.neojoin.test-resources</artifactId>
@@ -107,24 +110,34 @@
               <includes>**/LICENSE*,**/NOTICE*,**/license*,**/notice*,**/COPYING*,about.html,about.ini,about.mappings,about.properties,about_files/**</includes>
             </configuration>
           </execution>
-          <execution>
-            <id>unpack-test-resources</id>
-            <phase>generate-test-resources</phase>
-            <goals>
-              <goal>unpack-dependencies</goal>
-            </goals>
-            <configuration>
-              <includeArtifactIds>tools.vitruv.neojoin.test-resources</includeArtifactIds>
-              <includes>models/**,instances/**</includes>
-              <outputDirectory>${project.build.testOutputDirectory}</outputDirectory>
-            </configuration>
-          </execution>
         </executions>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-resources-plugin</artifactId>
         <executions>
+          <!-- The integration tests need the shared test models as files (the model path is a list of directories). They are
+               copied from the test-resources module, not unpacked from its jar: the jar does not exist in a build that stops
+               before the package phase (mvn test), and the dependency plugin cannot unpack the classes directory (MDEP-98). -->
+          <execution>
+            <id>copy-shared-test-models</id>
+            <phase>generate-test-resources</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.testOutputDirectory}</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${maven.multiModuleProjectDirectory}/test-resources/src/main/resources</directory>
+                  <includes>
+                    <include>models/**</include>
+                    <include>instances/**</include>
+                  </includes>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
           <execution>
             <id>copy-third-party-licenses</id>
             <phase>prepare-package</phase>
