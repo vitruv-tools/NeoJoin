@@ -36,6 +36,8 @@
 
   <!-- Properties -->
   <properties>
+    <!-- must be a valid Java name, so modules with a hyphen in the artifact ID override it -->
+    <automatic.module.name>${project.artifactId}</automatic.module.name>
     <maven.compiler.release>21</maven.compiler.release>
     <maven.compiler.source>21</maven.compiler.source>
     <maven.compiler.target>21</maven.compiler.target>
@@ -215,6 +217,20 @@
         </plugin>
       </plugins>
     </pluginManagement>
+    <plugins>
+      <!-- stable module name for projects that use the jars on the module path -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifestEntries>
+              <Automatic-Module-Name>${automatic.module.name}</Automatic-Module-Name>
+            </manifestEntries>
+          </archive>
+        </configuration>
+      </plugin>
+    </plugins>
   </build>
 
   <!-- Optional style check, see the section "Code Style" in readme.md. Runs maven-checkstyle-plugin (version,

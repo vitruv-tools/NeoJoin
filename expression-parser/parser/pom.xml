@@ -14,6 +14,9 @@
   <name>Expression Parser Logic</name>
   <description>Parser from Xbase expressions to reference operators.</description>
 
+  <properties>
+    <automatic.module.name>tools.vitruv.neojoin.expression_parser.parser</automatic.module.name>
+  </properties>
 
   <dependencies>
     <dependency>
