@@ -180,6 +180,11 @@
   <build>
     <pluginManagement>
       <plugins>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>license-maven-plugin</artifactId>
+          <version>2.7.1</version>
+        </plugin>
         <!-- Xtext 2.43+ requires Java 21, but model, language and ide must stay on Java 17.
         The parent POM pins 2.43.0, so the Xtext tooling is pinned back to 2.42.0 here. -->
         <plugin>
