@@ -107,9 +107,9 @@ public class Main implements Callable<Integer> {
         } catch (IllegalArgumentException ex) {
             printError("Invalid meta-model path: %s", ex.getMessage());
         } catch (TransformatorException e) {
-            var source = e.getSourceLocation();
+            var source = e.getSourceElement();
             if (source != null) {
-                printError("%s (%s)", e.getMessage(), source.display());
+                printError("%s (%s)", e.getMessage(), SourceLocation.from(source).display());
             } else {
                 printError(e.getMessage());
             }

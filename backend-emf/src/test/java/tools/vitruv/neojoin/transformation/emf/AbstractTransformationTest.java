@@ -20,8 +20,8 @@ import tools.vitruv.neojoin.Parser;
 import tools.vitruv.neojoin.ast.AstPackage;
 import tools.vitruv.neojoin.common.EMFUtils;
 import tools.vitruv.neojoin.generation.MetaModelGenerator;
-import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
 import tools.vitruv.neojoin.model.AQR;
+import tools.vitruv.neojoin.model.ExpressionInterpreter;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -140,7 +140,7 @@ public abstract class AbstractTransformationTest {
         var aqr = internalParseAQR(query);
         var targetMetaModel = new MetaModelGenerator(aqr).generate().pack();
         return new Transformator(
-            getInjector().getInstance(ExpressionHelper.class),
+            getInjector().getInstance(ExpressionInterpreter.class),
             aqr,
             targetMetaModel,
             instanceModelRegistry,

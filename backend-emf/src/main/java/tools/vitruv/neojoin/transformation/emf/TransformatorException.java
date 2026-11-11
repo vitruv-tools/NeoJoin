@@ -1,7 +1,7 @@
 package tools.vitruv.neojoin.transformation.emf;
 
+import org.eclipse.emf.ecore.EObject;
 import org.jspecify.annotations.Nullable;
-import tools.vitruv.neojoin.SourceLocation;
 
 /**
  * Thrown for user caused errors during transformation. This includes:
@@ -13,9 +13,9 @@ import tools.vitruv.neojoin.SourceLocation;
  */
 public class TransformatorException extends RuntimeException {
 
-    private final @Nullable SourceLocation source;
+    private final @Nullable EObject source;
 
-    public TransformatorException(String message, @Nullable SourceLocation source) {
+    public TransformatorException(String message, @Nullable EObject source) {
         super("Failed to transform models: " + message);
         this.source = source;
     }
@@ -24,7 +24,13 @@ public class TransformatorException extends RuntimeException {
         this(message, null);
     }
 
-    public @Nullable SourceLocation getSourceLocation() {
+    /**
+     * Returns the element of the query that caused the error, for example the expression that failed to evaluate.
+     * The caller can map it to a location in the query file.
+     *
+     * @return the element of the query, or {@code null} if the error cannot be attributed to one
+     */
+    public @Nullable EObject getSourceElement() {
         return source;
     }
 

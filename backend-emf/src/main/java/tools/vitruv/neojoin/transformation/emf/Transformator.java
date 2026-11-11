@@ -9,12 +9,11 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.jspecify.annotations.Nullable;
-import tools.vitruv.neojoin.Formatting;
 import tools.vitruv.neojoin.common.TypeCasts;
-import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
 import tools.vitruv.neojoin.model.AQR;
 import tools.vitruv.neojoin.model.AQRFeature;
 import tools.vitruv.neojoin.model.AQRTargetClass;
+import tools.vitruv.neojoin.model.ExpressionInterpreter;
 import tools.vitruv.neojoin.transformation.emf.source.GroupingSource;
 import tools.vitruv.neojoin.transformation.emf.source.InstanceSourceFactory;
 
@@ -34,7 +33,7 @@ import static tools.vitruv.neojoin.common.Assertions.fail;
  */
 public class Transformator {
 
-    private final ExpressionHelper expressionHelper;
+    private final ExpressionInterpreter expressionInterpreter;
     private final AQR aqr;
     private final EPackage targetMetaModel;
     private final InstanceSourceFactory instanceSourceFactory;
@@ -48,21 +47,21 @@ public class Transformator {
      * Creates a new transformator for transforming the given source instance models into an instance of the given
      * target meta-model based on the given query.
      *
-     * @param expressionHelper     for evaluating feature expressions and conditions
-     * @param aqr                  query representation
-     * @param targetMetaModel      target meta-model that corresponds to the given query representation
-     * @param sourceInstanceModels map from {@link EPackage package} to the corresponding instance model
-     *                             {@link Resource resource}
-     * @param parameters           map from parameter name to parameter value
+     * @param expressionInterpreter for evaluating feature expressions and conditions
+     * @param aqr                   query representation
+     * @param targetMetaModel       target meta-model that corresponds to the given query representation
+     * @param sourceInstanceModels  map from {@link EPackage package} to the corresponding instance model
+     *                              {@link Resource resource}
+     * @param parameters            map from parameter name to parameter value
      */
     public Transformator(
-        ExpressionHelper expressionHelper,
+        ExpressionInterpreter expressionInterpreter,
         AQR aqr,
         EPackage targetMetaModel,
         Map<EPackage, Resource> sourceInstanceModels,
         Map<String, Object> parameters
     ) {
-        this.expressionHelper = expressionHelper;
+        this.expressionInterpreter = expressionInterpreter;
         this.aqr = aqr;
         this.targetMetaModel = targetMetaModel;
         this.instanceSourceFactory = new InstanceSourceFactory(sourceInstanceModels);
@@ -99,16 +98,13 @@ public class Transformator {
         );
         root = roots.getFirst();
 
-        // create other instances
-        aqr.classes().stream()
-            .filter(target -> target != aqr.root())
-            .filter(target -> !target.isAbstract())
-            .forEach(target -> {
-                var instances = transformTargetClass(target);
-                var rootRef = root.eClass()
-                    .getEStructuralFeature(Formatting.formatRootReferenceName(target.name()));
-                root.eSet(rootRef, instances);
-            });
+        // create other instances and store them in the root instance
+        for (var feature : aqr.root().features()) {
+            if (feature instanceof AQRFeature.Reference rootRef && rootRef.kind() instanceof AQRFeature.Kind.Generate) {
+                var instances = transformTargetClass(rootRef.type());
+                root.eSet(root.eClass().getEStructuralFeature(rootRef.name()), instances);
+            }
+        }
 
         // phase 2: populate instances
         delayedActions.forEach(Runnable::run);
@@ -129,7 +125,7 @@ public class Transformator {
         if (targetClass.source() == null) { // no source -> create a single instance
             return List.of(createTransformedInstance(targetClass, clazz));
         } else {
-            var evaluator = new ExpressionEvaluator(expressionHelper, targetClass.source(), parameters);
+            var evaluator = new ExpressionEvaluator(expressionInterpreter, targetClass.source(), parameters);
             var instanceSource = instanceSourceFactory.create(targetClass.source(), evaluator);
 
             if (targetClass.source().groupingExpressions().isEmpty()) { // no grouping
@@ -182,7 +178,7 @@ public class Transformator {
      */
     private EObject createTransformedInstance(AQRTargetClass targetClass, EClass clazz) {
         check(targetClass.source() == null);
-        var context = ExpressionEvaluator.createContext(expressionHelper);
+        var context = ExpressionEvaluator.createContext(expressionInterpreter);
         return createTransformedInstance(targetClass, clazz, null, Stream.of(), context);
     }
 

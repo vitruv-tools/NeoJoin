@@ -4,7 +4,9 @@ import com.google.inject.Binder;
 import com.google.inject.name.Names;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.xtext.xbase.scoping.batch.ImplicitlyImportedFeatures;
+import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
 import tools.vitruv.neojoin.jvmmodel.ImplicitExpressionImports;
+import tools.vitruv.neojoin.model.ExpressionInterpreter;
 
 /**
  * Xtext service registry, see <a href="https://eclipse.dev/Xtext/documentation/302_configuration.html#dependency-injection">Xtext documentation</a>.
@@ -14,6 +16,10 @@ public class NeoJoinRuntimeModule extends AbstractNeoJoinRuntimeModule {
 
     public Class<? extends ImplicitlyImportedFeatures> bindImplicitlyImportedTypes() {
         return ImplicitExpressionImports.class;
+    }
+
+    public Class<? extends ExpressionInterpreter> bindExpressionInterpreter() {
+        return ExpressionHelper.class;
     }
 
     public static class Dynamic extends NeoJoinRuntimeModule {

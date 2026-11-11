@@ -12,8 +12,8 @@ import org.eclipse.xtext.xbase.compiler.DisableCodeGenerationAdapter;
 import org.eclipse.xtext.xbase.jvmmodel.IJvmDeclaredTypeAcceptor;
 import org.eclipse.xtext.xbase.jvmmodel.JvmTypeReferenceBuilder;
 import org.eclipse.xtext.xbase.jvmmodel.JvmTypesBuilder;
+import org.eclipse.xtext.xbase.scoping.batch.IFeatureNames;
 import org.jspecify.annotations.Nullable;
-import tools.vitruv.neojoin.Constants;
 import tools.vitruv.neojoin.QueryModelExpressionTypeConfiguration;
 import tools.vitruv.neojoin.ast.CollectionParameterType;
 import tools.vitruv.neojoin.ast.ConcreteBody;
@@ -205,7 +205,7 @@ public class QueryModelInferrer {
 
         return op -> {
             if (AstUtils.getAllFroms(source).count() <= 1 && source.getFrom().getAlias() == null) {
-                addFromAliasToParameters(op, source.getFrom(), Constants.ExpressionSelfReference, isGrouping);
+                addFromAliasToParameters(op, source.getFrom(), IFeatureNames.IT.toString(), isGrouping);
             }
 
             Iterable<From> allFroms = () -> AstUtils.getAllFroms(source).iterator();
@@ -243,15 +243,14 @@ public class QueryModelInferrer {
     }
 
     /**
-     * Returns a lambda that creates a single parameter named {@link Constants#ExpressionSelfReference} for the given
-     * class.
+     * Returns a lambda that creates a single parameter named {@link IFeatureNames#IT} for the given class.
      *
      * @param source source element
      * @return lambda that creates the parameter
      */
     private Consumer<JvmOperation> paramsForClass(EClass clazz, EObject source) {
         return op -> {
-            addParam(op, source, Constants.ExpressionSelfReference, sourceTypes.getClass(clazz), false);
+            addParam(op, source, IFeatureNames.IT.toString(), sourceTypes.getClass(clazz), false);
 
             //add declared parameters
             for (var param : viewType.getParameters()) {
