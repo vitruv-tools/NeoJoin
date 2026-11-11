@@ -7,7 +7,6 @@ import static tools.vitruv.neojoin.frontend.cli.integration.Utils.getResource;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -20,8 +19,7 @@ import tools.vitruv.neojoin.frontend.cli.Main;
 class TransformErrorTest {
 
     @Test
-    void failingExpressionIsReportedWithItsLocationInTheQuery(@TempDir Path directory)
-        throws IOException, URISyntaxException {
+    void failingExpressionIsReportedWithItsLocationInTheQuery(@TempDir Path directory) throws IOException {
         var query = directory.resolve("failing.nj");
         Files.writeString(query, """
             export failing to "http://example.org/failing"
@@ -36,8 +34,8 @@ class TransformErrorTest {
         var originalErr = System.err;
         var err = new ByteArrayOutputStream();
         int exitCode;
-        try {
-            System.setErr(new PrintStream(err, true));
+        try (var errStream = new PrintStream(err, true)) {
+            System.setErr(errStream);
             exitCode = new CommandLine(new Main()).execute(
                 "--meta-model-path=" + getResource(Utils.MODELS),
                 "--instance-model-path=" + getResource(Utils.INSTANCES),

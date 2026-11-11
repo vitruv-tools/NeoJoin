@@ -20,7 +20,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -73,10 +72,10 @@ class EMFUtilsTest {
 
     @Test
     void packagesAndClassifiersIncludeSubpackages() {
-        assertThat(EMFUtils.getAllEPackages(root).collect(Collectors.toList())).containsExactly(root, sub);
-        assertThat(EMFUtils.getAllEClassifiers(root).collect(Collectors.toList()))
+        assertThat(EMFUtils.getAllEPackages(root).toList()).containsExactly(root, sub);
+        assertThat(EMFUtils.getAllEClassifiers(root).toList())
             .containsExactly(animal, dataType, dog, puppy);
-        assertThat(EMFUtils.getAllEDataTypes(root).collect(Collectors.toList())).containsExactly(dataType);
+        assertThat(EMFUtils.getAllEDataTypes(root).toList()).containsExactly(dataType);
     }
 
     @Test
@@ -85,14 +84,14 @@ class EMFUtilsTest {
         assertThatThrownBy(() -> EMFUtils.getAllEPackages(resource)).isInstanceOf(NoSuchElementException.class);
 
         resource.getContents().add(root);
-        assertThat(EMFUtils.getAllEPackages(resource).collect(Collectors.toList())).containsExactly(root, sub);
+        assertThat(EMFUtils.getAllEPackages(resource).toList()).containsExactly(root, sub);
     }
 
     @Test
     void rootPackageAndFullyQualifiedNameFollowTheSuperPackages() {
         assertThat(EMFUtils.getRootPackage(sub)).isSameAs(root);
         assertThat(EMFUtils.getRootPackage(root)).isSameAs(root);
-        assertThat(EMFUtils.getFullyQualifiedNameAsStream(sub).collect(Collectors.toList()))
+        assertThat(EMFUtils.getFullyQualifiedNameAsStream(sub).toList())
             .containsExactly("root", "sub");
     }
 
@@ -104,9 +103,9 @@ class EMFUtilsTest {
         resource.getContents().add(dogInstance);
         resource.getContents().add(puppyInstance);
 
-        assertThat(EMFUtils.getAllInstances(resource, dog).collect(Collectors.toList()))
+        assertThat(EMFUtils.getAllInstances(resource, dog).toList())
             .containsExactly(dogInstance, puppyInstance);
-        assertThat(EMFUtils.getAllDirectInstances(resource, dog).collect(Collectors.toList()))
+        assertThat(EMFUtils.getAllDirectInstances(resource, dog).toList())
             .containsExactly(dogInstance);
     }
 
