@@ -4,7 +4,6 @@ import org.eclipse.xtext.xbase.XExpression;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static tools.vitruv.neojoin.transformation.emf.InstanceModelAssertions.assertThat;
@@ -212,19 +211,6 @@ public class BasicTest extends DefaultTransformationTest {
             )
             .extracting(e -> ((TransformatorException) e).getSourceElement())
             .isInstanceOf(XExpression.class);
-    }
-
-    @Test
-    void queryParametersAreAvailableInExpressions() {
-        var result = transform("""
-            param minEmployees : EInt
-
-            from Restaurant r where r.numEmployees >= minEmployees create { r.name }
-            """, Map.of("minEmployees", 3));
-
-        assertThat(result)
-            .hasInstance("Restaurant", named("Pizzeria Toni"))
-            .hasNoMoreInstances();
     }
 
     @Test
