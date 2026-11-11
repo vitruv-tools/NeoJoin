@@ -1,6 +1,6 @@
-package tools.vitruv.neojoin.utils;
+package tools.vitruv.neojoin.common;
 
-import static tools.vitruv.neojoin.utils.Assertions.check;
+import static tools.vitruv.neojoin.common.Assertions.check;
 
 import java.io.IOException;
 import java.util.ArrayList;

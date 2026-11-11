@@ -4,9 +4,9 @@ import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EStructuralFeature;
-import tools.vitruv.neojoin.utils.EMFUtils;
+import tools.vitruv.neojoin.common.EMFUtils;
 
-import static tools.vitruv.neojoin.utils.Assertions.check;
+import static tools.vitruv.neojoin.common.Assertions.check;
 
 public interface PackageRegistryUtils extends HasPackageRegistry {
 

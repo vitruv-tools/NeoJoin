@@ -12,14 +12,14 @@ import org.eclipse.xtext.common.types.JvmTypeReference;
 import org.eclipse.xtext.common.types.JvmVisibility;
 import org.eclipse.xtext.common.types.TypesFactory;
 import org.eclipse.xtext.xbase.jvmmodel.JvmTypeReferenceBuilder;
-import tools.vitruv.neojoin.utils.EMFUtils;
+import tools.vitruv.neojoin.common.EMFUtils;
 
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import static tools.vitruv.neojoin.utils.Assertions.check;
-import static tools.vitruv.neojoin.utils.Assertions.fail;
+import static tools.vitruv.neojoin.common.Assertions.check;
+import static tools.vitruv.neojoin.common.Assertions.fail;
 
 /**
  * Generate a jvm model for all available source meta-models to allow Xbase expressions to reference their attributes.

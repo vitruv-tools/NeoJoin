@@ -5,7 +5,7 @@ import org.eclipse.xtext.validation.Issue;
 import org.junit.jupiter.api.Test;
 import tools.vitruv.neojoin.AbstractIntegrationTest;
 import tools.vitruv.neojoin.ast.ViewTypeDefinition;
-import tools.vitruv.neojoin.utils.Pair;
+import tools.vitruv.neojoin.common.Pair;
 
 import java.util.List;
 

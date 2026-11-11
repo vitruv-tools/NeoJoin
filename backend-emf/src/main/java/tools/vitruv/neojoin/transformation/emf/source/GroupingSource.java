@@ -4,11 +4,11 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.xtext.xbase.XExpression;
 import org.jspecify.annotations.Nullable;
 
-import static tools.vitruv.neojoin.utils.Enumerated.enumerate;
+import static tools.vitruv.neojoin.common.Enumerated.enumerate;
+import tools.vitruv.neojoin.common.Pair;
+import tools.vitruv.neojoin.common.Utils;
 import tools.vitruv.neojoin.transformation.emf.ExpressionEvaluator;
 import tools.vitruv.neojoin.transformation.emf.InstanceTuple;
-import tools.vitruv.neojoin.utils.Pair;
-import tools.vitruv.neojoin.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
-import static tools.vitruv.neojoin.utils.Assertions.check;
+import static tools.vitruv.neojoin.common.Assertions.check;
 
 /**
  * Mimics the {@link InstanceSource instance source interface} for a {@code group by} clause. However, this class does

@@ -3,8 +3,8 @@ package tools.vitruv.neojoin.transformation.emf.source;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
+import tools.vitruv.neojoin.common.EMFUtils;
 import tools.vitruv.neojoin.transformation.emf.InstanceTuple;
-import tools.vitruv.neojoin.utils.EMFUtils;
 
 import java.util.stream.Stream;
 

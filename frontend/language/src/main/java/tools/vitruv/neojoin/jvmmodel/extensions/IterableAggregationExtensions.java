@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import static tools.vitruv.neojoin.utils.Assertions.require;
+import static tools.vitruv.neojoin.common.Assertions.require;
 
 class IterableAggregationExtensions {
 

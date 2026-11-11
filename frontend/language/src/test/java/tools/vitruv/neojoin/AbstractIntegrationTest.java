@@ -20,9 +20,9 @@ import org.junit.jupiter.api.BeforeEach;
 import tools.vitruv.neojoin.aqr.AQRBuilder;
 import tools.vitruv.neojoin.ast.AstPackage;
 import tools.vitruv.neojoin.ast.ViewTypeDefinition;
+import tools.vitruv.neojoin.common.Pair;
 import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
 import tools.vitruv.neojoin.model.AQR;
-import tools.vitruv.neojoin.utils.Pair;
 
 import java.io.IOException;
 import java.util.List;

@@ -5,6 +5,8 @@ import org.eclipse.emf.ecore.EObject;
 import org.jspecify.annotations.Nullable;
 import tools.vitruv.neojoin.ast.Query;
 import tools.vitruv.neojoin.ast.ViewTypeDefinition;
+import tools.vitruv.neojoin.common.EMFUtils;
+import tools.vitruv.neojoin.common.Pair;
 import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
 
 import java.util.ArrayList;

@@ -14,7 +14,7 @@ import org.eclipse.emf.ecore.impl.EPackageRegistryImpl;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
-import static tools.vitruv.neojoin.utils.Assertions.check;
+import static tools.vitruv.neojoin.common.Assertions.check;
 
 public class Utils {
 

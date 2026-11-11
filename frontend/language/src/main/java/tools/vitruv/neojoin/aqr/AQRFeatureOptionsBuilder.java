@@ -15,14 +15,14 @@ import tools.vitruv.neojoin.ast.MultiplicityMany;
 import tools.vitruv.neojoin.ast.MultiplicityManyAtLeast;
 import tools.vitruv.neojoin.ast.MultiplicityManyRequired;
 import tools.vitruv.neojoin.ast.MultiplicityOptional;
+import tools.vitruv.neojoin.common.Pair;
 import tools.vitruv.neojoin.model.AQRFeature;
-import tools.vitruv.neojoin.utils.Pair;
 
 import java.util.List;
 import java.util.function.Function;
 
 import static tools.vitruv.neojoin.aqr.AQRInvariantViolatedException.invariant;
-import static tools.vitruv.neojoin.utils.Assertions.fail;
+import static tools.vitruv.neojoin.common.Assertions.fail;
 
 /**
  * Infers the {@link AQRFeature.Options options} of a feature based on its modifiers.

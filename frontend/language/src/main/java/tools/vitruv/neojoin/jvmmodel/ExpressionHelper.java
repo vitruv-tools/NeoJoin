@@ -30,9 +30,9 @@ import org.eclipse.xtext.xbase.typesystem.references.LightweightTypeReference;
 import org.eclipse.xtext.xbase.typesystem.references.UnknownTypeReference;
 import org.jspecify.annotations.Nullable;
 import tools.vitruv.neojoin.Constants;
+import tools.vitruv.neojoin.common.EMFUtils;
+import tools.vitruv.neojoin.common.Result;
 import tools.vitruv.neojoin.model.AQRFrom;
-import tools.vitruv.neojoin.utils.EMFUtils;
-import tools.vitruv.neojoin.utils.Result;
 
 import java.util.Collections;
 import java.util.Iterator;
@@ -43,7 +43,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static tools.vitruv.neojoin.utils.Assertions.check;
+import static tools.vitruv.neojoin.common.Assertions.check;
 
 /**
  * Utilities for handling {@link XExpression Xbase expressions}.

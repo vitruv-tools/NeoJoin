@@ -22,8 +22,8 @@ import tools.vitruv.neojoin.collector.PackageModelCollector;
 import tools.vitruv.neojoin.generation.MetaModelGenerator;
 import tools.vitruv.neojoin.transformation.emf.Transformator;
 import tools.vitruv.neojoin.transformation.emf.TransformatorException;
-import tools.vitruv.neojoin.utils.EMFUtils;
-import tools.vitruv.neojoin.utils.Utils;
+import tools.vitruv.neojoin.common.EMFUtils;
+import tools.vitruv.neojoin.common.Utils;
 
 import java.io.IOException;
 import java.nio.file.Files;

@@ -19,7 +19,7 @@ import tools.vitruv.neojoin.model.AQR;
 
 import java.util.List;
 
-import static tools.vitruv.neojoin.utils.Assertions.require;
+import static tools.vitruv.neojoin.common.Assertions.require;
 
 /**
  * Small wrapper class for parsing a given file, validating it and building the corresponding {@link AQR}.

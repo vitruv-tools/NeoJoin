@@ -10,13 +10,13 @@ import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.jspecify.annotations.Nullable;
 import tools.vitruv.neojoin.Formatting;
+import tools.vitruv.neojoin.common.TypeCasts;
 import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
 import tools.vitruv.neojoin.model.AQR;
 import tools.vitruv.neojoin.model.AQRFeature;
 import tools.vitruv.neojoin.model.AQRTargetClass;
 import tools.vitruv.neojoin.transformation.emf.source.GroupingSource;
 import tools.vitruv.neojoin.transformation.emf.source.InstanceSourceFactory;
-import tools.vitruv.neojoin.utils.TypeCasts;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,8 +24,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-import static tools.vitruv.neojoin.utils.Assertions.check;
-import static tools.vitruv.neojoin.utils.Assertions.fail;
+import static tools.vitruv.neojoin.common.Assertions.check;
+import static tools.vitruv.neojoin.common.Assertions.fail;
 
 /**
  * Transforms the given source instance models based on the given {@link AQR query}.

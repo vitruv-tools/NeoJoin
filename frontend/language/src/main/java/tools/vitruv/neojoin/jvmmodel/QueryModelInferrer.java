@@ -29,8 +29,8 @@ import tools.vitruv.neojoin.utils.AstUtils;
 import java.util.List;
 import java.util.function.Consumer;
 
-import static tools.vitruv.neojoin.utils.Assertions.check;
-import static tools.vitruv.neojoin.utils.Enumerated.enumerate;
+import static tools.vitruv.neojoin.common.Assertions.check;
+import static tools.vitruv.neojoin.common.Enumerated.enumerate;
 
 /**
  * Embeds all expression of the given query into methods to define available local variables and the expected return

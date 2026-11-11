@@ -1,10 +1,10 @@
-package tools.vitruv.neojoin.utils;
+package tools.vitruv.neojoin.common;
 
 import java.util.Iterator;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import tools.vitruv.neojoin.utils.Enumerated.IndexedValue;
+import tools.vitruv.neojoin.common.Enumerated.IndexedValue;
 
 public final class Enumerated<T> implements Iterable<IndexedValue<T>> {
 

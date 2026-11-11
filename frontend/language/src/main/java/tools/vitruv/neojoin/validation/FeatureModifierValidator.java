@@ -19,7 +19,7 @@ import tools.vitruv.neojoin.utils.AstUtils;
 
 import java.util.stream.Collectors;
 
-import static tools.vitruv.neojoin.utils.Assertions.fail;
+import static tools.vitruv.neojoin.common.Assertions.fail;
 
 public class FeatureModifierValidator extends ComposableValidator {
 

@@ -1,9 +1,9 @@
-package tools.vitruv.neojoin.utils;
+package tools.vitruv.neojoin.common;
 
 import com.google.common.primitives.Primitives;
 
-import static tools.vitruv.neojoin.utils.Assertions.check;
-import static tools.vitruv.neojoin.utils.Assertions.fail;
+import static tools.vitruv.neojoin.common.Assertions.check;
+import static tools.vitruv.neojoin.common.Assertions.fail;
 
 /**
  * Contains static methods for casting java types.

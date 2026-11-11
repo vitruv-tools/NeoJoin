@@ -1,12 +1,12 @@
 
-package tools.vitruv.neojoin.utils;
+package tools.vitruv.neojoin.common;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static tools.vitruv.neojoin.utils.Enumerated.enumerate;
-import static tools.vitruv.neojoin.utils.Enumerated.enumerated;
+import static tools.vitruv.neojoin.common.Enumerated.enumerate;
+import static tools.vitruv.neojoin.common.Enumerated.enumerated;
 
 import java.util.List;
 import java.util.NoSuchElementException;

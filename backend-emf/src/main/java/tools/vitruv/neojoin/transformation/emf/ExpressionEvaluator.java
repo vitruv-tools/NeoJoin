@@ -4,10 +4,10 @@ import org.eclipse.xtext.xbase.XExpression;
 import org.eclipse.xtext.xbase.interpreter.IEvaluationContext;
 import org.jspecify.annotations.Nullable;
 import tools.vitruv.neojoin.SourceLocation;
+import tools.vitruv.neojoin.common.Result;
 import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
 import tools.vitruv.neojoin.model.AQRFrom;
 import tools.vitruv.neojoin.model.AQRSource;
-import tools.vitruv.neojoin.utils.Result;
 
 import java.util.Iterator;
 import java.util.Map;

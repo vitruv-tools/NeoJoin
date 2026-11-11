@@ -18,10 +18,10 @@ import org.junit.jupiter.api.BeforeEach;
 import tools.vitruv.neojoin.NeoJoinStandaloneSetup;
 import tools.vitruv.neojoin.Parser;
 import tools.vitruv.neojoin.ast.AstPackage;
+import tools.vitruv.neojoin.common.EMFUtils;
 import tools.vitruv.neojoin.generation.MetaModelGenerator;
 import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
 import tools.vitruv.neojoin.model.AQR;
-import tools.vitruv.neojoin.utils.EMFUtils;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import static tools.vitruv.neojoin.utils.Assertions.check;
+import static tools.vitruv.neojoin.common.Assertions.check;
 
 @SuppressWarnings("NotNullFieldNotInitialized")
 public abstract class AbstractTransformationTest {

@@ -2,8 +2,8 @@ package tools.vitruv.neojoin.transformation.emf;
 
 import org.eclipse.emf.ecore.EObject;
 import org.jspecify.annotations.Nullable;
+import tools.vitruv.neojoin.common.Pair;
 import tools.vitruv.neojoin.model.AQRTargetClass;
-import tools.vitruv.neojoin.utils.Pair;
 
 import java.util.ArrayList;
 import java.util.HashMap;

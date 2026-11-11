@@ -22,6 +22,8 @@ import tools.vitruv.neojoin.aqr.AQRBuilder;
 import tools.vitruv.neojoin.aqr.AQRInvariantViolatedException;
 import tools.vitruv.neojoin.ast.Query;
 import tools.vitruv.neojoin.ast.ViewTypeDefinition;
+import tools.vitruv.neojoin.common.EMFUtils;
+import tools.vitruv.neojoin.common.Mutable;
 import tools.vitruv.neojoin.generation.MetaModelGenerator;
 import tools.vitruv.neojoin.generation.ModelInfo;
 import tools.vitruv.neojoin.ide.generation.ViewTypeGenerationService;
@@ -31,8 +33,6 @@ import tools.vitruv.neojoin.ide.visualization.VisualizationService;
 import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
 import tools.vitruv.neojoin.model.AQR;
 import tools.vitruv.neojoin.utils.AstUtils;
-import tools.vitruv.neojoin.utils.EMFUtils;
-import tools.vitruv.neojoin.utils.Mutable;
 
 import java.io.IOException;
 import java.util.List;
@@ -46,8 +46,8 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static tools.vitruv.neojoin.utils.Assertions.check;
-import static tools.vitruv.neojoin.utils.Assertions.fail;
+import static tools.vitruv.neojoin.common.Assertions.check;
+import static tools.vitruv.neojoin.common.Assertions.fail;
 
 public class NeoJoinIdeServer extends LanguageServerImpl implements VisualizationService, ViewTypeGenerationService {
 

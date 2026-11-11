@@ -203,6 +203,7 @@ The rules and their categories are documented in the [conformance validator read
 |--------------------------|------------------------------------------------------------------------------------|
 | docs                     | Project documentation                                                              |
 | **backend-emf**          | EMF-based transformation engine to derive instances of the view based on the query |
+| **common**               | Generic helpers shared by all modules (assertions, pairs, EMF utilities)           |
 | **expression-parser**    | Parser for the reference expressions of features                                   |
 | **conformancevalidator** | Rule-based check whether a generated view type conforms to a reference meta-model  |
 | frontend/**cli**         | CLI interface to execute meta-model generation and instance model transformation   |
