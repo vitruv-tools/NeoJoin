@@ -4,6 +4,7 @@ import org.eclipse.emf.ecore.EObject;
 import tools.vitruv.neojoin.transformation.emf.predicates.InstancePredicates;
 
 import java.util.List;
+import java.util.Map;
 
 public abstract class DefaultTransformationTest extends AbstractTransformationTest implements InstancePredicates {
 
@@ -18,13 +19,17 @@ public abstract class DefaultTransformationTest extends AbstractTransformationTe
     }
 
     protected EObject transform(String query) {
+        return transform(query, Map.of());
+    }
+
+    protected EObject transform(String query, Map<String, Object> parameters) {
         return internalTransform("""
             export package to "http://example.com"
 
             import "http://example.org/restaurant"
             import "http://example.org/reviewpage"
 
-            """ + query);
+            """ + query, parameters);
     }
 
 }

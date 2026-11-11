@@ -137,6 +137,10 @@ public abstract class AbstractTransformationTest {
     }
 
     protected EObject internalTransform(String query) {
+        return internalTransform(query, Map.of());
+    }
+
+    protected EObject internalTransform(String query, Map<String, Object> parameters) {
         var aqr = internalParseAQR(query);
         var targetMetaModel = new MetaModelGenerator(aqr).generate().pack();
         return new Transformator(
@@ -144,7 +148,7 @@ public abstract class AbstractTransformationTest {
             aqr,
             targetMetaModel,
             instanceModelRegistry,
-            Map.of()
+            parameters
         ).transform();
     }
 
