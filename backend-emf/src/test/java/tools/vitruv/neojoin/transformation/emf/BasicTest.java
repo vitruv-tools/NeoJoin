@@ -1,5 +1,6 @@
 package tools.vitruv.neojoin.transformation.emf;
 
+import org.eclipse.xtext.xbase.XExpression;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -168,6 +169,33 @@ public class BasicTest extends DefaultTransformationTest {
             .hasInstance("TastyFood", named("Maultaschen"))
             .hasInstance("TastyFood", named("Fanta"))
             .hasNoMoreInstances();
+    }
+
+    @Test
+    void failingExpressionReportsTheExpressionAsSource() {
+        assertThatThrownBy(() ->
+            transform("""
+                from Restaurant r create {
+                    ratio := r.numEmployees / 0
+                }
+                """)
+        ).isInstanceOf(TransformatorException.class)
+            .hasMessageStartingWith(
+                "Failed to transform models: error during expression evaluation: [ArithmeticException]"
+            )
+            .extracting(e -> ((TransformatorException) e).getSourceElement())
+            .isInstanceOf(XExpression.class);
+    }
+
+    @Test
+    void failingConditionReportsTheConditionAsSource() {
+        assertThatThrownBy(() ->
+            transform("""
+                from Restaurant r where r.numEmployees / 0 > 1 create { r.name }
+                """)
+        ).isInstanceOf(TransformatorException.class)
+            .extracting(e -> ((TransformatorException) e).getSourceElement())
+            .isInstanceOf(XExpression.class);
     }
 
     @Test
