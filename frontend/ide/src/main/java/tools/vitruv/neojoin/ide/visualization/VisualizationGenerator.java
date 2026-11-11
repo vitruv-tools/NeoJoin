@@ -6,13 +6,13 @@ import org.eclipse.emf.ecore.EEnum;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EcorePackage;
 import org.jspecify.annotations.Nullable;
+import tools.vitruv.neojoin.common.EMFUtils;
 import tools.vitruv.neojoin.generation.ModelInfo;
 import tools.vitruv.neojoin.model.AQR;
 import tools.vitruv.neojoin.model.AQRImport;
-import tools.vitruv.neojoin.utils.EMFUtils;
 
-import static tools.vitruv.neojoin.utils.Enumerated.enumerated;
-import tools.vitruv.neojoin.utils.Pair;
+import static tools.vitruv.neojoin.common.Enumerated.enumerated;
+import tools.vitruv.neojoin.common.Pair;
 
 import java.util.Comparator;
 import java.util.HashSet;
@@ -20,8 +20,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static tools.vitruv.neojoin.common.Assertions.check;
 import static tools.vitruv.neojoin.ide.visualization.PlantUMLBuilder.Empty;
-import static tools.vitruv.neojoin.utils.Assertions.check;
 
 /**
  * Generates a PlantUML class diagram that corresponds to a given query. The generated diagram contains the

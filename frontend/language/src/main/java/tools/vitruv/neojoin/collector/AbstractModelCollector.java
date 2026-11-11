@@ -4,7 +4,7 @@ import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 
-import tools.vitruv.neojoin.utils.Utils;
+import tools.vitruv.neojoin.common.Utils;
 
 import java.io.IOException;
 import java.nio.file.FileSystem;

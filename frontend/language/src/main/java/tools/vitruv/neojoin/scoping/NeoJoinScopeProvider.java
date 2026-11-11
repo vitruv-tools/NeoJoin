@@ -23,9 +23,9 @@ import tools.vitruv.neojoin.ast.Join;
 import tools.vitruv.neojoin.ast.JoinFeatureCondition;
 import tools.vitruv.neojoin.ast.Source;
 import tools.vitruv.neojoin.ast.ViewTypeDefinition;
+import tools.vitruv.neojoin.common.EMFUtils;
 import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
 import tools.vitruv.neojoin.utils.AstUtils;
-import tools.vitruv.neojoin.utils.EMFUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -33,8 +33,8 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static tools.vitruv.neojoin.utils.Assertions.check;
-import static tools.vitruv.neojoin.utils.Assertions.fail;
+import static tools.vitruv.neojoin.common.Assertions.check;
+import static tools.vitruv.neojoin.common.Assertions.fail;
 
 /**
  * Defines which elements can be referenced in various positions. See <a href="https://eclipse.dev/Xtext/documentation/303_runtime_concepts.html#scoping">here</a>.

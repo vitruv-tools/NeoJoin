@@ -22,8 +22,8 @@ import tools.vitruv.neojoin.collector.PackageModelCollector;
 import tools.vitruv.neojoin.generation.MetaModelGenerator;
 import tools.vitruv.neojoin.transformation.emf.Transformator;
 import tools.vitruv.neojoin.transformation.emf.TransformatorException;
-import tools.vitruv.neojoin.utils.EMFUtils;
-import tools.vitruv.neojoin.utils.Utils;
+import tools.vitruv.neojoin.common.EMFUtils;
+import tools.vitruv.neojoin.common.Utils;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -107,9 +107,9 @@ public class Main implements Callable<Integer> {
         } catch (IllegalArgumentException ex) {
             printError("Invalid meta-model path: %s", ex.getMessage());
         } catch (TransformatorException e) {
-            var source = e.getSourceLocation();
+            var source = e.getSourceElement();
             if (source != null) {
-                printError("%s (%s)", e.getMessage(), source.display());
+                printError("%s (%s)", e.getMessage(), SourceLocation.from(source).display());
             } else {
                 printError(e.getMessage());
             }

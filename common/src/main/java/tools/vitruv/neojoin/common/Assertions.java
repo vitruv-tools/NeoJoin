@@ -1,4 +1,4 @@
-package tools.vitruv.neojoin.utils;
+package tools.vitruv.neojoin.common;
 
 import org.jetbrains.annotations.Contract;
 

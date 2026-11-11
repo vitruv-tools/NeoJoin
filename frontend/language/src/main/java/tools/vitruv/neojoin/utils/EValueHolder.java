@@ -6,7 +6,7 @@ import org.eclipse.xtext.EcoreUtil2;
 import org.jspecify.annotations.Nullable;
 import tools.vitruv.neojoin.jvmmodel.SourceModelInferrer;
 
-import static tools.vitruv.neojoin.utils.Assertions.require;
+import static tools.vitruv.neojoin.common.Assertions.require;
 
 /**
  * Can be used to store arbitrary values within {@link EObject EObjects}. See {@code EcoreSourceHolder} within

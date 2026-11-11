@@ -8,12 +8,12 @@ import tools.vitruv.neojoin.ast.JoinExpressionCondition;
 import tools.vitruv.neojoin.ast.JoinFeatureCondition;
 import tools.vitruv.neojoin.ast.JoinType;
 import tools.vitruv.neojoin.ast.Source;
+import tools.vitruv.neojoin.common.Utils;
 import tools.vitruv.neojoin.model.AQR;
 import tools.vitruv.neojoin.model.AQRFrom;
 import tools.vitruv.neojoin.model.AQRJoin;
 import tools.vitruv.neojoin.model.AQRSource;
 import tools.vitruv.neojoin.utils.AstUtils;
-import tools.vitruv.neojoin.utils.Utils;
 
 import java.util.List;
 import java.util.Objects;

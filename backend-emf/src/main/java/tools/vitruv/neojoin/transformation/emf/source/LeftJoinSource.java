@@ -1,9 +1,9 @@
 package tools.vitruv.neojoin.transformation.emf.source;
 
+import tools.vitruv.neojoin.common.Utils;
 import tools.vitruv.neojoin.model.AQRJoin;
 import tools.vitruv.neojoin.transformation.emf.ExpressionEvaluator;
 import tools.vitruv.neojoin.transformation.emf.InstanceTuple;
-import tools.vitruv.neojoin.utils.Utils;
 
 import java.util.stream.Stream;
 

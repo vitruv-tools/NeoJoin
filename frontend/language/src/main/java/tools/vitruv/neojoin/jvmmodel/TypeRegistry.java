@@ -10,7 +10,7 @@ import org.eclipse.xtext.common.types.JvmEnumerationType;
 import org.eclipse.xtext.common.types.JvmGenericType;
 import org.jspecify.annotations.Nullable;
 
-import static tools.vitruv.neojoin.utils.Assertions.check;
+import static tools.vitruv.neojoin.common.Assertions.check;
 
 /**
  * A registry that stores a mapping from Ecore source classes and enums to the generated corresponding JVM types.

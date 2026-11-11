@@ -17,7 +17,6 @@ import org.eclipse.xtext.common.types.JvmType;
 import org.eclipse.xtext.common.types.JvmVoid;
 import org.eclipse.xtext.common.types.util.TypeReferences;
 import org.eclipse.xtext.conversion.IValueConverterService;
-import org.eclipse.xtext.naming.QualifiedName;
 import org.eclipse.xtext.util.CancelIndicator;
 import org.eclipse.xtext.util.OnChangeEvictingCache;
 import org.eclipse.xtext.xbase.XAbstractFeatureCall;
@@ -29,13 +28,11 @@ import org.eclipse.xtext.xbase.typesystem.IBatchTypeResolver;
 import org.eclipse.xtext.xbase.typesystem.references.LightweightTypeReference;
 import org.eclipse.xtext.xbase.typesystem.references.UnknownTypeReference;
 import org.jspecify.annotations.Nullable;
-import tools.vitruv.neojoin.Constants;
-import tools.vitruv.neojoin.model.AQRFrom;
-import tools.vitruv.neojoin.utils.EMFUtils;
-import tools.vitruv.neojoin.utils.Result;
+import tools.vitruv.neojoin.common.EMFUtils;
+import tools.vitruv.neojoin.common.Result;
+import tools.vitruv.neojoin.model.ExpressionInterpreter;
 
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -43,7 +40,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static tools.vitruv.neojoin.utils.Assertions.check;
+import static tools.vitruv.neojoin.common.Assertions.check;
 
 /**
  * Utilities for handling {@link XExpression Xbase expressions}.
@@ -53,7 +50,7 @@ import static tools.vitruv.neojoin.utils.Assertions.check;
  * @see #evaluate(XExpression, IEvaluationContext)
  */
 @Singleton
-public class ExpressionHelper {
+public class ExpressionHelper implements ExpressionInterpreter {
 
     /**
      * Custom interpreter that reads field accesses on {@link EObject ecore objects} via {@link EObject#eGet eGet},
@@ -80,78 +77,15 @@ public class ExpressionHelper {
     @Inject
     private Provider<IEvaluationContext> contextProvider;
 
-    /**
-     * Creates an empty evaluation context with no accessible variables.
-     *
-     * @return evaluation context to be used in {@link #evaluate(XExpression, IEvaluationContext) evaluate(..)}
-     */
+    @Override
     public IEvaluationContext createContext() {
         return contextProvider.get();
-    }
-
-    /**
-     * Creates an evaluation context taking variable names from the given {@link AQRFrom} iterator and
-     * values from the given value iterator. Optionally takes a limit that makes variables encountered after the limit
-     * inaccessible.
-     *
-     * @param fromIterator  iterator of {@link AQRFrom} for variable names
-     * @param valueIterator iterator of {@link Object} for variable values
-     * @param limit         optional limit
-     * @param parameters    map from parameter name to parameter value
-     * @return evaluation context to be used in {@link #evaluate(XExpression, IEvaluationContext) evaluate(..)}
-     * @see #createContext() if no variables are required
-     */
-    public IEvaluationContext createContext(
-        Iterator<AQRFrom> fromIterator,
-        Iterator<?> valueIterator,
-        @Nullable AQRFrom limit,
-        Map<String, Object> parameters
-    ) {
-        IEvaluationContext context = createContext();
-
-        for (var entry : parameters.entrySet()) {
-            context.newValue(QualifiedName.create(entry.getKey()), entry.getValue());
-        }
-
-        boolean isFirst = true;
-        while (fromIterator.hasNext() && valueIterator.hasNext()) {
-            var from = fromIterator.next();
-            var value = valueIterator.next();
-
-            if (isFirst) {
-                isFirst = false;
-                if (!fromIterator.hasNext()) {
-                    context.newValue(QualifiedName.create(Constants.ExpressionSelfReference), value);
-                }
-            }
-
-            if (from.alias() != null) {
-                context.newValue(QualifiedName.create(from.alias()), value);
-            }
-
-            if (from == limit) {
-                return context;
-            }
-        }
-
-        check(limit == null);
-        check(!fromIterator.hasNext() && !valueIterator.hasNext());
-
-        return context;
     }
 
     @Inject
     private Interpreter interpreter;
 
-    /**
-     * Evaluate the given expression with the given context.
-     *
-     * @param expression expression to evaluate
-     * @param context    context, i.e. accessible local variables
-     * @return {@link Result.Success} with the returned value if execution was successful,
-     *     or {@link Result.Failure} with the thrown exception otherwise
-     * @see #createContext(Iterator, Iterator, AQRFrom) creating the context
-     */
+    @Override
     public Result<@Nullable Object> evaluate(XExpression expression, IEvaluationContext context) {
         IEvaluationResult result = interpreter.evaluate(expression, context, CancelIndicator.NullImpl);
         if (result.getException() != null) {

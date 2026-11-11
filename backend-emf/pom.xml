@@ -15,16 +15,23 @@
   <description>Unidirectional, state-based transformation of source models into a view instance with EMF.</description>
 
   <dependencies>
+    <!-- the tests parse queries and generate view types; the backend itself does not depend on the frontend -->
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>tools.vitruv.neojoin.frontend.language</artifactId>
       <version>${project.version}</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>tools.vitruv.neojoin.test-resources</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>tools.vitruv.neojoin.common</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>

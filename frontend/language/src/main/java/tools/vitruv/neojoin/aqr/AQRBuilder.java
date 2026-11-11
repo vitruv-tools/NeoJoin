@@ -28,6 +28,9 @@ import tools.vitruv.neojoin.ast.Parameter;
 import tools.vitruv.neojoin.ast.Query;
 import tools.vitruv.neojoin.ast.SubQuery;
 import tools.vitruv.neojoin.ast.ViewTypeDefinition;
+import tools.vitruv.neojoin.common.EMFUtils;
+import tools.vitruv.neojoin.common.Pair;
+import tools.vitruv.neojoin.common.TypeCasts;
 import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
 import tools.vitruv.neojoin.jvmmodel.TypeInfo;
 import tools.vitruv.neojoin.jvmmodel.TypeResolutionException;
@@ -39,11 +42,8 @@ import tools.vitruv.neojoin.model.AQRParameter;
 import tools.vitruv.neojoin.model.AQRSource;
 import tools.vitruv.neojoin.model.AQRTargetClass;
 import tools.vitruv.neojoin.utils.AstUtils;
-import tools.vitruv.neojoin.utils.EMFUtils;
 import tools.vitruv.neojoin.utils.FeatureType;
 import tools.vitruv.neojoin.utils.FeatureTypeResolver;
-import tools.vitruv.neojoin.utils.Pair;
-import tools.vitruv.neojoin.utils.TypeCasts;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -60,8 +60,8 @@ import java.util.stream.Collectors;
 
 import static tools.vitruv.neojoin.aqr.AQRInvariantViolatedException.invariant;
 import static tools.vitruv.neojoin.aqr.AQRInvariantViolatedException.invariantFailed;
-import static tools.vitruv.neojoin.utils.Assertions.check;
-import static tools.vitruv.neojoin.utils.Assertions.fail;
+import static tools.vitruv.neojoin.common.Assertions.check;
+import static tools.vitruv.neojoin.common.Assertions.fail;
 
 /**
  * Transforms the already {@link ViewTypeDefinition abstract representation of a query} provided by Xtext into the
@@ -79,7 +79,7 @@ import static tools.vitruv.neojoin.utils.Assertions.fail;
  * @implNote The implementation uses {@link AQRInvariantViolatedException#invariant(boolean) invariant(...)} for
  *     invariants that should hold for {@link tools.vitruv.neojoin.validation valid} queries.
  *     Invariants that should always hold (even for invalid queries) are checked with assertion methods from
- *     {@link tools.vitruv.neojoin.utils.Assertions Assertions}.
+ *     {@link tools.vitruv.neojoin.common.Assertions Assertions}.
  */
 public class AQRBuilder {
 

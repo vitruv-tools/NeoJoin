@@ -4,7 +4,7 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
-import tools.vitruv.neojoin.utils.EMFUtils;
+import tools.vitruv.neojoin.common.EMFUtils;
 
 import java.util.HashMap;
 import java.util.Map;

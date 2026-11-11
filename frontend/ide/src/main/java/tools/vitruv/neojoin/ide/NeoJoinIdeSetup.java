@@ -10,7 +10,7 @@ import org.eclipse.xtext.util.Modules2;
 import org.jspecify.annotations.Nullable;
 import tools.vitruv.neojoin.NeoJoinStandaloneSetup;
 
-import static tools.vitruv.neojoin.utils.Assertions.check;
+import static tools.vitruv.neojoin.common.Assertions.check;
 
 /**
  * NeoJoin language initialization for the Xtext language server.

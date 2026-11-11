@@ -1,7 +1,7 @@
 package tools.vitruv.neojoin.ide.visualization;
 
 import org.eclipse.emf.ecore.ETypedElement;
-import tools.vitruv.neojoin.utils.Pair;
+import tools.vitruv.neojoin.common.Pair;
 
 /**
  * This class can be used to build source code for PlantUML class diagrams.

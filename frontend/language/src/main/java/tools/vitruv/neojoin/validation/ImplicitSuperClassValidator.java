@@ -6,11 +6,11 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.xtext.validation.Check;
 import tools.vitruv.neojoin.ast.Query;
 import tools.vitruv.neojoin.ast.ViewTypeDefinition;
+import tools.vitruv.neojoin.common.Pair;
 import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
 import tools.vitruv.neojoin.utils.FeatureInfo;
 import tools.vitruv.neojoin.utils.FeatureInfoResolver;
 import tools.vitruv.neojoin.utils.ImplicitSuperClassFinder;
-import tools.vitruv.neojoin.utils.Pair;
 
 import java.util.stream.Collectors;
 

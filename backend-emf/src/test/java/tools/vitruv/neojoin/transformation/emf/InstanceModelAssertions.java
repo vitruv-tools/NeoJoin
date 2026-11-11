@@ -10,7 +10,7 @@ import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.jspecify.annotations.Nullable;
-import tools.vitruv.neojoin.utils.Utils;
+import tools.vitruv.neojoin.common.Utils;
 
 import java.util.HashSet;
 import java.util.List;

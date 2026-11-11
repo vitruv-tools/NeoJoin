@@ -25,6 +25,8 @@ import tools.vitruv.neojoin.ast.Query;
 import tools.vitruv.neojoin.ast.Source;
 import tools.vitruv.neojoin.ast.SubQuery;
 import tools.vitruv.neojoin.ast.ViewTypeDefinition;
+import tools.vitruv.neojoin.common.Pair;
+import tools.vitruv.neojoin.common.Utils;
 import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
 import tools.vitruv.neojoin.jvmmodel.TypeInfo;
 import tools.vitruv.neojoin.jvmmodel.TypeResolutionException;
@@ -39,7 +41,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import static tools.vitruv.neojoin.utils.Assertions.fail;
+import static tools.vitruv.neojoin.common.Assertions.fail;
 
 /**
  * Various utilities for classes from the {@link tools.vitruv.neojoin.ast ast package}.

@@ -11,17 +11,17 @@ import org.eclipse.emf.ecore.EcoreFactory;
 import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.emf.ecore.util.Diagnostician;
 import org.eclipse.emf.ecore.util.EcoreUtil;
+import tools.vitruv.neojoin.common.EMFUtils;
 import tools.vitruv.neojoin.model.AQR;
 import tools.vitruv.neojoin.model.AQRFeature;
 import tools.vitruv.neojoin.model.AQRFrom;
 import tools.vitruv.neojoin.model.AQRTargetClass;
-import tools.vitruv.neojoin.utils.EMFUtils;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-import static tools.vitruv.neojoin.utils.Assertions.check;
+import static tools.vitruv.neojoin.common.Assertions.check;
 
 /**
  * Generates an {@link EPackage} from a given {@link AQR}.

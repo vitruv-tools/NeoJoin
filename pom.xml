@@ -47,6 +47,7 @@
   <!-- Modules -->
   <modules>
     <module>backend-emf</module>
+    <module>common</module>
     <module>conformancevalidator</module>
     <module>frontend</module>
     <module>model</module>

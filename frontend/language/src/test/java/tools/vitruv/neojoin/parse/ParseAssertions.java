@@ -4,7 +4,7 @@ import org.assertj.core.api.AbstractAssert;
 import org.eclipse.xtext.diagnostics.Severity;
 import org.eclipse.xtext.validation.Issue;
 import tools.vitruv.neojoin.ast.ViewTypeDefinition;
-import tools.vitruv.neojoin.utils.Pair;
+import tools.vitruv.neojoin.common.Pair;
 
 import java.util.Arrays;
 import java.util.List;

@@ -3,15 +3,15 @@ package tools.vitruv.neojoin.transformation.emf.source;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.xtext.xbase.XExpression;
+import tools.vitruv.neojoin.common.EMFUtils;
 import tools.vitruv.neojoin.model.AQRFrom;
 import tools.vitruv.neojoin.model.AQRJoin;
 import tools.vitruv.neojoin.model.AQRSource;
 import tools.vitruv.neojoin.transformation.emf.ExpressionEvaluator;
-import tools.vitruv.neojoin.utils.EMFUtils;
 
 import java.util.Map;
 
-import static tools.vitruv.neojoin.utils.Assertions.require;
+import static tools.vitruv.neojoin.common.Assertions.require;
 
 /**
  * Creates an {@link InstanceSource} for the given {@link AQRSource}.

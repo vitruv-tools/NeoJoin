@@ -1,4 +1,4 @@
-package tools.vitruv.neojoin.utils;
+package tools.vitruv.neojoin.common;
 
 import java.util.Iterator;
 import java.util.List;

@@ -2,6 +2,7 @@ package tools.vitruv.neojoin.utils;
 
 import tools.vitruv.neojoin.ast.MainQuery;
 import tools.vitruv.neojoin.ast.Query;
+import tools.vitruv.neojoin.common.Pair;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
