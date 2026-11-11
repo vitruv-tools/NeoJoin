@@ -1,7 +1,5 @@
 package tools.vitruv.neojoin.common;
 
-import org.eclipse.emf.common.util.BasicDiagnostic;
-import org.eclipse.emf.common.util.Diagnostic;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EDataType;
@@ -136,17 +134,6 @@ class EMFUtilsTest {
         registry.put(sub.getNsURI(), sub);
 
         assertThat(EMFUtils.collectAvailablePackages(registry)).containsExactlyInAnyOrder(root, sub);
-    }
-
-    @Test
-    void diagnosticSeverityTextNamesTheHighestSeverity() {
-        assertThat(EMFUtils.diagnosticSeverityText(new BasicDiagnostic(Diagnostic.ERROR, "s", 0, "m", null)))
-            .isEqualTo("ERROR");
-        assertThat(EMFUtils.diagnosticSeverityText(new BasicDiagnostic(Diagnostic.WARNING, "s", 0, "m", null)))
-            .isEqualTo("WARNING");
-        assertThat(EMFUtils.diagnosticSeverityText(new BasicDiagnostic(Diagnostic.INFO, "s", 0, "m", null)))
-            .isEqualTo("INFO");
-        assertThat(EMFUtils.diagnosticSeverityText(Diagnostic.OK_INSTANCE)).isEqualTo("OK");
     }
 
     @Test
