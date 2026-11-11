@@ -25,10 +25,6 @@ public class ExpressionEvaluator {
     private final AQRSource source;
     private final Map<String, Object> parameters;
 
-    public ExpressionEvaluator(ExpressionInterpreter interpreter, AQRSource source) {
-        this(interpreter, source, Map.of());
-    }
-
     public ExpressionEvaluator(ExpressionInterpreter interpreter, AQRSource source, Map<String, Object> parameters) {
         this.interpreter = interpreter;
         this.source = source;
