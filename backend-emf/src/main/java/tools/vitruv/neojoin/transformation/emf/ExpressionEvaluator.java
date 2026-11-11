@@ -16,7 +16,8 @@ import java.util.Map;
 import static tools.vitruv.neojoin.common.Assertions.check;
 
 /**
- * Wrapper around an {@link ExpressionInterpreter} and a {@link AQRSource} to evaluate feature expressions and conditions.
+ * Wrapper around an {@link ExpressionInterpreter} and a {@link AQRSource} to evaluate feature expressions and
+ * conditions.
  */
 public class ExpressionEvaluator {
 
