@@ -122,19 +122,20 @@ public class Transformator {
     private List<EObject> transformTargetClass(AQRTargetClass targetClass) {
         var clazz = getTargetClass(targetClass.name());
 
-        if (targetClass.source() == null) { // no source -> create a single instance
+        var source = targetClass.source();
+        if (source == null) { // no source -> create a single instance
             return List.of(createTransformedInstance(targetClass, clazz));
         } else {
-            var evaluator = new ExpressionEvaluator(expressionInterpreter, targetClass.source(), parameters);
-            var instanceSource = instanceSourceFactory.create(targetClass.source(), evaluator);
+            var evaluator = new ExpressionEvaluator(expressionInterpreter, source, parameters);
+            var instanceSource = instanceSourceFactory.create(source, evaluator);
 
-            if (targetClass.source().groupingExpressions().isEmpty()) { // no grouping
+            if (source.groupingExpressions().isEmpty()) { // no grouping
                 return instanceSource.get()
                     .map(tuple -> createTransformedInstance(targetClass, clazz, tuple, evaluator))
                     .toList();
             } else { // with grouping
                 var groupingSource = new GroupingSource(
-                    targetClass.source().groupingExpressions(),
+                    source.groupingExpressions(),
                     instanceSource,
                     evaluator
                 );

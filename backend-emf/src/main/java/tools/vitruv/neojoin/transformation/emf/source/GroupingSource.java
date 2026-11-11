@@ -5,8 +5,6 @@ import org.eclipse.xtext.xbase.XExpression;
 import org.jspecify.annotations.Nullable;
 
 import static tools.vitruv.neojoin.common.Enumerated.enumerate;
-import tools.vitruv.neojoin.common.Pair;
-import tools.vitruv.neojoin.common.Utils;
 import tools.vitruv.neojoin.transformation.emf.ExpressionEvaluator;
 import tools.vitruv.neojoin.transformation.emf.InstanceTuple;
 

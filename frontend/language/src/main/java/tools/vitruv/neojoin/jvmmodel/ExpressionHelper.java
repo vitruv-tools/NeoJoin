@@ -17,7 +17,6 @@ import org.eclipse.xtext.common.types.JvmType;
 import org.eclipse.xtext.common.types.JvmVoid;
 import org.eclipse.xtext.common.types.util.TypeReferences;
 import org.eclipse.xtext.conversion.IValueConverterService;
-import org.eclipse.xtext.naming.QualifiedName;
 import org.eclipse.xtext.util.CancelIndicator;
 import org.eclipse.xtext.util.OnChangeEvictingCache;
 import org.eclipse.xtext.xbase.XAbstractFeatureCall;
