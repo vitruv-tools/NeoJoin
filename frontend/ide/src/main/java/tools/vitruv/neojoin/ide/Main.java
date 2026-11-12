@@ -73,13 +73,15 @@ public class Main implements Runnable {
 
     }
 
-    // vscode automatically appends an --stdio option, so we should not error when this option is encountered
+    // language clients that start the server themselves (for example vscode-languageclient) append --stdio, so the
+    // option must not be an error
     @SuppressWarnings("unused")
     @Option(names = {"--stdio"}, description = "Use stdio for communication (default, has no effect).")
     boolean stdio;
 
     @Override
     public void run() {
+        terminateChildProcessesOnExit();
         var ioConfig = redirectIo();
 
         List<String> errorMessages = new ArrayList<>();
@@ -122,6 +124,18 @@ public class Main implements Runnable {
         } catch (InterruptedException | ExecutionException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * The visualization starts Graphviz processes through PlantUML. They can outlive their request (PlantUML does not
+     * stop them when the rendering times out) and would keep running after the server exits. A shutdown hook runs when
+     * the server exits normally, for example after the exit notification or when the client closes the connection, but
+     * not when the process is killed.
+     */
+    private static void terminateChildProcessesOnExit() {
+        Runtime.getRuntime().addShutdownHook(new Thread(() ->
+            ProcessHandle.current().descendants().forEach(ProcessHandle::destroyForcibly)
+        ));
     }
 
     private void showErrorMessages(Launcher<LanguageClient> launcher, Iterable<String> errorMessages) {
