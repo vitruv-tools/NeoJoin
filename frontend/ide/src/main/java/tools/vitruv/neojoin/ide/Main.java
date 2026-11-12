@@ -80,6 +80,7 @@ public class Main implements Runnable {
 
     @Override
     public void run() {
+        terminateChildProcessesOnExit();
         var ioConfig = redirectIo();
 
         List<String> errorMessages = new ArrayList<>();
@@ -122,6 +123,18 @@ public class Main implements Runnable {
         } catch (InterruptedException | ExecutionException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * The visualization starts Graphviz processes through PlantUML. They can outlive their request (PlantUML does not
+     * stop them when the rendering times out) and would keep running after the server exits. A shutdown hook runs when
+     * the server exits normally, for example after the exit notification or when the client closes the connection, but
+     * not when the process is killed.
+     */
+    private static void terminateChildProcessesOnExit() {
+        Runtime.getRuntime().addShutdownHook(new Thread(() ->
+            ProcessHandle.current().descendants().forEach(ProcessHandle::destroyForcibly)
+        ));
     }
 
     private void showErrorMessages(Launcher<LanguageClient> launcher, Iterable<String> errorMessages) {
