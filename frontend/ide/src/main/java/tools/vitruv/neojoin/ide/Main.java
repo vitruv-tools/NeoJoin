@@ -73,7 +73,8 @@ public class Main implements Runnable {
 
     }
 
-    // vscode automatically appends an --stdio option, so we should not error when this option is encountered
+    // language clients that start the server themselves (for example vscode-languageclient) append --stdio, so the
+    // option must not be an error
     @SuppressWarnings("unused")
     @Option(names = {"--stdio"}, description = "Use stdio for communication (default, has no effect).")
     boolean stdio;
