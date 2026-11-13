@@ -35,9 +35,13 @@ class NeoJoinIdeServerIT {
 
         import "http://example.org/restaurant"
 
+        param prefix : EString
+
         from Restaurant r create Test {
             label := r.name.blank
             copy := r
+            prefixed := prefix + r.name
+            prefixLength := prefix.length
         }
         """);
 
@@ -79,7 +83,7 @@ class NeoJoinIdeServerIT {
         var test = (EClass) viewType.getEClassifier("Test");
         assertThat(test.getEStructuralFeatures())
             .extracting(ENamedElement::getName)
-            .containsExactly("label", "copy");
+            .containsExactly("label", "copy", "prefixed", "prefixLength");
     }
 
     @Test
@@ -100,6 +104,47 @@ class NeoJoinIdeServerIT {
     @Test
     void sourceModelFeatureHasNoDefinition() throws ExecutionException, InterruptedException {
         assertThat(server.definition(queryUri, QUERY.positionAtEndOf("label := r.name"))).isEmpty();
+    }
+
+    /**
+     * Each feature expression is a method of its own with a parameter for the variable, so the uses refer to different
+     * parameters.
+     */
+    @Test
+    void referencesOfVariableFromAUseAreTheDeclarationAndAllUses() throws ExecutionException, InterruptedException {
+        var references = server.references(queryUri, QUERY.positionAtEndOf("copy := r"));
+
+        assertThat(references).extracting(Location::getRange).containsExactlyInAnyOrder(
+            rangeOfVariableDeclaration(),
+            QUERY.rangeOfLastCharacterOf("label := r"),
+            QUERY.rangeOfLastCharacterOf("copy := r"),
+            QUERY.rangeOfLastCharacterOf("prefix + r")
+        );
+    }
+
+    @Test
+    void referencesOfVariableFromItsDeclarationAreTheDeclarationAndAllUses()
+        throws ExecutionException, InterruptedException {
+        var references = server.references(queryUri, QUERY.positionAtEndOf("from Restaurant r"));
+
+        assertThat(references).extracting(Location::getRange).containsExactlyInAnyOrder(
+            rangeOfVariableDeclaration(),
+            QUERY.rangeOfLastCharacterOf("label := r"),
+            QUERY.rangeOfLastCharacterOf("copy := r"),
+            QUERY.rangeOfLastCharacterOf("prefix + r")
+        );
+    }
+
+    @Test
+    void referencesOfQueryParameterFromItsDeclarationAreTheDeclarationAndAllUses()
+        throws ExecutionException, InterruptedException {
+        var references = server.references(queryUri, QUERY.positionAtEndOf("param prefix"));
+
+        assertThat(references).extracting(Location::getRange).containsExactlyInAnyOrder(
+            QUERY.rangeAtEndOf("param prefix", "prefix"),
+            QUERY.rangeAtEndOf("prefixed := prefix", "prefix"),
+            QUERY.rangeAtEndOf("prefixLength := prefix", "prefix")
+        );
     }
 
 }

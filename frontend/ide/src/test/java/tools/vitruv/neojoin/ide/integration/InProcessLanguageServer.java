@@ -12,6 +12,8 @@ import org.eclipse.lsp4j.MessageActionItem;
 import org.eclipse.lsp4j.MessageParams;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
+import org.eclipse.lsp4j.ReferenceContext;
+import org.eclipse.lsp4j.ReferenceParams;
 import org.eclipse.lsp4j.ShowMessageRequestParams;
 import org.eclipse.lsp4j.TextDocumentIdentifier;
 import org.eclipse.lsp4j.TextDocumentItem;
@@ -88,6 +90,14 @@ class InProcessLanguageServer {
     List<Location> definition(String uri, Position position) throws ExecutionException, InterruptedException {
         var params = new DefinitionParams(new TextDocumentIdentifier(uri), position);
         return List.copyOf(server.getTextDocumentService().definition(params).get().getLeft());
+    }
+
+    /**
+     * Returns the references including the declaration, as VS Code requests them.
+     */
+    List<Location> references(String uri, Position position) throws ExecutionException, InterruptedException {
+        var params = new ReferenceParams(new TextDocumentIdentifier(uri), position, new ReferenceContext(true));
+        return List.copyOf(server.getTextDocumentService().references(params).get());
     }
 
     /**
