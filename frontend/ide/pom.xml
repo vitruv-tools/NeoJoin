@@ -109,6 +109,12 @@
     </dependency>
 
     <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>tools.vitruv.neojoin.test-resources</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.assertj</groupId>
       <artifactId>assertj-core</artifactId>
       <scope>test</scope>
@@ -196,8 +202,6 @@
               <outputDirectory>${project.build.directory}/third-party/licenses</outputDirectory>
               <useSubDirectoryPerArtifact>true</useSubDirectoryPerArtifact>
               <includeScope>runtime</includeScope>
-              <!-- not bundled, see the shade configuration -->
-              <excludeArtifactIds>org.eclipse.osgi</excludeArtifactIds>
               <includes>**/LICENSE*,**/NOTICE*,**/license*,**/notice*,**/COPYING*,about.html,about.ini,about.mappings,about.properties,about_files/**</includes>
             </configuration>
           </execution>
@@ -244,8 +248,6 @@
               <outputDirectory>${project.build.directory}/license</outputDirectory>
               <thirdPartyFilename>THIRD-PARTY.txt</thirdPartyFilename>
               <excludedScopes>test,provided</excludedScopes>
-              <!-- not bundled, see the shade configuration -->
-              <excludedArtifacts>org\.eclipse\.osgi</excludedArtifacts>
               <licenseMerges>
                 <licenseMerge>Apache License, Version 2.0|The Apache Software License, Version 2.0|The Apache Software License, version 2.0|The Apache License, Version 2.0|Apache 2.0|Apache-2.0</licenseMerge>
                 <licenseMerge>Eclipse Public License - v 2.0|Eclipse Public License, Version 2.0|The Eclipse Public License Version 2.0|EPL-2.0</licenseMerge>
@@ -259,6 +261,23 @@
               <!-- the file is only added to the jar by the shade plugin as META-INF/THIRD-PARTY.txt, not also to its root -->
               <addOutputDirectoryAsResourceDir>false</addOutputDirectoryAsResourceDir>
             </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- runs the tests named *IT against the shaded jar (it replaces target/classes after the package phase) without
+           the compile and runtime dependencies, so they see the classes that the shipped language server contains -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <configuration>
+          <classpathDependencyScopeExclude>compile+runtime</classpathDependencyScopeExclude>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
           </execution>
         </executions>
       </plugin>
@@ -313,12 +332,6 @@
             <configuration>
               <!-- the parent POM enables this; the shaded sources jar (all dependencies) is not wanted -->
               <createSourcesJar>false</createSourcesJar>
-              <artifactSet>
-                <excludes>
-                  <!-- not needed at runtime: OSGi framework (pulled in by EMF Ecore) -->
-                  <exclude>org.eclipse.platform:org.eclipse.osgi</exclude>
-                </excludes>
-              </artifactSet>
               <filters>
                 <filter>
                   <artifact>*:*</artifact>
