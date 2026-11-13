@@ -2,6 +2,8 @@ version: 2
 updates:
 - package-ecosystem: "github-actions"
   directory: "/"
+  labels: # only this label; by default Dependabot also adds one per ecosystem (java, javascript, github_actions)
+  - "dependencies"
   schedule:
     interval: daily
   commit-message:
@@ -9,6 +11,8 @@ updates:
     include: "scope"
 - package-ecosystem: "maven"
   directory: "/"
+  labels: # only this label; by default Dependabot also adds one per ecosystem (java, javascript, github_actions)
+  - "dependencies"
   schedule:
     interval: daily
   commit-message:
