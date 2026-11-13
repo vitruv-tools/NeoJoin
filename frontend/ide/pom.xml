@@ -196,8 +196,6 @@
               <outputDirectory>${project.build.directory}/third-party/licenses</outputDirectory>
               <useSubDirectoryPerArtifact>true</useSubDirectoryPerArtifact>
               <includeScope>runtime</includeScope>
-              <!-- not bundled, see the shade configuration -->
-              <excludeArtifactIds>org.eclipse.osgi</excludeArtifactIds>
               <includes>**/LICENSE*,**/NOTICE*,**/license*,**/notice*,**/COPYING*,about.html,about.ini,about.mappings,about.properties,about_files/**</includes>
             </configuration>
           </execution>
@@ -244,8 +242,6 @@
               <outputDirectory>${project.build.directory}/license</outputDirectory>
               <thirdPartyFilename>THIRD-PARTY.txt</thirdPartyFilename>
               <excludedScopes>test,provided</excludedScopes>
-              <!-- not bundled, see the shade configuration -->
-              <excludedArtifacts>org\.eclipse\.osgi</excludedArtifacts>
               <licenseMerges>
                 <licenseMerge>Apache License, Version 2.0|The Apache Software License, Version 2.0|The Apache Software License, version 2.0|The Apache License, Version 2.0|Apache 2.0|Apache-2.0</licenseMerge>
                 <licenseMerge>Eclipse Public License - v 2.0|Eclipse Public License, Version 2.0|The Eclipse Public License Version 2.0|EPL-2.0</licenseMerge>
@@ -313,12 +309,6 @@
             <configuration>
               <!-- the parent POM enables this; the shaded sources jar (all dependencies) is not wanted -->
               <createSourcesJar>false</createSourcesJar>
-              <artifactSet>
-                <excludes>
-                  <!-- not needed at runtime: OSGi framework (pulled in by EMF Ecore) -->
-                  <exclude>org.eclipse.platform:org.eclipse.osgi</exclude>
-                </excludes>
-              </artifactSet>
               <filters>
                 <filter>
                   <artifact>*:*</artifact>
