@@ -8,7 +8,6 @@ import org.eclipse.xtext.util.ITextRegionWithLineInformation;
 import org.eclipse.xtext.util.LineAndColumn;
 import org.eclipse.xtext.validation.Issue;
 
-import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 
 /**
@@ -71,14 +70,21 @@ public record SourceLocation(
     }
 
     /**
-     * IntelliJ doesn't recognize the URI formatting of {@link URI EMF URIs}, so we need to convert them.
+     * Formats the file as a {@code file:///path} URI (as {@link Path#toUri()} does) instead of the {@link URI EMF URI}
+     * form {@code file:/path}. IntelliJ shows the first form followed by {@code :line:column} as a link to the
+     * location. A relative path is resolved against the working directory; other URIs stay as they are.
      */
     private static String formatIssueFile(URI uri) {
-        var pathString = uri.trimFragment().toString().replaceFirst("^file:/", "");
+        var file = uri.trimFragment();
+        if (!file.isFile()) {
+            return file.toString();
+        }
         try {
-            return Path.of(pathString).toAbsolutePath().normalize().toUri().toString();
-        } catch (InvalidPathException e) {
-            return pathString;
+            // an absolute file URI is converted by Java (handles drive letters and percent-encoding on all platforms)
+            var path = file.isRelative() ? Path.of(file.toFileString()) : Path.of(java.net.URI.create(file.toString()));
+            return path.toAbsolutePath().normalize().toUri().toString();
+        } catch (IllegalArgumentException e) { // also InvalidPathException
+            return file.toString();
         }
     }
 
