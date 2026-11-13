@@ -1,0 +1,13 @@
+# Categories of the release notes that GitHub generates from the pull requests of a release.
+# They are based on pull request labels, because GitHub does not read issue types here.
+changelog:
+  categories:
+  - title: Breaking changes
+    labels:
+    - "breaking change"
+  - title: Dependency updates
+    labels:
+    - "dependencies"
+  - title: Other changes
+    labels:
+    - "*"
