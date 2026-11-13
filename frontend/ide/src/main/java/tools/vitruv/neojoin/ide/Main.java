@@ -81,6 +81,7 @@ public class Main implements Runnable {
 
     @Override
     public void run() {
+        runHeadless();
         terminateChildProcessesOnExit();
         var ioConfig = redirectIo();
 
@@ -124,6 +125,16 @@ public class Main implements Runnable {
         } catch (InterruptedException | ExecutionException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * PlantUML uses AWT to render the visualization (also for SVG, for example to measure text). Without headless mode,
+     * AWT initializes the GUI toolkit of the platform, which turns the server process into a GUI application (for
+     * example, it connects to the display server or appears in the macOS Dock). The server never opens a window. The
+     * property must be set before AWT is first used.
+     */
+    private static void runHeadless() {
+        System.setProperty("java.awt.headless", "true");
     }
 
     /**
