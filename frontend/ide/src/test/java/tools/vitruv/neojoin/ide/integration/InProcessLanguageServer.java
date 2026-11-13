@@ -127,10 +127,12 @@ class InProcessLanguageServer {
 
         @Override
         public void telemetryEvent(Object object) {
+            // the tests do not check telemetry
         }
 
         @Override
         public void showMessage(MessageParams messageParams) {
+            // the tests do not check messages
         }
 
         @Override
@@ -140,6 +142,7 @@ class InProcessLanguageServer {
 
         @Override
         public void logMessage(MessageParams message) {
+            // the tests do not check log messages
         }
 
     }

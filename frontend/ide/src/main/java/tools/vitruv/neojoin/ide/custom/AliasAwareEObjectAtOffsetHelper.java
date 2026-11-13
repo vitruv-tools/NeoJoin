@@ -1,7 +1,9 @@
 package tools.vitruv.neojoin.ide.custom;
 
+import com.google.common.collect.Iterables;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.xtext.nodemodel.ILeafNode;
 import org.eclipse.xtext.nodemodel.util.NodeModelUtils;
 import org.eclipse.xtext.resource.XtextResource;
 import org.eclipse.xtext.xbase.linking.BrokenConstructorCallAwareEObjectAtOffsetHelper;
@@ -37,18 +39,14 @@ public class AliasAwareEObjectAtOffsetHelper extends BrokenConstructorCallAwareE
             return null;
         }
         var leaf = NodeModelUtils.findLeafNodeAtOffset(resource.getParseResult().getRootNode(), offset);
-        for (var name : DECLARED_NAMES) {
-            if (name.getEContainingClass().isInstance(declaration)) {
-                for (var node : NodeModelUtils.findNodesForFeature(declaration, name)) {
-                    for (var nameLeaf : node.getLeafNodes()) {
-                        if (nameLeaf.equals(leaf)) {
-                            return declaration;
-                        }
-                    }
-                }
-            }
-        }
-        return null;
+        return isDeclaredName(declaration, leaf) ? declaration : null;
+    }
+
+    private static boolean isDeclaredName(EObject declaration, @Nullable ILeafNode leaf) {
+        return DECLARED_NAMES.stream()
+            .filter(name -> name.getEContainingClass().isInstance(declaration))
+            .flatMap(name -> NodeModelUtils.findNodesForFeature(declaration, name).stream())
+            .anyMatch(node -> Iterables.contains(node.getLeafNodes(), leaf));
     }
 
 }
