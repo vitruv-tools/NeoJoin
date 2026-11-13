@@ -6,10 +6,12 @@ package tools.vitruv.neojoin.ide;
 
 import org.eclipse.xtext.ide.editor.contentassist.IdeCrossrefProposalProvider;
 import org.eclipse.xtext.ide.server.contentassist.ContentAssistService;
+import org.eclipse.xtext.ide.server.symbol.DocumentSymbolService;
 import org.eclipse.xtext.xbase.ide.contentassist.IIdeTypesProposalProvider;
 import org.eclipse.xtext.xbase.typesystem.internal.IFeatureScopeTracker;
 import tools.vitruv.neojoin.ide.custom.CustomClasspathBasedIdeTypesProposalProvider;
 import tools.vitruv.neojoin.ide.custom.CustomContentAssistService;
+import tools.vitruv.neojoin.ide.custom.ResolvableDefinitionsDocumentSymbolService;
 import tools.vitruv.neojoin.ide.custom.CustomIdeCrossrefProposalProvider;
 import tools.vitruv.neojoin.ide.custom.OptimizingFeatureScopeTrackerProvider2;
 
@@ -21,6 +23,10 @@ public class NeoJoinIdeModule extends AbstractNeoJoinIdeModule {
 
     public Class<? extends ContentAssistService> bindContentAssistService() {
         return CustomContentAssistService.class;
+    }
+
+    public Class<? extends DocumentSymbolService> bindDocumentSymbolService() {
+        return ResolvableDefinitionsDocumentSymbolService.class;
     }
 
     @Override

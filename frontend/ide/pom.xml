@@ -109,6 +109,12 @@
     </dependency>
 
     <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>tools.vitruv.neojoin.test-resources</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.assertj</groupId>
       <artifactId>assertj-core</artifactId>
       <scope>test</scope>
@@ -255,6 +261,23 @@
               <!-- the file is only added to the jar by the shade plugin as META-INF/THIRD-PARTY.txt, not also to its root -->
               <addOutputDirectoryAsResourceDir>false</addOutputDirectoryAsResourceDir>
             </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- runs the tests named *IT against the shaded jar (it replaces target/classes after the package phase) without
+           the compile and runtime dependencies, so they see the classes that the shipped language server contains -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <configuration>
+          <classpathDependencyScopeExclude>compile+runtime</classpathDependencyScopeExclude>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
           </execution>
         </executions>
       </plugin>
