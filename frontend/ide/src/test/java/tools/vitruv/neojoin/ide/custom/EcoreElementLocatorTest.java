@@ -75,11 +75,11 @@ class EcoreElementLocatorTest {
     }
 
     /**
-     * Files checked out on Windows have CRLF line breaks.
+     * Files checked out on Windows have CRLF line breaks (the test resource itself has them there, too).
      */
     @Test
     void classInFileWithWindowsLineBreaksIsFound() throws IOException {
-        var text = resource("two-classes.ecore").replace("\n", "\r\n");
+        var text = resource("two-classes.ecore").replace("\r\n", "\n").replace("\n", "\r\n");
         var pack = (EPackage) loadFirstRoot("crlf.ecore", text);
 
         var location = EcoreElementLocator.locate(pack.getEClassifier("B"));
