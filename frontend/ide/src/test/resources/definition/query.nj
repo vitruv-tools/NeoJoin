@@ -1,0 +1,22 @@
+export package to "http://example.com"
+
+import "http://example.org/dogs"
+import "http://example.org/restaurant"
+
+param prefix : EString
+
+from Restaurant r
+join Food f
+    with r using name
+create Place {
+    revenue : Money = r.dailyRevenue
+    kind : FoodType = f.type
+    label : EString = r.name
+    sold = r.sells
+}
+
+from Dog d create Pet {
+    nickname := d.name
+    legs := d.legs
+    breed := d.breed
+}
