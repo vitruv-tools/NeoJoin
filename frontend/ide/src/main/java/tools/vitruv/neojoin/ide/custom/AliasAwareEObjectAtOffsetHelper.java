@@ -13,8 +13,8 @@ import tools.vitruv.neojoin.ast.AstPackage;
 import java.util.Set;
 
 /**
- * Recognizes the aliases of sources ({@code from Restaurant r}) and the names of query parameters
- * ({@code param minEmployees: EInt}) as the names of the elements they declare.
+ * Recognizes the aliases of imports ({@code import "..." as pets}) and sources ({@code from Restaurant r}) and
+ * the names of query parameters ({@code param minEmployees: EInt}) as the names of the elements they declare.
  * <p>
  * Xtext only recognizes an attribute called {@code name}, but these declarations call it {@code alias}. Without this,
  * a definition request on a declaration finds nothing, so a references request on it (which includes the
@@ -23,12 +23,35 @@ import java.util.Set;
 public class AliasAwareEObjectAtOffsetHelper extends BrokenConstructorCallAwareEObjectAtOffsetHelper {
 
     private static final Set<EAttribute> DECLARED_NAMES = Set.of(
+        AstPackage.Literals.IMPORT__ALIAS,
         AstPackage.Literals.FROM__ALIAS,
         AstPackage.Literals.PARAMETER__ALIAS
     );
 
+    /**
+     * Also finds the name that the cursor touches at its end ({@code r.name|} at the end of a line or in front of an
+     * operator), as the editor highlights it. Xtext finds nothing there, because the offset belongs to the next token
+     * (often whitespace). Not at the start of an identifier, for example in front of {@code length} in
+     * {@code r.name.length}: the name before the dot is not at the cursor.
+     */
     @Override
     public @Nullable EObject getElementWithNameAt(XtextResource resource, int offset) {
+        var element = findElementWithNameAt(resource, offset);
+        if (element == null && offset > 0 && !isStartOfIdentifier(resource, offset)) {
+            return findElementWithNameAt(resource, offset - 1);
+        }
+        return element;
+    }
+
+    private static boolean isStartOfIdentifier(XtextResource resource, int offset) {
+        var parseResult = resource.getParseResult();
+        var leaf = parseResult == null ? null : NodeModelUtils.findLeafNodeAtOffset(parseResult.getRootNode(), offset);
+        var text = leaf == null ? "" : leaf.getText();
+        return leaf != null && leaf.getOffset() == offset && !text.isEmpty()
+            && Character.isJavaIdentifierPart(text.charAt(0));
+    }
+
+    private @Nullable EObject findElementWithNameAt(XtextResource resource, int offset) {
         var element = super.getElementWithNameAt(resource, offset);
         if (element != null) {
             return element;

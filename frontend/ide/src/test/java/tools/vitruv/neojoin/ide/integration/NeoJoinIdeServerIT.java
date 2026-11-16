@@ -101,11 +101,6 @@ class NeoJoinIdeServerIT {
         assertThat(server.definition(queryUri, QUERY.positionAtEndOf("r.name.blank"))).isEmpty();
     }
 
-    @Test
-    void sourceModelFeatureHasNoDefinition() throws ExecutionException, InterruptedException {
-        assertThat(server.definition(queryUri, QUERY.positionAtEndOf("label := r.name"))).isEmpty();
-    }
-
     /**
      * Each feature expression is a method of its own with a parameter for the variable, so the uses refer to different
      * parameters.

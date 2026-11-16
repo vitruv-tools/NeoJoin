@@ -264,6 +264,15 @@
           </execution>
         </executions>
       </plugin>
+      <!-- the shade plugin replaces the main jar: without forceCreation, a second build without clean finds the jar
+           up to date, shades the already shaded jar into itself and fails with "duplicate entry" -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <forceCreation>true</forceCreation>
+        </configuration>
+      </plugin>
       <!-- runs the tests named *IT against the shaded jar (it replaces target/classes after the package phase) without
            the compile and runtime dependencies, so they see the classes that the shipped language server contains -->
       <plugin>
