@@ -198,6 +198,15 @@
           </execution>
         </executions>
       </plugin>
+      <!-- the shade plugin replaces the main jar: without forceCreation, a second build without clean finds the jar
+           up to date, shades the already shaded jar into itself and fails with "duplicate entry" -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <forceCreation>true</forceCreation>
+        </configuration>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
