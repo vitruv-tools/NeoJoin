@@ -281,8 +281,26 @@ class InheritanceParseTest extends AbstractInheritanceParseTest {
             + "because it has no matching feature (same name, type and modifiers) for: tag";
         assertThat(result)
             .hasIssueAt(message, "k.dogs")
+            .hasIssueWithSeverity(Severity.WARNING, message)
             .hasExactlyIssues(message);
-        assertThat(result).hasIssueWithSeverity(Severity.WARNING, message);
+    }
+
+    /**
+     * An implicit class of an abstract source class is abstract and gets no containment reference in the root class.
+     */
+    @Test
+    void rootFeatureWithReferenceNameOfImplicitAbstractClassIsAllowed() {
+        var result = parseWithKennel("""
+            from Kennel k create K {
+                k.animals
+            }
+
+            create root Main {
+                animals := 1
+            }
+            """);
+
+        assertThat(result).hasNoIssues();
     }
 
     @Test

@@ -42,26 +42,29 @@ public class ParseAssertions extends AbstractAssert<ParseAssertions, List<Issue>
         );
     }
 
-    public void hasNoIssues() {
+    public ParseAssertions hasNoIssues() {
         if (!actual.isEmpty()) {
             failWithMessage(formatUnexpectedIssues(actual));
         }
+        return this;
     }
 
-    public void hasNoErrors() {
+    public ParseAssertions hasNoErrors() {
         if (actual.stream().anyMatch(i -> i.getSeverity() == Severity.ERROR)) {
             failWithMessage(formatUnexpectedIssues(actual));
         }
+        return this;
     }
 
     /**
      * Asserts that an issue with the given severity and message exists. Other issues are not checked.
      */
-    public void hasIssueWithSeverity(Severity severity, String message) {
+    public ParseAssertions hasIssueWithSeverity(Severity severity, String message) {
         if (actual.stream().noneMatch(i -> i.getSeverity() == severity && i.getMessage().equals(message))) {
             failWithMessage("Expected %s '%s' but got:%n%s".formatted(
                 severity, message, formatUnexpectedIssues(actual)));
         }
+        return this;
     }
 
     /**
@@ -87,7 +90,7 @@ public class ParseAssertions extends AbstractAssert<ParseAssertions, List<Issue>
     /**
      * Asserts that the issues have exactly the given messages (any severity, no other issues).
      */
-    public void hasExactlyIssues(String... messages) {
+    public ParseAssertions hasExactlyIssues(String... messages) {
         var missingIssues = Arrays.stream(messages)
             .filter(message -> actual.stream().noneMatch(issue -> issue.getMessage().equals(message)))
             .toList();
@@ -108,6 +111,7 @@ public class ParseAssertions extends AbstractAssert<ParseAssertions, List<Issue>
             }
             failWithMessage(messageBuilder.toString());
         }
+        return this;
     }
 
 }

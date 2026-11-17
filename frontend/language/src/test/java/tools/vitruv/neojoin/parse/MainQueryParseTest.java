@@ -118,6 +118,33 @@ class MainQueryParseTest extends AbstractParseTest {
             .hasExactlyIssues(implicitClassMessage, targetClassMessage);
     }
 
+    @Test
+    void implicitClassWithNameOfQueryWithoutNameIsRejected() {
+        var result = internalParse("""
+            export package to "http://example.com"
+
+            import "http://example.org/restaurant" as rest
+            import "http://example.org/menu"
+
+            from Restaurant r create {
+                r.sells
+            }
+
+            from menu.Food create
+            """);
+
+        var implicitClassMessage = "Implicit target class of source class 'Food' has the same name as the target "
+            + "class 'Food'. Either choose a different name for the target class "
+            + "or create a query for the source class that specifies a different target class name.";
+        var targetClassMessage = "Target class 'Food' has the same name as the implicit target class of source class "
+            + "'Food'. Either choose a different name for this class "
+            + "or create a query for the source class that specifies a different target class name.";
+        assertThat(result)
+            .hasIssueAt(implicitClassMessage, "r.sells")
+            .hasIssueAt(targetClassMessage, "from menu.Food create")
+            .hasExactlyIssues(implicitClassMessage, targetClassMessage);
+    }
+
     /**
      * An abstract class without source is only used instead of the implicit class of an abstract source class: the
      * instances of a concrete source class need a concrete target class.
