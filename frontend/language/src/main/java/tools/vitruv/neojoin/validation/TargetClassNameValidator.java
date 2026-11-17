@@ -33,7 +33,8 @@ import java.util.stream.Stream;
  * {@link Formatting#formatRootReferenceName}, and fails with "Duplicated feature name '...' in root class" if two
  * classes get the same reference name. Duplicated names of explicit target classes are reported by
  * {@link NeoJoinValidator#duplicatedTargetClassName}. The issues of an implicit class are reported at the feature that
- * references its source class, or at the query if the references are copied.
+ * references its source class, or at the query if the references are copied. The issues of a query are reported at
+ * its name; for a query without name, Xtext marks the whole query.
  */
 public class TargetClassNameValidator extends ComposableValidator {
 
@@ -139,7 +140,7 @@ public class TargetClassNameValidator extends ComposableValidator {
                 + "or create a query for the source class that specifies a different target class name.")
                 .formatted(name, name),
             query,
-            query.getName() != null ? AstPackage.Literals.QUERY__NAME : null
+            AstPackage.Literals.QUERY__NAME
         ));
     }
 
@@ -182,9 +183,7 @@ public class TargetClassNameValidator extends ComposableValidator {
                 classNames.stream().map(name -> "'" + name + "'").collect(Collectors.joining(", ")),
                 referenceName
             );
-            queries.forEach(query ->
-                error(message, query, query.getName() != null ? AstPackage.Literals.QUERY__NAME : null)
-            );
+            queries.forEach(query -> error(message, query, AstPackage.Literals.QUERY__NAME));
             implicitClassesWithName.stream().map(Map.Entry::getValue).distinct()
                 .forEach(cause -> error(message, cause, null));
         }
