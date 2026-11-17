@@ -107,13 +107,18 @@ public class FeatureTypeResolver {
 
     /**
      * Finds the explicit abstract class that is used instead of an implicit target class for the given source class:
-     * if no query selects the source class, an abstract class without source that has the name of the source class
-     * is the target class of the source class, so that no second class with the same name is created.
+     * if no query selects an abstract source class, an abstract class without source that has the name of the source
+     * class is the target class of the source class, so that no second class with the same name is created. A
+     * concrete source class needs a concrete target class for its instances, so its implicit class is not replaced
+     * (the name conflict is reported by {@code TargetClassNameValidator}).
      *
-     * @return the abstract query or {@code null} if the source class is selected by a query or if there is no such
-     *     abstract class
+     * @return the abstract query or {@code null} if the source class is concrete or selected by a query or if there is
+     *     no such abstract class
      */
     public @Nullable Query findExplicitAbstractQuery(EClass sourceClass) {
+        if (!sourceClass.isAbstract()) {
+            return null;
+        }
         var candidates = queriesBySourceClass.get(sourceClass);
         return candidates == null || candidates.isEmpty() ? abstractQueriesByName.get(sourceClass.getName()) : null;
     }

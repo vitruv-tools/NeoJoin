@@ -79,9 +79,12 @@ public abstract class AbstractIntegrationTest implements HasPackageRegistry {
         var registry = new EPackageRegistryImpl();
         var packageResourceSet = new ResourceSetImpl();
         for (var path : getMetaModelPaths()) {
-            var resource = packageResourceSet.createResource(URI.createURI(path));
-            var input = Objects.requireNonNull(getClass().getResourceAsStream(path));
-            resource.load(input, null);
+            // absolute URI, so that references to other meta-models with a relative path (`other.ecore#//Food`) resolve
+            var url = Objects.requireNonNull(getClass().getResource(path));
+            var resource = packageResourceSet.createResource(URI.createURI(url.toString()));
+            try (var input = url.openStream()) {
+                resource.load(input, null);
+            }
             var pack = (EPackage) resource.getContents().get(0);
             registry.put(pack.getNsURI(), pack);
         }

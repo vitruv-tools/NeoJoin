@@ -53,6 +53,93 @@ class RootParseTest extends AbstractParseTest {
     }
 
     @Test
+    void featureNameConflictWithReferenceToImplicitClass() {
+        var result = parse("""
+            from Restaurant r create {
+                r.sells
+            }
+
+            create root Rooty {
+                foods := 5
+            }
+            """);
+
+        var message = "Feature name collides with implicit root containment reference.";
+        assertThat(result)
+            .hasIssueAt(message, "foods")
+            .hasExactlyIssues(message);
+    }
+
+    @Test
+    void featureWithReferenceNameOfRootClassItselfIsAllowed() {
+        var result = parse("""
+            create root Main {
+                mains := 5
+            }
+            """);
+
+        assertThat(result)
+            .hasNoIssues();
+    }
+
+    @Test
+    void featureWithReferenceNameOfAbstractClassIsAllowed() {
+        var result = parse("""
+            abstract Item {
+                name: EString
+            }
+
+            create root Main {
+                items := 5
+            }
+            """);
+
+        assertThat(result)
+            .hasNoIssues();
+    }
+
+    @Test
+    void namesDifferingOnlyInCaseOfFirstLetterCollideInRootClass() {
+        var result = parse("""
+            from Restaurant r create {
+                r.sells
+            }
+
+            create food {}
+            """);
+
+        var message = "Target classes 'Food', 'food' have the same containment reference 'foods' in the root class. "
+            + "Choose names that differ in more than the case of the first letter.";
+        assertThat(result)
+            .hasIssueAt(message, "r.sells", "food")
+            .hasExactlyIssues(message);
+    }
+
+    @Test
+    void abstractClassNeedsNoDistinctRootReferenceName() {
+        var result = parse("""
+            abstract food {}
+
+            create Food {}
+            """);
+
+        assertThat(result)
+            .hasNoIssues();
+    }
+
+    @Test
+    void explicitRootClassNeedsNoDistinctRootReferenceName() {
+        var result = parse("""
+            create root food {}
+
+            create Food {}
+            """);
+
+        assertThat(result)
+            .hasNoIssues();
+    }
+
+    @Test
     void multiRoot() {
         var result = parse("""
             create root Root {}
@@ -89,6 +176,24 @@ class RootParseTest extends AbstractParseTest {
             .hasExactlyIssues("Target class name 'Root' collides with name of the implicit root class. "
                 + "Either choose a different name for this class "
                 + "or explicitly create a root class with a different name.");
+    }
+
+    @Test
+    void implicitRootNameCollisionWithImplicitClass() {
+        var result = internalParse("""
+            export package to "http://example.com"
+
+            import "http://example.org/menu"
+
+            from Menu create
+            """);
+
+        var message = "Implicit target class of source class 'Root' collides with name of the implicit root class. "
+            + "Either create a query for the source class that specifies a different target class name "
+            + "or explicitly create a root class with a different name.";
+        assertThat(result)
+            .hasIssueAt(message, "from Menu create")
+            .hasExactlyIssues(message);
     }
 
 }

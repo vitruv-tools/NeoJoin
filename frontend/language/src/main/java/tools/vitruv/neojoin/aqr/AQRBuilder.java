@@ -237,8 +237,9 @@ public class AQRBuilder {
 
     /**
      * Returns the existing target class associated with a source class or creates a new one if none is found.
-     * If no query selects the source class, but an explicit abstract class without source has the same name as the
-     * source class, that class is used instead of creating a second class with this name.
+     * If no query selects an abstract source class, but an explicit abstract class without source has the same name as
+     * the source class, that class is used instead of creating a second class with this name (like
+     * {@link FeatureTypeResolver#findExplicitAbstractQuery}).
      * Also checks that there is at most one target class associated with the given source class.
      *
      * @param source source class for which to find the corresponding target class
@@ -247,9 +248,11 @@ public class AQRBuilder {
     private AQRTargetClass getOrCreateTargetClass(EClass source) {
         var targets = sourceClassToAQR.get(source);
         if (targets == null) {
-            var explicitAbstractClass = findExplicitAbstractClassWithoutSource(source.getName());
-            if (explicitAbstractClass.isPresent()) {
-                return explicitAbstractClass.get();
+            if (source.isAbstract()) {
+                var explicitAbstractClass = findExplicitAbstractClassWithoutSource(source.getName());
+                if (explicitAbstractClass.isPresent()) {
+                    return explicitAbstractClass.get();
+                }
             }
 
             // an implicit class selects only the direct instances, so that each instance is selected by the implicit

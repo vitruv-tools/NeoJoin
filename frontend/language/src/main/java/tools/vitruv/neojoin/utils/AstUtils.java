@@ -153,10 +153,49 @@ public final class AstUtils {
     }
 
     /**
+     * Returns whether the view type has no explicit root query, so that the root class named
+     * {@link tools.vitruv.neojoin.Constants#DefaultRootClassName} is created implicitly.
+     */
+    public static boolean hasImplicitRoot(ViewTypeDefinition viewType) {
+        return viewType.getQueries().stream().noneMatch(
+            query -> query instanceof ConcreteMainQuery concreteMainQuery && concreteMainQuery.isRoot()
+        );
+    }
+
+    /**
+     * Returns whether the target class of the query gets a containment reference in the root class, like in
+     * {@code AQRBuilder.populateRoot}: all classes except abstract classes and the root class itself. Queries with an
+     * unknown target name are skipped, other checks report their errors.
+     */
+    public static boolean hasRootReference(Query query, ExpressionHelper expressionHelper) {
+        if (query instanceof AbstractMainQuery) {
+            return false;
+        }
+        if (query instanceof ConcreteMainQuery mainQuery && mainQuery.isRoot()) {
+            return false;
+        }
+        return !getTargetName(query, expressionHelper).equals(UnknownTargetName);
+    }
+
+    /**
      * Returns the name with which the package from the given import can be referenced within the query.
      */
     public static String getImportAlias(Import imp) {
         return imp.getAlias() != null ? imp.getAlias() : imp.getPackage().getName();
+    }
+
+    /**
+     * Returns the name with which the given package can be referenced within the query.
+     *
+     * @return the alias of the import of the package (see {@link #getImportAlias}) or {@code null} if the package is
+     *     not imported
+     */
+    public static @Nullable String findImportAlias(ViewTypeDefinition viewType, EPackage pack) {
+        return viewType.getImports().stream()
+            .filter(imp -> imp.getPackage() == pack)
+            .findFirst()
+            .map(AstUtils::getImportAlias)
+            .orElse(null);
     }
 
     public static Stream<Import> getValidImports(ViewTypeDefinition viewType) {

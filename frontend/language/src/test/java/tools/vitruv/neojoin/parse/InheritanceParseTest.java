@@ -257,9 +257,11 @@ class InheritanceParseTest extends AbstractInheritanceParseTest {
             }
             """);
 
-        assertThat(result).hasExactlyIssues(
-            "Ambiguous super class for implicit target class of source class 'Dog'. Possible candidates: A1, A2"
-        );
+        var message = "Ambiguous super class for implicit target class of source class 'Dog'. "
+            + "Possible candidates: A1, A2";
+        assertThat(result)
+            .hasIssueAt(message, "k.star")
+            .hasExactlyIssues(message);
     }
 
     @Test
@@ -277,8 +279,28 @@ class InheritanceParseTest extends AbstractInheritanceParseTest {
 
         var message = "Implicit target class of source class 'Dog' is not linked to super class 'Animal', "
             + "because it has no matching feature (same name, type and modifiers) for: tag";
-        assertThat(result).hasExactlyIssues(message);
-        assertThat(result).hasIssueWithSeverity(Severity.WARNING, message);
+        assertThat(result)
+            .hasIssueAt(message, "k.dogs")
+            .hasIssueWithSeverity(Severity.WARNING, message)
+            .hasExactlyIssues(message);
+    }
+
+    /**
+     * An implicit class of an abstract source class is abstract and gets no containment reference in the root class.
+     */
+    @Test
+    void rootFeatureWithReferenceNameOfImplicitAbstractClassIsAllowed() {
+        var result = parseWithKennel("""
+            from Kennel k create K {
+                k.animals
+            }
+
+            create root Main {
+                animals := 1
+            }
+            """);
+
+        assertThat(result).hasNoIssues();
     }
 
     @Test
