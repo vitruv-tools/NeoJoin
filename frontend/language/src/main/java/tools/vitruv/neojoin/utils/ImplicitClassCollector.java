@@ -28,6 +28,16 @@ public class ImplicitClassCollector {
     }
 
     /**
+     * Collects the implicit classes of the view type with a new {@link FeatureTypeResolver}.
+     *
+     * @see #collectImplicitClasses(ViewTypeDefinition)
+     */
+    public static Map<EClass, EObject> collect(ViewTypeDefinition viewType, ExpressionHelper expressionHelper) {
+        return new ImplicitClassCollector(new FeatureTypeResolver(viewType, expressionHelper), expressionHelper)
+            .collectImplicitClasses(viewType);
+    }
+
+    /**
      * @return the implicit source classes, each with the first AST element that causes it: the feature that
      *     references it, or the query if the references are copied
      */

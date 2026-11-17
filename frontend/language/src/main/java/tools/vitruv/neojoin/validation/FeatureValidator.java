@@ -34,6 +34,7 @@ import tools.vitruv.neojoin.utils.FeatureType.AmbiguousReferenceType;
 import tools.vitruv.neojoin.utils.FeatureType.ImplicitReferenceType;
 import tools.vitruv.neojoin.utils.FeatureType.QueryReferenceType;
 import tools.vitruv.neojoin.utils.FeatureTypeResolver;
+import tools.vitruv.neojoin.utils.ImplicitClassCollector;
 
 import java.util.HashSet;
 import java.util.List;
@@ -477,8 +478,15 @@ public class FeatureValidator extends ComposableValidator {
             return;
         }
 
-        var allNames = AstUtils.getAllQueries(AstUtils.getViewType(mainQuery))
-            .map(q -> AstUtils.getTargetName(q, expressionHelper))
+        var viewType = AstUtils.getViewType(mainQuery);
+        var queryNames = AstUtils.getAllQueries(viewType)
+            .filter(query -> AstUtils.hasRootReference(query, expressionHelper))
+            .map(query -> AstUtils.getTargetName(query, expressionHelper));
+        // implicit classes of abstract source classes are abstract
+        var implicitClassNames = ImplicitClassCollector.collect(viewType, expressionHelper).keySet().stream()
+            .filter(sourceClass -> !sourceClass.isAbstract())
+            .map(EClass::getName);
+        var allNames = Stream.concat(queryNames, implicitClassNames)
             .map(Formatting::formatRootReferenceName)
             .collect(Collectors.toSet());
 

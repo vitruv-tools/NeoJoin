@@ -36,7 +36,8 @@ import java.util.stream.Collectors;
     FeatureValidator.class,
     FeatureModifierValidator.class,
     InheritanceValidator.class,
-    ImplicitSuperClassValidator.class
+    ImplicitSuperClassValidator.class,
+    TargetClassNameValidator.class
 })
 public class NeoJoinValidator extends AbstractNeoJoinValidator {
 
@@ -79,10 +80,7 @@ public class NeoJoinValidator extends AbstractNeoJoinValidator {
                 }
             });
 
-        var hasImplicitRoot = viewType.getQueries().stream().noneMatch(
-            query -> query instanceof ConcreteMainQuery concreteMainQuery && concreteMainQuery.isRoot()
-        );
-        if (hasImplicitRoot) {
+        if (AstUtils.hasImplicitRoot(viewType)) {
             var conflicts = groupedTargets.get(Constants.DefaultRootClassName);
             if (conflicts != null) {
                 conflicts.forEach(query ->

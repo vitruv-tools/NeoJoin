@@ -16,7 +16,11 @@ public abstract class AbstractParseTest extends AbstractIntegrationTest {
             "/models/reviewpage.ecore",
             "/models/type-casts.ecore",
             "/models/cyclic.ecore",
-            "/models/imdb.ecore"
+            "/models/imdb.ecore",
+            "/models/menu.ecore",
+            "/models/order.ecore",
+            "/models/supplier-a.ecore",
+            "/models/supplier-b.ecore"
         );
     }
 
