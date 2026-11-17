@@ -77,7 +77,10 @@ class MainQueryParseTest extends AbstractParseTest {
             from Food create Rest {}
             """);
 
-        assertThat(result).hasExactlyIssues("Duplicated target class named 'Rest'");
+        var message = "Duplicated target class named 'Rest'";
+        assertThat(result)
+            .hasIssueAt(message, "Rest", "Rest")
+            .hasExactlyIssues(message);
     }
 
     @Test
@@ -87,7 +90,10 @@ class MainQueryParseTest extends AbstractParseTest {
             from Food create Restaurant {}
             """);
 
-        assertThat(result).hasExactlyIssues("Duplicated target class named 'Restaurant'");
+        var message = "Duplicated target class named 'Restaurant'";
+        assertThat(result)
+            .hasIssueAt(message, "from Restaurant create {}", "Restaurant")
+            .hasExactlyIssues(message);
     }
 
     @Test

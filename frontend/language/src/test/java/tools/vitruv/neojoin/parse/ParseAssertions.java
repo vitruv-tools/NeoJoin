@@ -2,6 +2,7 @@ package tools.vitruv.neojoin.parse;
 
 import org.assertj.core.api.AbstractAssert;
 import org.eclipse.xtext.diagnostics.Severity;
+import org.eclipse.xtext.nodemodel.util.NodeModelUtils;
 import org.eclipse.xtext.validation.Issue;
 import tools.vitruv.neojoin.ast.ViewTypeDefinition;
 import tools.vitruv.neojoin.common.Pair;
@@ -12,13 +13,16 @@ import java.util.stream.Collectors;
 
 public class ParseAssertions extends AbstractAssert<ParseAssertions, List<Issue>> {
 
-    protected ParseAssertions(List<Issue> actual) {
+    private final ViewTypeDefinition viewType;
+
+    protected ParseAssertions(ViewTypeDefinition viewType, List<Issue> actual) {
         super(actual, ParseAssertions.class);
+        this.viewType = viewType;
     }
 
     public static ParseAssertions assertThat(Pair<ViewTypeDefinition, List<Issue>> actual) {
         //noinspection DataFlowIssue - false positive
-        return new ParseAssertions(actual.right());
+        return new ParseAssertions(actual.left(), actual.right());
     }
 
     private static String formatMessageList(String header, List<String> issues) {
@@ -58,6 +62,26 @@ public class ParseAssertions extends AbstractAssert<ParseAssertions, List<Issue>
             failWithMessage("Expected %s '%s' but got:%n%s".formatted(
                 severity, message, formatUnexpectedIssues(actual)));
         }
+    }
+
+    /**
+     * Asserts that the issues with the given message mark exactly the given parts of the query text (in any order).
+     * Other issues are not checked.
+     */
+    public ParseAssertions hasIssueAt(String message, String... markedTexts) {
+        var text = NodeModelUtils.getNode(viewType).getRootNode().getText();
+        var actualMarkedTexts = actual.stream()
+            .filter(issue -> issue.getMessage().equals(message))
+            .map(issue -> text.substring(issue.getOffset(), issue.getOffset() + issue.getLength()))
+            .sorted()
+            .toList();
+        var expectedMarkedTexts = Arrays.stream(markedTexts).sorted().toList();
+        if (!actualMarkedTexts.equals(expectedMarkedTexts)) {
+            failWithMessage(
+                "Expected issue '%s' at %s but found it at %s", message, expectedMarkedTexts, actualMarkedTexts
+            );
+        }
+        return this;
     }
 
     /**
