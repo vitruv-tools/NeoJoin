@@ -96,6 +96,7 @@ The view type has a root class, named `Root` unless a query declares `create roo
 * Language server (LSP) for syntax highlighting, code completion, and live visualization of the resulting view type
 * Input and output meta-models as `.ecore` and instance-models as `.xmi` files
 * Source meta-models may reference classes of the Ecore meta-model (e.g. `EObject`) without having Ecore on the meta-model path or importing it
+* Source meta-models may reference classes, enumerations and data types of other meta-models by namespace URI (`http://example.org/supplier#//Food`) or by relative path; the referenced meta-models must be on the meta-model path (Ecore excepted), otherwise the referencing meta-model is ignored with a message
 
 ### Keywords
 
@@ -178,6 +179,8 @@ Model Path
 
 *Note: `QUERY` and `OUTPUT`s need to be specified with regular paths, e.g., `/x/y/z` or `./x/y`.*
 
+Models on a model path that cannot be used are skipped with a warning: files that cannot be loaded, meta-models that reference meta-models that are not on the path, several meta-models with the same namespace URI, and instance models of meta-models that are not on the meta-model path. A copy of a globally registered meta-model such as Ecore is replaced by the global one. Several instance models of one meta-model are an error, also if some of them cannot be loaded, and the CLI does not transform.
+
 ### Conformance Validation
 
 A view type often has to fit a meta-model that exists outside the query, for example because a tool that consumes the view was written against it. A query can name such a *reference meta-model* with the optional `conforms to` clause:
@@ -243,6 +246,8 @@ The rules and their categories are documented in the [conformance validator read
 ```
 
 We use [SonarQube](https://sonarcloud.io/project/overview?id=vitruv-tools_NeoJoin) to analyze our Maven projects.
+
+The components of the implementation and how they load models are described in [Implementation](docs/frontend/structure.md).
 
 The license files, module names and third-party notices in the jars, and what to do when a dependency is added to the CLI or the language server, are described in [Jar Metadata and Licenses](docs/jar-metadata-and-licenses.md).
 
