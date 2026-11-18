@@ -2,7 +2,7 @@
 <ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="order" nsURI="http://example.org/order" nsPrefix="order">
   <eClassifiers xsi:type="ecore:EClass" name="Order">
-    <eStructuralFeatures xsi:type="ecore:EReference" name="fromA" eType="ecore:EClass supplier-a.ecore#//Food"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="fromB" eType="ecore:EClass supplier-b.ecore#//Food"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="fromA" eType="ecore:EClass http://example.org/supplier/a#//Food"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="fromB" eType="ecore:EClass http://example.org/supplier/b#//Food"/>
   </eClassifiers>
 </ecore:EPackage>

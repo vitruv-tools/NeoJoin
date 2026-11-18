@@ -3,17 +3,17 @@ package tools.vitruv.neojoin.collector;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
-
-import tools.vitruv.neojoin.common.Utils;
+import org.xml.sax.SAXParseException;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.ProviderNotFoundException;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -31,40 +31,107 @@ import java.util.stream.Stream;
  */
 public abstract class AbstractModelCollector {
 
-    private final List<Path> paths;
+    private final List<String> pathEntries;
 
     protected AbstractModelCollector(String searchPathString) {
-        this.paths = parseSearchPathString(searchPathString);
-    }
-
-    private static List<Path> parseSearchPathString(String pathString) {
-        return Arrays.stream(pathString.split(";"))
-            .map(Path::of)
-            .toList();
+        this.pathEntries = List.of(searchPathString.split(";"));
     }
 
     protected abstract String fileExtension();
 
-    protected Stream<Resource> collectResourcesAsStream(ResourceSet resourceSet) {
-        return paths.stream()
-            .flatMap(path -> getContainedFiles(path).stream())
-            .map(uri -> resourceSet.getResource(uri, true));
+    /**
+     * The result of loading one file of the search path.
+     */
+    protected sealed interface LoadResult {
+
+        URI uri();
+
+        record Loaded(URI uri, Resource resource) implements LoadResult {}
+
+        record Failed(URI uri, RuntimeException exception) implements LoadResult {}
     }
 
-    private List<URI> getContainedFiles(Path fileOrDirectory) {
-        var extension = fileExtension();
+    /**
+     * Loads the models on the search path into the given resource set, in the order of the search path and, within a
+     * directory or archive, sorted by path. Path entries that are invalid or do not exist, directories that cannot be
+     * read and archives that cannot be opened are reported as issues and skipped.
+     *
+     * @param resourceSet resource set to load the models into
+     * @param issues      list to add the issues to
+     * @return the result of each file, in the order of loading
+     */
+    protected List<LoadResult> loadResources(ResourceSet resourceSet, List<CollectorIssue> issues) {
+        List<LoadResult> results = new ArrayList<>();
+        for (var entry : pathEntries) {
+            for (var uri : getContainedFiles(entry, issues)) {
+                try {
+                    results.add(new LoadResult.Loaded(uri, resourceSet.getResource(uri, true)));
+                } catch (RuntimeException e) {
+                    results.add(new LoadResult.Failed(uri, e));
+                }
+            }
+        }
+        return results;
+    }
 
+    /**
+     * Returns the issue for a file that cannot be loaded.
+     */
+    protected static CollectorIssue loadFailure(LoadResult.Failed failed) {
+        return new CollectorIssue.LoadFailure(failed.uri().toString(), describe(failed.exception()));
+    }
+
+    /**
+     * EMF and the file system wrap the problem in several exceptions; the innermost one describes it.
+     */
+    private static String describe(Throwable exception) {
+        Throwable cause = exception;
+        while (cause.getCause() != null) {
+            cause = cause.getCause();
+        }
+        if (cause instanceof SAXParseException parseException) {
+            return "%s (line %d, column %d)".formatted(
+                parseException.getMessage(),
+                parseException.getLineNumber(),
+                parseException.getColumnNumber()
+            );
+        }
+        return String.valueOf(cause.getMessage());
+    }
+
+    /**
+     * Returns the model files of a path entry (a model file, an archive or a directory).
+     */
+    private List<URI> getContainedFiles(String entry, List<CollectorIssue> issues) {
+        Path fileOrDirectory;
+        try {
+            // without `.` and `..` segments, which EMF removes when it resolves a relative reference; the file would
+            // be loaded a second time under the other URI
+            fileOrDirectory = Path.of(entry).toAbsolutePath().normalize();
+        } catch (InvalidPathException e) {
+            issues.add(new CollectorIssue.LoadFailure(entry, "the path is invalid (%s).".formatted(e.getReason())));
+            return List.of();
+        }
+        if (!Files.exists(fileOrDirectory)) {
+            issues.add(new CollectorIssue.LoadFailure(entry, "the file or directory does not exist."));
+            return List.of();
+        }
+
+        var extension = fileExtension();
         try (var paths = Files.walk(fileOrDirectory)) {
             return paths
                 .filter(Files::isRegularFile)
-                .flatMap(file -> isSupportedArchive(file) ? getContainedFilesInArchive(file).stream() : Stream.of(file))
+                .sorted()
+                .flatMap(file -> isSupportedArchive(file)
+                    ? getContainedFilesInArchive(file, issues).stream()
+                    : Stream.of(file))
                 .map(AbstractModelCollector::toEmfUri)
                 .filter(uri -> Objects.equals(uri.fileExtension(), extension))
                 .toList();
-        } catch (NoSuchFileException e) {
-            throw new IllegalArgumentException("File or directory does not exist: " + fileOrDirectory);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } catch (IOException | UncheckedIOException e) {
+            // for example a directory without read permission
+            issues.add(new CollectorIssue.LoadFailure(entry, describe(e)));
+            return List.of();
         }
     }
 
@@ -84,22 +151,21 @@ public abstract class AbstractModelCollector {
         return name.endsWith(".jar");
     }
 
-    private static List<Path> getContainedFilesInArchive(Path archive) {
+    private static List<Path> getContainedFilesInArchive(Path archive, List<CollectorIssue> issues) {
         try (FileSystem archiveFs = FileSystems.newFileSystem(archive, Collections.emptyMap())) {
-            return Utils.streamOf(archiveFs.getRootDirectories().iterator())
-                .flatMap(root -> {
-                    try {
-                        return Files.walk(root);
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                })
-                // directory entries can look like models too, e.g.
-                // META-INF/maven/org.eclipse.emf/org.eclipse.emf.ecore/
-                .filter(Files::isRegularFile)
-                .toList();
+            List<Path> files = new ArrayList<>();
+            for (var root : archiveFs.getRootDirectories()) {
+                try (var entries = Files.walk(root)) {
+                    // directory entries can look like models too, e.g.
+                    // META-INF/maven/org.eclipse.emf/org.eclipse.emf.ecore/
+                    entries.filter(Files::isRegularFile).forEach(files::add);
+                }
+            }
+            files.sort(null);
+            return files;
         } catch (IOException | ProviderNotFoundException e) {
-            throw new RuntimeException(e);
+            issues.add(new CollectorIssue.LoadFailure(archive.toUri().toString(), describe(e)));
+            return List.of();
         }
     }
 

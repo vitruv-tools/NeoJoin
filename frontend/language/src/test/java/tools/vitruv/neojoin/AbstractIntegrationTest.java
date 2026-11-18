@@ -5,10 +5,8 @@ import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EValidator;
 import org.eclipse.emf.ecore.impl.EPackageRegistryImpl;
-import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
-import org.eclipse.emf.ecore.xmi.impl.EcoreResourceFactoryImpl;
 import org.eclipse.xtext.resource.IResourceFactory;
 import org.eclipse.xtext.util.CancelIndicator;
 import org.eclipse.xtext.util.StringInputStream;
@@ -20,6 +18,7 @@ import org.junit.jupiter.api.BeforeEach;
 import tools.vitruv.neojoin.aqr.AQRBuilder;
 import tools.vitruv.neojoin.ast.AstPackage;
 import tools.vitruv.neojoin.ast.ViewTypeDefinition;
+import tools.vitruv.neojoin.common.EMFUtils;
 import tools.vitruv.neojoin.common.Pair;
 import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
 import tools.vitruv.neojoin.model.AQR;
@@ -53,11 +52,6 @@ public abstract class AbstractIntegrationTest implements HasPackageRegistry {
         if (!EPackage.Registry.INSTANCE.containsKey("http://vitruv.tools/dsls/neojoin/Ast")) {
             EPackage.Registry.INSTANCE.put("http://vitruv.tools/dsls/neojoin/Ast", AstPackage.eINSTANCE);
         }
-
-        if (!Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().containsKey("ecore")) {
-            Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().put(
-                "ecore", new EcoreResourceFactoryImpl());
-        }
     }
 
     @BeforeEach
@@ -77,7 +71,7 @@ public abstract class AbstractIntegrationTest implements HasPackageRegistry {
 
     protected EPackage.Registry createPackageRegistry() throws IOException {
         var registry = new EPackageRegistryImpl();
-        var packageResourceSet = new ResourceSetImpl();
+        var packageResourceSet = EMFUtils.createResourceSet();
         for (var path : getMetaModelPaths()) {
             // absolute URI, so that references to other meta-models with a relative path (`other.ecore#//Food`) resolve
             var url = Objects.requireNonNull(getClass().getResource(path));
@@ -87,6 +81,8 @@ public abstract class AbstractIntegrationTest implements HasPackageRegistry {
             }
             var pack = (EPackage) resource.getContents().get(0);
             registry.put(pack.getNsURI(), pack);
+            // references to other meta-models by namespace URI (`http://example.org/x#//Food`) resolve through this
+            packageResourceSet.getPackageRegistry().put(pack.getNsURI(), pack);
         }
         return registry;
     }

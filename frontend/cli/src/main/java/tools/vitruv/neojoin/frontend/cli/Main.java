@@ -6,6 +6,7 @@ import org.eclipse.emf.common.util.WrappedException;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.util.Diagnostician;
+import org.eclipse.xtext.diagnostics.Severity;
 import org.eclipse.xtext.validation.Issue;
 import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
@@ -17,6 +18,7 @@ import picocli.CommandLine.Parameters;
 import tools.vitruv.neojoin.NeoJoinStandaloneSetup;
 import tools.vitruv.neojoin.Parser;
 import tools.vitruv.neojoin.SourceLocation;
+import tools.vitruv.neojoin.collector.CollectorIssue;
 import tools.vitruv.neojoin.collector.InstanceModelCollector;
 import tools.vitruv.neojoin.collector.PackageModelCollector;
 import tools.vitruv.neojoin.generation.MetaModelGenerator;
@@ -105,7 +107,7 @@ public class Main implements Callable<Integer> {
         } catch (ParameterResolutionException e) {
             printError(e.getMessage());
         } catch (IllegalArgumentException ex) {
-            printError("Invalid meta-model path: %s", ex.getMessage());
+            printError("%s", ex.getMessage());
         } catch (TransformatorException e) {
             var source = e.getSourceElement();
             if (source != null) {
@@ -143,10 +145,8 @@ public class Main implements Callable<Integer> {
     private int execute() throws IOException {
         // collect available meta-models
         var collectionResult = new PackageModelCollector(metaModelPath).collect();
-        List<PackageModelCollector.Issue> issues = collectionResult.left();
+        printCollectorIssues(collectionResult.left());
         EPackage.Registry registry = collectionResult.right();
-
-        issues.forEach(System.err::println);
 
         // parse query
         var setup = new NeoJoinStandaloneSetup(registry);
@@ -175,7 +175,12 @@ public class Main implements Callable<Integer> {
 
         if (transform != null) {
             // transform instance models
-            var inputModels = new InstanceModelCollector(transform.instanceModelPath, registry).collect();
+            var instanceCollectionResult = new InstanceModelCollector(transform.instanceModelPath, registry).collect();
+            printCollectorIssues(instanceCollectionResult.left());
+            if (instanceCollectionResult.left().stream().anyMatch(issue -> issue.severity() == Severity.ERROR)) {
+                return 1;
+            }
+            var inputModels = instanceCollectionResult.right();
             Map<String, Object> paramValues = ParameterResolver.resolve(
                 aqr.parameters(),
                 transform.parameters != null ? transform.parameters : Map.of(),
@@ -215,6 +220,12 @@ public class Main implements Callable<Integer> {
         rootDiagnostic.getChildren().forEach(d ->
             System.err.printf("[%s] %s%n", EMFUtils.diagnosticSeverityText(d), d.getMessage())
         );
+    }
+
+    private static void printCollectorIssues(List<CollectorIssue> issues) {
+        for (var issue : issues) {
+            System.err.printf("[%s] %s%n", issue.severity().name(), issue);
+        }
     }
 
     /**
