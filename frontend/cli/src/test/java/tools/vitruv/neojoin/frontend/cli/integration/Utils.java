@@ -13,7 +13,7 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.impl.EPackageRegistryImpl;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
-import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
+import tools.vitruv.neojoin.common.EMFUtils;
 import static tools.vitruv.neojoin.common.Assertions.check;
 
 public class Utils {
@@ -38,7 +38,7 @@ public class Utils {
 
     public static EPackage.Registry createPackageRegistry(List<Path> metaModelPaths) throws IOException {
         EPackageRegistryImpl registry = new EPackageRegistryImpl();
-        ResourceSet packageResourceSet = new ResourceSetImpl();
+        ResourceSet packageResourceSet = EMFUtils.createResourceSet();
 
         for (Path path : metaModelPaths) {
             Resource resource = packageResourceSet.getResource(
@@ -54,10 +54,10 @@ public class Utils {
     }
 
     public static Comparison compareEcoreFiles(Path modelA, Path modelB) {
-        ResourceSet resourceSetA = new ResourceSetImpl();
+        ResourceSet resourceSetA = EMFUtils.createResourceSet();
         resourceSetA.getResource(org.eclipse.emf.common.util.URI.createURI(modelA.toUri().toString()), true);
 
-        ResourceSet resourceSetB = new ResourceSetImpl();
+        ResourceSet resourceSetB = EMFUtils.createResourceSet();
         resourceSetB.getResource(org.eclipse.emf.common.util.URI.createURI(modelB.toUri().toString()), true);
 
         IComparisonScope scope = new DefaultComparisonScope(resourceSetA, resourceSetB, null);
@@ -67,12 +67,10 @@ public class Utils {
     public static Comparison compareInstanceFiles(Path model, Path instanceA, Path instanceB) throws IOException {
         EPackage.Registry packageRegistry = createPackageRegistry(List.of(model));
 
-        ResourceSet resourceSetA = new ResourceSetImpl();
-        resourceSetA.setPackageRegistry(packageRegistry);
+        ResourceSet resourceSetA = EMFUtils.createResourceSet(packageRegistry);
         resourceSetA.getResource(org.eclipse.emf.common.util.URI.createURI(instanceA.toUri().toString()), true);
 
-        ResourceSet resourceSetB = new ResourceSetImpl();
-        resourceSetB.setPackageRegistry(packageRegistry);
+        ResourceSet resourceSetB = EMFUtils.createResourceSet(packageRegistry);
         resourceSetB.getResource(org.eclipse.emf.common.util.URI.createURI(instanceB.toUri().toString()), true);
 
         IComparisonScope scope = new DefaultComparisonScope(resourceSetA, resourceSetB, null);

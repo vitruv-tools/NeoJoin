@@ -13,9 +13,6 @@ import java.util.stream.Stream;
 
 import org.eclipse.emf.compare.Diff;
 import org.eclipse.emf.compare.DifferenceKind;
-import org.eclipse.emf.ecore.resource.Resource;
-import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -23,13 +20,6 @@ import picocli.CommandLine;
 import tools.vitruv.neojoin.frontend.cli.Main;
 
 class ParameterTransformTest {
-
-    @BeforeAll
-    static void setupRegistry() {
-        if (!Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().containsKey("xmi")) {
-            Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().put("xmi", new XMIResourceFactoryImpl());
-        }
-    }
 
     @Test
     void testTransformWithParameters(@TempDir Path outputDirectory) throws URISyntaxException, IOException {

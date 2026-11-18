@@ -6,8 +6,8 @@ import org.eclipse.emf.ecore.EcoreFactory;
 import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.emf.ecore.impl.EPackageRegistryImpl;
 import org.eclipse.emf.ecore.resource.Resource;
-import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.junit.jupiter.api.Test;
+import tools.vitruv.neojoin.common.EMFUtils;
 import tools.vitruv.neojoin.transformation.emf.predicates.InstancePredicates;
 
 import java.util.List;
@@ -47,7 +47,7 @@ public class GeneratedModelTest extends AbstractTransformationTest implements In
             pack.getEClassifiers().add(eClass);
         }
 
-        var resource = new ResourceSetImpl().createResource(URI.createURI("shop.ecore"));
+        var resource = EMFUtils.createResourceSet().createResource(URI.createURI("shop.ecore"));
         resource.getContents().add(pack);
         return Map.of(EcorePackage.eINSTANCE, resource);
     }
