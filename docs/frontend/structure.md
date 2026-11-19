@@ -42,7 +42,7 @@ The collectors find the files of a model path (`ModelPath.findFiles`) and load t
 | Path entry is invalid, does not exist or is a file with another extension (the warning names the meta-model or instance model path) | Warning, entry skipped | Warning, entry skipped |
 | Directory cannot be read, archive cannot be opened | Warning, the directory or archive is skipped | Warning, the directory or archive is skipped |
 | File cannot be loaded, or contains no package or no model elements | Warning, file skipped (a query importing the meta-model reports it as unknown) | Warning, file skipped (a transformation that selects instances of its meta-model reports the instance model as missing) |
-| Package with the namespace URI of a global package (for example a copy of Ecore) | Warning, the global package is used instead (queries can import it, and the instance models are loaded with it) | – |
+| Package with the namespace URI of a global package (for example a copy of Ecore) | Warning, the global package is used instead (queries can import it, and the instance models are loaded with it); a meta-model that references the copy by file instead of by namespace URI is left out with a warning that says so | – |
 | Several packages with one namespace URI | Warning, none of them is used, and meta-models that reference them are left out too | – |
 | Meta-model references a class, enumeration or data type outside the path or a data type without instance class, or has a feature without type | Warning, meta-model left out, also every meta-model that references it | – |
 | Instance model of a meta-model that is not in the registry (the namespace of the root element, also if the file cannot be loaded) | – | Warning, file skipped (a query cannot import that meta-model) |

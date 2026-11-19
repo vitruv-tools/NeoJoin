@@ -129,6 +129,30 @@ public sealed interface CollectorIssue {
         }
     }
 
+    /**
+     * A meta-model references a type by file instead of by namespace URI, and the file is a copy of a global package,
+     * which the collector uses instead of the copy (see {@link GlobalPackageConflict}). The type of the copy is not a
+     * type of the global package, so a reference by namespace URI is needed.
+     */
+    record ReferenceToReplacedCopy(
+        String packageUri,
+        String referencedUri,
+        String globalPackageUri
+    ) implements CollectorIssue {
+
+        @Override
+        public Severity severity() {
+            return Severity.WARNING;
+        }
+
+        @Override
+        public String toString() {
+            return ("Ignoring the meta-model '%s': it references '%s' in a copy of the globally registered meta-model "
+                + "'%s'; reference it by namespace URI instead.")
+                .formatted(packageUri, referencedUri, globalPackageUri);
+        }
+    }
+
     record ReferenceToIgnoredMetaModel(String packageUri, String referencedPackageUri) implements CollectorIssue {
 
         @Override

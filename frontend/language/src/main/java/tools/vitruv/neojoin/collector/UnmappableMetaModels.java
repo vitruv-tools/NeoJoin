@@ -99,16 +99,45 @@ final class UnmappableMetaModels {
             .findFirst();
         if (unsupported.isPresent()) {
             var type = unsupported.get();
-            return isDataTypeWithoutInstanceClass(type)
-                ? new CollectorIssue.DataTypeWithoutInstanceClass(pack.getNsURI(), formatUri(type))
-                : new CollectorIssue.ReferenceOutsideModelPath(pack.getNsURI(), formatUri(type));
+            if (isDataTypeWithoutInstanceClass(type)) {
+                return new CollectorIssue.DataTypeWithoutInstanceClass(pack.getNsURI(), formatUri(type));
+            }
+
+            var globalPackage = findGlobalPackageReplacingCopy(type, registry);
+            if (globalPackage != null) {
+                // formatUri would give the namespace URI of the global package, which the meta-model can use instead
+                return new CollectorIssue.ReferenceToReplacedCopy(
+                    pack.getNsURI(),
+                    EcoreUtil.getURI(type).toString(),
+                    globalPackage.getNsURI()
+                );
+            }
+            return new CollectorIssue.ReferenceOutsideModelPath(pack.getNsURI(), formatUri(type));
         }
+
         var ignoredPackage = referencedTypes(pack)
             .map(EClassifier::getEPackage)
             .filter(referenced -> isOtherIgnored(referenced, pack, ignored))
             .findFirst()
             .orElseGet(() -> fail("ignored meta-model without a reason: " + pack.getNsURI()));
         return new CollectorIssue.ReferenceToIgnoredMetaModel(pack.getNsURI(), ignoredPackage.getNsURI());
+    }
+
+    /**
+     * Returns the global package that the registry contains instead of the package of the type, if the type belongs to
+     * a copy of a global package (loaded from a file through a relative reference, see
+     * {@link CollectorIssue.GlobalPackageConflict}).
+     */
+    private static @Nullable EPackage findGlobalPackageReplacingCopy(EClassifier type, EPackage.Registry registry) {
+        // an unresolved proxy or a class outside any package
+        if (type.getEPackage() == null) {
+            return null;
+        }
+
+        // the type is not supported, so its own package is not in the registry
+        var namespaceUri = type.getEPackage().getNsURI();
+        var globalPackage = EPackage.Registry.INSTANCE.getEPackage(namespaceUri);
+        return globalPackage != null && registry.getEPackage(namespaceUri) == globalPackage ? globalPackage : null;
     }
 
     private static boolean isOtherIgnored(@Nullable EPackage referenced, EPackage pack, Set<EPackage> ignored) {

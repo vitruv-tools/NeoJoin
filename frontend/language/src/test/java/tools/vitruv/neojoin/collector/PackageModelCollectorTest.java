@@ -471,6 +471,38 @@ class PackageModelCollectorTest {
         }
     }
 
+    /**
+     * The relative reference points to the copy, which the global package replaces; a reference by namespace URI
+     * would find the global package.
+     */
+    @Test
+    void ignoresMetaModelReferencingReplacedCopyOfGlobalPackage(@TempDir Path dir) throws IOException {
+        var copy = dir.resolve("Ecore.ecore");
+        copyResource("/model/Ecore.ecore", copy);
+        Files.writeString(dir.resolve("shop.ecore"), """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore"
+                name="shop" nsURI="http://example.org/shop" nsPrefix="shop">
+              <eClassifiers xsi:type="ecore:EClass" name="Item">
+                <eStructuralFeatures xsi:type="ecore:EAttribute" name="name"
+                    eType="ecore:EDataType Ecore.ecore#//EString"/>
+              </eClassifiers>
+            </ecore:EPackage>
+            """);
+
+        var result = new PackageModelCollector(dir.toString()).collect();
+
+        assertThat(result.left()).extracting(CollectorIssue::severity, Object::toString).containsExactly(
+            warning("Ignoring the meta-model 'http://www.eclipse.org/emf/2002/Ecore' in '" + copy.toUri() + "': a "
+                + "package with this namespace URI is registered globally and used instead."),
+            warning("Ignoring the meta-model 'http://example.org/shop': it references '" + copy.toUri() + "#//EString' "
+                + "in a copy of the globally registered meta-model 'http://www.eclipse.org/emf/2002/Ecore'; reference "
+                + "it by namespace URI instead.")
+        );
+        assertThat(result.right().keySet()).containsExactly("http://www.eclipse.org/emf/2002/Ecore");
+    }
+
     private static Tuple warning(String message) {
         return tuple(WARNING, message);
     }
