@@ -63,7 +63,9 @@ public sealed interface CollectorIssue {
                     parseException.getColumnNumber()
                 ));
             }
-            return new LoadFailure(location, String.valueOf(cause.getMessage()));
+            // some exceptions have no message
+            var message = cause.getMessage();
+            return new LoadFailure(location, message != null ? message : cause.getClass().getSimpleName());
         }
 
         @Override
