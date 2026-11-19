@@ -48,7 +48,7 @@ The collectors find the files of a model path (`ModelPath.findFiles`) and load t
 | Instance model of a meta-model that is not in the registry (the namespace of the root element, also if the file cannot be loaded) | – | Warning, file skipped (a query cannot import that meta-model) |
 | Instance model with roots of several meta-models | – | Used as instance model of each of them |
 | Root element of a class in a sub package | – | Used as instance model of the root package, by which the transformation looks it up |
-| Several instance models of one meta-model | – | Error, also if some of the files cannot be loaded (counted by the namespace of their root element, which StAX can often read in a broken file) |
+| Several instance models of one meta-model | – | Error, also if some of the files cannot be loaded (counted by the root package of their root elements; in a broken file the namespace of the root element, which StAX can often read) |
 
 ## Package Registries
 
