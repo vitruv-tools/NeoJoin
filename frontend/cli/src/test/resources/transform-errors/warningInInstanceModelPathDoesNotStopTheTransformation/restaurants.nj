@@ -1,0 +1,5 @@
+export restaurants to "http://example.org/restaurants"
+
+import "http://example.org/restaurant"
+
+from Restaurant create

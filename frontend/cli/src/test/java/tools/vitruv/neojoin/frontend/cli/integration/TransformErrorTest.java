@@ -11,13 +11,22 @@ import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.io.TempDir;
 
 import picocli.CommandLine;
 import tools.vitruv.neojoin.frontend.cli.Main;
 
 class TransformErrorTest {
+
+    private String testName;
+
+    @BeforeEach
+    void rememberTestName(TestInfo testInfo) {
+        testName = testInfo.getTestMethod().orElseThrow().getName();
+    }
 
     @Test
     void failingExpressionIsReportedWithItsLocationInTheQuery(@TempDir Path directory) throws IOException {
@@ -43,13 +52,10 @@ class TransformErrorTest {
     }
 
     @Test
-    void errorInInstanceModelPathStopsTheTransformation(@TempDir Path directory) throws IOException {
-        var instances = Files.createDirectory(directory.resolve("instances"));
-        Files.copy(getResource(Utils.INSTANCES.resolve("restaurants.xmi")), instances.resolve("a.xmi"));
-        Files.copy(getResource(Utils.INSTANCES.resolve("restaurants.xmi")), instances.resolve("b.xmi"));
+    void errorInInstanceModelPathStopsTheTransformation(@TempDir Path directory) {
         var output = directory.resolve("out.xmi");
 
-        var result = transform(writeRestaurantQuery(directory), instances, output);
+        var result = transform(testFolder().resolve("restaurants.nj"), testFolder().resolve("instances"), output);
 
         assertEquals(1, result.exitCode());
         assertTrue(
@@ -60,32 +66,21 @@ class TransformErrorTest {
     }
 
     @Test
-    void warningInInstanceModelPathDoesNotStopTheTransformation(@TempDir Path directory) throws IOException {
-        var instances = Files.createDirectory(directory.resolve("instances"));
-        Files.copy(getResource(Utils.INSTANCES.resolve("restaurants.xmi")), instances.resolve("restaurants.xmi"));
-        Files.writeString(instances.resolve("unknown.xmi"), """
-            <?xml version="1.0" encoding="UTF-8"?>
-            <unknown:Thing xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:unknown="http://example.org/unknown"/>
-            """);
+    void warningInInstanceModelPathDoesNotStopTheTransformation(@TempDir Path directory) {
         var output = directory.resolve("out.xmi");
 
-        var result = transform(writeRestaurantQuery(directory), instances, output);
+        var result = transform(testFolder().resolve("restaurants.nj"), testFolder().resolve("instances"), output);
 
         assertEquals(0, result.exitCode(), result.err());
         assertTrue(result.err().contains("[WARNING] Ignoring the instance model"), result.err());
         assertTrue(Files.exists(output));
     }
 
-    private static Path writeRestaurantQuery(Path directory) throws IOException {
-        var query = directory.resolve("restaurants.nj");
-        Files.writeString(query, """
-            export restaurants to "http://example.org/restaurants"
-
-            import "http://example.org/restaurant"
-
-            from Restaurant create
-            """);
-        return query;
+    /**
+     * Returns the resource folder of the running test, which contains its query and instance models.
+     */
+    private Path testFolder() {
+        return getResource(Path.of("transform-errors", testName));
     }
 
     private static Result transform(Path query, Path instanceModelPath, Path output) {
