@@ -40,9 +40,9 @@ public class InstanceModelCollector extends AbstractModelCollector {
 
     /**
      * Loads the instance models, which may use the meta-models of the registry and Ecore. The meta-models of a file are
-     * the ones of its root elements (of the first one if the file cannot be loaded).
+     * the root packages of its root elements (of the first one if the file cannot be loaded).
      *
-     * @return the issues and the instance models by the meta-model they instantiate; instance models of other
+     * @return the issues and the instance models by the root package they instantiate; instance models of other
      *     meta-models and files that cannot be loaded are reported and left out
      */
     public Pair<List<CollectorIssue>, Map<EPackage, Resource>> collect() {
@@ -54,7 +54,8 @@ public class InstanceModelCollector extends AbstractModelCollector {
                 state.add(loaded);
             } else if (result instanceof LoadResult.Failed failed) {
                 var namespace = readRootNamespace(failed.uri(), resourceSet);
-                state.add(failed, namespace, namespace != null ? registry.getEPackage(namespace) : null);
+                var pack = namespace != null ? registry.getEPackage(namespace) : null;
+                state.add(failed, namespace, pack != null ? EMFUtils.getRootPackage(pack) : null);
             }
         }
 
@@ -91,7 +92,11 @@ public class InstanceModelCollector extends AbstractModelCollector {
                 return;
             }
 
-            var instancedPackages = contents.stream().map(root -> root.eClass().getEPackage()).distinct().toList();
+            // the transformation looks up the instance model of a class by the root package of its meta-model
+            var instancedPackages = contents.stream()
+                .map(root -> EMFUtils.getRootPackage(root.eClass().getEPackage()))
+                .distinct()
+                .toList();
             for (var instancedPackage : instancedPackages) {
                 if (knownPackages.contains(instancedPackage)) {
                     recordInstanceModel(instancedPackage, loaded.uri());
@@ -110,7 +115,7 @@ public class InstanceModelCollector extends AbstractModelCollector {
          * as instance model of that meta-model, because it may be the intended one.
          *
          * @param namespace        the namespace URI of the root element, if it can be read
-         * @param instancedPackage the package of the registry with that namespace URI, if any
+         * @param instancedPackage the root package of the package of the registry with that namespace URI, if any
          */
         void add(LoadResult.Failed failed, @Nullable String namespace, @Nullable EPackage instancedPackage) {
             if (instancedPackage != null) {

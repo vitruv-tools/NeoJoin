@@ -139,6 +139,24 @@ class InstanceModelCollectorTest {
     }
 
     /**
+     * The transformation looks up the instance model of a source class by the root package of its meta-model.
+     */
+    @Test
+    void assignsInstanceModelOfSubPackageToItsRootPackage() throws IOException {
+        var zooRegistry = collectZooMetaModel();
+        Files.writeString(instances.resolve("animal.xmi"), """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <animals:Animal xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI"
+                xmlns:animals="http://example.org/zoo/animals"/>
+            """);
+
+        var result = new InstanceModelCollector(instances.toString(), zooRegistry).collect();
+
+        assertThat(result.left()).isEmpty();
+        assertThat(result.right()).containsOnlyKeys(zooRegistry.getEPackage("http://example.org/zoo"));
+    }
+
+    /**
      * The root element of the broken file is incomplete, so its meta-model is unknown.
      */
     @Test
@@ -198,6 +216,49 @@ class InstanceModelCollectorTest {
             "Found several instance models of the meta-model 'http://vitruv.tools/eobjectref': '" + first.toUri()
                 + "' and '" + third.toUri() + "'."
         );
+    }
+
+    /**
+     * A file that cannot be loaded counts for the root package of its root element too, like a loaded one.
+     */
+    @Test
+    void reportsInstanceModelOfSubPackageThatCannotBeLoadedAsInstanceModelOfItsRootPackage() throws IOException {
+        var zooRegistry = collectZooMetaModel();
+        var zoo = instances.resolve("a.xmi");
+        Files.writeString(zoo, """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <zoo:Zoo xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:zoo="http://example.org/zoo"/>
+            """);
+        var animal = instances.resolve("b.xmi");
+        Files.writeString(animal, """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <animals:Animal xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI"
+                xmlns:animals="http://example.org/zoo/animals">
+            </animals:Animals>
+            """);
+
+        var result = new InstanceModelCollector(instances.toString(), zooRegistry).collect();
+
+        assertThat(result.left()).filteredOn(issue -> issue.severity() == ERROR).map(Object::toString).containsExactly(
+            "Found several instance models of the meta-model 'http://example.org/zoo': '" + zoo.toUri() + "' and '"
+                + animal.toUri() + "'."
+        );
+    }
+
+    private EPackage.Registry collectZooMetaModel() throws IOException {
+        var metaModel = dir.resolve("zoo.ecore");
+        Files.writeString(metaModel, """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore"
+                name="zoo" nsURI="http://example.org/zoo" nsPrefix="zoo">
+              <eClassifiers xsi:type="ecore:EClass" name="Zoo"/>
+              <eSubpackages name="animals" nsURI="http://example.org/zoo/animals" nsPrefix="animals">
+                <eClassifiers xsi:type="ecore:EClass" name="Animal"/>
+              </eSubpackages>
+            </ecore:EPackage>
+            """);
+        return new PackageModelCollector(metaModel.toString()).collect().right();
     }
 
 }

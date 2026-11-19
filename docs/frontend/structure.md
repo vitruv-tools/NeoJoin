@@ -46,6 +46,7 @@ The collectors find the files of a model path (`ModelPath.findFiles`) and load t
 | Meta-model references a class, enumeration or data type outside the path or a data type without instance class, or has a feature without type | Warning, meta-model left out, also every meta-model that references it | – |
 | Instance model of a meta-model that is not in the registry (the namespace of the root element, also if the file cannot be loaded) | – | Warning, file skipped (a query cannot import that meta-model) |
 | Instance model with roots of several meta-models | – | Used as instance model of each of them |
+| Root element of a class in a sub package | – | Used as instance model of the root package, by which the transformation looks it up |
 | Several instance models of one meta-model | – | Error, also if some of the files cannot be loaded (counted by the namespace of their root element, which StAX can often read in a broken file) |
 
 ## Package Registries
