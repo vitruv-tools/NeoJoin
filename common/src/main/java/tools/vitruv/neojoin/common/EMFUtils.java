@@ -231,18 +231,22 @@ public final class EMFUtils {
      */
     public static ResourceSet createResourceSet(EPackage.Registry metaModels) {
         ResourceSet resourceSet = new ResourceSetImpl();
+
         var factories = resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap();
         factories.put("ecore", new EcoreResourceFactoryImpl());
         factories.put("xmi", new XMIResourceFactoryImpl());
+
         var packages = new EPackageRegistryImpl(EPackage.Registry.INSTANCE);
         packages.putAll(metaModels);
         resourceSet.setPackageRegistry(packages);
+
         List<URIHandler> uriHandlers = new ArrayList<>();
         uriHandlers.add(new NoNetworkURIHandler());
         uriHandlers.addAll(URIHandler.DEFAULT_HANDLERS);
         resourceSet.setURIConverter(
             new ExtensibleURIConverterImpl(uriHandlers, ContentHandler.Registry.INSTANCE.contentHandlers())
         );
+
         return resourceSet;
     }
 

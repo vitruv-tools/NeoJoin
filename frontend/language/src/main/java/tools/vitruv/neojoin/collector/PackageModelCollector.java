@@ -28,13 +28,8 @@ public class PackageModelCollector extends AbstractModelCollector {
 
     public static final String FileExtension = "ecore";
 
-    @Override
-    protected String fileExtension() {
-        return FileExtension;
-    }
-
     public PackageModelCollector(String searchPathString) {
-        super(searchPathString);
+        super(searchPathString, FileExtension);
     }
 
     public Pair<List<CollectorIssue>, EPackage.Registry> collect() {
@@ -43,11 +38,13 @@ public class PackageModelCollector extends AbstractModelCollector {
             if (result instanceof LoadResult.Loaded loaded) {
                 state.add(loaded);
             } else if (result instanceof LoadResult.Failed failed) {
-                state.issues.add(loadFailure(failed));
+                state.issues.add(failed.toIssue());
             }
         }
+
         state.register();
         state.issues.addAll(UnmappableMetaModels.remove(state.packages, state.registry, state.ambiguous));
+
         return new Pair<>(state.issues, state.registry);
     }
 
@@ -86,6 +83,7 @@ public class PackageModelCollector extends AbstractModelCollector {
             if (rootPackages.isEmpty()) {
                 issues.add(new CollectorIssue.LoadFailure(result.uri().toString(), "the file contains no package."));
             }
+
             rootPackages.stream()
                 .flatMap(EMFUtils::getAllEPackages)
                 .forEach(pack -> add(pack, result.uri().toString()));

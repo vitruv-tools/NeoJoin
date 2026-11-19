@@ -1,6 +1,7 @@
 package tools.vitruv.neojoin.collector;
 
 import org.eclipse.xtext.diagnostics.Severity;
+import org.xml.sax.SAXParseException;
 
 import java.util.List;
 
@@ -23,6 +24,26 @@ public sealed interface CollectorIssue {
      * @param reason   description of the problem
      */
     record LoadFailure(String location, String reason) implements CollectorIssue {
+
+        /**
+         * Creates the issue for an exception. EMF and the file system wrap the problem in several exceptions; the
+         * innermost one describes it.
+         */
+        static LoadFailure of(String location, Throwable exception) {
+            Throwable cause = exception;
+            while (cause.getCause() != null) {
+                cause = cause.getCause();
+            }
+
+            if (cause instanceof SAXParseException parseException) {
+                return new LoadFailure(location, "%s (line %d, column %d)".formatted(
+                    parseException.getMessage(),
+                    parseException.getLineNumber(),
+                    parseException.getColumnNumber()
+                ));
+            }
+            return new LoadFailure(location, String.valueOf(cause.getMessage()));
+        }
 
         @Override
         public Severity severity() {

@@ -31,15 +31,10 @@ public class InstanceModelCollector extends AbstractModelCollector {
 
     private static final String XMI_NAMESPACE = "http://www.omg.org/XMI";
 
-    @Override
-    protected String fileExtension() {
-        return FileExtension;
-    }
-
     private final EPackage.Registry registry;
 
     public InstanceModelCollector(String searchPathString, EPackage.Registry registry) {
-        super(searchPathString);
+        super(searchPathString, FileExtension);
         this.registry = registry;
     }
 
@@ -53,6 +48,7 @@ public class InstanceModelCollector extends AbstractModelCollector {
     public Pair<List<CollectorIssue>, Map<EPackage, Resource>> collect() {
         var state = new CollectionState(EMFUtils.collectAvailablePackages(registry));
         var resourceSet = EMFUtils.createResourceSet(registry);
+
         for (var result : loadResources(resourceSet, state.issues)) {
             if (result instanceof LoadResult.Loaded loaded) {
                 state.add(loaded);
@@ -61,6 +57,7 @@ public class InstanceModelCollector extends AbstractModelCollector {
                 state.add(failed, namespace, namespace != null ? registry.getEPackage(namespace) : null);
             }
         }
+
         return new Pair<>(state.issues, state.models);
     }
 
@@ -93,6 +90,7 @@ public class InstanceModelCollector extends AbstractModelCollector {
                 ));
                 return;
             }
+
             var instancedPackages = contents.stream().map(root -> root.eClass().getEPackage()).distinct().toList();
             for (var instancedPackage : instancedPackages) {
                 if (knownPackages.contains(instancedPackage)) {
@@ -116,12 +114,12 @@ public class InstanceModelCollector extends AbstractModelCollector {
          */
         void add(LoadResult.Failed failed, @Nullable String namespace, @Nullable EPackage instancedPackage) {
             if (instancedPackage != null) {
-                issues.add(loadFailure(failed));
+                issues.add(failed.toIssue());
                 recordInstanceModel(instancedPackage, failed.uri());
             } else if (namespace != null) {
                 issues.add(new CollectorIssue.MetaModelOutsideModelPath(failed.uri().toString(), namespace));
             } else {
-                issues.add(loadFailure(failed));
+                issues.add(failed.toIssue());
             }
         }
 
@@ -148,6 +146,7 @@ public class InstanceModelCollector extends AbstractModelCollector {
         var factory = XMLInputFactory.newInstance();
         factory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
         factory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
+
         try (var input = resourceSet.getURIConverter().createInputStream(file)) {
             var reader = factory.createXMLStreamReader(input);
             try {
