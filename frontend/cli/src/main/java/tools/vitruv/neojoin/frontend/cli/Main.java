@@ -50,6 +50,8 @@ import java.util.concurrent.Callable;
     })
 public class Main implements Callable<Integer> {
 
+    private static final String SEVERITY_LINE_FORMAT = "[%s] %s%n";
+
     @Parameters(index = "0", paramLabel = "QUERY", description = "Path to the query file.")
     Path queryFile;
 
@@ -218,13 +220,13 @@ public class Main implements Callable<Integer> {
         }
 
         rootDiagnostic.getChildren().forEach(d ->
-            System.err.printf("[%s] %s%n", EMFUtils.diagnosticSeverityText(d), d.getMessage())
+            System.err.printf(SEVERITY_LINE_FORMAT, EMFUtils.diagnosticSeverityText(d), d.getMessage())
         );
     }
 
     private static void printCollectorIssues(List<CollectorIssue> issues) {
         for (var issue : issues) {
-            System.err.printf("[%s] %s%n", issue.severity().name(), issue);
+            System.err.printf(SEVERITY_LINE_FORMAT, issue.severity().name(), issue);
         }
     }
 
@@ -258,7 +260,7 @@ public class Main implements Callable<Integer> {
         System.err.println("[WARNING] Generated instance model failed validation:");
         for (var diagnostic : rootDiagnostic.getChildren()) {
             if (diagnostic.getSeverity() != Diagnostic.OK) {
-                System.err.printf("[%s] %s%n", getSeverityString(diagnostic), diagnostic.getMessage());
+                System.err.printf(SEVERITY_LINE_FORMAT, getSeverityString(diagnostic), diagnostic.getMessage());
             }
         }
     }
