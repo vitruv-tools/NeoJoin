@@ -16,7 +16,28 @@ public sealed interface CollectorIssue {
     Severity severity();
 
     /**
-     * A file on the model path cannot be loaded, or a path entry does not exist. The file is skipped: a query that
+     * An entry of a model path cannot be used: it is invalid, does not exist, or is a file with another extension than
+     * the models of the path. The entry is skipped.
+     *
+     * @param path   name of the model path, for example "meta-model path"
+     * @param entry  the entry as given
+     * @param reason description of the problem
+     */
+    record InvalidPathEntry(String path, String entry, String reason) implements CollectorIssue {
+
+        @Override
+        public Severity severity() {
+            return Severity.WARNING;
+        }
+
+        @Override
+        public String toString() {
+            return "Ignoring '%s' on the %s: %s".formatted(entry, path, reason);
+        }
+    }
+
+    /**
+     * A file on the model path, a directory or an archive cannot be loaded. It is skipped: a query that
      * imports its meta-model reports the meta-model as unknown, a transformation that selects instances of its
      * meta-model reports the instance model as missing.
      *

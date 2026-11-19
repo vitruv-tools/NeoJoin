@@ -29,7 +29,7 @@ public class PackageModelCollector extends AbstractModelCollector {
     public static final String FileExtension = "ecore";
 
     public PackageModelCollector(String searchPathString) {
-        super(searchPathString, FileExtension);
+        super(searchPathString, FileExtension, "meta-model path");
     }
 
     public Pair<List<CollectorIssue>, EPackage.Registry> collect() {

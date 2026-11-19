@@ -19,9 +19,10 @@ public abstract class AbstractModelCollector {
     /**
      * @param searchPathString the model path, a semicolon separated list of model files, directories and archives
      * @param fileExtension    file extension of the models
+     * @param pathName         name of the path in messages, for example "meta-model path"
      */
-    protected AbstractModelCollector(String searchPathString, String fileExtension) {
-        this.path = new ModelPath(searchPathString);
+    protected AbstractModelCollector(String searchPathString, String fileExtension, String pathName) {
+        this.path = new ModelPath(searchPathString, pathName);
         this.fileExtension = fileExtension;
     }
 

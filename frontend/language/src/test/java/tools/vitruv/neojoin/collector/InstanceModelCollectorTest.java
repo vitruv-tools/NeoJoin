@@ -156,6 +156,18 @@ class InstanceModelCollectorTest {
         assertThat(result.right()).containsOnlyKeys(zooRegistry.getEPackage("http://example.org/zoo"));
     }
 
+    @Test
+    void namesTheInstanceModelPathInProblemsOfItsEntries() {
+        var missing = dir.resolve("missing");
+
+        var result = new InstanceModelCollector(missing.toString(), registry).collect();
+
+        assertThat(result.left()).extracting(CollectorIssue::severity, Object::toString).containsExactly(
+            tuple(WARNING, "Ignoring '" + missing + "' on the instance model path: the file or directory does not "
+                + "exist.")
+        );
+    }
+
     /**
      * The root element of the broken file is incomplete, so its meta-model is unknown.
      */

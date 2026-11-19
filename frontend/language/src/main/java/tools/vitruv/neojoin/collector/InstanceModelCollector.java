@@ -34,7 +34,7 @@ public class InstanceModelCollector extends AbstractModelCollector {
     private final EPackage.Registry registry;
 
     public InstanceModelCollector(String searchPathString, EPackage.Registry registry) {
-        super(searchPathString, FileExtension);
+        super(searchPathString, FileExtension, "instance model path");
         this.registry = registry;
     }
 

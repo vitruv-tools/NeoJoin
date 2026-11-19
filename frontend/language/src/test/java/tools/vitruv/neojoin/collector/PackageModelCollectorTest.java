@@ -298,7 +298,8 @@ class PackageModelCollectorTest {
 
         assertThat(result.left()).singleElement().satisfies(issue -> {
             assertThat(issue.severity()).isEqualTo(WARNING);
-            assertThat(issue.toString()).startsWith("Cannot load 'a\u0000b': the path is invalid (");
+            assertThat(issue.toString())
+                .startsWith("Ignoring 'a\u0000b' on the meta-model path: the path is invalid (");
         });
         assertThat(result.right().keySet()).containsExactly("http://example.org/supplier/a");
     }
@@ -398,7 +399,25 @@ class PackageModelCollectorTest {
         var result = new PackageModelCollector(searchPath("/models/supplier-a.ecore") + ";" + missing).collect();
 
         assertThat(result.left()).extracting(CollectorIssue::severity, Object::toString).containsExactly(
-            warning("Cannot load '" + missing + "': the file or directory does not exist.")
+            warning("Ignoring '" + missing + "' on the meta-model path: the file or directory does not exist.")
+        );
+        assertThat(result.right().keySet()).containsExactly("http://example.org/supplier/a");
+    }
+
+    /**
+     * Within a directory, files with other extensions are ignored silently, but a file named directly is meant as a
+     * model.
+     */
+    @Test
+    void ignoresPathEntryWithOtherFileExtension(@TempDir Path dir) throws IOException {
+        var instance = dir.resolve("restaurants.xmi");
+        Files.writeString(instance, "<?xml version=\"1.0\"?>");
+
+        var result = new PackageModelCollector(searchPath("/models/supplier-a.ecore") + ";" + instance).collect();
+
+        assertThat(result.left()).extracting(CollectorIssue::severity, Object::toString).containsExactly(
+            warning("Ignoring '" + instance + "' on the meta-model path: the file does not have the extension "
+                + "'.ecore'.")
         );
         assertThat(result.right().keySet()).containsExactly("http://example.org/supplier/a");
     }

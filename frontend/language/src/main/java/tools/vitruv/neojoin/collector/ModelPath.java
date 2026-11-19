@@ -29,21 +29,25 @@ final class ModelPath {
 
     private final List<String> entries;
 
+    private final String name;
+
     /**
      * @param path the entries separated by semicolons; empty entries (a leading or doubled separator, an empty path)
      *             are ignored, because they would be the working directory
+     * @param name name of the path in messages, for example "meta-model path"
      */
-    ModelPath(String path) {
+    ModelPath(String path, String name) {
         this.entries = Stream.of(path.split(";"))
             .filter(entry -> !entry.isEmpty())
             .toList();
+        this.name = name;
     }
 
     /**
      * Returns the files with the given extension, in the order of the path and, within a directory or archive, sorted
-     * by path. Entries that are invalid or do not exist, directories that cannot be read and archives that cannot be
-     * opened are reported as issues and skipped. A file that several entries contain (a directory and a file in it) is
-     * returned once, at its first position.
+     * by path. Entries that are invalid, do not exist or are files with another extension, directories that cannot be
+     * read and archives that cannot be opened are reported as issues and skipped. A file that several entries contain
+     * (a directory and a file in it) is returned once, at its first position.
      *
      * @param extension file extension of the models
      * @param issues    list to add the issues to
@@ -60,19 +64,35 @@ final class ModelPath {
     /**
      * Returns the model files of a path entry (a model file, an archive or a directory).
      */
-    private static List<URI> findFiles(String entry, String extension, List<CollectorIssue> issues) {
+    private List<URI> findFiles(String entry, String extension, List<CollectorIssue> issues) {
         Path fileOrDirectory;
         try {
             // without `.` and `..` segments, which EMF removes when it resolves a relative reference; the file would
             // be loaded a second time under the other URI
             fileOrDirectory = Path.of(entry).toAbsolutePath().normalize();
         } catch (InvalidPathException e) {
-            issues.add(new CollectorIssue.LoadFailure(entry, "the path is invalid (%s).".formatted(e.getReason())));
+            issues.add(new CollectorIssue.InvalidPathEntry(
+                name,
+                entry,
+                "the path is invalid (%s).".formatted(e.getReason())
+            ));
             return List.of();
         }
 
         if (!Files.exists(fileOrDirectory)) {
-            issues.add(new CollectorIssue.LoadFailure(entry, "the file or directory does not exist."));
+            issues.add(new CollectorIssue.InvalidPathEntry(name, entry, "the file or directory does not exist."));
+            return List.of();
+        }
+
+        // within a directory, files with other extensions are skipped silently
+        if (Files.isRegularFile(fileOrDirectory)
+            && !isSupportedArchive(fileOrDirectory)
+            && !Objects.equals(toEmfUri(fileOrDirectory).fileExtension(), extension)) {
+            issues.add(new CollectorIssue.InvalidPathEntry(
+                name,
+                entry,
+                "the file does not have the extension '.%s'.".formatted(extension)
+            ));
             return List.of();
         }
 
