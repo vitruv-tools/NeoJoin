@@ -219,14 +219,14 @@ public final class EMFUtils {
 
     /**
      * Creates a resource set for loading and saving models: it reads and writes {@code .ecore} and {@code .xmi} files,
-     * and finds meta-models by namespace URI in the global package registry (Ecore itself and the generated packages
-     * on the class path), then among the given packages. It does not load anything from the network: EMF
+     * and finds meta-models by namespace URI among the given packages, then in the global package registry (Ecore
+     * itself and the generated packages on the class path). It does not load anything from the network: EMF
      * would otherwise download the namespace URI of an unknown meta-model ({@code http://example.org/x}) as its
      * location.
      *
      * @param metaModels packages to find by namespace URI (only the packages of the registry itself, not of its
-     *                   delegate); a package whose namespace URI is registered globally (for example a copy of Ecore)
-     *                   is not used, so that it does not replace the global package
+     *                   delegate); they take precedence over global packages with the same namespace URI, so that
+     *                   models are loaded with the packages that the queries use
      * @return a new resource set
      */
     public static ResourceSet createResourceSet(EPackage.Registry metaModels) {
@@ -235,11 +235,7 @@ public final class EMFUtils {
         factories.put("ecore", new EcoreResourceFactoryImpl());
         factories.put("xmi", new XMIResourceFactoryImpl());
         var packages = new EPackageRegistryImpl(EPackage.Registry.INSTANCE);
-        metaModels.forEach((namespaceUri, pack) -> {
-            if (!EPackage.Registry.INSTANCE.containsKey(namespaceUri)) {
-                packages.put(namespaceUri, pack);
-            }
-        });
+        packages.putAll(metaModels);
         resourceSet.setPackageRegistry(packages);
         List<URIHandler> uriHandlers = new ArrayList<>();
         uriHandlers.add(new NoNetworkURIHandler());

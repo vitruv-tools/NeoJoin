@@ -9,6 +9,7 @@ import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.emf.ecore.impl.EPackageRegistryImpl;
 import org.eclipse.emf.ecore.resource.impl.ResourceImpl;
 import org.eclipse.emf.ecore.util.EcoreUtil;
+import org.eclipse.emf.ecore.xml.type.XMLTypePackage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -134,18 +135,22 @@ class EMFUtilsTest {
     }
 
     /**
-     * A given package with the namespace URI of a global one (a copy of Ecore) must not replace it.
+     * A given package is used even if a global package has its namespace URI: the models must be loaded with the
+     * package that the query uses, also if the global package registered itself only after the meta-models were
+     * collected (for example a copy of Xtext's {@code JavaVMTypes} on the meta-model path).
      */
     @Test
-    void createdResourceSetFindsGivenAndGlobalPackages() {
+    void createdResourceSetPrefersGivenPackagesToGlobalOnes() {
+        var copy = createPackage("ecore", EcorePackage.eNS_URI);
         var registry = new EPackageRegistryImpl();
         registry.put(root.getNsURI(), root);
-        registry.put(EcorePackage.eNS_URI, createPackage("ecore", EcorePackage.eNS_URI));
+        registry.put(EcorePackage.eNS_URI, copy);
 
         var packages = EMFUtils.createResourceSet(registry).getPackageRegistry();
 
         assertThat(packages.getEPackage(root.getNsURI())).isSameAs(root);
-        assertThat(packages.getEPackage(EcorePackage.eNS_URI)).isSameAs(EcorePackage.eINSTANCE);
+        assertThat(packages.getEPackage(EcorePackage.eNS_URI)).isSameAs(copy);
+        assertThat(packages.getEPackage(XMLTypePackage.eNS_URI)).isSameAs(XMLTypePackage.eINSTANCE);
     }
 
     /**
