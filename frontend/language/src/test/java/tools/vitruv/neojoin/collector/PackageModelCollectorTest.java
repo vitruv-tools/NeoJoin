@@ -20,6 +20,7 @@ import java.util.zip.ZipOutputStream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.eclipse.xtext.diagnostics.Severity.WARNING;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 class PackageModelCollectorTest {
 
@@ -427,6 +428,28 @@ class PackageModelCollectorTest {
 
         assertThat(result.left()).isEmpty();
         assertThat(result.right().keySet()).containsExactly("http://example.org/supplier/a");
+    }
+
+    /**
+     * Read permissions cannot be removed on every platform (Windows, or as root on Linux); there, the test is skipped.
+     */
+    @Test
+    void ignoresOnlyTheDirectoryThatCannotBeRead(@TempDir Path dir) throws IOException {
+        copyResource("/models/supplier-a.ecore", dir.resolve("supplier-a.ecore"));
+        var locked = Files.createDirectory(dir.resolve("locked"));
+        copyResource("/models/supplier-b.ecore", locked.resolve("supplier-b.ecore"));
+        assumeTrue(locked.toFile().setReadable(false) && !Files.isReadable(locked));
+
+        try {
+            var result = new PackageModelCollector(dir.toString()).collect();
+
+            assertThat(result.left()).extracting(CollectorIssue::severity, Object::toString).containsExactly(
+                warning("Cannot load '" + locked.toUri() + "': access denied.")
+            );
+            assertThat(result.right().keySet()).containsExactly("http://example.org/supplier/a");
+        } finally {
+            locked.toFile().setReadable(true);
+        }
     }
 
     private static Tuple warning(String message) {

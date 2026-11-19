@@ -39,7 +39,7 @@ The collectors find the files of a model path (`ModelPath.findFiles`) and load t
 
 | Problem | Meta-models (`PackageModelCollector`) | Instance models (`InstanceModelCollector`) |
 |---|---|---|
-| Path entry is invalid or does not exist, directory cannot be read, archive cannot be opened | Warning, entry skipped | Warning, entry skipped |
+| Path entry is invalid or does not exist, directory cannot be read (only that directory is skipped), archive cannot be opened | Warning, entry skipped | Warning, entry skipped |
 | File cannot be loaded, or contains no package or no model elements | Warning, file skipped (a query importing the meta-model reports it as unknown) | Warning, file skipped (a transformation that selects instances of its meta-model reports the instance model as missing) |
 | Package with the namespace URI of a global package (for example a copy of Ecore) | Warning, the global package is used instead (queries can import it, and the instance models are loaded with it) | – |
 | Several packages with one namespace URI | Warning, none of them is used, and meta-models that reference them are left out too | – |

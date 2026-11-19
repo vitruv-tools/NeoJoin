@@ -3,13 +3,16 @@ package tools.vitruv.neojoin.collector;
 import org.eclipse.emf.common.util.URI;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.ProviderNotFoundException;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -73,21 +76,53 @@ final class ModelPath {
             return List.of();
         }
 
-        try (var paths = Files.walk(fileOrDirectory)) {
-            return paths
-                .filter(Files::isRegularFile)
-                .sorted()
-                .flatMap(file -> isSupportedArchive(file)
-                    ? findFilesInArchive(file, issues).stream()
-                    : Stream.of(file))
-                .map(ModelPath::toEmfUri)
-                .filter(uri -> Objects.equals(uri.fileExtension(), extension))
-                .toList();
-        } catch (IOException | UncheckedIOException e) {
-            // for example a directory without read permission
+        List<Path> files;
+        try {
+            files = findRegularFiles(fileOrDirectory, issues);
+        } catch (IOException e) {
             issues.add(CollectorIssue.LoadFailure.of(entry, e));
             return List.of();
         }
+
+        return files.stream()
+            .sorted()
+            .flatMap(file -> isSupportedArchive(file)
+                ? findFilesInArchive(file, issues).stream()
+                : Stream.of(file))
+            .map(ModelPath::toEmfUri)
+            .filter(uri -> Objects.equals(uri.fileExtension(), extension))
+            .toList();
+    }
+
+    /**
+     * Returns the regular files in a directory and its subdirectories (or the file itself). A directory that cannot be
+     * read is reported and skipped, the walk continues with the other directories.
+     */
+    private static List<Path> findRegularFiles(Path fileOrDirectory, List<CollectorIssue> issues) throws IOException {
+        List<Path> files = new ArrayList<>();
+
+        Files.walkFileTree(fileOrDirectory, new SimpleFileVisitor<>() {
+
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attributes) {
+                // follows a symbolic link to a file, like a file in the directory
+                if (Files.isRegularFile(file)) {
+                    files.add(file);
+                }
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult visitFileFailed(Path file, IOException exception) {
+                var location = file.toUri().toString();
+                issues.add(exception instanceof AccessDeniedException
+                    ? new CollectorIssue.LoadFailure(location, "access denied.")
+                    : CollectorIssue.LoadFailure.of(location, exception));
+                return FileVisitResult.CONTINUE;
+            }
+        });
+
+        return files;
     }
 
     private static boolean isSupportedArchive(Path file) {
