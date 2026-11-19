@@ -7,7 +7,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.io.TempDir;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
 
@@ -18,14 +21,17 @@ import static org.eclipse.xtext.diagnostics.Severity.WARNING;
 
 class InstanceModelCollectorTest {
 
+    @TempDir
+    Path sharedModels;
+
     private String testName;
 
     private EPackage.Registry registry;
 
     @BeforeEach
-    void collectMetaModel(TestInfo testInfo) {
+    void collectMetaModel(TestInfo testInfo) throws IOException {
         testName = testInfo.getTestMethod().orElseThrow().getName();
-        registry = new PackageModelCollector(toFilePath("/models/eobject-ref.ecore")).collect().right();
+        registry = new PackageModelCollector(copySharedModel("eobject-ref.ecore").toString()).collect().right();
     }
 
     /**
@@ -77,9 +83,9 @@ class InstanceModelCollectorTest {
      * An instance model can contain the roots of several meta-models within {@code xmi:XMI}.
      */
     @Test
-    void usesInstanceModelForTheMetaModelsOfAllRoots() {
+    void usesInstanceModelForTheMetaModelsOfAllRoots() throws IOException {
         var bothRegistry = new PackageModelCollector(
-            toFilePath("/models/eobject-ref.ecore") + ";" + toFilePath("/models/restaurant.ecore")
+            copySharedModel("eobject-ref.ecore") + ";" + copySharedModel("restaurant.ecore")
         ).collect().right();
 
         var result = new InstanceModelCollector(testFolder().toString(), bothRegistry).collect();
@@ -188,6 +194,20 @@ class InstanceModelCollectorTest {
      */
     private Path testFolder() {
         return Path.of(toFilePath("/collector/instance/" + testName));
+    }
+
+    /**
+     * Copies a model of the module test-resources into a temporary directory: when the build packages that module,
+     * its models are in a jar, which is no model path entry.
+     */
+    private Path copySharedModel(String name) throws IOException {
+        var target = sharedModels.resolve(name);
+        if (!Files.exists(target)) {
+            try (InputStream model = Objects.requireNonNull(getClass().getResourceAsStream("/models/" + name))) {
+                Files.copy(model, target);
+            }
+        }
+        return target;
     }
 
     private String toFilePath(String classPathResource) {

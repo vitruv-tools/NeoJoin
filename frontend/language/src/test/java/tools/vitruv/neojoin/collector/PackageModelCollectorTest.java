@@ -155,10 +155,13 @@ class PackageModelCollectorTest {
      * EMF's Ecore, with which the instance models are loaded.
      */
     @Test
-    void usesGlobalPackageInsteadOfMetaModelWithItsNamespaceUri() {
+    void usesGlobalPackageInsteadOfMetaModelWithItsNamespaceUri(@TempDir Path dir) throws IOException {
         var copy = testFolder().resolve("Ecore.ecore");
+        // a model of the module test-resources is in its jar when the build packages it, so it is copied
+        var eobjectRef = dir.resolve("eobject-ref.ecore");
+        copyResource("/models/eobject-ref.ecore", eobjectRef);
 
-        var result = new PackageModelCollector(testFolder() + ";" + searchPath("/models/eobject-ref.ecore")).collect();
+        var result = new PackageModelCollector(testFolder() + ";" + eobjectRef).collect();
 
         assertThat(result.left()).extracting(CollectorIssue::severity, Object::toString).containsExactly(
             warning("Ignoring the meta-model 'http://www.eclipse.org/emf/2002/Ecore' in '" + copy.toUri() + "': a "
