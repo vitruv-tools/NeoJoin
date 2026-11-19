@@ -402,6 +402,21 @@ class PackageModelCollectorTest {
         assertThat(result.right().keySet()).containsExactly("http://example.org/supplier/a");
     }
 
+    /**
+     * Path entries can overlap, for example a directory and a file in it; a file found twice is not a second
+     * meta-model with the same namespace URI.
+     */
+    @Test
+    void collectsFileOnOverlappingPathEntriesOnce(@TempDir Path dir) throws IOException {
+        var supplier = dir.resolve("supplier-a.ecore");
+        copyResource("/models/supplier-a.ecore", supplier);
+
+        var result = new PackageModelCollector(dir + ";" + supplier).collect();
+
+        assertThat(result.left()).isEmpty();
+        assertThat(result.right().keySet()).containsExactly("http://example.org/supplier/a");
+    }
+
     private static Tuple warning(String message) {
         return tuple(WARNING, message);
     }

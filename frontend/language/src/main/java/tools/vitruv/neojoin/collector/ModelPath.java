@@ -12,8 +12,10 @@ import java.nio.file.Path;
 import java.nio.file.ProviderNotFoundException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Stream;
 
 /**
@@ -31,18 +33,19 @@ final class ModelPath {
     /**
      * Returns the files with the given extension, in the order of the path and, within a directory or archive, sorted
      * by path. Entries that are invalid or do not exist, directories that cannot be read and archives that cannot be
-     * opened are reported as issues and skipped.
+     * opened are reported as issues and skipped. A file that several entries contain (a directory and a file in it) is
+     * returned once, at its first position.
      *
      * @param extension file extension of the models
      * @param issues    list to add the issues to
      * @return the URIs of the model files
      */
     List<URI> findFiles(String extension, List<CollectorIssue> issues) {
-        List<URI> files = new ArrayList<>();
+        Set<URI> files = new LinkedHashSet<>();
         for (var entry : entries) {
             files.addAll(findFiles(entry, extension, issues));
         }
-        return files;
+        return List.copyOf(files);
     }
 
     /**
