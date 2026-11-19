@@ -98,8 +98,9 @@ public class Main implements Runnable {
                 ))
             );
         } catch (Exception ex) {
+            // the collector reports problems of the models as issues, so this is an internal error
             NeoJoinIdeSetup.Registry = new EPackageRegistryImpl();
-            var errorMessage = "Invalid meta-model path: " + ex.getMessage();
+            var errorMessage = "Failed to load the meta-models: " + ex;
             messages.add(new MessageParams(MessageType.Error, errorMessage));
             System.err.printf("[ERROR] %s%n  > full meta-model path: %s%n", errorMessage, metaModelPath);
         }
