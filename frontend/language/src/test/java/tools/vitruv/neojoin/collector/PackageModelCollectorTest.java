@@ -417,6 +417,18 @@ class PackageModelCollectorTest {
         assertThat(result.right().keySet()).containsExactly("http://example.org/supplier/a");
     }
 
+    /**
+     * An empty entry (a leading or doubled separator) would be the working directory, which would be searched for
+     * models; here the module directory, which contains the test models.
+     */
+    @Test
+    void ignoresEmptyPathEntries() {
+        var result = new PackageModelCollector(";" + searchPath("/models/supplier-a.ecore") + ";;").collect();
+
+        assertThat(result.left()).isEmpty();
+        assertThat(result.right().keySet()).containsExactly("http://example.org/supplier/a");
+    }
+
     private static Tuple warning(String message) {
         return tuple(WARNING, message);
     }

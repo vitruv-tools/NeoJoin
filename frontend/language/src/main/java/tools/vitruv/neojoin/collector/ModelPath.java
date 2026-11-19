@@ -26,8 +26,14 @@ final class ModelPath {
 
     private final List<String> entries;
 
+    /**
+     * @param path the entries separated by semicolons; empty entries (a leading or doubled separator, an empty path)
+     *             are ignored, because they would be the working directory
+     */
     ModelPath(String path) {
-        this.entries = List.of(path.split(";"));
+        this.entries = Stream.of(path.split(";"))
+            .filter(entry -> !entry.isEmpty())
+            .toList();
     }
 
     /**
