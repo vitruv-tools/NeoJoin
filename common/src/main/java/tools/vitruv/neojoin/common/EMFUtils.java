@@ -3,6 +3,8 @@ package tools.vitruv.neojoin.common;
 import static tools.vitruv.neojoin.common.Assertions.check;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -22,10 +24,17 @@ import org.eclipse.emf.ecore.EDataType;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.impl.EPackageRegistryImpl;
+import org.eclipse.emf.ecore.resource.ContentHandler;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
+import org.eclipse.emf.ecore.resource.URIHandler;
+import org.eclipse.emf.ecore.resource.impl.ExtensibleURIConverterImpl;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
+import org.eclipse.emf.ecore.resource.impl.URIHandlerImpl;
 import org.eclipse.emf.ecore.xmi.XMLResource;
+import org.eclipse.emf.ecore.xmi.impl.EcoreResourceFactoryImpl;
+import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Various utilities for EMF and especially Ecore models.
@@ -209,15 +218,55 @@ public final class EMFUtils {
     }
 
     /**
-     * Write the given {@link EObject} to a file specified by the given {@link URI}. Requires a registered resource
-     * factory
-     * for the file extension of the given {@link URI}.
+     * Creates a resource set for loading and saving models: it reads and writes {@code .ecore} and {@code .xmi} files,
+     * and finds meta-models by namespace URI among the given packages, then in the global package registry (Ecore
+     * itself and the generated packages on the class path). It does not load anything from the network: EMF
+     * would otherwise download the namespace URI of an unknown meta-model ({@code http://example.org/x}) as its
+     * location.
+     *
+     * @param metaModels packages to find by namespace URI (only the packages of the registry itself, not of its
+     *                   delegate); they take precedence over global packages with the same namespace URI, so that
+     *                   models are loaded with the packages that the queries use
+     * @return a new resource set
+     */
+    public static ResourceSet createResourceSet(EPackage.Registry metaModels) {
+        ResourceSet resourceSet = new ResourceSetImpl();
+
+        var factories = resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap();
+        factories.put("ecore", new EcoreResourceFactoryImpl());
+        factories.put("xmi", new XMIResourceFactoryImpl());
+
+        var packages = new EPackageRegistryImpl(EPackage.Registry.INSTANCE);
+        packages.putAll(metaModels);
+        resourceSet.setPackageRegistry(packages);
+
+        List<URIHandler> uriHandlers = new ArrayList<>();
+        uriHandlers.add(new NoNetworkURIHandler());
+        uriHandlers.addAll(URIHandler.DEFAULT_HANDLERS);
+        resourceSet.setURIConverter(
+            new ExtensibleURIConverterImpl(uriHandlers, ContentHandler.Registry.INSTANCE.contentHandlers())
+        );
+
+        return resourceSet;
+    }
+
+    /**
+     * Creates a resource set for loading and saving models without further meta-models.
+     *
+     * @see #createResourceSet(EPackage.Registry)
+     */
+    public static ResourceSet createResourceSet() {
+        return createResourceSet(new EPackageRegistryImpl());
+    }
+
+    /**
+     * Write the given {@link EObject} to a file specified by the given {@link URI} ({@code .ecore} or {@code .xmi}).
      *
      * @param uri    URI of the output file
      * @param object the {@link EObject} to write
      */
     public static void save(URI uri, EObject object) throws IOException {
-        ResourceSet resourceSet = new ResourceSetImpl();
+        ResourceSet resourceSet = createResourceSet();
 
         Resource resource = resourceSet.createResource(uri);
         resource.getContents().add(object);
@@ -226,4 +275,29 @@ public final class EMFUtils {
         resource.save(options);
     }
 
+    /**
+     * Fails for {@code http} and {@code https} URIs instead of opening a network connection.
+     */
+    private static final class NoNetworkURIHandler extends URIHandlerImpl {
+
+        @Override
+        public boolean canHandle(URI uri) {
+            return "http".equals(uri.scheme()) || "https".equals(uri.scheme());
+        }
+
+        @Override
+        public InputStream createInputStream(URI uri, @Nullable Map<?, ?> options) throws IOException {
+            throw new IOException("Models are not loaded from the network: " + uri);
+        }
+
+        @Override
+        public OutputStream createOutputStream(URI uri, @Nullable Map<?, ?> options) throws IOException {
+            throw new IOException("Models are not saved to the network: " + uri);
+        }
+
+        @Override
+        public boolean exists(URI uri, @Nullable Map<?, ?> options) {
+            return false;
+        }
+    }
 }

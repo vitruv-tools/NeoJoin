@@ -13,9 +13,6 @@ import java.util.stream.Stream;
 
 import org.eclipse.emf.compare.Diff;
 import org.eclipse.emf.compare.DifferenceKind;
-import org.eclipse.emf.ecore.resource.Resource;
-import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.FieldSource;
@@ -26,13 +23,6 @@ import tools.vitruv.neojoin.frontend.cli.Main;
 class TransformTest {
 
     static List<String> validQueries = List.of("pizza", "pizza2");
-
-    @BeforeAll
-    static void setupRegistry() {
-        if (!Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().containsKey("xmi")) {
-            Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().put("xmi", new XMIResourceFactoryImpl());
-        }
-    }
 
     /**
      * {@code java -jar cli.jar --meta-model-path=<meta-model-path> --instance-model-path=<instance-model-path>

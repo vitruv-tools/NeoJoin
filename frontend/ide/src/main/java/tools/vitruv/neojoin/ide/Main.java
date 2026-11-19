@@ -7,6 +7,7 @@ import org.eclipse.lsp4j.MessageParams;
 import org.eclipse.lsp4j.MessageType;
 import org.eclipse.lsp4j.jsonrpc.Launcher;
 import org.eclipse.lsp4j.services.LanguageClient;
+import org.eclipse.xtext.diagnostics.Severity;
 import org.eclipse.xtext.ide.server.ServerLauncher;
 import org.eclipse.xtext.ide.server.ServerModule;
 import org.eclipse.xtext.util.IFileSystemScanner;
@@ -85,18 +86,22 @@ public class Main implements Runnable {
         terminateChildProcessesOnExit();
         var ioConfig = redirectIo();
 
-        List<String> errorMessages = new ArrayList<>();
+        List<MessageParams> messages = new ArrayList<>();
         try {
             var collectionResult = new PackageModelCollector(metaModelPath).collect();
             NeoJoinIdeSetup.Registry = collectionResult.right();
 
             collectionResult.left().forEach(issue ->
-                errorMessages.add(issue.toString())
+                messages.add(new MessageParams(
+                    issue.severity() == Severity.ERROR ? MessageType.Error : MessageType.Warning,
+                    issue.toString()
+                ))
             );
         } catch (Exception ex) {
+            // the collector reports problems of the models as issues, so this is an internal error
             NeoJoinIdeSetup.Registry = new EPackageRegistryImpl();
-            var errorMessage = "Invalid meta-model path: " + ex.getMessage();
-            errorMessages.add(errorMessage);
+            var errorMessage = "Failed to load the meta-models: " + ex;
+            messages.add(new MessageParams(MessageType.Error, errorMessage));
             System.err.printf("[ERROR] %s%n  > full meta-model path: %s%n", errorMessage, metaModelPath);
         }
 
@@ -113,7 +118,7 @@ public class Main implements Runnable {
             true, ioConfig.trace()
         );
 
-        showErrorMessages(launcher, errorMessages);
+        showMessages(launcher, messages);
 
         languageServer.connect(launcher.getRemoteProxy());
         var future = launcher.startListening();
@@ -149,9 +154,9 @@ public class Main implements Runnable {
         ));
     }
 
-    private void showErrorMessages(Launcher<LanguageClient> launcher, Iterable<String> errorMessages) {
-        for (var errorMessage : errorMessages) {
-            launcher.getRemoteProxy().showMessage(new MessageParams(MessageType.Error, errorMessage));
+    private void showMessages(Launcher<LanguageClient> launcher, Iterable<MessageParams> messages) {
+        for (var message : messages) {
+            launcher.getRemoteProxy().showMessage(message);
         }
     }
 

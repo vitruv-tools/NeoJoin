@@ -1,13 +1,23 @@
 package tools.vitruv.neojoin.collector;
 
+import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
-import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
-import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
+import org.eclipse.emf.ecore.resource.ResourceSet;
+import org.jspecify.annotations.Nullable;
 import tools.vitruv.neojoin.common.EMFUtils;
+import tools.vitruv.neojoin.common.Pair;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
 
 /**
  * Searches for instance-model files with the {@code .xmi} extension and collects them into a map indexed by
@@ -19,51 +29,145 @@ public class InstanceModelCollector extends AbstractModelCollector {
 
     public static final String FileExtension = "xmi";
 
-    @Override
-    protected String fileExtension() {
-        return FileExtension;
-    }
+    private static final String XMI_NAMESPACE = "http://www.omg.org/XMI";
 
     private final EPackage.Registry registry;
 
     public InstanceModelCollector(String searchPathString, EPackage.Registry registry) {
-        super(searchPathString);
+        super(searchPathString, FileExtension, "instance model path");
         this.registry = registry;
     }
 
-    public Map<EPackage, Resource> collect() {
-        if (!Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().containsKey(FileExtension)) {
-            Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().put(
-                FileExtension, new XMIResourceFactoryImpl());
+    /**
+     * Loads the instance models, which may use the meta-models of the registry and Ecore. The meta-models of a file are
+     * the root packages of its root elements (of the first one if the file cannot be loaded).
+     *
+     * @return the issues and the instance models by the root package they instantiate; instance models of other
+     *     meta-models and files that cannot be loaded are reported and left out
+     */
+    public Pair<List<CollectorIssue>, Map<EPackage, Resource>> collect() {
+        var state = new CollectionState(EMFUtils.collectAvailablePackages(registry));
+        var resourceSet = EMFUtils.createResourceSet(registry);
+
+        for (var result : loadResources(resourceSet, state.issues)) {
+            if (result instanceof LoadResult.Loaded loaded) {
+                state.add(loaded);
+            } else if (result instanceof LoadResult.Failed failed) {
+                var namespace = readRootNamespace(failed.uri(), resourceSet);
+                var pack = namespace != null ? registry.getEPackage(namespace) : null;
+                state.add(failed, namespace, pack != null ? EMFUtils.getRootPackage(pack) : null);
+            }
         }
 
-        var knownPackages = EMFUtils.collectAvailablePackages(registry);
+        return new Pair<>(state.issues, state.models);
+    }
 
-        var resourceSet = new ResourceSetImpl();
-        resourceSet.setPackageRegistry(registry);
+    /**
+     * The state of one {@link #collect()}.
+     */
+    private static final class CollectionState {
 
-        var map = new HashMap<EPackage, Resource>();
-        collectResourcesAsStream(resourceSet).forEach(res -> {
-            if (res.getContents().isEmpty()) {
+        private final Set<EPackage> knownPackages;
+
+        private final List<CollectorIssue> issues = new ArrayList<>();
+
+        private final Map<EPackage, Resource> models = new HashMap<>();
+
+        /**
+         * The first file per meta-model, also if it cannot be loaded.
+         */
+        private final Map<EPackage, String> firstFiles = new HashMap<>();
+
+        CollectionState(Set<EPackage> knownPackages) {
+            this.knownPackages = knownPackages;
+        }
+
+        void add(LoadResult.Loaded loaded) {
+            var contents = loaded.resource().getContents();
+            if (contents.isEmpty()) {
+                issues.add(new CollectorIssue.LoadFailure(
+                    loaded.uri().toString(),
+                    "the file contains no model elements."
+                ));
                 return;
             }
 
-            var instancedPackage = res.getContents().get(0).eClass().getEPackage();
-            if (!knownPackages.contains(instancedPackage)) {
-                return;
+            // the transformation looks up the instance model of a class by the root package of its meta-model
+            var instancedPackages = contents.stream()
+                .map(root -> EMFUtils.getRootPackage(root.eClass().getEPackage()))
+                .distinct()
+                .toList();
+            for (var instancedPackage : instancedPackages) {
+                if (knownPackages.contains(instancedPackage)) {
+                    recordInstanceModel(instancedPackage, loaded.uri());
+                    models.putIfAbsent(instancedPackage, loaded.resource());
+                } else {
+                    issues.add(new CollectorIssue.MetaModelOutsideModelPath(
+                        loaded.uri().toString(),
+                        instancedPackage.getNsURI()
+                    ));
+                }
             }
+        }
 
-            var previous = map.put(instancedPackage, res);
+        /**
+         * Reports a file that cannot be loaded. If its root element names a meta-model of the registry, the file counts
+         * as instance model of that meta-model, because it may be the intended one.
+         *
+         * @param namespace        the namespace URI of the root element, if it can be read
+         * @param instancedPackage the root package of the package of the registry with that namespace URI, if any
+         */
+        void add(LoadResult.Failed failed, @Nullable String namespace, @Nullable EPackage instancedPackage) {
+            if (instancedPackage != null) {
+                issues.add(failed.toIssue());
+                recordInstanceModel(instancedPackage, failed.uri());
+            } else if (namespace != null) {
+                issues.add(new CollectorIssue.MetaModelOutsideModelPath(failed.uri().toString(), namespace));
+            } else {
+                issues.add(failed.toIssue());
+            }
+        }
+
+        /**
+         * Records the file as instance model of the package and reports an error if the package already has one.
+         */
+        private void recordInstanceModel(EPackage instancedPackage, URI file) {
+            var previous = firstFiles.putIfAbsent(instancedPackage, file.toString());
             if (previous != null) {
-                throw new IllegalArgumentException("Found multiple instances for package '%s': %s and %s".formatted(
-                    instancedPackage.getName(),
-                    previous.getURI(),
-                    res.getURI()
+                issues.add(new CollectorIssue.MultipleInstanceModels(
+                    instancedPackage.getNsURI(),
+                    previous,
+                    file.toString()
                 ));
             }
+        }
+    }
 
-        });
-        return map;
+    /**
+     * Returns the namespace URI of the root element of an XMI file (of the first element within {@code xmi:XMI}), or
+     * {@code null} if the file cannot be read that far.
+     */
+    private static @Nullable String readRootNamespace(URI file, ResourceSet resourceSet) {
+        var factory = XMLInputFactory.newInstance();
+        factory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
+        factory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
+
+        try (var input = resourceSet.getURIConverter().createInputStream(file)) {
+            var reader = factory.createXMLStreamReader(input);
+            try {
+                while (reader.hasNext()) {
+                    if (reader.next() == XMLStreamConstants.START_ELEMENT
+                        && !XMI_NAMESPACE.equals(reader.getNamespaceURI())) {
+                        return reader.getNamespaceURI();
+                    }
+                }
+                return null;
+            } finally {
+                reader.close();
+            }
+        } catch (IOException | XMLStreamException e) {
+            return null;
+        }
     }
 
 }

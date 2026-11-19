@@ -5,9 +5,8 @@ import org.eclipse.emf.ecore.EDataType;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.common.util.URI;
-import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
-import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 import org.eclipse.emf.ecore.resource.Resource;
+import tools.vitruv.neojoin.common.EMFUtils;
 import tools.vitruv.neojoin.model.AQRParameter;
 
 import java.util.HashMap;
@@ -136,12 +135,7 @@ class ParameterResolver {
     }
 
     private static Resource loadXmiResource(String xmiPath, EPackage.Registry registry) {
-        if (!Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().containsKey("xmi")) {
-            Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap()
-                .put("xmi", new XMIResourceFactoryImpl());
-        }
-        var resourceSet = new ResourceSetImpl();
-        resourceSet.setPackageRegistry(registry);
+        var resourceSet = EMFUtils.createResourceSet(registry);
         try {
             return resourceSet.getResource(URI.createFileURI(xmiPath), true);
         } catch (RuntimeException e) {

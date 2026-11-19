@@ -9,8 +9,6 @@ import org.eclipse.emf.ecore.impl.EPackageRegistryImpl;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
-import org.eclipse.emf.ecore.xmi.impl.EcoreResourceFactoryImpl;
-import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 import org.eclipse.xtext.resource.IResourceFactory;
 import org.eclipse.xtext.util.StringInputStream;
 import org.junit.jupiter.api.BeforeAll;
@@ -53,16 +51,6 @@ public abstract class AbstractTransformationTest {
         if (!EPackage.Registry.INSTANCE.containsKey("http://vitruv.tools/dsls/neojoin/Ast")) {
             EPackage.Registry.INSTANCE.put("http://vitruv.tools/dsls/neojoin/Ast", AstPackage.eINSTANCE);
         }
-
-        if (!Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().containsKey("ecore")) {
-            Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().put(
-                "ecore", new EcoreResourceFactoryImpl());
-        }
-
-        if (!Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().containsKey("xmi")) {
-            Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().put(
-                "xmi", new XMIResourceFactoryImpl());
-        }
     }
 
     @BeforeEach
@@ -84,7 +72,7 @@ public abstract class AbstractTransformationTest {
 
     protected EPackage.Registry createPackageRegistry() throws IOException {
         var registry = new EPackageRegistryImpl();
-        var packageResourceSet = new ResourceSetImpl();
+        var packageResourceSet = EMFUtils.createResourceSet();
         for (var path : getMetaModelPaths()) {
             var resource = packageResourceSet.createResource(URI.createURI(path));
             var input = Objects.requireNonNull(getClass().getResourceAsStream(path));
@@ -100,8 +88,7 @@ public abstract class AbstractTransformationTest {
     protected Map<EPackage, Resource> createInstanceModelRegistry() throws IOException {
         var knownPackages = EMFUtils.collectAvailablePackages(getPackageRegistry());
 
-        var modelResourceSet = new ResourceSetImpl();
-        modelResourceSet.setPackageRegistry(getPackageRegistry());
+        var modelResourceSet = EMFUtils.createResourceSet(getPackageRegistry());
 
         var registry = new HashMap<EPackage, Resource>();
         for (var path : getInstanceModelPaths()) {

@@ -5,12 +5,11 @@ import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EDataType;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EcoreFactory;
+import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.emf.ecore.impl.EPackageRegistryImpl;
-import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.impl.ResourceImpl;
-import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.util.EcoreUtil;
-import org.eclipse.emf.ecore.xmi.impl.EcoreResourceFactoryImpl;
+import org.eclipse.emf.ecore.xml.type.XMLTypePackage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -135,9 +134,44 @@ class EMFUtilsTest {
         assertThat(EMFUtils.collectAvailablePackages(registry)).containsExactlyInAnyOrder(root, sub);
     }
 
+    /**
+     * A given package is used even if a global package has its namespace URI: the models must be loaded with the
+     * package that the query uses, also if the global package registered itself only after the meta-models were
+     * collected (for example a copy of Xtext's {@code JavaVMTypes} on the meta-model path).
+     */
+    @Test
+    void createdResourceSetPrefersGivenPackagesToGlobalOnes() {
+        var copy = createPackage("ecore", EcorePackage.eNS_URI);
+        var registry = new EPackageRegistryImpl();
+        registry.put(root.getNsURI(), root);
+        registry.put(EcorePackage.eNS_URI, copy);
+
+        var packages = EMFUtils.createResourceSet(registry).getPackageRegistry();
+
+        assertThat(packages.getEPackage(root.getNsURI())).isSameAs(root);
+        assertThat(packages.getEPackage(EcorePackage.eNS_URI)).isSameAs(copy);
+        assertThat(packages.getEPackage(XMLTypePackage.eNS_URI)).isSameAs(XMLTypePackage.eINSTANCE);
+    }
+
+    /**
+     * EMF opens an unknown namespace URI ({@code http://example.org/unknown}) as the location of its meta-model.
+     */
+    @Test
+    void createdResourceSetDoesNotAccessTheNetwork() {
+        var converter = EMFUtils.createResourceSet().getURIConverter();
+        var uri = URI.createURI("http://example.org/unknown");
+
+        assertThatThrownBy(() -> converter.createInputStream(uri))
+            .isInstanceOf(IOException.class)
+            .hasMessage("Models are not loaded from the network: http://example.org/unknown");
+        assertThatThrownBy(() -> converter.createOutputStream(uri))
+            .isInstanceOf(IOException.class)
+            .hasMessage("Models are not saved to the network: http://example.org/unknown");
+        assertThat(converter.exists(uri, null)).isFalse();
+    }
+
     @Test
     void savedModelsReferenceLocalElementsByFragment(@TempDir Path directory) throws IOException {
-        Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().put("ecore", new EcoreResourceFactoryImpl());
         var reference = FACTORY.createEReference();
         reference.setName("friend");
         reference.setEType(animal);
@@ -147,7 +181,7 @@ class EMFUtilsTest {
         EMFUtils.save(URI.createFileURI(file.toString()), root);
 
         // loading shows that the file is a valid model; the relative reference does not contain the file name
-        var loaded = new ResourceSetImpl().getResource(URI.createFileURI(file.toString()), true);
+        var loaded = EMFUtils.createResourceSet().getResource(URI.createFileURI(file.toString()), true);
         assertThat(loaded.getContents()).hasSize(1);
         assertThat(Files.readString(file)).doesNotContain("root.ecore");
     }
