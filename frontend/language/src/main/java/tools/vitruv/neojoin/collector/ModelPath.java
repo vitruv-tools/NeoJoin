@@ -1,6 +1,7 @@
 package tools.vitruv.neojoin.collector;
 
 import org.eclipse.emf.common.util.URI;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
@@ -65,34 +66,8 @@ final class ModelPath {
      * Returns the model files of a path entry (a model file, an archive or a directory).
      */
     private List<URI> findFiles(String entry, String extension, List<CollectorIssue> issues) {
-        Path fileOrDirectory;
-        try {
-            // without `.` and `..` segments, which EMF removes when it resolves a relative reference; the file would
-            // be loaded a second time under the other URI
-            fileOrDirectory = Path.of(entry).toAbsolutePath().normalize();
-        } catch (InvalidPathException e) {
-            issues.add(new CollectorIssue.InvalidPathEntry(
-                name,
-                entry,
-                "the path is invalid (%s).".formatted(e.getReason())
-            ));
-            return List.of();
-        }
-
-        if (!Files.exists(fileOrDirectory)) {
-            issues.add(new CollectorIssue.InvalidPathEntry(name, entry, "the file or directory does not exist."));
-            return List.of();
-        }
-
-        // within a directory, files with other extensions are skipped silently
-        if (Files.isRegularFile(fileOrDirectory)
-            && !isSupportedArchive(fileOrDirectory)
-            && !Objects.equals(toEmfUri(fileOrDirectory).fileExtension(), extension)) {
-            issues.add(new CollectorIssue.InvalidPathEntry(
-                name,
-                entry,
-                "the file does not have the extension '.%s'.".formatted(extension)
-            ));
+        var fileOrDirectory = resolveEntry(entry, extension, issues);
+        if (fileOrDirectory == null) {
             return List.of();
         }
 
@@ -112,6 +87,45 @@ final class ModelPath {
             .map(ModelPath::toEmfUri)
             .filter(uri -> Objects.equals(uri.fileExtension(), extension))
             .toList();
+    }
+
+    /**
+     * Returns the absolute path of the entry, or {@code null} if the entry cannot be used: it is invalid, does not
+     * exist, or is a file with another extension than the models. The problem is reported as an issue.
+     */
+    private @Nullable Path resolveEntry(String entry, String extension, List<CollectorIssue> issues) {
+        Path fileOrDirectory;
+        try {
+            // without `.` and `..` segments, which EMF removes when it resolves a relative reference; the file would
+            // be loaded a second time under the other URI
+            fileOrDirectory = Path.of(entry).toAbsolutePath().normalize();
+        } catch (InvalidPathException e) {
+            issues.add(new CollectorIssue.InvalidPathEntry(
+                name,
+                entry,
+                "the path is invalid (%s).".formatted(e.getReason())
+            ));
+            return null;
+        }
+
+        if (!Files.exists(fileOrDirectory)) {
+            issues.add(new CollectorIssue.InvalidPathEntry(name, entry, "the file or directory does not exist."));
+            return null;
+        }
+
+        // within a directory, files with other extensions are skipped silently
+        if (Files.isRegularFile(fileOrDirectory)
+            && !isSupportedArchive(fileOrDirectory)
+            && !Objects.equals(toEmfUri(fileOrDirectory).fileExtension(), extension)) {
+            issues.add(new CollectorIssue.InvalidPathEntry(
+                name,
+                entry,
+                "the file does not have the extension '.%s'.".formatted(extension)
+            ));
+            return null;
+        }
+
+        return fileOrDirectory;
     }
 
     /**
