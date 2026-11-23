@@ -91,6 +91,7 @@ The view type has a root class, named `Root` unless a query declares `create roo
 * Queries can *select*, *join*, *filter* and *group* classes from the source models
 * *Abstract classes* and *inheritance* between classes of the view (`abstract`, `extends`), and selecting instances of sub classes (`from extends`)
 * Features in the view can be *copied* from the source models, *renamed* or *calculated* based on a custom expression
+* Features can have an *explicit type*: a data type, the class of a query or an implicit class
 * Query conditions and feature definition using [Xtend expressions](https://eclipse.dev/Xtext/xtend/documentation/203_xtend_expressions.html)
 * Parameterizable queries with typed parameters passed at transformation time
 * Language server (LSP) for syntax highlighting, code completion, and live visualization of the resulting view type

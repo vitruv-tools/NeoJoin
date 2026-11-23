@@ -257,7 +257,7 @@ class InheritanceParseTest extends AbstractInheritanceParseTest {
             }
             """);
 
-        var message = "Ambiguous super class for implicit target class of source class 'Dog'. "
+        var message = "Ambiguous super class for implicit class of source class 'Dog'. "
             + "Possible candidates: A1, A2";
         assertThat(result)
             .hasIssueAt(message, "k.star")
@@ -277,7 +277,7 @@ class InheritanceParseTest extends AbstractInheritanceParseTest {
             }
             """);
 
-        var message = "Implicit target class of source class 'Dog' is not linked to super class 'Animal', "
+        var message = "Implicit class of source class 'Dog' is not linked to super class 'Animal', "
             + "because it has no matching feature (same name, type and modifiers) for: tag";
         assertThat(result)
             .hasIssueAt(message, "k.dogs")
@@ -317,7 +317,7 @@ class InheritanceParseTest extends AbstractInheritanceParseTest {
 
         assertThat(result).hasIssueWithSeverity(
             Severity.WARNING,
-            "Implicit target class of source class 'Puppy' is not linked to super class 'Dog', "
+            "Implicit class of source class 'Puppy' is not linked to super class 'Dog', "
                 + "because it has no matching feature (same name, type and modifiers) for: name"
         );
     }
@@ -337,7 +337,7 @@ class InheritanceParseTest extends AbstractInheritanceParseTest {
 
         assertThat(result).hasIssueWithSeverity(
             Severity.WARNING,
-            "Implicit target class of source class 'Puppy' is not linked to super class 'Dog', "
+            "Implicit class of source class 'Puppy' is not linked to super class 'Dog', "
                 + "because it has no matching feature (same name, type and modifiers) for: breed"
         );
     }
@@ -361,7 +361,7 @@ class InheritanceParseTest extends AbstractInheritanceParseTest {
 
         assertThat(result).hasIssueWithSeverity(
             Severity.WARNING,
-            "Implicit target class of source class 'Dog' is not linked to super class 'Animal', "
+            "Implicit class of source class 'Dog' is not linked to super class 'Animal', "
                 + "because it has no matching feature (same name, type and modifiers) for: name"
         );
     }

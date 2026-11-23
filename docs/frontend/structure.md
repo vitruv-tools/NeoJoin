@@ -17,7 +17,7 @@ The **language frontend** parses the given query and together with the reference
     * generating queries for classes which are referenced but not explicitly generated from a query
     * populating query target classes with features when no body was provided (e.g. `from Food create`)
     * collecting declared query parameters and their types for resolution during transformation
-    * wiring the super classes of target classes (declared via `extends`) and linking implicit target classes to the target classes of their source super classes (if they have equivalent features)
+    * wiring the super classes of target classes (declared via `extends`) and linking implicit classes to the target classes of their source super classes (if they have equivalent features)
     * applying inheritance: a feature that overrides an inherited feature takes its type and modifiers, and all inherited features must be overridden
     * not generating root references for abstract classes
 * `collector` - collecting input models (meta or instance) from a given search path
@@ -25,7 +25,8 @@ The **language frontend** parses the given query and together with the reference
 * `jvmmodel` - Xtend expressions (= Xbase) work on java classes.
     * To allow for expressions to reference classes and attributes of Ecore models, the `SourceModelInferrer` generates java representations of the input Ecore models.
     * In order to use the type checking that is provided by Xtext, we need to tell Xtext what local variables are in scope of each expression. This is done in the `QueryModelInferrer` which creates a method for each expression and defines local variables as parameters.
-* `scoping` - provides scoping information, e.g. meta-models available for import, classes that can be referenced in queries
+* `scoping` - provides scoping information, e.g. meta-models available for import, classes that can be referenced in queries, and the explicit types of features (data types, target classes of queries and implicit classes)
+* `utils` - helpers that determine information from the query without building the AQR, e.g. the type of a feature (`FeatureTypeResolver`) and the implicit classes (`ImplicitClassCollector`). The implicit classes depend on the types of all features, and the feature type scope and several validation rules need them, so `ImplicitClassCache` caches them per query (Xtext's resource scope cache, cleared on every change of the query); without the cache, validation time grows quadratically with the number of explicitly typed features.
 * `validation` - custom validation rules for queries that cannot be expressed as part of the grammar, e.g. duplicated names
 
 ## Loading Models

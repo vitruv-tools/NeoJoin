@@ -2,22 +2,17 @@ package tools.vitruv.neojoin.validation;
 
 import com.google.inject.Inject;
 import org.eclipse.emf.ecore.EClass;
-import org.eclipse.emf.ecore.EDataType;
 import org.eclipse.emf.ecore.EObject;
-import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.xtext.validation.Check;
 import tools.vitruv.neojoin.Constants;
 import tools.vitruv.neojoin.Formatting;
 import tools.vitruv.neojoin.ast.AstPackage;
 import tools.vitruv.neojoin.ast.Query;
 import tools.vitruv.neojoin.ast.ViewTypeDefinition;
-import tools.vitruv.neojoin.common.Pair;
 import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
 import tools.vitruv.neojoin.utils.AstUtils;
 import tools.vitruv.neojoin.utils.ImplicitClassCache;
 import tools.vitruv.neojoin.utils.ImplicitClassCollector;
-
-import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,8 +20,12 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static tools.vitruv.neojoin.validation.MessageFormatting.formatDataTypes;
+import static tools.vitruv.neojoin.validation.MessageFormatting.formatSourceClasses;
+import static tools.vitruv.neojoin.validation.MessageFormatting.implicitClassesOfSourceClasses;
+
 /**
- * Validates the names of the implicit target classes (classes that {@link tools.vitruv.neojoin.aqr.AQRBuilder} creates
+ * Validates the names of the implicit classes (classes that {@link tools.vitruv.neojoin.aqr.AQRBuilder} creates
  * for referenced source classes that no query selects, see {@link ImplicitClassCollector}) and the names of the
  * containment references of the root class, and checks that no target class has the name of a data type.
  * <p>
@@ -80,9 +79,9 @@ public class TargetClassNameValidator extends ComposableValidator {
             if (hasImplicitRoot && name.equals(Constants.DefaultRootClassName)) {
                 // one issue per implicit class, so that each names exactly one source class
                 implicitClassesWithName.forEach(implicitClass -> {
-                    var sourceClass = formatSourceClasses(viewType, name, List.of(implicitClass));
+                    var sourceClass = formatSourceClasses(viewType, List.of(implicitClass.getKey()));
                     error(
-                        ("Implicit target class of source class %s collides with name of the implicit root class. "
+                        ("Implicit class of source class %s collides with name of the implicit root class. "
                             + "Either create a query for the source class that specifies a different target class "
                             + "name or explicitly create a root class with a different name.%s")
                             .formatted(sourceClass.left(), sourceClass.right()),
@@ -111,63 +110,15 @@ public class TargetClassNameValidator extends ComposableValidator {
             return;
         }
 
-        var sourceClasses = formatSourceClasses(viewType, name, implicitClasses);
+        var sourceClasses = formatSourceClasses(viewType, implicitClasses.stream().map(Map.Entry::getKey).toList());
         causes.forEach(cause -> error(
-            ("Implicit target classes of the source classes %s have the same name '%s'. "
+            ("Implicit classes of the source classes %s have the same name '%s'. "
                 + "For all but one of these source classes, "
                 + "create a query that specifies a different target class name.%s")
                 .formatted(sourceClasses.left(), name, sourceClasses.right()),
             cause,
             null
         ));
-    }
-
-    private static String getPackageQualifier(ViewTypeDefinition viewType, EPackage pack) {
-        var alias = AstUtils.findImportAlias(viewType, pack);
-        return alias != null ? alias : pack.getName();
-    }
-
-    /**
-     * Formats classes or data types for a message: each is named {@code <qualifier>.<name>} (see
-     * {@link #getPackageQualifier}), sorted and separated by commas.
-     *
-     * @param packagesWithNames the package and the name of each class or data type
-     * @return the formatted list and the suffix for the end of the message: the namespace URIs (sorted like the names)
-     *     if the qualified names are not unique, otherwise empty
-     */
-    private static Pair<String, String> formatQualifiedNames(
-        ViewTypeDefinition viewType,
-        List<Pair<EPackage, String>> packagesWithNames
-    ) {
-        // qualified name and namespace URI, sorted by both
-        var qualifiedNames = packagesWithNames.stream()
-            .map(packageWithName -> new Pair<>(
-                getPackageQualifier(viewType, packageWithName.left()) + "." + packageWithName.right(),
-                packageWithName.left().getNsURI()
-            ))
-            .sorted(Comparator.<Pair<String, String>, String>comparing(Pair::left).thenComparing(Pair::right))
-            .toList();
-        var names = qualifiedNames.stream().map(Pair::left).toList();
-        var namespaceURIs = names.stream().distinct().count() < names.size()
-            ? " Namespace URIs: " + qualifiedNames.stream().map(Pair::right).collect(Collectors.joining(", "))
-            : "";
-        return new Pair<>(String.join(", ", names), namespaceURIs);
-    }
-
-    /**
-     * Formats the source classes of the implicit classes, see {@link #formatQualifiedNames}.
-     */
-    private static Pair<String, String> formatSourceClasses(
-        ViewTypeDefinition viewType,
-        String name,
-        List<Map.Entry<EClass, EObject>> implicitClasses
-    ) {
-        return formatQualifiedNames(
-            viewType,
-            implicitClasses.stream()
-                .map(implicitClass -> new Pair<>(implicitClass.getKey().getEPackage(), name))
-                .toList()
-        );
     }
 
     /**
@@ -183,15 +134,13 @@ public class TargetClassNameValidator extends ComposableValidator {
             return;
         }
 
-        var allSourceClasses = formatSourceClasses(viewType, name, implicitClasses);
-        var implicitClassesOfQuery = implicitClasses.size() == 1
-            ? "the implicit target class of source class"
-            : "the implicit target classes of the source classes";
+        var allSourceClasses = formatSourceClasses(viewType, implicitClasses.stream().map(Map.Entry::getKey).toList());
+        var implicitClassesOfQuery = "the " + implicitClassesOfSourceClasses(implicitClasses.size());
         // one issue per implicit class, so that each names exactly one source class
         implicitClasses.forEach(implicitClass -> {
-            var sourceClass = formatSourceClasses(viewType, name, List.of(implicitClass));
+            var sourceClass = formatSourceClasses(viewType, List.of(implicitClass.getKey()));
             error(
-                ("Implicit target class of source class %s has the same name as the target class '%s'. "
+                ("Implicit class of source class %s has the same name as the target class '%s'. "
                     + "Either choose a different name for the target class "
                     + "or create a query for the source class that specifies a different target class name.%s")
                     .formatted(sourceClass.left(), name, sourceClass.right()),
@@ -247,10 +196,10 @@ public class TargetClassNameValidator extends ComposableValidator {
             var name = sourceClass.getName();
             var dataTypes = dataTypesByName.get(name);
             if (dataTypes != null) {
-                var sourceClasses = formatSourceClasses(viewType, name, List.of(Map.entry(sourceClass, cause)));
+                var sourceClasses = formatSourceClasses(viewType, List.of(sourceClass));
                 var formattedDataTypes = formatDataTypes(viewType, dataTypes);
                 error(
-                    ("Implicit target class of source class %s has the same name as the %s. "
+                    ("Implicit class of source class %s has the same name as the %s. "
                         + "Create a query for the source class that specifies a different target class name.%s")
                         .formatted(
                             sourceClasses.left(),
@@ -262,18 +211,6 @@ public class TargetClassNameValidator extends ComposableValidator {
                 );
             }
         });
-    }
-
-    /**
-     * Formats data types with the same name as "the data type X" or "the data types X, Y", see
-     * {@link #formatQualifiedNames}.
-     */
-    private static Pair<String, String> formatDataTypes(ViewTypeDefinition viewType, List<EDataType> dataTypes) {
-        var formatted = formatQualifiedNames(
-            viewType,
-            dataTypes.stream().map(dataType -> new Pair<>(dataType.getEPackage(), dataType.getName())).toList()
-        );
-        return new Pair<>((dataTypes.size() == 1 ? "data type " : "data types ") + formatted.left(), formatted.right());
     }
 
     /**

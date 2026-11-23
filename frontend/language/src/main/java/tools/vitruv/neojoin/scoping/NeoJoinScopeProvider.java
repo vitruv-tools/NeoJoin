@@ -34,7 +34,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static tools.vitruv.neojoin.common.Assertions.check;
 import static tools.vitruv.neojoin.common.Assertions.fail;
 
 /**
@@ -223,13 +222,7 @@ public class NeoJoinScopeProvider extends AbstractNeoJoinScopeProvider {
      * @return fully qualified name of the classifier
      */
     private static QualifiedName getFullyQualifiedName(EClassifier classifier, String rootAlias) {
-        var parts = Stream.concat(
-            EMFUtils.getFullyQualifiedNameAsStream(classifier.getEPackage()),
-            Stream.of(classifier.getName())
-        ).toArray(String[]::new);
-        check(parts.length > 1); // at least package name + class name
-        parts[0] = rootAlias;
-        return QualifiedName.create(parts);
+        return QualifiedName.create(AstUtils.getQualifiedNameSegments(classifier, rootAlias));
     }
 
     /**
