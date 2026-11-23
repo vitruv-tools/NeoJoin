@@ -2,6 +2,7 @@ package tools.vitruv.neojoin.utils;
 
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
+import tools.vitruv.neojoin.ast.AstPackage;
 import tools.vitruv.neojoin.ast.ConcreteBody;
 import tools.vitruv.neojoin.ast.Query;
 import tools.vitruv.neojoin.ast.ViewTypeDefinition;
@@ -28,16 +29,6 @@ public class ImplicitClassCollector {
     }
 
     /**
-     * Collects the implicit classes of the view type with a new {@link FeatureTypeResolver}.
-     *
-     * @see #collectImplicitClasses(ViewTypeDefinition)
-     */
-    public static Map<EClass, EObject> collect(ViewTypeDefinition viewType, ExpressionHelper expressionHelper) {
-        return new ImplicitClassCollector(new FeatureTypeResolver(viewType, expressionHelper), expressionHelper)
-            .collectImplicitClasses(viewType);
-    }
-
-    /**
      * @return the implicit source classes, each with the first AST element that causes it: the feature that
      *     references it, or the query if the references are copied
      */
@@ -56,7 +47,9 @@ public class ImplicitClassCollector {
             }
         } else if (body instanceof ConcreteBody concreteBody) {
             for (var feature : concreteBody.getFeatures()) {
-                if (feature.getType() == null && feature.getSubQuery() == null
+                // eIsSet does not resolve the type: resolving it would cause cyclic linking, because
+                // NeoJoinScopeProvider uses this collector to compute the scope of the feature type
+                if (!feature.eIsSet(AstPackage.Literals.FEATURE__TYPE) && feature.getSubQuery() == null
                     && typeResolver.resolve(feature) instanceof ImplicitReferenceType type) {
                     addImplicitClass(type.sourceClass(), feature, implicitClasses);
                 }

@@ -4,6 +4,7 @@ import com.google.inject.Guice;
 import org.eclipse.lsp4j.ClientCapabilities;
 import org.eclipse.lsp4j.DefinitionParams;
 import org.eclipse.lsp4j.Diagnostic;
+import org.eclipse.lsp4j.DidChangeTextDocumentParams;
 import org.eclipse.lsp4j.DidOpenTextDocumentParams;
 import org.eclipse.lsp4j.InitializeParams;
 import org.eclipse.lsp4j.InitializedParams;
@@ -15,8 +16,10 @@ import org.eclipse.lsp4j.PublishDiagnosticsParams;
 import org.eclipse.lsp4j.ReferenceContext;
 import org.eclipse.lsp4j.ReferenceParams;
 import org.eclipse.lsp4j.ShowMessageRequestParams;
+import org.eclipse.lsp4j.TextDocumentContentChangeEvent;
 import org.eclipse.lsp4j.TextDocumentIdentifier;
 import org.eclipse.lsp4j.TextDocumentItem;
+import org.eclipse.lsp4j.VersionedTextDocumentIdentifier;
 import org.eclipse.lsp4j.WorkspaceClientCapabilities;
 import org.eclipse.lsp4j.WorkspaceFolder;
 import org.eclipse.lsp4j.services.LanguageClient;
@@ -45,6 +48,7 @@ class InProcessLanguageServer {
 
     private final NeoJoinIdeServer server;
     private final RecordingClient client = new RecordingClient();
+    private final Map<String, Integer> versions = new ConcurrentHashMap<>();
 
     private InProcessLanguageServer(NeoJoinIdeServer server) {
         this.server = server;
@@ -81,10 +85,24 @@ class InProcessLanguageServer {
     String open(Path file, String text) throws IOException {
         Files.writeString(file, text);
         var uri = file.toUri().toString();
+        versions.put(uri, 1);
         server.getTextDocumentService().didOpen(
             new DidOpenTextDocumentParams(new TextDocumentItem(uri, "neojoin", 1, text))
         );
         return uri;
+    }
+
+    /**
+     * Replaces the whole text of the opened file, as an editor does after an edit (the file on disk stays as it is).
+     * The next call of {@link #diagnostics} returns the diagnostics that the server publishes for this change.
+     */
+    void changeDocument(String uri, String text) {
+        var version = versions.merge(uri, 1, Integer::sum);
+        client.expectNextDiagnosticsOf(uri);
+        server.getTextDocumentService().didChange(new DidChangeTextDocumentParams(
+            new VersionedTextDocumentIdentifier(uri, version),
+            List.of(new TextDocumentContentChangeEvent(text))
+        ));
     }
 
     List<Location> definition(String uri, Position position) throws ExecutionException, InterruptedException {
@@ -102,7 +120,7 @@ class InProcessLanguageServer {
 
     /**
      * Returns the first diagnostics that the server publishes for the file (it validates after the start and after
-     * opening a file).
+     * opening a file), or after the last {@link #changeDocument} if the file was changed.
      */
     List<Diagnostic> diagnostics(String uri) throws ExecutionException, InterruptedException, TimeoutException {
         return client.diagnosticsOf(uri).get(10, TimeUnit.SECONDS);
@@ -118,6 +136,13 @@ class InProcessLanguageServer {
 
         CompletableFuture<List<Diagnostic>> diagnosticsOf(String uri) {
             return diagnostics.computeIfAbsent(uri, key -> new CompletableFuture<>());
+        }
+
+        /**
+         * Discards the diagnostics received so far, so that {@link #diagnosticsOf} waits for the next publish.
+         */
+        void expectNextDiagnosticsOf(String uri) {
+            diagnostics.put(uri, new CompletableFuture<>());
         }
 
         @Override

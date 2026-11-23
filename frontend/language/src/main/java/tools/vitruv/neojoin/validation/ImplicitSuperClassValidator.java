@@ -7,10 +7,9 @@ import org.eclipse.xtext.validation.Check;
 import tools.vitruv.neojoin.ast.Query;
 import tools.vitruv.neojoin.ast.ViewTypeDefinition;
 import tools.vitruv.neojoin.common.Pair;
-import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
 import tools.vitruv.neojoin.utils.FeatureInfo;
 import tools.vitruv.neojoin.utils.FeatureInfoResolver;
-import tools.vitruv.neojoin.utils.ImplicitSuperClassFinder;
+import tools.vitruv.neojoin.utils.ImplicitClassCache;
 
 import java.util.stream.Collectors;
 
@@ -26,7 +25,7 @@ import java.util.stream.Collectors;
 public class ImplicitSuperClassValidator extends ComposableValidator {
 
     @Inject
-    private ExpressionHelper expressionHelper;
+    private ImplicitClassCache implicitClassCache;
 
     /**
      * Checks that an implicit target class has an unambiguous super class.
@@ -38,7 +37,7 @@ public class ImplicitSuperClassValidator extends ComposableValidator {
      */
     @Check
     public void checkAmbiguousImplicitSuperClasses(ViewTypeDefinition viewType) {
-        var finder = new ImplicitSuperClassFinder(viewType, expressionHelper);
+        var finder = implicitClassCache.getFinder(viewType);
         finder.getImplicitClasses().forEach((sourceClass, cause) -> {
             var candidates = finder.findCandidates(sourceClass);
             if (candidates.size() > 1) {
@@ -64,7 +63,7 @@ public class ImplicitSuperClassValidator extends ComposableValidator {
      */
     @Check
     public void checkImplicitClassesMatchSuperClasses(ViewTypeDefinition viewType) {
-        var finder = new ImplicitSuperClassFinder(viewType, expressionHelper);
+        var finder = implicitClassCache.getFinder(viewType);
         var featureInfoResolver = finder.createFeatureInfoResolver();
         finder.getImplicitClasses().forEach((sourceClass, cause) -> {
             var candidates = finder.findCandidates(sourceClass);

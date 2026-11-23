@@ -637,4 +637,60 @@ class InheritanceParseTest extends AbstractInheritanceParseTest {
         );
     }
 
+    /**
+     * The implicit class Dog extends the implicit class Animal, so a Dog is assignable to the type Animal.
+     */
+    @Test
+    void valueOfImplicitSubClassCanBeAssignedToImplicitSuperClassType() {
+        var result = parseWithKennel("""
+            from Kennel k create K {
+                k.animals
+                k.star
+                animal: Animal := k.star
+            }
+            """);
+
+        assertThat(result).hasNoIssues();
+    }
+
+    @Test
+    void valueOfSourceSubClassWithoutImplicitClassCannotBeAssignedToImplicitSuperClassType() {
+        var result = parseWithKennel("""
+            from Kennel k create K {
+                k.animals
+                first: Animal := k.puppy
+            }
+            """);
+
+        assertThat(result).hasExactlyIssues("Type mismatch: cannot convert from Puppy to Animal");
+    }
+
+    @Test
+    void valueOfSourceSubClassSelectedByUnrelatedQueryCannotBeAssignedToImplicitSuperClassType() {
+        var result = parseWithKennel("""
+            from Dog create D
+            from Kennel k create K {
+                k.animals
+                a: Animal := k.star
+            }
+            """);
+
+        assertThat(result).hasExactlyIssues("Type mismatch: cannot convert from Dog to Animal");
+    }
+
+    @Test
+    void abstractFeatureOfImplicitClassTypeCanBeOverriddenWithValueOfImplicitSubClass() {
+        var result = parseWithKennel("""
+            abstract A {
+                a: Animal
+            }
+            from Kennel k create B extends A {
+                k.animals
+                k.star
+                a := k.star
+            }
+            """);
+
+        assertThat(result).hasNoIssues();
+    }
 }

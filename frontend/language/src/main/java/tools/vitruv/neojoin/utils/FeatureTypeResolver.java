@@ -130,6 +130,8 @@ public class FeatureTypeResolver {
             return new AttributeType(dataType);
         } else if (explicitType instanceof Query query) {
             return new QueryReferenceType(query);
+        } else if (explicitType instanceof EClass implicitClass) { // name of an implicit class
+            return new ImplicitReferenceType(implicitClass);
         }
         return null;
     }

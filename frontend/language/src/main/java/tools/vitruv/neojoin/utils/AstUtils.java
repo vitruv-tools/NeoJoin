@@ -1,13 +1,16 @@
 package tools.vitruv.neojoin.utils;
 
 import org.eclipse.emf.ecore.EClass;
+import org.eclipse.emf.ecore.EDataType;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.ETypedElement;
+import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.xtext.EcoreUtil2;
 import org.eclipse.xtext.xbase.XExpression;
 import org.jspecify.annotations.Nullable;
+import tools.vitruv.neojoin.Constants;
 import tools.vitruv.neojoin.aqr.AQRFeatureOptionsBuilder;
 import tools.vitruv.neojoin.ast.AbstractBody;
 import tools.vitruv.neojoin.ast.AbstractMainQuery;
@@ -25,6 +28,7 @@ import tools.vitruv.neojoin.ast.Query;
 import tools.vitruv.neojoin.ast.Source;
 import tools.vitruv.neojoin.ast.SubQuery;
 import tools.vitruv.neojoin.ast.ViewTypeDefinition;
+import tools.vitruv.neojoin.common.EMFUtils;
 import tools.vitruv.neojoin.common.Pair;
 import tools.vitruv.neojoin.common.Utils;
 import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
@@ -39,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static tools.vitruv.neojoin.common.Assertions.fail;
@@ -211,6 +216,27 @@ public final class AstUtils {
         return getValidImports(viewType)
             .map(imp -> Map.entry(getImportAlias(imp), imp.getPackage()))
             .collect(Utils.mapCollector(false)); // ignore duplicates -> will be handled in validator
+    }
+
+    /**
+     * Returns a map from alias to package for all packages whose data types can be used as explicit feature type: the
+     * {@link #getImportedPackagesByAlias imported packages} and Ecore, which is always available.
+     */
+    public static Map<String, EPackage> getFeatureTypePackagesByAlias(ViewTypeDefinition viewType) {
+        var packages = getImportedPackagesByAlias(viewType);
+        packages.put(Constants.EcoreAlias, EcorePackage.eINSTANCE);
+        return packages;
+    }
+
+    /**
+     * Returns all data types (including enumerations) that can be used as explicit feature type, grouped by name:
+     * those of the {@link #getFeatureTypePackagesByAlias feature type packages} and their sub packages.
+     */
+    public static Map<String, List<EDataType>> getFeatureTypeDataTypes(ViewTypeDefinition viewType) {
+        return getFeatureTypePackagesByAlias(viewType).values().stream()
+            .flatMap(EMFUtils::getAllEDataTypes)
+            .distinct()
+            .collect(Collectors.groupingBy(EDataType::getName));
     }
 
     /**

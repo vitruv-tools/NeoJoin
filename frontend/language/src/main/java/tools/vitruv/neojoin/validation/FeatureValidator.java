@@ -34,7 +34,7 @@ import tools.vitruv.neojoin.utils.FeatureType.AmbiguousReferenceType;
 import tools.vitruv.neojoin.utils.FeatureType.ImplicitReferenceType;
 import tools.vitruv.neojoin.utils.FeatureType.QueryReferenceType;
 import tools.vitruv.neojoin.utils.FeatureTypeResolver;
-import tools.vitruv.neojoin.utils.ImplicitClassCollector;
+import tools.vitruv.neojoin.utils.ImplicitClassCache;
 
 import java.util.HashSet;
 import java.util.List;
@@ -47,6 +47,9 @@ public class FeatureValidator extends ComposableValidator {
 
     @Inject
     private ExpressionHelper expressionHelper;
+
+    @Inject
+    private ImplicitClassCache implicitClassCache;
 
     @Check
     public void checkUniqueFeatureNames(Query query) {
@@ -151,7 +154,31 @@ public class FeatureValidator extends ComposableValidator {
             checkEnumType(feature, eEnum, inferredType);
         } else if (feature.getType() instanceof EDataType eDataType) {
             checkEDataType(feature, eDataType, inferredType);
+        } else if (feature.getType() instanceof EClass implicitClass) {
+            checkImplicitClassType(feature, implicitClass, inferredType.classifier());
         }
+    }
+
+    /**
+     * Checks that the inferred class is the source class of the explicit implicit class or a source class whose
+     * implicit class is linked to it as implicit sub class. Otherwise the target instance of the value is not an
+     * instance of the implicit class, so the transformation would fail: {@code TargetMap#get} of the EMF backend
+     * throws "no target instance of class ... found for source instance of class ..." when the reference is set.
+     */
+    private void checkImplicitClassType(ConcreteFeature feature, EClass explicitType, EClassifier inferredClassifier) {
+        if (inferredClassifier instanceof EClass inferredClass
+            && implicitClassCache.getFinder(AstUtils.getViewType(feature))
+                .isSameOrImplicitSubClass(inferredClass, explicitType)) {
+            return;
+        }
+
+        error(
+            "Type mismatch: cannot convert from %s to %s".formatted(
+                inferredClassifier.getName(), explicitType.getName()
+            ),
+            feature,
+            AstPackage.Literals.CONCRETE_FEATURE__EXPRESSION
+        );
     }
 
     private void checkEnumType(ConcreteFeature feature, EEnum eEnum, TypeInfo inferredType) {
@@ -483,7 +510,7 @@ public class FeatureValidator extends ComposableValidator {
             .filter(query -> AstUtils.hasRootReference(query, expressionHelper))
             .map(query -> AstUtils.getTargetName(query, expressionHelper));
         // implicit classes of abstract source classes are abstract
-        var implicitClassNames = ImplicitClassCollector.collect(viewType, expressionHelper).keySet().stream()
+        var implicitClassNames = implicitClassCache.getImplicitClasses(viewType).keySet().stream()
             .filter(sourceClass -> !sourceClass.isAbstract())
             .map(EClass::getName);
         var allNames = Stream.concat(queryNames, implicitClassNames)

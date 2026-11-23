@@ -26,6 +26,7 @@ import tools.vitruv.neojoin.ast.ViewTypeDefinition;
 import tools.vitruv.neojoin.common.EMFUtils;
 import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
 import tools.vitruv.neojoin.utils.AstUtils;
+import tools.vitruv.neojoin.utils.ImplicitClassCache;
 
 import java.util.List;
 import java.util.Map;
@@ -50,6 +51,9 @@ public class NeoJoinScopeProvider extends AbstractNeoJoinScopeProvider {
 
     @Inject
     private ExpressionHelper expressionHelper;
+
+    @Inject
+    private ImplicitClassCache implicitClassCache;
 
     @Override
     public IScope getScope(EObject context, EReference reference) {
@@ -170,14 +174,24 @@ public class NeoJoinScopeProvider extends AbstractNeoJoinScopeProvider {
     }
 
     /**
-     * Scope for available types when specifying an explicit type for a feature.
+     * Scope for available types when specifying an explicit type for a feature: data types, queries by target name and
+     * implicit classes by the name of their source class.
      */
     private IScope createFeatureTypeScope(ViewTypeDefinition viewType) {
-        var imports = AstUtils.getImportedPackagesByAlias(viewType);
-        imports.put(Constants.EcoreAlias, EcorePackage.eINSTANCE); // ecore is always available
+        var imports = AstUtils.getFeatureTypePackagesByAlias(viewType);
         var dataTypeScope = createImportedClassifierScope(imports, EDataType.class::isInstance);
 
-        return new SimpleScope(dataTypeScope, createQueryCandidates(viewType));
+        var candidates = Stream.concat(
+            createQueryCandidates(viewType).stream(),
+            createImplicitClassCandidates(viewType).stream()
+        ).toList();
+        return new SimpleScope(dataTypeScope, candidates);
+    }
+
+    private List<IEObjectDescription> createImplicitClassCandidates(ViewTypeDefinition viewType) {
+        return implicitClassCache.getImplicitClasses(viewType).keySet().stream()
+            .map(sourceClass -> EObjectDescription.create(sourceClass.getName(), sourceClass))
+            .toList();
     }
 
     /**

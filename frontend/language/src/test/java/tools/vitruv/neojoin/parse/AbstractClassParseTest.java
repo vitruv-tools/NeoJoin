@@ -71,4 +71,19 @@ class AbstractClassParseTest extends AbstractParseTest {
         assertThat(result).hasExactlyIssues("missing 'create' at 'abstract'");
     }
 
+    @Test
+    void abstractFeatureCanHaveImplicitClassType() {
+        var result = parse("""
+            abstract A {
+                f: Food
+            }
+
+            from Restaurant r create B extends A {
+                r.sells
+                f := r.sells.head
+            }
+            """);
+
+        assertThat(result).hasNoIssues();
+    }
 }

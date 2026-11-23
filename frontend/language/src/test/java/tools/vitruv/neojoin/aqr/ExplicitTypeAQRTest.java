@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import tools.vitruv.neojoin.AbstractKennelTest;
 import tools.vitruv.neojoin.Constants;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static tools.vitruv.neojoin.aqr.AQRAssertions.assertThat;
 import static tools.vitruv.neojoin.aqr.AQRTargetClassAssertions.assertThat;
 
@@ -80,6 +81,47 @@ class ExplicitTypeAQRTest extends AbstractKennelTest {
                     .hasNoMoreFeatures()
             )
             .hasNoMoreTargetClasses();
+    }
+
+    /**
+     * The explicit type {@code Animal} names the implicit class that the copied reference {@code animals} creates for
+     * the source class {@code Animal}: both features reference the same target class.
+     */
+    @Test
+    void implicitClassAsExplicitTypeIsTheImplicitTargetClass() {
+        var aqr = parse("""
+            from Kennel k create K {
+                k.animals
+                first: Animal := k.animals.head
+            }
+            """);
+
+        var animal = find(aqr, "Animal");
+        var k = find(aqr, "K");
+
+        assertThat(aqr)
+            .hasRootTargetClass(
+                Constants.DefaultRootClassName, root -> {
+                    assertThat(root)
+                        .hasGeneratedReference("ks", "K")
+                        .hasNoMoreFeatures(); // no reference for the abstract class Animal
+                }
+            )
+            .hasTargetClass(
+                "K", targetClass -> assertThat(targetClass)
+                    .hasCopiedReference("animals", "Animal", lookup("kennel", "Kennel", "animals"))
+                    .hasCalculatedReference("first", "Animal")
+                    .hasNoMoreFeatures()
+            )
+            .hasTargetClass(
+                "Animal", a -> assertThat(a)
+                    .isAbstract()
+                    .hasCopiedAttribute("name", lookup("kennel", "Animal", "name"))
+                    .hasNoMoreFeatures()
+            )
+            .hasNoMoreTargetClasses();
+
+        assertThat(assertThat(k).getReference("first", "Animal").type()).isSameAs(animal);
     }
 
 }
