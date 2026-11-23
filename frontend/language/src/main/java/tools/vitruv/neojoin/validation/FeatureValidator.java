@@ -12,14 +12,12 @@ import org.eclipse.xtext.xbase.XMemberFeatureCall;
 import org.eclipse.xtext.xbase.typesystem.IBatchTypeResolver;
 import org.eclipse.xtext.xbase.typesystem.references.LightweightTypeReference;
 import org.jspecify.annotations.Nullable;
-import tools.vitruv.neojoin.Constants;
 import tools.vitruv.neojoin.Formatting;
 import tools.vitruv.neojoin.aqr.AQRFeatureOptionsBuilder;
 import tools.vitruv.neojoin.ast.AstPackage;
 import tools.vitruv.neojoin.ast.ConcreteBody;
 import tools.vitruv.neojoin.ast.ConcreteFeature;
 import tools.vitruv.neojoin.ast.ConcreteMainQuery;
-import tools.vitruv.neojoin.ast.Feature;
 import tools.vitruv.neojoin.ast.FeatureOp;
 import tools.vitruv.neojoin.ast.MainQuery;
 import tools.vitruv.neojoin.ast.Query;
@@ -131,16 +129,17 @@ public class FeatureValidator extends ComposableValidator {
             return;
         }
 
-        if (inferredType.classifier() == null) { // null expression
+        var inferredClassifier = inferredType.classifier();
+        if (inferredClassifier == null) { // null expression
             checkNullExpression(feature);
             return;
         }
 
         if (feature.getSubQuery() != null) {
-            checkSubQuery(feature, inferredType.classifier());
+            checkSubQuery(feature, inferredClassifier);
         }
 
-        if (feature.getSubQuery() != null && inferredType.classifier() instanceof EDataType dataType) {
+        if (feature.getSubQuery() != null && inferredClassifier instanceof EDataType dataType) {
             error(
                 "Cannot use a subquery with an attribute expression (%s)".formatted(dataType.getName()),
                 feature,
@@ -149,13 +148,13 @@ public class FeatureValidator extends ComposableValidator {
         }
 
         if (feature.getType() instanceof Query query) {
-            checkQueryType(feature, query, inferredType.classifier());
+            checkQueryType(feature, query, inferredClassifier);
         } else if (feature.getType() instanceof EEnum eEnum) {
             checkEnumType(feature, eEnum, inferredType);
         } else if (feature.getType() instanceof EDataType eDataType) {
             checkEDataType(feature, eDataType, inferredType);
         } else if (feature.getType() instanceof EClass implicitClass) {
-            checkImplicitClassType(feature, implicitClass, inferredType.classifier());
+            checkImplicitClassType(feature, implicitClass, inferredClassifier);
         }
     }
 

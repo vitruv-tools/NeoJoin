@@ -679,6 +679,19 @@ class InheritanceParseTest extends AbstractInheritanceParseTest {
     }
 
     @Test
+    void valueOfImplicitSuperClassCannotBeAssignedToImplicitSubClassType() {
+        var result = parseWithKennel("""
+            from Kennel k create K {
+                k.animals
+                k.star
+                d: Dog := k.animals.head
+            }
+            """);
+
+        assertThat(result).hasExactlyIssues("Type mismatch: cannot convert from Animal to Dog");
+    }
+
+    @Test
     void abstractFeatureOfImplicitClassTypeCanBeOverriddenWithValueOfImplicitSubClass() {
         var result = parseWithKennel("""
             abstract A {
