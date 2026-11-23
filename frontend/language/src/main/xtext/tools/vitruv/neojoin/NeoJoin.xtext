@@ -77,7 +77,7 @@ AbstractBody:
 ConcreteFeature:
     (
         name=ID
-        (':' type=[ecore::EObject|QualifiedName])? // type refers either to an EDataType or a Query
+        (':' type=[ecore::EObject|QualifiedName])? // type refers either to an EDataType, a Query, or the source class of an implicit class
         (hasModifiers?='[' (modifiers+=Modifier (',' modifiers+=Modifier)*)? ']')? // allow empty modifier list in grammar and forbid it using a validator for improved error messages
         op=FeatureOp
     )?
@@ -86,7 +86,7 @@ ConcreteFeature:
 
 AbstractFeature:
     name=ID
-    ':' type=[ecore::EObject|QualifiedName] // type refers either to an EDataType or a Query
+    ':' type=[ecore::EObject|QualifiedName] // type refers either to an EDataType, a Query, or the source class of an implicit class
     (hasModifiers?='[' (modifiers+=Modifier (',' modifiers+=Modifier)*)? ']')?; // allow empty modifier list in grammar and forbid it using a validator for improved error messages
 
 enum FeatureOp:

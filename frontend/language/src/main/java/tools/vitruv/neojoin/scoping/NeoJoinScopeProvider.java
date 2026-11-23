@@ -26,6 +26,7 @@ import tools.vitruv.neojoin.ast.ViewTypeDefinition;
 import tools.vitruv.neojoin.common.EMFUtils;
 import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
 import tools.vitruv.neojoin.utils.AstUtils;
+import tools.vitruv.neojoin.utils.ImplicitClassCache;
 
 import java.util.List;
 import java.util.Map;
@@ -33,7 +34,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static tools.vitruv.neojoin.common.Assertions.check;
 import static tools.vitruv.neojoin.common.Assertions.fail;
 
 /**
@@ -50,6 +50,9 @@ public class NeoJoinScopeProvider extends AbstractNeoJoinScopeProvider {
 
     @Inject
     private ExpressionHelper expressionHelper;
+
+    @Inject
+    private ImplicitClassCache implicitClassCache;
 
     @Override
     public IScope getScope(EObject context, EReference reference) {
@@ -170,14 +173,24 @@ public class NeoJoinScopeProvider extends AbstractNeoJoinScopeProvider {
     }
 
     /**
-     * Scope for available types when specifying an explicit type for a feature.
+     * Scope for available types when specifying an explicit type for a feature: data types, queries by target name and
+     * implicit classes by the name of their source class.
      */
     private IScope createFeatureTypeScope(ViewTypeDefinition viewType) {
-        var imports = AstUtils.getImportedPackagesByAlias(viewType);
-        imports.put(Constants.EcoreAlias, EcorePackage.eINSTANCE); // ecore is always available
+        var imports = AstUtils.getFeatureTypePackagesByAlias(viewType);
         var dataTypeScope = createImportedClassifierScope(imports, EDataType.class::isInstance);
 
-        return new SimpleScope(dataTypeScope, createQueryCandidates(viewType));
+        var candidates = Stream.concat(
+            createQueryCandidates(viewType).stream(),
+            createImplicitClassCandidates(viewType).stream()
+        ).toList();
+        return new SimpleScope(dataTypeScope, candidates);
+    }
+
+    private List<IEObjectDescription> createImplicitClassCandidates(ViewTypeDefinition viewType) {
+        return implicitClassCache.getImplicitClasses(viewType).keySet().stream()
+            .map(sourceClass -> EObjectDescription.create(sourceClass.getName(), sourceClass))
+            .toList();
     }
 
     /**
@@ -209,13 +222,7 @@ public class NeoJoinScopeProvider extends AbstractNeoJoinScopeProvider {
      * @return fully qualified name of the classifier
      */
     private static QualifiedName getFullyQualifiedName(EClassifier classifier, String rootAlias) {
-        var parts = Stream.concat(
-            EMFUtils.getFullyQualifiedNameAsStream(classifier.getEPackage()),
-            Stream.of(classifier.getName())
-        ).toArray(String[]::new);
-        check(parts.length > 1); // at least package name + class name
-        parts[0] = rootAlias;
-        return QualifiedName.create(parts);
+        return QualifiedName.create(AstUtils.getQualifiedNameSegments(classifier, rootAlias));
     }
 
     /**

@@ -2,9 +2,20 @@ package tools.vitruv.neojoin.parse;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static tools.vitruv.neojoin.parse.ParseAssertions.assertThat;
 
 class MainQueryParseTest extends AbstractParseTest {
+
+    @Override
+    protected List<String> getMetaModelPaths() {
+        var paths = new ArrayList<>(super.getMetaModelPaths());
+        paths.add("/models/wallet.ecore");
+        paths.add("/models/bank.ecore");
+        return paths;
+    }
 
     @Test
     void withoutTargetName() {
@@ -106,11 +117,11 @@ class MainQueryParseTest extends AbstractParseTest {
             create Food {}
             """);
 
-        var implicitClassMessage = "Implicit target class of source class 'Food' has the same name as the target "
+        var implicitClassMessage = "Implicit class of source class Food has the same name as the target "
             + "class 'Food'. Either choose a different name for the target class "
             + "or create a query for the source class that specifies a different target class name.";
-        var targetClassMessage = "Target class 'Food' has the same name as the implicit target class of source class "
-            + "'Food'. Either choose a different name for this class "
+        var targetClassMessage = "Target class 'Food' has the same name as the implicit class of source class "
+            + "Food. Either choose a different name for this class "
             + "or create a query for the source class that specifies a different target class name.";
         assertThat(result)
             .hasIssueAt(implicitClassMessage, "r.sells")
@@ -133,11 +144,11 @@ class MainQueryParseTest extends AbstractParseTest {
             from menu.Food create
             """);
 
-        var implicitClassMessage = "Implicit target class of source class 'Food' has the same name as the target "
+        var implicitClassMessage = "Implicit class of source class rest.Food has the same name as the target "
             + "class 'Food'. Either choose a different name for the target class "
             + "or create a query for the source class that specifies a different target class name.";
-        var targetClassMessage = "Target class 'Food' has the same name as the implicit target class of source class "
-            + "'Food'. Either choose a different name for this class "
+        var targetClassMessage = "Target class 'Food' has the same name as the implicit class of source class "
+            + "rest.Food. Either choose a different name for this class "
             + "or create a query for the source class that specifies a different target class name.";
         assertThat(result)
             .hasIssueAt(implicitClassMessage, "r.sells")
@@ -161,11 +172,11 @@ class MainQueryParseTest extends AbstractParseTest {
             }
             """);
 
-        var implicitClassMessage = "Implicit target class of source class 'Food' has the same name as the target "
+        var implicitClassMessage = "Implicit class of source class Food has the same name as the target "
             + "class 'Food'. Either choose a different name for the target class "
             + "or create a query for the source class that specifies a different target class name.";
-        var targetClassMessage = "Target class 'Food' has the same name as the implicit target class of source class "
-            + "'Food'. Either choose a different name for this class "
+        var targetClassMessage = "Target class 'Food' has the same name as the implicit class of source class "
+            + "Food. Either choose a different name for this class "
             + "or create a query for the source class that specifies a different target class name.";
         assertThat(result)
             .hasIssueAt(implicitClassMessage, "r.sells")
@@ -185,7 +196,7 @@ class MainQueryParseTest extends AbstractParseTest {
             from Root create Category
             """);
 
-        var message = "Implicit target classes of the source classes menu.Food, rest.Food have the same name "
+        var message = "Implicit classes of the source classes menu.Food, rest.Food have the same name "
             + "'Food'. For all but one of these source classes, "
             + "create a query that specifies a different target class name.";
         assertThat(result)
@@ -207,7 +218,7 @@ class MainQueryParseTest extends AbstractParseTest {
             from Order create
             """);
 
-        var message = "Implicit target classes of the source classes supplier.Food, supplier.Food have the same name "
+        var message = "Implicit classes of the source classes supplier.Food, supplier.Food have the same name "
             + "'Food'. For all but one of these source classes, "
             + "create a query that specifies a different target class name. "
             + "Namespace URIs: http://example.org/supplier/a, http://example.org/supplier/b";
@@ -229,20 +240,24 @@ class MainQueryParseTest extends AbstractParseTest {
             create Food {}
             """);
 
-        var sameNameMessage = "Implicit target classes of the source classes menu.Food, restaurant.Food have the same "
+        var sameNameMessage = "Implicit classes of the source classes menu.Food, restaurant.Food have the same "
             + "name 'Food'. For all but one of these source classes, "
             + "create a query that specifies a different target class name.";
-        var implicitClassMessage = "Implicit target class of source class 'Food' has the same name as the target "
-            + "class 'Food'. Either choose a different name for the target class "
+        var restaurantMessage = "Implicit class of source class restaurant.Food has the same name as the "
+            + "target class 'Food'. Either choose a different name for the target class "
             + "or create a query for the source class that specifies a different target class name.";
-        var targetClassMessage = "Target class 'Food' has the same name as the implicit target class of source class "
-            + "'Food'. Either choose a different name for this class "
+        var menuMessage = "Implicit class of source class menu.Food has the same name as the "
+            + "target class 'Food'. Either choose a different name for the target class "
+            + "or create a query for the source class that specifies a different target class name.";
+        var targetClassMessage = "Target class 'Food' has the same name as the implicit classes of the source "
+            + "classes menu.Food, restaurant.Food. Either choose a different name for this class "
             + "or create a query for the source class that specifies a different target class name.";
         assertThat(result)
             .hasIssueAt(sameNameMessage, "from Restaurant create", "from Root create Category")
-            .hasIssueAt(implicitClassMessage, "from Restaurant create", "from Root create Category")
+            .hasIssueAt(restaurantMessage, "from Restaurant create")
+            .hasIssueAt(menuMessage, "from Root create Category")
             .hasIssueAt(targetClassMessage, "Food")
-            .hasExactlyIssues(sameNameMessage, implicitClassMessage, targetClassMessage);
+            .hasExactlyIssues(sameNameMessage, restaurantMessage, menuMessage, targetClassMessage);
     }
 
     @Test
@@ -326,6 +341,71 @@ class MainQueryParseTest extends AbstractParseTest {
             """);
 
         assertThat(result).hasExactlyIssues("Incomplete query: 'create' needs a source, or a target name and a body");
+    }
+
+    @Test
+    void targetClassWithNameOfImportedDataTypeIsReported() {
+        var result = parse("""
+            from Food f create Money {
+                f.name
+            }
+            """);
+
+        assertThat(result)
+            .hasExactlyIssues("Target class 'Money' has the same name as the data type Money. "
+                + "Choose a different name for this class.");
+    }
+
+    @Test
+    void targetClassWithNameOfEcoreDataTypeIsReported() {
+        var result = parse("""
+            from Food f create EString {
+                f.name
+            }
+            """);
+
+        assertThat(result)
+            .hasExactlyIssues("Target class 'EString' has the same name as the data type EString. "
+                + "Choose a different name for this class.");
+    }
+
+    @Test
+    void targetClassWithNameOfSeveralDataTypesListsAllOfThem() {
+        var result = internalParse("""
+            export package to "http://example.com"
+
+            import "http://example.org/restaurant" as rest
+            import "http://example.org/bank"
+
+            from Food f create Money {
+                f.name
+            }
+            """);
+
+        assertThat(result).hasExactlyIssues(
+            "Target class 'Money' has the same name as the data types bank.Money, rest.Money. "
+                + "Choose a different name for this class."
+        );
+    }
+
+    @Test
+    void implicitClassWithNameOfImportedDataTypeIsReported() {
+        var result = internalParse("""
+            export package to "http://example.com"
+
+            import "http://example.org/restaurant" as rest
+            import "http://example.org/wallet"
+
+            from Wallet w create {
+                w.cash
+            }
+            """);
+
+        var message = "Implicit class of source class Money has the same name as the data type "
+            + "Money. Create a query for the source class that specifies a different target class name.";
+        assertThat(result)
+            .hasIssueAt(message, "w.cash")
+            .hasExactlyIssues(message);
     }
 
 }

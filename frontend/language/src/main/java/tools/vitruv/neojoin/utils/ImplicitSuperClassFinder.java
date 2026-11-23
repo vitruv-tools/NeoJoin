@@ -10,7 +10,9 @@ import tools.vitruv.neojoin.common.Pair;
 import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -39,7 +41,7 @@ public class ImplicitSuperClassFinder {
      *     {@link ImplicitClassCollector})
      */
     public Map<EClass, EObject> getImplicitClasses() {
-        return Map.copyOf(implicitClasses);
+        return Collections.unmodifiableMap(new LinkedHashMap<>(implicitClasses));
     }
 
     public FeatureInfoResolver createFeatureInfoResolver() {
@@ -54,25 +56,85 @@ public class ImplicitSuperClassFinder {
      * implicit target class (see {@link FeatureTypeResolver#findExplicitAbstractQuery}).
      */
     public List<Pair<String, @Nullable Query>> findCandidates(EClass sourceClass) {
-        return EMFUtils.findInNearestSuperClasses(sourceClass, this::findTargetClasses)
-            .stream()
+        return toCandidates(findNearestTargetClasses(sourceClass));
+    }
+
+    /**
+     * Finds the source class of the implicit class to which the implicit class of the given source class is linked as
+     * implicit sub class: the nearest source super class with an implicit class, if it is the only target class of the
+     * nearest level (see {@link #findCandidates}). An implicit candidate always matches the features (see
+     * {@code ImplicitSuperClassValidator}), so the link happens.
+     *
+     * @return the source class of the implicit super class, {@code null} if the implicit class has none
+     */
+    public @Nullable EClass findImplicitSuperSourceClass(EClass sourceClass) {
+        var targetClasses = findNearestTargetClasses(sourceClass);
+        var candidates = toCandidates(targetClasses);
+        if (candidates.size() != 1 || candidates.get(0).right() != null) {
+            return null;
+        }
+
+        // the only candidate is implicit, so all target classes of the level are implicit classes of that name
+        return targetClasses.get(0).sourceClass();
+    }
+
+    /**
+     * Checks whether the implicit class of the given source class is the implicit class of the other given source
+     * class or is linked to it (transitively) as implicit sub class (see {@link #findImplicitSuperSourceClass}).
+     *
+     * @param sourceClass              the source class whose implicit class is checked, it needs one unless it is the
+     *                                 same class as {@code implicitSuperSourceClass}
+     * @param implicitSuperSourceClass the source class of the implicit super class
+     */
+    public boolean isSameOrImplicitSubClass(EClass sourceClass, EClass implicitSuperSourceClass) {
+        @Nullable EClass current = sourceClass;
+        while (current != null) {
+            if (current == implicitSuperSourceClass) {
+                return true;
+            }
+            if (!implicitClasses.containsKey(current)) {
+                return false;
+            }
+            current = findImplicitSuperSourceClass(current);
+        }
+        return false;
+    }
+
+    private List<TargetClass> findNearestTargetClasses(EClass sourceClass) {
+        return EMFUtils.findInNearestSuperClasses(sourceClass, this::findTargetClasses);
+    }
+
+    private List<Pair<String, @Nullable Query>> toCandidates(List<TargetClass> targetClasses) {
+        return targetClasses.stream()
+            .map(targetClass -> new Pair<>(targetClass.name(), targetClass.query()))
+            .distinct()
             .sorted(Comparator.comparing(Pair::left))
             .toList();
     }
 
-    private List<Pair<String, @Nullable Query>> findTargetClasses(EClass sourceClass) {
-        var targetClasses = new ArrayList<Pair<String, @Nullable Query>>();
+    private List<TargetClass> findTargetClasses(EClass sourceClass) {
+        var targetClasses = new ArrayList<TargetClass>();
         queriesBySourceClass.getOrDefault(sourceClass, Set.of()).stream()
             .filter(query -> sourceClass.equals(AstUtils.getSingleSourceClass(query, expressionHelper)))
-            .forEach(query -> targetClasses.add(new Pair<>(AstUtils.getTargetName(query, expressionHelper), query)));
+            .forEach(query -> targetClasses.add(
+                new TargetClass(sourceClass, AstUtils.getTargetName(query, expressionHelper), query)
+            ));
         if (implicitClasses.containsKey(sourceClass)) {
-            targetClasses.add(new Pair<>(sourceClass.getName(), null));
+            targetClasses.add(new TargetClass(sourceClass, sourceClass.getName(), null));
         }
         var abstractQuery = typeResolver.findExplicitAbstractQuery(sourceClass);
         if (abstractQuery != null) {
-            targetClasses.add(new Pair<>(AstUtils.getTargetName(abstractQuery, expressionHelper), abstractQuery));
+            targetClasses.add(
+                new TargetClass(sourceClass, AstUtils.getTargetName(abstractQuery, expressionHelper), abstractQuery)
+            );
         }
         return targetClasses;
     }
+
+    /**
+     * @param sourceClass the source class that the target class belongs to
+     * @param query       the query of the target class, {@code null} for an implicit class
+     */
+    private record TargetClass(EClass sourceClass, String name, @Nullable Query query) {}
 
 }

@@ -62,7 +62,7 @@ from extends Food
 create Dish extends Item
 ```
 
-A feature with an explicit class type, e.g. `offers: Item [*] := r.sells`, needs a query that selects the instances the expression returns and whose target class is the explicit type or a sub class of it (here `from extends Food create Dish extends Item`). A `from Food` query selects only direct instances, so values of sub classes of `Food` need a query of their own or a `from extends` query. If several queries select exactly the class of the value, the assignment is ambiguous and NeoJoin reports an error.
+A feature with an explicit class type, e.g. `offers: Item [*] := r.sells`, needs a query that selects the instances the expression returns and whose target class is the explicit type or a sub class of it (here `from extends Food create Dish extends Item`). A `from Food` query selects only direct instances, so values of sub classes of `Food` need a query of their own or a `from extends` query. If several queries select exactly the class of the value, the assignment is ambiguous and NeoJoin reports an error. The name of an implicit class (see below) can also be used as explicit type, e.g. `first: Food := r.sells.head`, for values of its source class and of source classes whose implicit class extends it.
 
 Classes that NeoJoin creates implicitly for referenced source classes (see [Implicit Classes and the Root Class](#implicit-classes-and-the-root-class)) select only the direct instances of their source class and are abstract if the source class is abstract. A reference to an instance that no class selects fails during the transformation, so the sub classes of a referenced class must be selected by a query or be referenced themselves. For an abstract source class, an abstract class without source that has its name is used instead of the implicit class. An implicit class keeps the inheritance of its source class: it extends the class of its nearest source super class that is part of the view, as long as it has an equivalent feature (same name, type and modifiers) for each feature of it. Otherwise NeoJoin warns that the class is not linked. If several classes qualify, the query is ambiguous, and you need an explicit query with `extends`.
 
@@ -78,7 +78,7 @@ create {
 }
 ```
 
-A copied or inferred reference to a source class that no query selects, such as `r.sells` to `Food`, creates an *implicit class* with the name of the source class. No other class of the view type may have this name: a query `create Food { ... }`, or a second implicit class `Food` from another meta-model, is an error. Select the source class with a query that names its class differently, e.g. `from Food create Dish`, to avoid the implicit class.
+A copied or inferred reference to a source class that no query selects, such as `r.sells` to `Food`, creates an *implicit class* with the name of the source class. No other class of the view type may have this name: a query `create Food { ... }`, or a second implicit class `Food` from another meta-model, is an error. Select the source class with a query that names its class differently, e.g. `from Food create Dish`, to avoid the implicit class. A class must also not have the name of a data type of an imported meta-model or of Ecore: `create Money { ... }` is an error, because the restaurant meta-model has the data type `Money`.
 
 The view type has a root class, named `Root` unless a query declares `create root`. It contains a reference for each class that is not abstract, named after the class with a lowercase first letter and an `s` (`foods` for `Food`). Therefore class names must differ in more than the case of their first letter.
 
@@ -91,6 +91,7 @@ The view type has a root class, named `Root` unless a query declares `create roo
 * Queries can *select*, *join*, *filter* and *group* classes from the source models
 * *Abstract classes* and *inheritance* between classes of the view (`abstract`, `extends`), and selecting instances of sub classes (`from extends`)
 * Features in the view can be *copied* from the source models, *renamed* or *calculated* based on a custom expression
+* Features can have an *explicit type*: a data type, the class of a query or an implicit class
 * Query conditions and feature definition using [Xtend expressions](https://eclipse.dev/Xtext/xtend/documentation/203_xtend_expressions.html)
 * Parameterizable queries with typed parameters passed at transformation time
 * Language server (LSP) for syntax highlighting, code completion, and live visualization of the resulting view type

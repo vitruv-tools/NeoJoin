@@ -7,10 +7,9 @@ import org.eclipse.xtext.validation.Check;
 import tools.vitruv.neojoin.ast.Query;
 import tools.vitruv.neojoin.ast.ViewTypeDefinition;
 import tools.vitruv.neojoin.common.Pair;
-import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
 import tools.vitruv.neojoin.utils.FeatureInfo;
 import tools.vitruv.neojoin.utils.FeatureInfoResolver;
-import tools.vitruv.neojoin.utils.ImplicitSuperClassFinder;
+import tools.vitruv.neojoin.utils.ImplicitClassCache;
 
 import java.util.stream.Collectors;
 
@@ -26,10 +25,10 @@ import java.util.stream.Collectors;
 public class ImplicitSuperClassValidator extends ComposableValidator {
 
     @Inject
-    private ExpressionHelper expressionHelper;
+    private ImplicitClassCache implicitClassCache;
 
     /**
-     * Checks that an implicit target class has an unambiguous super class.
+     * Checks that an implicit class has an unambiguous super class.
      * <p>
      * {@code AQRBuilder} fails if several target classes exist on the nearest level of the source class hierarchy, so
      * this is reported here instead. The corresponding check in {@code AQRBuilder} stays as the safeguard for queries
@@ -38,12 +37,12 @@ public class ImplicitSuperClassValidator extends ComposableValidator {
      */
     @Check
     public void checkAmbiguousImplicitSuperClasses(ViewTypeDefinition viewType) {
-        var finder = new ImplicitSuperClassFinder(viewType, expressionHelper);
+        var finder = implicitClassCache.getFinder(viewType);
         finder.getImplicitClasses().forEach((sourceClass, cause) -> {
             var candidates = finder.findCandidates(sourceClass);
             if (candidates.size() > 1) {
                 error(
-                    ("Ambiguous super class for implicit target class of source class '%s'. "
+                    ("Ambiguous super class for implicit class of source class '%s'. "
                         + "Possible candidates: %s").formatted(
                         sourceClass.getName(), candidates.stream().map(Pair::left).collect(Collectors.joining(", "))
                     ),
@@ -55,7 +54,7 @@ public class ImplicitSuperClassValidator extends ComposableValidator {
     }
 
     /**
-     * Warns if an implicit target class is not linked to its super class, because it has no equivalent feature (same
+     * Warns if an implicit class is not linked to its super class, because it has no equivalent feature (same
      * name, type and modifiers) for each feature of the candidate.
      * <p>
      * An implicit class has the features of its source class. An override takes the type and the modifiers of the
@@ -64,7 +63,7 @@ public class ImplicitSuperClassValidator extends ComposableValidator {
      */
     @Check
     public void checkImplicitClassesMatchSuperClasses(ViewTypeDefinition viewType) {
-        var finder = new ImplicitSuperClassFinder(viewType, expressionHelper);
+        var finder = implicitClassCache.getFinder(viewType);
         var featureInfoResolver = finder.createFeatureInfoResolver();
         finder.getImplicitClasses().forEach((sourceClass, cause) -> {
             var candidates = finder.findCandidates(sourceClass);
@@ -99,7 +98,7 @@ public class ImplicitSuperClassValidator extends ComposableValidator {
             .toList();
         if (!missingNames.isEmpty()) {
             warning(
-                ("Implicit target class of source class '%s' is not linked to super class '%s', "
+                ("Implicit class of source class '%s' is not linked to super class '%s', "
                     + "because it has no matching feature (same name, type and modifiers) for: %s").formatted(
                     sourceClass.getName(), superClassName, String.join(", ", missingNames)
                 ),

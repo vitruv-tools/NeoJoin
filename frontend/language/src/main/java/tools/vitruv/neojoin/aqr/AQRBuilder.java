@@ -450,7 +450,7 @@ public class AQRBuilder {
      * selects the inferred source class, an implicit target class is created (see {@link #getOrCreateTargetClass}).
      * <p>
      * Whether values of the inferred source class can be assigned to an explicit type is checked by
-     * {@code FeatureValidator.checkQueryType}.
+     * {@code FeatureValidator.checkQueryType} and {@code FeatureValidator.checkImplicitClassType}.
      *
      * @param resolvedType the type of the reference as determined from the AST
      * @return the target class that the reference points to

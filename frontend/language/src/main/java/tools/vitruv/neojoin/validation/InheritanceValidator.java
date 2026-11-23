@@ -9,6 +9,7 @@ import tools.vitruv.neojoin.ast.ConcreteFeature;
 import tools.vitruv.neojoin.ast.ConcreteMainQuery;
 import tools.vitruv.neojoin.ast.MainQuery;
 import tools.vitruv.neojoin.ast.Query;
+import tools.vitruv.neojoin.ast.ViewTypeDefinition;
 import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
 import tools.vitruv.neojoin.utils.AstUtils;
 import tools.vitruv.neojoin.utils.FeatureInfo;
@@ -19,6 +20,8 @@ import tools.vitruv.neojoin.utils.FeatureType.AttributeType;
 import tools.vitruv.neojoin.utils.FeatureType.EcoreReferenceType;
 import tools.vitruv.neojoin.utils.FeatureType.QueryReferenceType;
 import tools.vitruv.neojoin.utils.FeatureType.ReferenceType;
+import tools.vitruv.neojoin.utils.FeatureType.ImplicitReferenceType;
+import tools.vitruv.neojoin.utils.ImplicitClassCache;
 import tools.vitruv.neojoin.utils.InheritedFeatures;
 
 import java.util.List;
@@ -44,6 +47,9 @@ public class InheritanceValidator extends ComposableValidator {
 
     @Inject
     private ExpressionHelper expressionHelper;
+
+    @Inject
+    private ImplicitClassCache implicitClassCache;
 
     // ---- super class list
 
@@ -248,7 +254,9 @@ public class InheritanceValidator extends ComposableValidator {
             var superClass = overriddenEntry.left();
             var overridden = overriddenEntry.right();
             var hasExplicitType = feature.node() != null && feature.node().getType() != null;
-            var message = getOverrideViolation(feature.name(), feature.type(), hasExplicitType, overridden.type());
+            var message = getOverrideViolation(
+                AstUtils.getViewType(query), feature.name(), feature.type(), hasExplicitType, overridden.type()
+            );
             if (message != null) {
                 if (feature.node() != null) {
                     error(
@@ -291,6 +299,7 @@ public class InheritanceValidator extends ComposableValidator {
 
             var hasExplicitType = concreteFeature.getType() != null;
             if (getOverrideViolation(
+                AstUtils.getViewType(query),
                 feature.name(),
                 feature.type(),
                 hasExplicitType,
@@ -396,7 +405,8 @@ public class InheritanceValidator extends ComposableValidator {
      *
      * @return error message or {@code null} if valid or unknown
      */
-    private static @Nullable String getOverrideViolation(
+    private @Nullable String getOverrideViolation(
+        ViewTypeDefinition viewType,
         String name,
         @Nullable FeatureType overriding,
         boolean hasExplicitType,
@@ -432,7 +442,7 @@ public class InheritanceValidator extends ComposableValidator {
                 return "Type of overriding feature '%s' must be equal to the type of the overridden feature"
                     .formatted(name);
             }
-            if (!isSameOrSubReferenceType(reference, overriddenReference)) {
+            if (!isSameOrSubReferenceType(viewType, reference, overriddenReference)) {
                 return "Value of overriding feature '%s' cannot be assigned to the type of the overridden feature"
                     .formatted(name);
             }
@@ -440,11 +450,20 @@ public class InheritanceValidator extends ComposableValidator {
         return null;
     }
 
-    private static boolean isSameOrSubReferenceType(ReferenceType subType, ReferenceType superType) {
+    private boolean isSameOrSubReferenceType(
+        ViewTypeDefinition viewType,
+        ReferenceType subType,
+        ReferenceType superType
+    ) {
         return subType.equals(superType)
             || (subType instanceof QueryReferenceType sub
                 && superType instanceof QueryReferenceType sup
-                && AstUtils.isSameOrSuperClassOf(sup.query(), sub.query()));
+                && AstUtils.isSameOrSuperClassOf(sup.query(), sub.query()))
+            || (subType instanceof ImplicitReferenceType sub
+                && superType instanceof ImplicitReferenceType sup
+                && implicitClassCache.getFinder(viewType).isSameOrImplicitSubClass(
+                    sub.sourceClass(), sup.sourceClass()
+                ));
     }
 
 }

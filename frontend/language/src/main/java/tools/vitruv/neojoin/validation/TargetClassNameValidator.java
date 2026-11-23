@@ -3,19 +3,16 @@ package tools.vitruv.neojoin.validation;
 import com.google.inject.Inject;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
-import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.xtext.validation.Check;
 import tools.vitruv.neojoin.Constants;
 import tools.vitruv.neojoin.Formatting;
 import tools.vitruv.neojoin.ast.AstPackage;
 import tools.vitruv.neojoin.ast.Query;
 import tools.vitruv.neojoin.ast.ViewTypeDefinition;
-import tools.vitruv.neojoin.common.Pair;
 import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
 import tools.vitruv.neojoin.utils.AstUtils;
+import tools.vitruv.neojoin.utils.ImplicitClassCache;
 import tools.vitruv.neojoin.utils.ImplicitClassCollector;
-
-import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,10 +20,14 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static tools.vitruv.neojoin.validation.MessageFormatting.formatDataTypes;
+import static tools.vitruv.neojoin.validation.MessageFormatting.formatSourceClasses;
+import static tools.vitruv.neojoin.validation.MessageFormatting.implicitClassesOfSourceClasses;
+
 /**
- * Validates the names of the implicit target classes (classes that {@link tools.vitruv.neojoin.aqr.AQRBuilder} creates
+ * Validates the names of the implicit classes (classes that {@link tools.vitruv.neojoin.aqr.AQRBuilder} creates
  * for referenced source classes that no query selects, see {@link ImplicitClassCollector}) and the names of the
- * containment references of the root class.
+ * containment references of the root class, and checks that no target class has the name of a data type.
  * <p>
  * An implicit class gets the name of its source class. {@code AQRBuilder.populateRoot} adds a containment reference
  * for each non-abstract target class except the root to the root class, named by
@@ -35,11 +36,17 @@ import java.util.stream.Stream;
  * {@link NeoJoinValidator#duplicatedTargetClassName}. The issues of an implicit class are reported at the feature that
  * references its source class, or at the query if the references are copied. The issues of a query are reported at
  * its name; for a query without name, Xtext marks the whole query.
+ * <p>
+ * A target class must not have the name of a data type that can be used as explicit feature type (see
+ * {@link #checkQueryNamesAgainstDataTypes} and {@link #checkImplicitClassNamesAgainstDataTypes}).
  */
 public class TargetClassNameValidator extends ComposableValidator {
 
     @Inject
     private ExpressionHelper expressionHelper;
+
+    @Inject
+    private ImplicitClassCache implicitClassCache;
 
     /**
      * Checks that the name of each implicit class is unique among the target classes, including the implicit root
@@ -48,7 +55,7 @@ public class TargetClassNameValidator extends ComposableValidator {
      */
     @Check
     public void checkImplicitClassNames(ViewTypeDefinition viewType) {
-        var implicitClasses = ImplicitClassCollector.collect(viewType, expressionHelper);
+        var implicitClasses = implicitClassCache.getImplicitClasses(viewType);
         var queriesByName = AstUtils.getAllQueries(viewType)
             .collect(Collectors.groupingBy(query -> AstUtils.getTargetName(query, expressionHelper)));
         var implicitClassesByName = implicitClasses.entrySet().stream()
@@ -63,15 +70,25 @@ public class TargetClassNameValidator extends ComposableValidator {
             // several implicit classes can have the same cause (references copied by one query)
             var causes = implicitClassesWithName.stream().map(Map.Entry::getValue).distinct().toList();
             checkImplicitClassesWithSameName(viewType, name, implicitClassesWithName, causes);
-            checkImplicitClassesWithNameOfQueries(name, causes, queriesByName.getOrDefault(name, List.of()));
+            checkImplicitClassesWithNameOfQueries(
+                viewType,
+                name,
+                implicitClassesWithName,
+                queriesByName.getOrDefault(name, List.of())
+            );
             if (hasImplicitRoot && name.equals(Constants.DefaultRootClassName)) {
-                causes.forEach(cause -> error(
-                    ("Implicit target class of source class '%s' collides with name of the implicit root class. "
-                        + "Either create a query for the source class that specifies a different target class name "
-                        + "or explicitly create a root class with a different name.").formatted(name),
-                    cause,
-                    null
-                ));
+                // one issue per implicit class, so that each names exactly one source class
+                implicitClassesWithName.forEach(implicitClass -> {
+                    var sourceClass = formatSourceClasses(viewType, List.of(implicitClass.getKey()));
+                    error(
+                        ("Implicit class of source class %s collides with name of the implicit root class. "
+                            + "Either create a query for the source class that specifies a different target class "
+                            + "name or explicitly create a root class with a different name.%s")
+                            .formatted(sourceClass.left(), sourceClass.right()),
+                        implicitClass.getValue(),
+                        null
+                    );
+                });
             }
         });
     }
@@ -93,55 +110,107 @@ public class TargetClassNameValidator extends ComposableValidator {
             return;
         }
 
-        // qualified source class name and namespace URI, sorted by both
-        var sourceClasses = implicitClasses.stream()
-            .map(implicitClass -> implicitClass.getKey().getEPackage())
-            .map(pack -> new Pair<>(getPackageQualifier(viewType, pack) + "." + name, pack.getNsURI()))
-            .sorted(Comparator.<Pair<String, String>, String>comparing(Pair::left).thenComparing(Pair::right))
-            .toList();
-        var sourceClassNames = sourceClasses.stream().map(Pair::left).toList();
-        var namespaceURIs = sourceClassNames.stream().distinct().count() < sourceClassNames.size()
-            ? " Namespace URIs: " + sourceClasses.stream().map(Pair::right).collect(Collectors.joining(", "))
-            : "";
+        var sourceClasses = formatSourceClasses(viewType, implicitClasses.stream().map(Map.Entry::getKey).toList());
         causes.forEach(cause -> error(
-            ("Implicit target classes of the source classes %s have the same name '%s'. "
+            ("Implicit classes of the source classes %s have the same name '%s'. "
                 + "For all but one of these source classes, "
                 + "create a query that specifies a different target class name.%s")
-                .formatted(String.join(", ", sourceClassNames), name, namespaceURIs),
+                .formatted(sourceClasses.left(), name, sourceClasses.right()),
             cause,
             null
         ));
-    }
-
-    private static String getPackageQualifier(ViewTypeDefinition viewType, EPackage pack) {
-        var alias = AstUtils.findImportAlias(viewType, pack);
-        return alias != null ? alias : pack.getName();
     }
 
     /**
      * Reports implicit classes whose name is the target class name of queries, at the causes and at the queries.
      */
-    private void checkImplicitClassesWithNameOfQueries(String name, List<EObject> causes, List<Query> queries) {
+    private void checkImplicitClassesWithNameOfQueries(
+        ViewTypeDefinition viewType,
+        String name,
+        List<Map.Entry<EClass, EObject>> implicitClasses,
+        List<Query> queries
+    ) {
         if (queries.isEmpty()) {
             return;
         }
 
-        causes.forEach(cause -> error(
-            ("Implicit target class of source class '%s' has the same name as the target class '%s'. "
-                + "Either choose a different name for the target class "
-                + "or create a query for the source class that specifies a different target class name.")
-                .formatted(name, name),
-            cause,
-            null
-        ));
+        var allSourceClasses = formatSourceClasses(viewType, implicitClasses.stream().map(Map.Entry::getKey).toList());
+        var implicitClassesOfQuery = "the " + implicitClassesOfSourceClasses(implicitClasses.size());
+        // one issue per implicit class, so that each names exactly one source class
+        implicitClasses.forEach(implicitClass -> {
+            var sourceClass = formatSourceClasses(viewType, List.of(implicitClass.getKey()));
+            error(
+                ("Implicit class of source class %s has the same name as the target class '%s'. "
+                    + "Either choose a different name for the target class "
+                    + "or create a query for the source class that specifies a different target class name.%s")
+                    .formatted(sourceClass.left(), name, sourceClass.right()),
+                implicitClass.getValue(),
+                null
+            );
+        });
         queries.forEach(query -> error(
-            ("Target class '%s' has the same name as the implicit target class of source class '%s'. "
+            ("Target class '%s' has the same name as %s %s. "
                 + "Either choose a different name for this class "
-                + "or create a query for the source class that specifies a different target class name.")
-                .formatted(name, name),
+                + "or create a query for the source class that specifies a different target class name.%s")
+                .formatted(name, implicitClassesOfQuery, allSourceClasses.left(), allSourceClasses.right()),
             query,
             AstPackage.Literals.QUERY__NAME
         ));
+    }
+
+    /**
+     * Checks that no target class of a query has the name of a data type of the imported packages or of Ecore, which
+     * can be used as explicit feature type. The generated view type would contain a class and a data type with the
+     * same name, because {@code MetaModelGenerator} copies the used data types into the view package (EMF reports
+     * "There may not be two classifiers named ..."). An explicit feature type with this name would also be ambiguous,
+     * because {@code NeoJoinScopeProvider.createFeatureTypeScope} prefers target classes over data types. The implicit
+     * root class is not checked.
+     */
+    @Check
+    public void checkQueryNamesAgainstDataTypes(ViewTypeDefinition viewType) {
+        var dataTypesByName = AstUtils.getFeatureTypeDataTypes(viewType);
+        AstUtils.getAllQueries(viewType).forEach(query -> {
+            var name = AstUtils.getTargetName(query, expressionHelper);
+            var dataTypes = dataTypesByName.get(name);
+            if (dataTypes != null) {
+                var formattedDataTypes = formatDataTypes(viewType, dataTypes);
+                error(
+                    "Target class '%s' has the same name as the %s. Choose a different name for this class.%s"
+                        .formatted(name, formattedDataTypes.left(), formattedDataTypes.right()),
+                    query,
+                    AstPackage.Literals.QUERY__NAME
+                );
+            }
+        });
+    }
+
+    /**
+     * Checks that no implicit class has the name of a data type that can be used as explicit feature type, for the
+     * reasons given in {@link #checkQueryNamesAgainstDataTypes}. The conflict is reported at the element that causes
+     * the implicit class.
+     */
+    @Check
+    public void checkImplicitClassNamesAgainstDataTypes(ViewTypeDefinition viewType) {
+        var dataTypesByName = AstUtils.getFeatureTypeDataTypes(viewType);
+        implicitClassCache.getImplicitClasses(viewType).forEach((sourceClass, cause) -> {
+            var name = sourceClass.getName();
+            var dataTypes = dataTypesByName.get(name);
+            if (dataTypes != null) {
+                var sourceClasses = formatSourceClasses(viewType, List.of(sourceClass));
+                var formattedDataTypes = formatDataTypes(viewType, dataTypes);
+                error(
+                    ("Implicit class of source class %s has the same name as the %s. "
+                        + "Create a query for the source class that specifies a different target class name.%s")
+                        .formatted(
+                            sourceClasses.left(),
+                            formattedDataTypes.left(),
+                            formattedDataTypes.right()
+                        ),
+                    cause,
+                    null
+                );
+            }
+        });
     }
 
     /**
@@ -152,7 +221,7 @@ public class TargetClassNameValidator extends ComposableValidator {
      */
     @Check
     public void checkRootReferenceNames(ViewTypeDefinition viewType) {
-        var implicitClasses = ImplicitClassCollector.collect(viewType, expressionHelper);
+        var implicitClasses = implicitClassCache.getImplicitClasses(viewType);
         var queriesByReferenceName = AstUtils.getAllQueries(viewType)
             .filter(query -> AstUtils.hasRootReference(query, expressionHelper))
             .collect(Collectors.groupingBy(

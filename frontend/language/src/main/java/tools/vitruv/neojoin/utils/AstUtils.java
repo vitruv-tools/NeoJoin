@@ -1,13 +1,17 @@
 package tools.vitruv.neojoin.utils;
 
 import org.eclipse.emf.ecore.EClass;
+import org.eclipse.emf.ecore.EClassifier;
+import org.eclipse.emf.ecore.EDataType;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.ETypedElement;
+import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.xtext.EcoreUtil2;
 import org.eclipse.xtext.xbase.XExpression;
 import org.jspecify.annotations.Nullable;
+import tools.vitruv.neojoin.Constants;
 import tools.vitruv.neojoin.aqr.AQRFeatureOptionsBuilder;
 import tools.vitruv.neojoin.ast.AbstractBody;
 import tools.vitruv.neojoin.ast.AbstractMainQuery;
@@ -25,6 +29,7 @@ import tools.vitruv.neojoin.ast.Query;
 import tools.vitruv.neojoin.ast.Source;
 import tools.vitruv.neojoin.ast.SubQuery;
 import tools.vitruv.neojoin.ast.ViewTypeDefinition;
+import tools.vitruv.neojoin.common.EMFUtils;
 import tools.vitruv.neojoin.common.Pair;
 import tools.vitruv.neojoin.common.Utils;
 import tools.vitruv.neojoin.jvmmodel.ExpressionHelper;
@@ -32,6 +37,7 @@ import tools.vitruv.neojoin.jvmmodel.TypeInfo;
 import tools.vitruv.neojoin.jvmmodel.TypeResolutionException;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -39,8 +45,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static tools.vitruv.neojoin.common.Assertions.check;
 import static tools.vitruv.neojoin.common.Assertions.fail;
 
 /**
@@ -211,6 +219,69 @@ public final class AstUtils {
         return getValidImports(viewType)
             .map(imp -> Map.entry(getImportAlias(imp), imp.getPackage()))
             .collect(Utils.mapCollector(false)); // ignore duplicates -> will be handled in validator
+    }
+
+    /**
+     * Returns a map from alias to package for all packages whose data types can be used as explicit feature type: the
+     * {@link #getImportedPackagesByAlias imported packages} and Ecore, which is always available.
+     */
+    public static Map<String, EPackage> getFeatureTypePackagesByAlias(ViewTypeDefinition viewType) {
+        var packages = getImportedPackagesByAlias(viewType);
+        packages.put(Constants.EcoreAlias, EcorePackage.eINSTANCE);
+        return packages;
+    }
+
+    /**
+     * Returns all data types (including enumerations) that can be used as explicit feature type, grouped by name:
+     * those of the {@link #getFeatureTypePackagesByAlias feature type packages} and their sub packages.
+     */
+    public static Map<String, List<EDataType>> getFeatureTypeDataTypes(ViewTypeDefinition viewType) {
+        return getFeatureTypePackagesByAlias(viewType).values().stream()
+            .flatMap(EMFUtils::getAllEDataTypes)
+            .distinct()
+            .collect(Collectors.groupingBy(EDataType::getName));
+    }
+
+    /**
+     * Returns all classes of the {@link #getImportedPackagesByAlias imported packages} and their sub packages, grouped
+     * by name. These are the classes that can be referenced in a query.
+     */
+    public static Map<String, List<EClass>> getImportedClassesByName(ViewTypeDefinition viewType) {
+        return getImportedPackagesByAlias(viewType).values().stream()
+            .flatMap(EMFUtils::getAllEClassifiers)
+            .filter(EClass.class::isInstance)
+            .map(EClass.class::cast)
+            .distinct()
+            .collect(Collectors.groupingBy(EClass::getName));
+    }
+
+    /**
+     * Returns the segments of the fully qualified name of the given classifier: the given alias of the root package,
+     * the names of the sub packages and the name of the classifier.
+     *
+     * @param classifier classifier to get the fully qualified name segments for
+     * @param rootAlias  alias to use as the first segment (e.g. the root package alias)
+     * @return segments of the fully qualified name of the classifier
+     */
+    public static List<String> getQualifiedNameSegments(EClassifier classifier, String rootAlias) {
+        var segments = Stream.concat(
+            EMFUtils.getFullyQualifiedNameAsStream(classifier.getEPackage()),
+            Stream.of(classifier.getName())
+        ).collect(Collectors.toCollection(ArrayList::new));
+        check(segments.size() > 1); // at least package name + class name
+        segments.set(0, rootAlias);
+        return List.copyOf(segments);
+    }
+
+    /**
+     * Returns the fully qualified name of the given classifier as it is written in a query: the segments of
+     * {@link #getQualifiedNameSegments} joined with {@code .}. The first segment is the alias of the import of the
+     * root package, or the name of the root package if it is not imported.
+     */
+    public static String getQualifiedNameInQuery(ViewTypeDefinition viewType, EClassifier classifier) {
+        var rootPackage = EMFUtils.getRootPackage(classifier.getEPackage());
+        var alias = findImportAlias(viewType, rootPackage);
+        return String.join(".", getQualifiedNameSegments(classifier, alias != null ? alias : rootPackage.getName()));
     }
 
     /**

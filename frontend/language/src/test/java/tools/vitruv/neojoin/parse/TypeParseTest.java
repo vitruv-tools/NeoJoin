@@ -337,4 +337,63 @@ class TypeParseTest extends AbstractParseTest {
             "Type mismatch: cannot convert from EBoolean (boolean) to EShort (short)"
         );
     }
+
+    @Test
+    void implicitClassCanBeUsedAsExplicitFeatureType() {
+        var result = parse("""
+            from Restaurant r create {
+                r.sells
+                first: Food := r.sells.head
+            }
+            """);
+
+        assertThat(result).hasNoIssues();
+    }
+
+    @Test
+    void nullCanBeAssignedToImplicitClassType() {
+        var result = parse("""
+            from Restaurant r create {
+                r.sells
+                none: Food := null
+            }
+            """);
+
+        assertThat(result).hasNoIssues();
+    }
+
+    @Test
+    void valueOfOtherClassCannotBeAssignedToImplicitClassType() {
+        var result = parse("""
+            from Restaurant r create {
+                r.sells
+                food: Food := r
+            }
+            """);
+
+        assertThat(result).hasExactlyIssues("Type mismatch: cannot convert from Restaurant to Food");
+    }
+
+    @Test
+    void dataTypeValueCannotBeAssignedToImplicitClassType() {
+        var result = parse("""
+            from Restaurant r create {
+                r.sells
+                f: Food := r.name
+            }
+            """);
+
+        assertThat(result).hasExactlyIssues("Type mismatch: cannot convert from EString to Food");
+    }
+
+    @Test
+    void sourceClassWithoutImplicitClassIsNotAFeatureType() {
+        var result = parse("""
+            from Restaurant r create {
+                first: Food := null
+            }
+            """);
+
+        assertThat(result).hasExactlyIssues("Food cannot be resolved.");
+    }
 }

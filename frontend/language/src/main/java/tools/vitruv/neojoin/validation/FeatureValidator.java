@@ -12,14 +12,12 @@ import org.eclipse.xtext.xbase.XMemberFeatureCall;
 import org.eclipse.xtext.xbase.typesystem.IBatchTypeResolver;
 import org.eclipse.xtext.xbase.typesystem.references.LightweightTypeReference;
 import org.jspecify.annotations.Nullable;
-import tools.vitruv.neojoin.Constants;
 import tools.vitruv.neojoin.Formatting;
 import tools.vitruv.neojoin.aqr.AQRFeatureOptionsBuilder;
 import tools.vitruv.neojoin.ast.AstPackage;
 import tools.vitruv.neojoin.ast.ConcreteBody;
 import tools.vitruv.neojoin.ast.ConcreteFeature;
 import tools.vitruv.neojoin.ast.ConcreteMainQuery;
-import tools.vitruv.neojoin.ast.Feature;
 import tools.vitruv.neojoin.ast.FeatureOp;
 import tools.vitruv.neojoin.ast.MainQuery;
 import tools.vitruv.neojoin.ast.Query;
@@ -34,7 +32,7 @@ import tools.vitruv.neojoin.utils.FeatureType.AmbiguousReferenceType;
 import tools.vitruv.neojoin.utils.FeatureType.ImplicitReferenceType;
 import tools.vitruv.neojoin.utils.FeatureType.QueryReferenceType;
 import tools.vitruv.neojoin.utils.FeatureTypeResolver;
-import tools.vitruv.neojoin.utils.ImplicitClassCollector;
+import tools.vitruv.neojoin.utils.ImplicitClassCache;
 
 import java.util.HashSet;
 import java.util.List;
@@ -47,6 +45,9 @@ public class FeatureValidator extends ComposableValidator {
 
     @Inject
     private ExpressionHelper expressionHelper;
+
+    @Inject
+    private ImplicitClassCache implicitClassCache;
 
     @Check
     public void checkUniqueFeatureNames(Query query) {
@@ -128,16 +129,17 @@ public class FeatureValidator extends ComposableValidator {
             return;
         }
 
-        if (inferredType.classifier() == null) { // null expression
+        var inferredClassifier = inferredType.classifier();
+        if (inferredClassifier == null) { // null expression
             checkNullExpression(feature);
             return;
         }
 
         if (feature.getSubQuery() != null) {
-            checkSubQuery(feature, inferredType.classifier());
+            checkSubQuery(feature, inferredClassifier);
         }
 
-        if (feature.getSubQuery() != null && inferredType.classifier() instanceof EDataType dataType) {
+        if (feature.getSubQuery() != null && inferredClassifier instanceof EDataType dataType) {
             error(
                 "Cannot use a subquery with an attribute expression (%s)".formatted(dataType.getName()),
                 feature,
@@ -146,12 +148,36 @@ public class FeatureValidator extends ComposableValidator {
         }
 
         if (feature.getType() instanceof Query query) {
-            checkQueryType(feature, query, inferredType.classifier());
+            checkQueryType(feature, query, inferredClassifier);
         } else if (feature.getType() instanceof EEnum eEnum) {
             checkEnumType(feature, eEnum, inferredType);
         } else if (feature.getType() instanceof EDataType eDataType) {
             checkEDataType(feature, eDataType, inferredType);
+        } else if (feature.getType() instanceof EClass implicitClass) {
+            checkImplicitClassType(feature, implicitClass, inferredClassifier);
         }
+    }
+
+    /**
+     * Checks that the inferred class is the source class of the explicit implicit class or a source class whose
+     * implicit class is linked to it as implicit sub class. Otherwise the target instance of the value is not an
+     * instance of the implicit class, so the transformation would fail: {@code TargetMap#get} of the EMF backend
+     * throws "no target instance of class ... found for source instance of class ..." when the reference is set.
+     */
+    private void checkImplicitClassType(ConcreteFeature feature, EClass explicitType, EClassifier inferredClassifier) {
+        if (inferredClassifier instanceof EClass inferredClass
+            && implicitClassCache.getFinder(AstUtils.getViewType(feature))
+                .isSameOrImplicitSubClass(inferredClass, explicitType)) {
+            return;
+        }
+
+        error(
+            "Type mismatch: cannot convert from %s to %s".formatted(
+                inferredClassifier.getName(), explicitType.getName()
+            ),
+            feature,
+            AstPackage.Literals.CONCRETE_FEATURE__EXPRESSION
+        );
     }
 
     private void checkEnumType(ConcreteFeature feature, EEnum eEnum, TypeInfo inferredType) {
@@ -483,7 +509,7 @@ public class FeatureValidator extends ComposableValidator {
             .filter(query -> AstUtils.hasRootReference(query, expressionHelper))
             .map(query -> AstUtils.getTargetName(query, expressionHelper));
         // implicit classes of abstract source classes are abstract
-        var implicitClassNames = ImplicitClassCollector.collect(viewType, expressionHelper).keySet().stream()
+        var implicitClassNames = implicitClassCache.getImplicitClasses(viewType).keySet().stream()
             .filter(sourceClass -> !sourceClass.isAbstract())
             .map(EClass::getName);
         var allNames = Stream.concat(queryNames, implicitClassNames)
