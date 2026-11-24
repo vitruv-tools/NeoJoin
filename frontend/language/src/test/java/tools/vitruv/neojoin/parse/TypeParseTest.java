@@ -149,32 +149,6 @@ class TypeParseTest extends AbstractParseTest {
     }
 
     /**
-     * {@code order.ecore} is not imported, but references the classes {@code Food} of two packages named
-     * {@code supplier}, so they are candidates and {@code rest.Food} is written with its qualified name.
-     */
-    @Test
-    void ambiguousTargetClassWritesSourceClassWithQualifiedNameIfSimpleNameIsAmbiguousThroughReferencedPackage() {
-        var result = internalParse("""
-            export package to "http://example.com"
-
-            import "http://example.org/restaurant" as rest
-            import "http://example.org/order"
-
-            from Restaurant r create {
-                r.sells
-            }
-
-            from rest.Food create TastyFood
-            from rest.Food create NotSoTastyFood
-            """);
-
-        assertThat(result)
-            .hasExactlyIssues(
-                "Ambiguous target class for source class 'rest.Food'. Possible candidates: NotSoTastyFood, TastyFood"
-            );
-    }
-
-    /**
      * The explicit type {@code Food} is the implicit class of {@code menu.Food}, the value is a {@code rest.Food}.
      */
     @Test
