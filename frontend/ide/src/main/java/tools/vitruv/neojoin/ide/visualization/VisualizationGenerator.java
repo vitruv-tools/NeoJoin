@@ -12,7 +12,7 @@ import tools.vitruv.neojoin.generation.ModelInfo;
 import tools.vitruv.neojoin.model.AQR;
 import tools.vitruv.neojoin.model.AQRImport;
 
-import static tools.vitruv.neojoin.common.Enumerated.enumerated;
+import tools.vitruv.neojoin.model.AQRParameter;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -23,6 +23,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static tools.vitruv.neojoin.common.Enumerated.enumerated;
 import static tools.vitruv.neojoin.common.Assertions.check;
 import static tools.vitruv.neojoin.ide.visualization.PlantUMLBuilder.Empty;
 
@@ -196,6 +197,10 @@ public class VisualizationGenerator {
             document.header(orthogonalArrows);
             packages(); // generate empty package stubs
             externalPackages();
+            if (!aqr.parameters().isEmpty()) {
+                showParameterLegend(aqr.parameters());
+            }
+
             document.include(out);
         });
 
@@ -224,7 +229,6 @@ public class VisualizationGenerator {
                 }
             });
     }
-
 
     /**
      * Create an empty stub for each package.
@@ -357,5 +361,19 @@ public class VisualizationGenerator {
 
     private Stream<EClassifier> getAllTargetClasses() {
         return targetMetaModel.pack().getEClassifiers().stream();
+    }
+
+    private void showParameterLegend(List<AQRParameter> parameters) {
+        out.legend("Parameters", "left", () -> {
+            for (var parameter : parameters) {
+                out.attribute(parameter.alias(), formatParameterType(parameter));
+            }
+        });
+    }
+
+    private static String formatParameterType(AQRParameter parameter) {
+        return (parameter.isList()? "[" : "") +
+            parameter.type().getName() +
+            (parameter.isList()? "]" : "");
     }
 }
