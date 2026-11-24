@@ -154,9 +154,9 @@ public class FeatureValidator extends ComposableValidator {
         if (feature.getType() instanceof Query query) {
             checkQueryType(feature, query, inferredClassifier);
         } else if (feature.getType() instanceof EEnum eEnum) {
-            checkEnumType(feature, eEnum, inferredType);
+            checkEnumType(feature, eEnum, inferredClassifier);
         } else if (feature.getType() instanceof EDataType eDataType) {
-            checkEDataType(feature, eDataType, inferredType);
+            checkEDataType(feature, eDataType, inferredClassifier);
         } else if (feature.getType() instanceof EClass implicitClass) {
             checkImplicitClassType(feature, implicitClass, inferredClassifier);
         }
@@ -185,12 +185,12 @@ public class FeatureValidator extends ComposableValidator {
         );
     }
 
-    private void checkEnumType(ConcreteFeature feature, EEnum eEnum, TypeInfo inferredType) {
-        if (inferredType.classifier() != feature.getType()) {
+    private void checkEnumType(ConcreteFeature feature, EEnum eEnum, EClassifier inferredClassifier) {
+        if (inferredClassifier != feature.getType()) {
             var viewType = AstUtils.getViewType(feature);
             error(
                 "Type mismatch: cannot convert from %s to %s".formatted(
-                    formatClassifier(viewType, inferredType.classifier()).plain(),
+                    formatClassifier(viewType, inferredClassifier).plain(),
                     formatClassifier(viewType, eEnum).plain()
                 ),
                 feature,
@@ -202,21 +202,21 @@ public class FeatureValidator extends ComposableValidator {
     /**
      * Checks whether the inferred type can be applied to the feature.
      * NOTE: This does not cover enums since they are handled separately
-     *       (see: {@link  FeatureValidator#checkEnumType(ConcreteFeature feature, EEnum eEnum, TypeInfo
-     *       inferredType)}).
+     *       (see: {@link  FeatureValidator#checkEnumType(ConcreteFeature feature, EEnum eEnum,
+     *       EClassifier inferredClassifier)}).
      *
      * @param feature the feature to be checked against.
      * @param eDataType the type of the feature.
-     * @param inferredType the inferred type for the feature.
+     * @param inferredClassifier the inferred type for the feature.
      */
-    private void checkEDataType(ConcreteFeature feature, EDataType eDataType, TypeInfo inferredType) {
+    private void checkEDataType(ConcreteFeature feature, EDataType eDataType, EClassifier inferredClassifier) {
         var viewType = AstUtils.getViewType(feature);
-        if (inferredType.classifier() instanceof EDataType && !(inferredType.classifier() instanceof EEnum)) {
-            if (!TypeCasts.canCast(inferredType.classifier().getInstanceClass(), eDataType.getInstanceClass())) {
+        if (inferredClassifier instanceof EDataType && !(inferredClassifier instanceof EEnum)) {
+            if (!TypeCasts.canCast(inferredClassifier.getInstanceClass(), eDataType.getInstanceClass())) {
                 error(
                     "Type mismatch: cannot convert from %s (%s) to %s (%s)".formatted(
-                        formatClassifier(viewType, inferredType.classifier()).plain(),
-                        inferredType.classifier().getInstanceClass().getSimpleName(),
+                        formatClassifier(viewType, inferredClassifier).plain(),
+                        inferredClassifier.getInstanceClass().getSimpleName(),
                         formatClassifier(viewType, eDataType).plain(),
                         eDataType.getInstanceClass().getSimpleName()
                     ),
@@ -227,7 +227,7 @@ public class FeatureValidator extends ComposableValidator {
         } else {
             error(
                 "Type mismatch: cannot convert from %s to %s".formatted(
-                    formatClassifier(viewType, inferredType.classifier()).plain(),
+                    formatClassifier(viewType, inferredClassifier).plain(),
                     formatClassifier(viewType, eDataType).plain()
                 ),
                 feature,
