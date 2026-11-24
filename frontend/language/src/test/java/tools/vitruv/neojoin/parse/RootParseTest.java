@@ -188,7 +188,7 @@ class RootParseTest extends AbstractParseTest {
             from Menu create
             """);
 
-        var message = "Implicit class of source class Root collides with name of the implicit root class. "
+        var message = "Implicit class of source class 'Root' collides with name of the implicit root class. "
             + "Either create a query for the source class that specifies a different target class name "
             + "or explicitly create a root class with a different name.";
         assertThat(result)

@@ -13,6 +13,8 @@ import tools.vitruv.neojoin.utils.ImplicitClassCache;
 
 import java.util.stream.Collectors;
 
+import static tools.vitruv.neojoin.validation.MessageFormatting.formatClassifier;
+
 /**
  * Validates the super classes that {@link tools.vitruv.neojoin.aqr.AQRBuilder} links to implicit
  * target classes
@@ -41,10 +43,12 @@ public class ImplicitSuperClassValidator extends ComposableValidator {
         finder.getImplicitClasses().forEach((sourceClass, cause) -> {
             var candidates = finder.findCandidates(sourceClass);
             if (candidates.size() > 1) {
+                var formattedSourceClass = formatClassifier(viewType, sourceClass);
                 error(
-                    ("Ambiguous super class for implicit class of source class '%s'. "
+                    ("Ambiguous super class for implicit class of source class %s. "
                         + "Possible candidates: %s").formatted(
-                        sourceClass.getName(), candidates.stream().map(Pair::left).collect(Collectors.joining(", "))
+                        formattedSourceClass.quoted(),
+                        candidates.stream().map(Pair::left).collect(Collectors.joining(", "))
                     ),
                     cause,
                     null
@@ -70,6 +74,7 @@ public class ImplicitSuperClassValidator extends ComposableValidator {
             // an implicit candidate (no query) always matches: both have the features of the source classes
             if (candidates.size() == 1 && candidates.get(0).right() != null) {
                 checkImplicitClassMatchesSuperClass(
+                    viewType,
                     sourceClass, candidates.get(0).left(), candidates.get(0).right(), cause, featureInfoResolver
                 );
             }
@@ -77,6 +82,7 @@ public class ImplicitSuperClassValidator extends ComposableValidator {
     }
 
     private void checkImplicitClassMatchesSuperClass(
+        ViewTypeDefinition viewType,
         EClass sourceClass,
         String superClassName,
         Query superClass,
@@ -97,10 +103,11 @@ public class ImplicitSuperClassValidator extends ComposableValidator {
             .distinct()
             .toList();
         if (!missingNames.isEmpty()) {
+            var formattedSourceClass = formatClassifier(viewType, sourceClass);
             warning(
-                ("Implicit class of source class '%s' is not linked to super class '%s', "
+                ("Implicit class of source class %s is not linked to super class '%s', "
                     + "because it has no matching feature (same name, type and modifiers) for: %s").formatted(
-                    sourceClass.getName(), superClassName, String.join(", ", missingNames)
+                    formattedSourceClass.quoted(), superClassName, String.join(", ", missingNames)
                 ),
                 cause,
                 null
