@@ -152,9 +152,9 @@ class VisualizationGeneratorIT {
             "order.Order --> \"0..1\" 2external.Food : fromB",
             "abstract class 1external.Item {",
             "order.Order -up-|> 1external.Item"
-        );
-        // attribute types are text and get no box
-        assertThat(puml).doesNotContain("Code {").doesNotContain("Unit {").doesNotContain("external.Code")
+        )
+            // attribute types are text and get no box
+            .doesNotContain("Code {").doesNotContain("Unit {").doesNotContain("external.Code")
             .doesNotContain("external.Unit");
     }
 
@@ -166,9 +166,9 @@ class VisualizationGeneratorIT {
             "package \"supplier (http://example.org/supplier/a)\" as 1external <<external>> {",
             "class 1external.Food {",
             "1external.Food .down.> 0target.Food"
-        );
-        // used by a reference and as source class, but declared once
-        assertThat(puml).containsOnlyOnce("class 1external.Food {");
+        )
+            // used by a reference and as source class, but declared once
+            .containsOnlyOnce("class 1external.Food {");
     }
 
     @Test
@@ -185,8 +185,8 @@ class VisualizationGeneratorIT {
             "package \"supplier\" as 1external <<external>> {",
             "class 1external.Food {",
             "1external.Food .down.> 0target.Food"
-        );
-        assertThat(puml).doesNotContain("class 0target.Order");
+        )
+            .doesNotContain("class 0target.Order");
     }
 
     @Test
@@ -222,9 +222,9 @@ class VisualizationGeneratorIT {
             "holder.Holder --> \"0..1\" 1external.EObject : target",
             "abstract class 1external.ENamedElement {",
             "holder.Holder -up-|> 1external.ENamedElement"
-        );
-        // super types of Ecore classes are not expanded
-        assertThat(puml).doesNotContain("EModelElement").doesNotContain("EAnnotation");
+        )
+            // super types of Ecore classes are not expanded
+            .doesNotContain("EModelElement").doesNotContain("EAnnotation");
     }
 
     @Test

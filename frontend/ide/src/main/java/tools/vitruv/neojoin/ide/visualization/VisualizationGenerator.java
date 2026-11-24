@@ -18,6 +18,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -150,11 +151,9 @@ public class VisualizationGenerator {
 
         var rootPack = EMFUtils.getRootPackage(pack);
         var imp = getImport(rootPack);
-        var rootId = imp != null ? imp.alias() : externalIds.get(rootPack);
-        check(
-            rootId != null && (imp != null || externalElements.contains(classifier)),
-            "External classifier has no element"
-        );
+        check(imp != null || externalElements.contains(classifier), "External classifier has no element");
+        // an external package gets its id together with its first element
+        var rootId = imp != null ? imp.alias() : Objects.requireNonNull(externalIds.get(rootPack));
         return replaceRootName(pack, rootId) + "." + classifier.getName();
     }
 
