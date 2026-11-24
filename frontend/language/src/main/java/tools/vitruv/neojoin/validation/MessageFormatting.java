@@ -101,6 +101,16 @@ final class MessageFormatting {
         return (dataTypes.size() == 1 ? "data type " : "data types ") + join(getWrittenNames(viewType, dataTypes));
     }
 
+    /**
+     * Formats names (for example of features) separated by commas. A single name is quoted, several are not.
+     */
+    static String formatNames(List<String> names) {
+        if (names.size() == 1) {
+            return "'" + names.get(0) + "'";
+        }
+        return String.join(", ", names);
+    }
+
     private static String join(List<WrittenName> writtenNames) {
         if (writtenNames.size() == 1) {
             return writtenNames.get(0).quoted();

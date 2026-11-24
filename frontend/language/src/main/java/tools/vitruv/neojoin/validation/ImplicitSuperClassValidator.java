@@ -14,6 +14,7 @@ import tools.vitruv.neojoin.utils.ImplicitClassCache;
 import java.util.stream.Collectors;
 
 import static tools.vitruv.neojoin.validation.MessageFormatting.formatClassifier;
+import static tools.vitruv.neojoin.validation.MessageFormatting.formatNames;
 
 /**
  * Validates the super classes that {@link tools.vitruv.neojoin.aqr.AQRBuilder} links to implicit
@@ -107,7 +108,7 @@ public class ImplicitSuperClassValidator extends ComposableValidator {
             warning(
                 ("Implicit class of source class %s is not linked to super class '%s', "
                     + "because it has no matching feature (same name, type and modifiers) for: %s").formatted(
-                    formattedSourceClass.quoted(), superClassName, String.join(", ", missingNames)
+                    formattedSourceClass.quoted(), superClassName, formatNames(missingNames)
                 ),
                 cause,
                 null

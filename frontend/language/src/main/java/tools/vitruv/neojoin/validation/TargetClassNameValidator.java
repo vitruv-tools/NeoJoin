@@ -246,7 +246,7 @@ public class TargetClassNameValidator extends ComposableValidator {
 
             var message = ("Target classes %s have the same containment reference '%s' in the root class. "
                 + "Choose names that differ in more than the case of the first letter.").formatted(
-                classNames.stream().map(name -> "'" + name + "'").collect(Collectors.joining(", ")),
+                String.join(", ", classNames),
                 referenceName
             );
             queries.forEach(query -> error(message, query, AstPackage.Literals.QUERY__NAME));

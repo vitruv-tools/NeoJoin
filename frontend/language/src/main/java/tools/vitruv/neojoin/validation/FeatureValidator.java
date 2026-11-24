@@ -81,7 +81,7 @@ public class FeatureValidator extends ComposableValidator {
             .forEach(entry -> {
                 for (var feature : entry.getValue()) {
                     error(
-                        "Duplicated feature name: " + entry.getKey(),
+                        "Duplicated feature name '%s'".formatted(entry.getKey()),
                         feature,
                         AstPackage.Literals.FEATURE__NAME
                     );

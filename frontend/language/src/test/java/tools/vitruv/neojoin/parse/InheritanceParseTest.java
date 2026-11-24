@@ -265,20 +265,21 @@ class InheritanceParseTest extends AbstractInheritanceParseTest {
     }
 
     @Test
-    void implicitClassWithSuperClassCandidateWithMissingFeatureWarns() {
+    void implicitClassWithSuperClassCandidateWithMissingFeaturesWarns() {
         var result = parseWithKennel("""
             from Kennel k create KennelT {
                 k.name
                 k.animals create Animal {
                     name = it.name
                     tag = it.name
+                    code = it.name
                 }
                 k.dogs
             }
             """);
 
         var message = "Implicit class of source class 'Dog' is not linked to super class 'Animal', "
-            + "because it has no matching feature (same name, type and modifiers) for: tag";
+            + "because it has no matching feature (same name, type and modifiers) for: tag, code";
         assertThat(result)
             .hasIssueAt(message, "k.dogs")
             .hasIssueWithSeverity(Severity.WARNING, message)
@@ -318,7 +319,7 @@ class InheritanceParseTest extends AbstractInheritanceParseTest {
         assertThat(result).hasIssueWithSeverity(
             Severity.WARNING,
             "Implicit class of source class 'Puppy' is not linked to super class 'Dog', "
-                + "because it has no matching feature (same name, type and modifiers) for: name"
+                + "because it has no matching feature (same name, type and modifiers) for: 'name'"
         );
     }
 
@@ -338,7 +339,7 @@ class InheritanceParseTest extends AbstractInheritanceParseTest {
         assertThat(result).hasIssueWithSeverity(
             Severity.WARNING,
             "Implicit class of source class 'Puppy' is not linked to super class 'Dog', "
-                + "because it has no matching feature (same name, type and modifiers) for: breed"
+                + "because it has no matching feature (same name, type and modifiers) for: 'breed'"
         );
     }
 
@@ -362,7 +363,7 @@ class InheritanceParseTest extends AbstractInheritanceParseTest {
         assertThat(result).hasIssueWithSeverity(
             Severity.WARNING,
             "Implicit class of source class 'Dog' is not linked to super class 'Animal', "
-                + "because it has no matching feature (same name, type and modifiers) for: name"
+                + "because it has no matching feature (same name, type and modifiers) for: 'name'"
         );
     }
 
