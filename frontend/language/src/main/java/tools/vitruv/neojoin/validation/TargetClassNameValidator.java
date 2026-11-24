@@ -20,6 +20,7 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static tools.vitruv.neojoin.validation.MessageFormatting.formatClassifier;
 import static tools.vitruv.neojoin.validation.MessageFormatting.formatDataTypes;
 import static tools.vitruv.neojoin.validation.MessageFormatting.formatSourceClasses;
 import static tools.vitruv.neojoin.validation.MessageFormatting.implicitClassesOfSourceClasses;
@@ -79,12 +80,12 @@ public class TargetClassNameValidator extends ComposableValidator {
             if (hasImplicitRoot && name.equals(Constants.DefaultRootClassName)) {
                 // one issue per implicit class, so that each names exactly one source class
                 implicitClassesWithName.forEach(implicitClass -> {
-                    var sourceClass = formatSourceClasses(viewType, List.of(implicitClass.getKey()));
+                    var sourceClass = formatClassifier(viewType, implicitClass.getKey());
                     error(
                         ("Implicit class of source class %s collides with name of the implicit root class. "
                             + "Either create a query for the source class that specifies a different target class "
-                            + "name or explicitly create a root class with a different name.%s")
-                            .formatted(sourceClass.left(), sourceClass.right()),
+                            + "name or explicitly create a root class with a different name.")
+                            .formatted(sourceClass.quoted()),
                         implicitClass.getValue(),
                         null
                     );
@@ -98,7 +99,7 @@ public class TargetClassNameValidator extends ComposableValidator {
      * source classes are named with the import alias of their package, which is unique
      * ({@link ImportValidator#checkDuplicatedImportNames}), or with the package name if the package is not imported
      * (a class referenced from another meta-model). Only if these names are not unique (packages with the same name
-     * that are not imported), the namespace URIs are added at the end of the message.
+     * that are not imported), the namespace URI follows the name.
      */
     private void checkImplicitClassesWithSameName(
         ViewTypeDefinition viewType,
@@ -114,8 +115,8 @@ public class TargetClassNameValidator extends ComposableValidator {
         causes.forEach(cause -> error(
             ("Implicit classes of the source classes %s have the same name '%s'. "
                 + "For all but one of these source classes, "
-                + "create a query that specifies a different target class name.%s")
-                .formatted(sourceClasses.left(), name, sourceClasses.right()),
+                + "create a query that specifies a different target class name.")
+                .formatted(sourceClasses, name),
             cause,
             null
         ));
@@ -138,12 +139,12 @@ public class TargetClassNameValidator extends ComposableValidator {
         var implicitClassesOfQuery = "the " + implicitClassesOfSourceClasses(implicitClasses.size());
         // one issue per implicit class, so that each names exactly one source class
         implicitClasses.forEach(implicitClass -> {
-            var sourceClass = formatSourceClasses(viewType, List.of(implicitClass.getKey()));
+            var sourceClass = formatClassifier(viewType, implicitClass.getKey());
             error(
                 ("Implicit class of source class %s has the same name as the target class '%s'. "
                     + "Either choose a different name for the target class "
-                    + "or create a query for the source class that specifies a different target class name.%s")
-                    .formatted(sourceClass.left(), name, sourceClass.right()),
+                    + "or create a query for the source class that specifies a different target class name.")
+                    .formatted(sourceClass.quoted(), name),
                 implicitClass.getValue(),
                 null
             );
@@ -151,8 +152,8 @@ public class TargetClassNameValidator extends ComposableValidator {
         queries.forEach(query -> error(
             ("Target class '%s' has the same name as %s %s. "
                 + "Either choose a different name for this class "
-                + "or create a query for the source class that specifies a different target class name.%s")
-                .formatted(name, implicitClassesOfQuery, allSourceClasses.left(), allSourceClasses.right()),
+                + "or create a query for the source class that specifies a different target class name.")
+                .formatted(name, implicitClassesOfQuery, allSourceClasses),
             query,
             AstPackage.Literals.QUERY__NAME
         ));
@@ -175,8 +176,8 @@ public class TargetClassNameValidator extends ComposableValidator {
             if (dataTypes != null) {
                 var formattedDataTypes = formatDataTypes(viewType, dataTypes);
                 error(
-                    "Target class '%s' has the same name as the %s. Choose a different name for this class.%s"
-                        .formatted(name, formattedDataTypes.left(), formattedDataTypes.right()),
+                    "Target class '%s' has the same name as the %s. Choose a different name for this class."
+                        .formatted(name, formattedDataTypes),
                     query,
                     AstPackage.Literals.QUERY__NAME
                 );
@@ -196,16 +197,12 @@ public class TargetClassNameValidator extends ComposableValidator {
             var name = sourceClass.getName();
             var dataTypes = dataTypesByName.get(name);
             if (dataTypes != null) {
-                var sourceClasses = formatSourceClasses(viewType, List.of(sourceClass));
+                var formattedSourceClass = formatClassifier(viewType, sourceClass);
                 var formattedDataTypes = formatDataTypes(viewType, dataTypes);
                 error(
                     ("Implicit class of source class %s has the same name as the %s. "
-                        + "Create a query for the source class that specifies a different target class name.%s")
-                        .formatted(
-                            sourceClasses.left(),
-                            formattedDataTypes.left(),
-                            formattedDataTypes.right()
-                        ),
+                        + "Create a query for the source class that specifies a different target class name.")
+                        .formatted(formattedSourceClass.quoted(), formattedDataTypes),
                     cause,
                     null
                 );
@@ -249,7 +246,7 @@ public class TargetClassNameValidator extends ComposableValidator {
 
             var message = ("Target classes %s have the same containment reference '%s' in the root class. "
                 + "Choose names that differ in more than the case of the first letter.").formatted(
-                classNames.stream().map(name -> "'" + name + "'").collect(Collectors.joining(", ")),
+                String.join(", ", classNames),
                 referenceName
             );
             queries.forEach(query -> error(message, query, AstPackage.Literals.QUERY__NAME));

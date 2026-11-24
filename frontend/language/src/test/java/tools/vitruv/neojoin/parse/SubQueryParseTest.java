@@ -82,8 +82,8 @@ class SubQueryParseTest extends AbstractParseTest {
 
         assertThat(result).hasExactlyIssues(
             "Unsupported type: AtomicInteger",
-            "Duplicated feature name: test",
-            "Duplicated feature name: name",
+            "Duplicated feature name 'test'",
+            "Duplicated feature name 'name'",
             "Copy feature expression does not reference a feature",
             "Nullable expression used to initialize non-nullable feature",
             "Inferred type 'MixedFoods' is a query with join which might be unintended and "

@@ -26,7 +26,7 @@ class AbstractClassParseTest extends AbstractParseTest {
             }
             """);
 
-        assertThat(result).hasExactlyIssues("Duplicated feature name: x");
+        assertThat(result).hasExactlyIssues("Duplicated feature name 'x'");
     }
 
     @Test

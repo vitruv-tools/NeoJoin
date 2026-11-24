@@ -127,6 +127,75 @@ class TypeParseTest extends AbstractParseTest {
     }
 
     @Test
+    void ambiguousTargetClassWritesSourceClassWithQualifiedNameIfSimpleNameIsAmbiguous() {
+        var result = internalParse("""
+            export package to "http://example.com"
+
+            import "http://example.org/restaurant" as rest
+            import "http://example.org/menu"
+
+            from Restaurant r create {
+                r.sells
+            }
+
+            from rest.Food create TastyFood
+            from rest.Food create NotSoTastyFood
+            """);
+
+        assertThat(result)
+            .hasExactlyIssues(
+                "Ambiguous target class for source class 'rest.Food'. Possible candidates: NotSoTastyFood, TastyFood"
+            );
+    }
+
+    /**
+     * {@code order.ecore} is not imported, but references the classes {@code Food} of two packages named
+     * {@code supplier}, so they are candidates and {@code rest.Food} is written with its qualified name.
+     */
+    @Test
+    void ambiguousTargetClassWritesSourceClassWithQualifiedNameIfSimpleNameIsAmbiguousThroughReferencedPackage() {
+        var result = internalParse("""
+            export package to "http://example.com"
+
+            import "http://example.org/restaurant" as rest
+            import "http://example.org/order"
+
+            from Restaurant r create {
+                r.sells
+            }
+
+            from rest.Food create TastyFood
+            from rest.Food create NotSoTastyFood
+            """);
+
+        assertThat(result)
+            .hasExactlyIssues(
+                "Ambiguous target class for source class 'rest.Food'. Possible candidates: NotSoTastyFood, TastyFood"
+            );
+    }
+
+    /**
+     * The explicit type {@code Food} is the implicit class of {@code menu.Food}, the value is a {@code rest.Food}.
+     */
+    @Test
+    void typeMismatchBetweenSourceClassesWithSameNameWritesQualifiedNames() {
+        var result = internalParse("""
+            export package to "http://example.com"
+
+            import "http://example.org/restaurant" as rest
+            import "http://example.org/menu"
+
+            from Root create Category
+
+            from Restaurant r create Place {
+                food: Food := r.sells.first
+            }
+            """);
+
+        assertThat(result).hasExactlyIssues("Type mismatch: cannot convert from rest.Food to menu.Food");
+    }
+
+    @Test
     void ambiguousTargetClassWithinCopiedClass() {
         var result = parse("""
             from Restaurant create
@@ -187,7 +256,7 @@ class TypeParseTest extends AbstractParseTest {
 
         assertThat(result)
             .hasExactlyIssues(
-                "Ambiguous target class for source class 'Food' while copying reference 'Store::foods'. "
+                "Ambiguous target class for source class 'Food' while copying reference 'rest.Store::foods'. "
                     + "Possible candidates: NotSoTastyFood, TastyFood",
                 "Ambiguous target class for source class 'Food' while copying reference 'Restaurant::sells'. "
                     + "Possible candidates: NotSoTastyFood, TastyFood"

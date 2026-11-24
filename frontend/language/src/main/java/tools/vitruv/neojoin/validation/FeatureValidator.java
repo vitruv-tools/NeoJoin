@@ -41,6 +41,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static tools.vitruv.neojoin.validation.MessageFormatting.formatClassifier;
+
 public class FeatureValidator extends ComposableValidator {
 
     @Inject
@@ -79,7 +81,7 @@ public class FeatureValidator extends ComposableValidator {
             .forEach(entry -> {
                 for (var feature : entry.getValue()) {
                     error(
-                        "Duplicated feature name: " + entry.getKey(),
+                        "Duplicated feature name '%s'".formatted(entry.getKey()),
                         feature,
                         AstPackage.Literals.FEATURE__NAME
                     );
@@ -141,7 +143,9 @@ public class FeatureValidator extends ComposableValidator {
 
         if (feature.getSubQuery() != null && inferredClassifier instanceof EDataType dataType) {
             error(
-                "Cannot use a subquery with an attribute expression (%s)".formatted(dataType.getName()),
+                "Cannot use a subquery with an attribute expression (%s)".formatted(
+                    formatClassifier(AstUtils.getViewType(feature), dataType).plain()
+                ),
                 feature,
                 AstPackage.Literals.CONCRETE_FEATURE__SUB_QUERY
             );
@@ -150,9 +154,9 @@ public class FeatureValidator extends ComposableValidator {
         if (feature.getType() instanceof Query query) {
             checkQueryType(feature, query, inferredClassifier);
         } else if (feature.getType() instanceof EEnum eEnum) {
-            checkEnumType(feature, eEnum, inferredType);
+            checkEnumType(feature, eEnum, inferredClassifier);
         } else if (feature.getType() instanceof EDataType eDataType) {
-            checkEDataType(feature, eDataType, inferredType);
+            checkEDataType(feature, eDataType, inferredClassifier);
         } else if (feature.getType() instanceof EClass implicitClass) {
             checkImplicitClassType(feature, implicitClass, inferredClassifier);
         }
@@ -165,26 +169,29 @@ public class FeatureValidator extends ComposableValidator {
      * throws "no target instance of class ... found for source instance of class ..." when the reference is set.
      */
     private void checkImplicitClassType(ConcreteFeature feature, EClass explicitType, EClassifier inferredClassifier) {
+        var viewType = AstUtils.getViewType(feature);
         if (inferredClassifier instanceof EClass inferredClass
-            && implicitClassCache.getFinder(AstUtils.getViewType(feature))
-                .isSameOrImplicitSubClass(inferredClass, explicitType)) {
+            && implicitClassCache.getFinder(viewType).isSameOrImplicitSubClass(inferredClass, explicitType)) {
             return;
         }
 
         error(
             "Type mismatch: cannot convert from %s to %s".formatted(
-                inferredClassifier.getName(), explicitType.getName()
+                formatClassifier(viewType, inferredClassifier).plain(),
+                formatClassifier(viewType, explicitType).plain()
             ),
             feature,
             AstPackage.Literals.CONCRETE_FEATURE__EXPRESSION
         );
     }
 
-    private void checkEnumType(ConcreteFeature feature, EEnum eEnum, TypeInfo inferredType) {
-        if (inferredType.classifier() != feature.getType()) {
+    private void checkEnumType(ConcreteFeature feature, EEnum eEnum, EClassifier inferredClassifier) {
+        if (inferredClassifier != feature.getType()) {
+            var viewType = AstUtils.getViewType(feature);
             error(
                 "Type mismatch: cannot convert from %s to %s".formatted(
-                    inferredType.classifier().getName(), eEnum.getName()
+                    formatClassifier(viewType, inferredClassifier).plain(),
+                    formatClassifier(viewType, eEnum).plain()
                 ),
                 feature,
                 AstPackage.Literals.CONCRETE_FEATURE__EXPRESSION
@@ -195,21 +202,22 @@ public class FeatureValidator extends ComposableValidator {
     /**
      * Checks whether the inferred type can be applied to the feature.
      * NOTE: This does not cover enums since they are handled separately
-     *       (see: {@link  FeatureValidator#checkEnumType(ConcreteFeature feature, EEnum eEnum, TypeInfo
-     *       inferredType)}).
+     *       (see: {@link  FeatureValidator#checkEnumType(ConcreteFeature feature, EEnum eEnum,
+     *       EClassifier inferredClassifier)}).
      *
      * @param feature the feature to be checked against.
      * @param eDataType the type of the feature.
-     * @param inferredType the inferred type for the feature.
+     * @param inferredClassifier the inferred type for the feature.
      */
-    private void checkEDataType(ConcreteFeature feature, EDataType eDataType, TypeInfo inferredType) {
-        if (inferredType.classifier() instanceof EDataType && !(inferredType.classifier() instanceof EEnum)) {
-            if (!TypeCasts.canCast(inferredType.classifier().getInstanceClass(), eDataType.getInstanceClass())) {
+    private void checkEDataType(ConcreteFeature feature, EDataType eDataType, EClassifier inferredClassifier) {
+        var viewType = AstUtils.getViewType(feature);
+        if (inferredClassifier instanceof EDataType && !(inferredClassifier instanceof EEnum)) {
+            if (!TypeCasts.canCast(inferredClassifier.getInstanceClass(), eDataType.getInstanceClass())) {
                 error(
                     "Type mismatch: cannot convert from %s (%s) to %s (%s)".formatted(
-                        inferredType.classifier().getName(),
-                        inferredType.classifier().getInstanceClass().getSimpleName(),
-                        eDataType.getName(),
+                        formatClassifier(viewType, inferredClassifier).plain(),
+                        inferredClassifier.getInstanceClass().getSimpleName(),
+                        formatClassifier(viewType, eDataType).plain(),
                         eDataType.getInstanceClass().getSimpleName()
                     ),
                     feature,
@@ -219,7 +227,8 @@ public class FeatureValidator extends ComposableValidator {
         } else {
             error(
                 "Type mismatch: cannot convert from %s to %s".formatted(
-                    inferredType.classifier().getName(), eDataType.getName()
+                    formatClassifier(viewType, inferredClassifier).plain(),
+                    formatClassifier(viewType, eDataType).plain()
                 ),
                 feature,
                 AstPackage.Literals.CONCRETE_FEATURE__EXPRESSION
@@ -243,7 +252,9 @@ public class FeatureValidator extends ComposableValidator {
     private void checkSubQuery(ConcreteFeature feature, @Nullable EClassifier inferredClassifier) {
         if (inferredClassifier instanceof EDataType dataType) {
             error(
-                "Cannot use a subquery with an attribute expression (%s)".formatted(dataType.getName()),
+                "Cannot use a subquery with an attribute expression (%s)".formatted(
+                    formatClassifier(AstUtils.getViewType(feature), dataType).plain()
+                ),
                 feature,
                 AstPackage.Literals.CONCRETE_FEATURE__SUB_QUERY
             );
@@ -265,8 +276,8 @@ public class FeatureValidator extends ComposableValidator {
                 // the target class of the inferred type must be unambiguously assignable to the explicit type,
                 // otherwise the transformation could not decide which target instance to reference
                 error(
-                    "Ambiguous target class for source class '%s'. Possible candidates: %s".formatted(
-                        inferredClass.getName(),
+                    "Ambiguous target class for source class %s. Possible candidates: %s".formatted(
+                        formatClassifier(viewType, inferredClass).quoted(),
                         assignable.stream().map(q -> AstUtils.getTargetName(q, expressionHelper)).sorted()
                             .collect(Collectors.joining(", "))
                     ),
@@ -287,7 +298,8 @@ public class FeatureValidator extends ComposableValidator {
 
         error(
             "Type mismatch: cannot convert from %s to %s".formatted(
-                inferredClassifier.getName(), AstUtils.getTargetName(explicitType, expressionHelper)
+                formatClassifier(AstUtils.getViewType(feature), inferredClassifier).plain(),
+                AstUtils.getTargetName(explicitType, expressionHelper)
             ),
             feature,
             AstPackage.Literals.CONCRETE_FEATURE__EXPRESSION
@@ -400,8 +412,8 @@ public class FeatureValidator extends ComposableValidator {
             );
         } else if (type instanceof AmbiguousReferenceType ambiguousType) {
             error(
-                "Ambiguous target class for source class '%s'. Possible candidates: %s".formatted(
-                    ambiguousType.sourceClass().getName(),
+                "Ambiguous target class for source class %s. Possible candidates: %s".formatted(
+                    formatClassifier(AstUtils.getViewType(feature), ambiguousType.sourceClass()).quoted(),
                     ambiguousType.candidates().stream()
                         .map(q -> AstUtils.getTargetName(q, expressionHelper))
                         .sorted()
@@ -446,16 +458,17 @@ public class FeatureValidator extends ComposableValidator {
             return;
         }
 
+        var viewType = AstUtils.getViewType(cause);
         for (var reference : clazz.getEAllReferences()) {
             var type = typeResolver.resolveSourceClass(reference.getEReferenceType());
             if (type instanceof ImplicitReferenceType) { // -> implicit copy of target class
                 checkCopiedClass(reference.getEReferenceType(), typeResolver, cause, alreadyChecked);
             } else if (type instanceof AmbiguousReferenceType ambiguousType) {
                 error(
-                    ("Ambiguous target class for source class '%s' while copying reference '%s::%s'. "
+                    ("Ambiguous target class for source class %s while copying reference %s. "
                         + "Possible candidates: %s").formatted(
-                        reference.getEReferenceType().getName(),
-                        clazz.getName(), reference.getName(),
+                        formatClassifier(viewType, reference.getEReferenceType()).quoted(),
+                        formatClassifier(viewType, clazz).quotedWithMember(reference.getName()),
                         ambiguousType.candidates().stream()
                             .map(q -> AstUtils.getTargetName(q, expressionHelper))
                             .sorted()
@@ -467,27 +480,29 @@ public class FeatureValidator extends ComposableValidator {
             } else if (type instanceof QueryReferenceType queryType) {
                 if (queryType.query() instanceof ConcreteMainQuery mainQuery && mainQuery.getSource() != null) {
                     if (!mainQuery.getSource().getJoins().isEmpty()) {
+                        var inferredFrom = mainQuery.getSource().getFrom().getClazz();
                         warning(
-                            ("Inferred target class '%s' for source class '%s' while copying reference '%s::%s' is "
+                            ("Inferred target class '%s' for source class %s while copying reference %s is "
                                 + "a query with join which might be unintended "
                                 + "and can lead to errors during transformation. "
                                 + "Use explicit type to clarify the intended type.").formatted(
                                 AstUtils.getTargetName(mainQuery),
-                                mainQuery.getSource().getFrom().getClazz().getName(),
-                                clazz.getName(), reference.getName()
+                                formatClassifier(viewType, inferredFrom).quoted(),
+                                formatClassifier(viewType, clazz).quotedWithMember(reference.getName())
                             ),
                             cause,
                             null
                         );
                     } else if (!mainQuery.getSource().getGroupingExpressions().isEmpty()) {
+                        var inferredFrom = mainQuery.getSource().getFrom().getClazz();
                         warning(
-                            ("Inferred target class '%s' for source class '%s' while copying reference '%s::%s' is "
+                            ("Inferred target class '%s' for source class %s while copying reference %s is "
                                 + "a query with group by which might be unintended "
                                 + "and can lead to errors during transformation. "
                                 + "Use explicit type to clarify the intended type.").formatted(
                                 AstUtils.getTargetName(mainQuery),
-                                mainQuery.getSource().getFrom().getClazz().getName(),
-                                clazz.getName(), reference.getName()
+                                formatClassifier(viewType, inferredFrom).quoted(),
+                                formatClassifier(viewType, clazz).quotedWithMember(reference.getName())
                             ),
                             cause,
                             null

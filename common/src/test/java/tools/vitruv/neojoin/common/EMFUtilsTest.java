@@ -6,6 +6,7 @@ import org.eclipse.emf.ecore.EDataType;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EcoreFactory;
 import org.eclipse.emf.ecore.EcorePackage;
+import org.eclipse.emf.ecore.InternalEObject;
 import org.eclipse.emf.ecore.impl.EPackageRegistryImpl;
 import org.eclipse.emf.ecore.resource.impl.ResourceImpl;
 import org.eclipse.emf.ecore.util.EcoreUtil;
@@ -75,6 +76,42 @@ class EMFUtilsTest {
         assertThat(EMFUtils.getAllEClassifiers(root).toList())
             .containsExactly(animal, dataType, dog, puppy);
         assertThat(EMFUtils.getAllEDataTypes(root).toList()).containsExactly(dataType);
+    }
+
+    @Test
+    void referencedRootPackagesFollowSuperTypesAndFeatureTypesTransitively() {
+        var pet = createClass("Pet");
+        var friend = FACTORY.createEReference();
+        friend.setName("friend");
+        friend.setEType(puppy); // a class in a sub package: its root package is referenced
+        pet.getEStructuralFeatures().add(friend);
+        var other = createPackage("other", "http://example.org/other");
+        other.getEClassifiers().add(pet);
+
+        var cat = createClass("Cat");
+        cat.getESuperTypes().add(pet);
+        var third = createPackage("third", "http://example.org/third");
+        third.getEClassifiers().add(cat);
+
+        createPackage("unrelated", "http://example.org/unrelated").getEClassifiers().add(createClass("Stone"));
+
+        assertThat(EMFUtils.getReferencedRootPackages(List.of(third))).containsExactly(third, other, root);
+        assertThat(EMFUtils.getReferencedRootPackages(List.of(sub))).containsExactly(root);
+    }
+
+    @Test
+    void referencedRootPackagesIgnoreUnresolvedProxies() {
+        var missing = createClass("Missing");
+        ((InternalEObject) missing).eSetProxyURI(URI.createURI("http://example.org/missing#//Missing"));
+        var reference = FACTORY.createEReference();
+        reference.setName("missing");
+        reference.setEType(missing);
+        var holder = createClass("Holder");
+        holder.getEStructuralFeatures().add(reference);
+        var pack = createPackage("holder", "http://example.org/holder");
+        pack.getEClassifiers().add(holder);
+
+        assertThat(EMFUtils.getReferencedRootPackages(List.of(pack))).containsExactly(pack);
     }
 
     @Test

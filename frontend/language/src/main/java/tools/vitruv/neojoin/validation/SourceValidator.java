@@ -11,6 +11,8 @@ import tools.vitruv.neojoin.utils.AstUtils;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static tools.vitruv.neojoin.validation.MessageFormatting.formatClassifier;
+
 public class SourceValidator extends ComposableValidator {
 
     @Check
@@ -74,10 +76,11 @@ public class SourceValidator extends ComposableValidator {
     public void checkAbstractSourceClassWithoutExtends(From from) {
         var clazz = from.getClazz();
         if (!from.isIncludeSubClasses() && clazz != null && !clazz.eIsProxy() && clazz.isAbstract()) {
+            var sourceClass = formatClassifier(AstUtils.getViewType(from), clazz);
             warning(
-                ("Abstract class '%s' has no direct instances, "
+                ("Abstract class %s has no direct instances, "
                     + "use 'extends' to select the instances of its sub classes").formatted(
-                    clazz.getName()
+                    sourceClass.quoted()
                 ),
                 from,
                 AstPackage.Literals.FROM__CLAZZ

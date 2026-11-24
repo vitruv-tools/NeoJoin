@@ -6,7 +6,6 @@ import org.eclipse.emf.ecore.EDataType;
 import org.eclipse.emf.ecore.EEnum;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EStructuralFeature;
-import org.eclipse.emf.ecore.ETypedElement;
 import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.jspecify.annotations.Nullable;
@@ -15,7 +14,6 @@ import tools.vitruv.neojoin.common.EMFUtils;
 import java.util.ArrayDeque;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
@@ -165,11 +163,7 @@ final class UnmappableMetaModels {
      * Returns the super classes and feature types of the classes in the given package.
      */
     private static Stream<EClassifier> referencedTypes(EPackage pack) {
-        return classes(pack)
-            .flatMap(clazz -> Stream.concat(
-                clazz.getESuperTypes().stream(),
-                clazz.getEStructuralFeatures().stream().map(ETypedElement::getEType).filter(Objects::nonNull)
-            ));
+        return classes(pack).flatMap(EMFUtils::getReferencedTypes);
     }
 
     private static Stream<EClass> classes(EPackage pack) {

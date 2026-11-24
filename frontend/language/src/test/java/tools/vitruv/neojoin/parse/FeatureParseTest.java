@@ -36,7 +36,7 @@ class FeatureParseTest extends AbstractParseTest {
             }
             """);
 
-        assertThat(result).hasExactlyIssues("Duplicated feature name: name");
+        assertThat(result).hasExactlyIssues("Duplicated feature name 'name'");
     }
 
     @Test
@@ -48,7 +48,7 @@ class FeatureParseTest extends AbstractParseTest {
             }
             """);
 
-        assertThat(result).hasExactlyIssues("Duplicated feature name: name");
+        assertThat(result).hasExactlyIssues("Duplicated feature name 'name'");
     }
 
     @Test
@@ -60,7 +60,7 @@ class FeatureParseTest extends AbstractParseTest {
             }
             """);
 
-        assertThat(result).hasExactlyIssues("Duplicated feature name: name");
+        assertThat(result).hasExactlyIssues("Duplicated feature name 'name'");
     }
 
     @Test

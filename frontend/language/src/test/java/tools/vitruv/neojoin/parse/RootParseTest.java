@@ -108,7 +108,7 @@ class RootParseTest extends AbstractParseTest {
             create food {}
             """);
 
-        var message = "Target classes 'Food', 'food' have the same containment reference 'foods' in the root class. "
+        var message = "Target classes Food, food have the same containment reference 'foods' in the root class. "
             + "Choose names that differ in more than the case of the first letter.";
         assertThat(result)
             .hasIssueAt(message, "r.sells", "food")
@@ -188,7 +188,7 @@ class RootParseTest extends AbstractParseTest {
             from Menu create
             """);
 
-        var message = "Implicit class of source class Root collides with name of the implicit root class. "
+        var message = "Implicit class of source class 'Root' collides with name of the implicit root class. "
             + "Either create a query for the source class that specifies a different target class name "
             + "or explicitly create a root class with a different name.";
         assertThat(result)

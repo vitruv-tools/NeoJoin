@@ -5,6 +5,7 @@ import static tools.vitruv.neojoin.common.Assertions.check;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -12,6 +13,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -23,6 +25,7 @@ import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EDataType;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
+import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.impl.EPackageRegistryImpl;
 import org.eclipse.emf.ecore.resource.ContentHandler;
 import org.eclipse.emf.ecore.resource.Resource;
@@ -173,6 +176,47 @@ public final class EMFUtils {
         return getAllEClassifiers(pack)
             .filter(EDataType.class::isInstance)
             .map(c -> (EDataType) c);
+    }
+
+    /**
+     * Returns the types that the given class references: its super types and the types of its structural features
+     * (without inherited features). Features without type are skipped; proxies are returned as they are.
+     */
+    public static Stream<EClassifier> getReferencedTypes(EClass clazz) {
+        return Stream.concat(
+            clazz.getESuperTypes().stream(),
+            clazz.getEStructuralFeatures().stream().map(EStructuralFeature::getEType).filter(Objects::nonNull)
+        );
+    }
+
+    /**
+     * Returns the root packages of the given packages and of all packages that these reference, transitively: the
+     * packages of the super types and of the types of the structural features of their classes (including the
+     * sub packages). Unresolved proxies are ignored.
+     *
+     * @param packages packages to start with
+     * @return the root packages of the given and of the referenced packages, in the order they were found
+     */
+    public static Set<EPackage> getReferencedRootPackages(Collection<EPackage> packages) {
+        var result = new LinkedHashSet<EPackage>();
+        var queue = new ArrayDeque<EPackage>();
+        packages.stream()
+            .map(EMFUtils::getRootPackage)
+            .filter(result::add)
+            .forEach(queue::add);
+
+        while (!queue.isEmpty()) {
+            getAllEClassifiers(queue.poll())
+                .filter(EClass.class::isInstance)
+                .map(EClass.class::cast)
+                .flatMap(EMFUtils::getReferencedTypes)
+                .filter(type -> type.getEPackage() != null) // an unresolved proxy has no package
+                .map(type -> getRootPackage(type.getEPackage()))
+                .filter(result::add)
+                .forEach(queue::add);
+        }
+
+        return result;
     }
 
     /**
