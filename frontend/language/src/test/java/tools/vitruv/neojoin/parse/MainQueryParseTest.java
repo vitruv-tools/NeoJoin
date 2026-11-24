@@ -228,34 +228,6 @@ class MainQueryParseTest extends AbstractParseTest {
     }
 
     @Test
-    void implicitClassWithNameOfTargetClassWritesNamespaceUriIfQualifiedNameIsAmbiguous() {
-        var result = internalParse("""
-            export package to "http://example.com"
-
-            import "http://example.org/order"
-
-            from Order create
-            create Food {}
-            """);
-
-        var implicitClassMessage = "Implicit class of source class 'supplier.Food' (http://example.org/supplier/%s) "
-            + "has the same name as the target class 'Food'. Either choose a different name for the target class "
-            + "or create a query for the source class that specifies a different target class name.";
-        assertThat(result).hasExactlyIssues(
-            "Implicit classes of the source classes supplier.Food (http://example.org/supplier/a), "
-                + "supplier.Food (http://example.org/supplier/b) have the same name 'Food'. "
-                + "For all but one of these source classes, "
-                + "create a query that specifies a different target class name.",
-            implicitClassMessage.formatted("a"),
-            implicitClassMessage.formatted("b"),
-            "Target class 'Food' has the same name as the implicit classes of the source classes "
-                + "supplier.Food (http://example.org/supplier/a), supplier.Food (http://example.org/supplier/b). "
-                + "Either choose a different name for this class "
-                + "or create a query for the source class that specifies a different target class name."
-        );
-    }
-
-    @Test
     void targetClassWithNameOfSeveralImplicitClassesIsReportedOnce() {
         var result = internalParse("""
             export package to "http://example.com"

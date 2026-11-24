@@ -2,13 +2,16 @@ package tools.vitruv.neojoin.transformation.emf;
 
 import org.eclipse.emf.ecore.EObject;
 import org.jspecify.annotations.Nullable;
+import tools.vitruv.neojoin.common.ClassifierNames;
 import tools.vitruv.neojoin.common.Pair;
+import tools.vitruv.neojoin.model.AQRImport;
 import tools.vitruv.neojoin.model.AQRTargetClass;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Mapping from source instances to target instances and their target classes. Given that one source class can be the
@@ -18,7 +21,17 @@ import java.util.Map;
  */
 public class TargetMap {
 
+    private final List<AQRImport> imports;
     private final Map<EObject, List<Pair<EObject, AQRTargetClass>>> targetsBySource = new HashMap<>();
+
+    /**
+     * Creates an empty mapping.
+     *
+     * @param imports the imports of the query, used to write source classes in error messages as in the query
+     */
+    public TargetMap(List<AQRImport> imports) {
+        this.imports = List.copyOf(imports);
+    }
 
     /**
      * Register a new mapping from the source instance to the target instance via the target class.
@@ -56,18 +69,29 @@ public class TargetMap {
 
         if (targets.isEmpty()) {
             throw new TransformatorException(
-                "no target instance%s found for source instance of class '%s'".formatted(
-                    classInfo, source.eClass().getName()
+                "no target instance%s found for source instance of class %s".formatted(
+                    classInfo, writeSourceClass(source)
                 )
             );
         } else if (targets.size() > 1) {
             throw new TransformatorException(
-                "multiple target instances%s found for source instance of class '%s'".formatted(
-                    classInfo, source.eClass().getName()
+                "multiple target instances%s found for source instance of class %s".formatted(
+                    classInfo, writeSourceClass(source)
                 )
             );
         }
         return targets.get(0).left();
+    }
+
+    /**
+     * Returns the quoted name of the class of the source instance as the query writes it. The names are only
+     * computed for an error message.
+     */
+    private String writeSourceClass(EObject source) {
+        var aliasByPackage = imports.stream()
+            .collect(Collectors.toMap(AQRImport::pack, AQRImport::alias, (first, second) -> first));
+        var names = new ClassifierNames(aliasByPackage, aliasByPackage.keySet());
+        return names.write(source.eClass()).quoted();
     }
 
     private static boolean isSameOrSubClass(AQRTargetClass targetClass, AQRTargetClass superClass) {

@@ -40,7 +40,7 @@ public class Transformator {
     private final Map<String, Object> parameters;
 
     private @Nullable EObject root;
-    private final TargetMap targetMap = new TargetMap();
+    private final TargetMap targetMap;
     private final List<Runnable> delayedActions = new ArrayList<>();
 
     /**
@@ -66,6 +66,7 @@ public class Transformator {
         this.targetMetaModel = targetMetaModel;
         this.instanceSourceFactory = new InstanceSourceFactory(sourceInstanceModels);
         this.parameters = parameters;
+        this.targetMap = new TargetMap(aqr.imports());
     }
 
     /**

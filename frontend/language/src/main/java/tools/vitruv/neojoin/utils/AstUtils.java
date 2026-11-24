@@ -29,6 +29,7 @@ import tools.vitruv.neojoin.ast.Query;
 import tools.vitruv.neojoin.ast.Source;
 import tools.vitruv.neojoin.ast.SubQuery;
 import tools.vitruv.neojoin.ast.ViewTypeDefinition;
+import tools.vitruv.neojoin.common.ClassifierNames;
 import tools.vitruv.neojoin.common.EMFUtils;
 import tools.vitruv.neojoin.common.Pair;
 import tools.vitruv.neojoin.common.Utils;
@@ -37,7 +38,6 @@ import tools.vitruv.neojoin.jvmmodel.TypeInfo;
 import tools.vitruv.neojoin.jvmmodel.TypeResolutionException;
 
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -48,7 +48,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static tools.vitruv.neojoin.common.Assertions.check;
 import static tools.vitruv.neojoin.common.Assertions.fail;
 
 /**
@@ -192,20 +191,6 @@ public final class AstUtils {
         return imp.getAlias() != null ? imp.getAlias() : imp.getPackage().getName();
     }
 
-    /**
-     * Returns the name with which the given package can be referenced within the query.
-     *
-     * @return the alias of the import of the package (see {@link #getImportAlias}) or {@code null} if the package is
-     *     not imported
-     */
-    public static @Nullable String findImportAlias(ViewTypeDefinition viewType, EPackage pack) {
-        return viewType.getImports().stream()
-            .filter(imp -> imp.getPackage() == pack)
-            .findFirst()
-            .map(AstUtils::getImportAlias)
-            .orElse(null);
-    }
-
     public static Stream<Import> getValidImports(ViewTypeDefinition viewType) {
         return viewType.getImports().stream()
             // filter out unresolved imports
@@ -264,24 +249,7 @@ public final class AstUtils {
      * @return segments of the fully qualified name of the classifier
      */
     public static List<String> getQualifiedNameSegments(EClassifier classifier, String rootAlias) {
-        var segments = Stream.concat(
-            EMFUtils.getFullyQualifiedNameAsStream(classifier.getEPackage()),
-            Stream.of(classifier.getName())
-        ).collect(Collectors.toCollection(ArrayList::new));
-        check(segments.size() > 1); // at least package name + class name
-        segments.set(0, rootAlias);
-        return List.copyOf(segments);
-    }
-
-    /**
-     * Returns the fully qualified name of the given classifier as it is written in a query: the segments of
-     * {@link #getQualifiedNameSegments} joined with {@code .}. The first segment is the alias of the import of the
-     * root package, or the name of the root package if it is not imported.
-     */
-    public static String getQualifiedNameInQuery(ViewTypeDefinition viewType, EClassifier classifier) {
-        var rootPackage = EMFUtils.getRootPackage(classifier.getEPackage());
-        var alias = findImportAlias(viewType, rootPackage);
-        return String.join(".", getQualifiedNameSegments(classifier, alias != null ? alias : rootPackage.getName()));
+        return ClassifierNames.getQualifiedNameSegments(classifier, rootAlias);
     }
 
     /**
