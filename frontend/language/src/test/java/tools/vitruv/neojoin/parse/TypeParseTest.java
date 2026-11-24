@@ -150,7 +150,7 @@ class TypeParseTest extends AbstractParseTest {
 
     /**
      * {@code order.ecore} is not imported, but references the classes {@code Food} of two packages named
-     * {@code supplier}, so the query can meet them and {@code rest.Food} is written with its qualified name.
+     * {@code supplier}, so they are candidates and {@code rest.Food} is written with its qualified name.
      */
     @Test
     void ambiguousTargetClassWritesSourceClassWithQualifiedNameIfSimpleNameIsAmbiguousThroughReferencedPackage() {
