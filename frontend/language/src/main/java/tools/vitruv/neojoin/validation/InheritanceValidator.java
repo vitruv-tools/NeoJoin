@@ -420,32 +420,52 @@ public class InheritanceValidator extends ComposableValidator {
         }
 
         if (overriding instanceof AttributeType attribute) {
-            if (!(overridden instanceof AttributeType overriddenAttribute)) {
-                return "Attribute '%s' cannot override a reference".formatted(name);
-            }
-            if (!attribute.type().equals(overriddenAttribute.type())) {
-                return "Type of overriding feature '%s' must be equal to the type of the overridden feature"
-                    .formatted(name);
-            }
+            return getAttributeOverrideViolation(name, attribute, overridden);
         } else if (overriding instanceof ReferenceType reference) {
-            if (!(overridden instanceof ReferenceType overriddenReference)) {
-                return "Reference '%s' cannot override an attribute".formatted(name);
-            }
-            // references to Ecore classes have no target class, so they only match references to the same Ecore class
-            if (reference instanceof EcoreReferenceType && !(overriddenReference instanceof EcoreReferenceType)) {
-                return "Reference '%s' to an Ecore class cannot override a reference to a target class".formatted(name);
-            }
-            if (!(reference instanceof EcoreReferenceType) && overriddenReference instanceof EcoreReferenceType) {
-                return "Reference '%s' to a target class cannot override a reference to an Ecore class".formatted(name);
-            }
-            if (hasExplicitType && !reference.equals(overriddenReference)) {
-                return "Type of overriding feature '%s' must be equal to the type of the overridden feature"
-                    .formatted(name);
-            }
-            if (!isSameOrSubReferenceType(viewType, reference, overriddenReference)) {
-                return "Value of overriding feature '%s' cannot be assigned to the type of the overridden feature"
-                    .formatted(name);
-            }
+            return getReferenceOverrideViolation(viewType, name, reference, hasExplicitType, overridden);
+        }
+        return null;
+    }
+
+    private @Nullable String getAttributeOverrideViolation(
+        String name,
+        AttributeType attribute,
+        FeatureType overridden
+    ) {
+        if (!(overridden instanceof AttributeType overriddenAttribute)) {
+            return "Attribute '%s' cannot override a reference".formatted(name);
+        }
+        if (!attribute.type().equals(overriddenAttribute.type())) {
+            return "Type of overriding feature '%s' must be equal to the type of the overridden feature"
+                .formatted(name);
+        }
+        return null;
+    }
+
+    private @Nullable String getReferenceOverrideViolation(
+        ViewTypeDefinition viewType,
+        String name,
+        ReferenceType reference,
+        boolean hasExplicitType,
+        FeatureType overridden
+    ) {
+        if (!(overridden instanceof ReferenceType overriddenReference)) {
+            return "Reference '%s' cannot override an attribute".formatted(name);
+        }
+        // references to Ecore classes have no target class, so they only match references to the same Ecore class
+        if (reference instanceof EcoreReferenceType && !(overriddenReference instanceof EcoreReferenceType)) {
+            return "Reference '%s' to an Ecore class cannot override a reference to a target class".formatted(name);
+        }
+        if (!(reference instanceof EcoreReferenceType) && overriddenReference instanceof EcoreReferenceType) {
+            return "Reference '%s' to a target class cannot override a reference to an Ecore class".formatted(name);
+        }
+        if (hasExplicitType && !reference.equals(overriddenReference)) {
+            return "Type of overriding feature '%s' must be equal to the type of the overridden feature"
+                .formatted(name);
+        }
+        if (!isSameOrSubReferenceType(viewType, reference, overriddenReference)) {
+            return "Value of overriding feature '%s' cannot be assigned to the type of the overridden feature"
+                .formatted(name);
         }
         return null;
     }
