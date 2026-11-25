@@ -41,6 +41,7 @@ public class VisualizationGenerator {
     // starts with a digit, so that it cannot be the alias of an import (an identifier), like the ids of external
     // packages
     private static final String TargetPackageId = "0target";
+    private static final String ListTypeFormat = "EList<%s>";
 
     public sealed interface Mode {
 
@@ -372,8 +373,8 @@ public class VisualizationGenerator {
     }
 
     private static String formatParameterType(AQRParameter parameter) {
-        return (parameter.isList() ? "[" : "")
-            + parameter.type().getName()
-            + (parameter.isList() ? "]" : "");
+        return parameter.isList()
+            ? ListTypeFormat.formatted(parameter.type().getName())
+            : parameter.type().getName();
     }
 }
