@@ -20,6 +20,9 @@ public class PlantUMLBuilder {
                     FontStyle: bold
                 }
             }
+            legend {
+                BackGroundColor transparent
+            }
         </style>""".stripIndent();
 
     private static final String OrthogonalArrows = "skinparam linetype ortho";
@@ -27,6 +30,7 @@ public class PlantUMLBuilder {
     private static final String ReferenceContainment = "*-->";
     private static final String ReferenceInheritanceUpwards = "-up-|>";
     private static final String ArrowSourceClass = ".down.>";
+    private static final String LEGEND_HEADLINE_FORMAT = "**%s:**";
 
     private final StringBuilder out = new StringBuilder();
 
@@ -69,6 +73,17 @@ public class PlantUMLBuilder {
         appendln(prefix, " {");
         content.run();
         appendln("}");
+    }
+
+    public void legend(String headline, String position, Runnable content) {
+        appendln(legendStart(position));
+
+        if (!headline.isEmpty()) {
+            appendln(LEGEND_HEADLINE_FORMAT.formatted(headline));
+        }
+
+        content.run();
+        appendln("endlegend");
     }
 
     /**
@@ -148,4 +163,14 @@ public class PlantUMLBuilder {
         };
     }
 
+    private static String legendStart(String position) {
+        var out = new StringBuilder();
+
+        out.append("legend");
+        if (!position.isEmpty()) {
+            out.append(" ").append(position);
+        }
+
+        return out.toString();
+    }
 }

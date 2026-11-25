@@ -223,4 +223,41 @@ class VisualizationGeneratorIT {
 
         assertThat(puml).contains("class supplier.Food {").doesNotContain("<<external>>");
     }
+
+
+    @Test
+    void legendForQueryParameterIsAdded() throws IOException {
+        var puml = generate(
+            new Mode.Full(),
+            "import \"http://example.org/supplier/a\"",
+            """
+                    param paramA : EString
+                    param paramB : EInt
+                    param paramC : EList<Food>
+                    from Food f create { f.name }
+            """
+        );
+
+        assertThat(puml).containsSubsequence(
+            "legend left",
+                "**Parameters:**",
+                "paramA : EString",
+                "paramB : EInt",
+                "paramC : EList<Food>",
+                "endlegend"
+        );
+    }
+
+    @Test
+    void legendForQueryParameterIsNotAddedIfThereAreNoParameters() throws IOException {
+        var puml = generate(
+            new Mode.Full(),
+            "import \"http://example.org/supplier/a\"",
+            "from Food f create { f.name }"
+        );
+
+        assertThat(puml)
+            .doesNotContain("legend left")
+            .doesNotContain("endlegend");
+    }
 }
