@@ -372,8 +372,8 @@ public class VisualizationGenerator {
     }
 
     private static String formatParameterType(AQRParameter parameter) {
-        return (parameter.isList()? "[" : "") +
-            parameter.type().getName() +
-            (parameter.isList()? "]" : "");
+        return (parameter.isList() ? "[" : "")
+            + parameter.type().getName()
+            + (parameter.isList() ? "]" : "");
     }
 }
