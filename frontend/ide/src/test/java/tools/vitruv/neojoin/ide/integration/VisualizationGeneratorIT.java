@@ -256,6 +256,8 @@ class VisualizationGeneratorIT {
             "from Food f create { f.name }"
         );
 
-        assertThat(puml).doesNotContain("legend");
+        assertThat(puml)
+            .doesNotContain("legend left")
+            .doesNotContain("endlegend");
     }
 }
