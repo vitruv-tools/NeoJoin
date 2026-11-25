@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="order" nsURI="http://example.org/order" nsPrefix="order">
+  <eClassifiers xsi:type="ecore:EClass" name="Order" eSuperTypes="http://example.org/supplier/a#//Item">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="fromA" eType="ecore:EClass http://example.org/supplier/a#//Food"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="part" eType="ecore:EClass http://example.org/supplier/a#//sub/Part"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="fromB" eType="ecore:EClass http://example.org/supplier/b#//Food"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="unit" eType="ecore:EEnum http://example.org/units#//Unit"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="code" eType="ecore:EDataType http://example.org/supplier/b#//Code"/>
+  </eClassifiers>
+</ecore:EPackage>

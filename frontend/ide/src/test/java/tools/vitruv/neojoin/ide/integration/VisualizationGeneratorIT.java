@@ -16,6 +16,7 @@ import tools.vitruv.neojoin.ide.visualization.VisualizationGenerator;
 import tools.vitruv.neojoin.ide.visualization.VisualizationGenerator.Mode;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -30,12 +31,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class VisualizationGeneratorIT {
 
-    private static final String XMI_HEADER = """
-        <?xml version="1.0" encoding="UTF-8"?>
-        <ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI"
-            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore"
-        """;
-
     private static final String ORDER_IMPORT = "import \"http://example.org/order\"";
 
     @TempDir
@@ -44,62 +39,20 @@ class VisualizationGeneratorIT {
     /**
      * {@code order} (imported by the queries) refers to a super class, references, an enumeration and a data type
      * of three packages that the queries do not import. Two of them have the name {@code supplier}.
+     * {@code eobject-ref} refers to Ecore classes.
      */
     @BeforeEach
-    void writeMetaModels() throws IOException {
-        writeMetaModel("order", """
-            name="order" nsURI="http://example.org/order" nsPrefix="order">
-              <eClassifiers xsi:type="ecore:EClass" name="Order" eSuperTypes="http://example.org/supplier/a#//Item">
-                <eStructuralFeatures xsi:type="ecore:EReference" name="fromA"
-                    eType="ecore:EClass http://example.org/supplier/a#//Food"/>
-                <eStructuralFeatures xsi:type="ecore:EReference" name="part"
-                    eType="ecore:EClass http://example.org/supplier/a#//sub/Part"/>
-                <eStructuralFeatures xsi:type="ecore:EReference" name="fromB"
-                    eType="ecore:EClass http://example.org/supplier/b#//Food"/>
-                <eStructuralFeatures xsi:type="ecore:EAttribute" name="unit"
-                    eType="ecore:EEnum http://example.org/units#//Unit"/>
-                <eStructuralFeatures xsi:type="ecore:EAttribute" name="code"
-                    eType="ecore:EDataType http://example.org/supplier/b#//Code"/>
-              </eClassifiers>
-            """);
-        writeMetaModel("supplier-a", """
-            name="supplier" nsURI="http://example.org/supplier/a" nsPrefix="suppliera">
-              <eClassifiers xsi:type="ecore:EClass" name="Food">
-                <eStructuralFeatures xsi:type="ecore:EAttribute" name="name"
-                    eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
-              </eClassifiers>
-              <eClassifiers xsi:type="ecore:EClass" name="Item" abstract="true"/>
-              <eClassifiers xsi:type="ecore:EDataType" name="Code" instanceClassName="java.lang.String"/>
-              <eSubpackages name="sub" nsURI="http://example.org/supplier/a/sub" nsPrefix="sub">
-                <eClassifiers xsi:type="ecore:EClass" name="Part"/>
-              </eSubpackages>
-            """);
-        writeMetaModel("supplier-b", """
-            name="supplier" nsURI="http://example.org/supplier/b" nsPrefix="supplierb">
-              <eClassifiers xsi:type="ecore:EClass" name="Food"/>
-              <eClassifiers xsi:type="ecore:EDataType" name="Code" instanceClassName="java.lang.String"/>
-            """);
-        writeMetaModel("holder", """
-            name="holder" nsURI="http://example.org/holder" nsPrefix="holder">
-              <eClassifiers xsi:type="ecore:EClass" name="Holder"
-                  eSuperTypes="http://www.eclipse.org/emf/2002/Ecore#//ENamedElement">
-                <eStructuralFeatures xsi:type="ecore:EAttribute" name="label"
-                    eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
-                <eStructuralFeatures xsi:type="ecore:EReference" name="target"
-                    eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EObject"/>
-              </eClassifiers>
-            """);
-        writeMetaModel("units", """
-            name="units" nsURI="http://example.org/units" nsPrefix="units">
-              <eClassifiers xsi:type="ecore:EEnum" name="Unit">
-                <eLiterals name="Piece"/>
-              </eClassifiers>
-            """);
+    void copyMetaModels() throws IOException {
+        for (var name : List.of("order", "supplier-a", "supplier-b", "units")) {
+            copyResource("/visualization/", name + ".ecore");
+        }
+        copyResource("/models/", "eobject-ref.ecore");
     }
 
-    private void writeMetaModel(String fileName, String packageAndClassifiers) throws IOException {
-        Files.writeString(directory.resolve(fileName + ".ecore"), XMI_HEADER + "    " + packageAndClassifiers
-            + "</ecore:EPackage>\n");
+    private void copyResource(String folder, String fileName) throws IOException {
+        try (InputStream stream = VisualizationGeneratorIT.class.getResourceAsStream(folder + fileName)) {
+            Files.copy(stream, directory.resolve(fileName));
+        }
     }
 
     private String generate(Mode mode, String imports, String body) throws IOException {
@@ -211,17 +164,17 @@ class VisualizationGeneratorIT {
     @Test
     void ecoreClassesAreEmptyBoxesInExternalPackage() throws IOException {
         var puml = generate(
-            new Mode.Full(), "import \"http://example.org/holder\"", "from Holder h create { h.label h.target }"
+            new Mode.Full(), "import \"http://vitruv.tools/eobjectref\"", "from Holder h create { h.name h.target }"
         );
 
         assertThat(puml).containsSubsequence(
             "package \"ecore\" as 1external <<external>> {",
-            "class holder.Holder {",
-            "label : EString",
             "class 1external.EObject {",
-            "holder.Holder --> \"0..1\" 1external.EObject : target",
+            "class eobjectref.Holder {",
+            "name : EString",
+            "eobjectref.Holder --> \"0..1\" 1external.EObject : target",
             "abstract class 1external.ENamedElement {",
-            "holder.Holder -up-|> 1external.ENamedElement"
+            "eobjectref.Named -up-|> 1external.ENamedElement"
         )
             // super types of Ecore classes are not expanded
             .doesNotContain("EModelElement").doesNotContain("EAnnotation");
